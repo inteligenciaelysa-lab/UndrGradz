@@ -1,0 +1,178 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(cuid())
+
+  email             String   @unique
+  phone             String?  @unique
+  handle            String?  @unique
+
+  passwordHash      String
+
+  firstName         String
+  lastName         String
+
+  birthDate         DateTime
+
+  isEmailVerified   Boolean  @default(false)
+  isPhoneVerified   Boolean  @default(false)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  profile           UserProfile?
+  photos            Photo[]
+  
+  sentSwipes        Swipe[]  @relation("SentSwipes")
+  receivedSwipes    Swipe[]  @relation("ReceivedSwipes")
+  
+  matchesOne        Match[]  @relation("UserOneMatches")
+  matchesTwo        Match[]  @relation("UserTwoMatches")
+
+  referralCode      String?  @unique
+  referredById      String?
+  referredBy        User?    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referredUsers     User[]   @relation("Referrals")
+  
+  sentFriendships     Friendship[] @relation("SentFriendships")
+  receivedFriendships Friendship[] @relation("ReceivedFriendships")
+  sentProfileViews    ProfileView[] @relation("SentViews")
+  receivedProfileViews ProfileView[] @relation("ReceivedViews")
+  messages            Message[]
+  createdEvents       Event[]      @relation("CreatedEvents")
+  joinedEvents        Event[]      @relation("EventAttendees")
+}
+
+model UserProfile {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio              String?
+  gender           String?   // 'MAN', 'WOMAN', 'NON_BINARY'
+  interestedIn     String?   // 'MAN', 'WOMAN', 'EVERYONE'
+  university       String?   
+  major            String?   
+  grad             String?   // Año de graduación, ej. "May '26"
+  crossover        Boolean   @default(false)
+  latitude         Float?
+  longitude        Float?
+  minAge           Int       @default(18)
+  maxAge           Int       @default(26)
+  maxDistanceKm    Int       @default(20)
+  lastActive       DateTime  @default(now())
+  isGhostMode      Boolean   @default(false)
+  subscriptionTier String    @default("FREE") // 'FREE', 'GOLD', 'PLATINUM'
+  subscriptionEnds DateTime?
+  boostEndsAt      DateTime?
+  fcmToken         String?
+
+  // Metadatos JSON estructurados
+  interests        Json?     // Array de strings
+  prompts          Json?     // Array de objetos { q: String, a: String }
+  bucketList       Json?     // Array de strings
+  identityTags     Json?     // Array de strings
+  lookingForTags   Json?     // Array de strings
+  lifestyle        Json?     // { diet, drinking, smoking, sports, workout, loveLanguage, zodiac }
+  academic         Json?     // { minor, degree, advDegrees, company, clubs, backOnCampus... }
+  background       Json?     // { religion, politics, ethnicity, pronouns, relationshipStatus }
+  customization    Json?     // { accentText, anthem, cardStyle, badgeColor, uniNameColor... }
+  socials          Json?     // { ig, website, otherlink }
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  order     Int
+  createdAt DateTime @default(now())
+}
+
+model Swipe {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentSwipes", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedSwipes", fields: [receiverId], references: [id], onDelete: Cascade)
+  type       String   // 'PASS', 'LIKE', 'SUPERLIKE', 'ROSE'
+  createdAt  DateTime @default(now())
+
+  @@unique([senderId, receiverId])
+}
+
+model Match {
+  id              String   @id @default(cuid())
+  userOneId       String
+  userOne         User     @relation("UserOneMatches", fields: [userOneId], references: [id], onDelete: Cascade)
+  userTwoId       String
+  userTwo         User     @relation("UserTwoMatches", fields: [userTwoId], references: [id], onDelete: Cascade)
+  streamChannelId String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  messages        Message[]
+
+  @@unique([userOneId, userTwoId])
+}
+
+model Friendship {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+  status     String   // 'PENDING', 'ACCEPTED', 'DECLINED'
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([senderId, receiverId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  senderId  String
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  emoji       String
+  section     String   // 'nightlife', 'study', 'sports', 'networking'
+  address     String
+  time        String
+  hostHandle  String
+  capacity    Int
+  description String?
+  filters     Json?    // e.g. { majors: [], years: [] }
+  creatorId   String
+  creator     User     @relation("CreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
+  attendees   User[]   @relation("EventAttendees")
+  createdAt   DateTime @default(now())
+}
+
+model ProfileView {
+  id         String   @id @default(cuid())
+  viewerId   String
+  viewer     User     @relation("SentViews", fields: [viewerId], references: [id], onDelete: Cascade)
+  viewedId   String
+  viewed     User     @relation("ReceivedViews", fields: [viewedId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([viewerId, viewedId])
+}
