@@ -4834,25 +4834,46 @@ function onEvSectionChange(sec){
 // ── CHAT SECTIONS ──
 var currentChatSection='all';var _chatSubMode='all';
 function _chatSub(el,m){_chatSubMode=m;var box=el.parentElement;if(box)box.querySelectorAll('.cst').forEach(function(c){c.classList.toggle('on',c===el);});if(typeof filterChatBySection==='function')filterChatBySection();}
-var CHAT_SECTION_LABEL={individuals:'Friends',matches:'Matches ❤️',nightlife:'Nightlife Events',study:'Study Groups',dorm:'Dorm Events',sports:'Sports Events',exclusive:'Exclusive Events',greek:'Greek Life',abroad:'Study Abroad',campus:'Campus',clubs:'Clubs'};
-function _ensureGreekChat(){
-  if(!(userPro&&userPro.org))return;var list=document.getElementById('chat-list');if(!list)return;
-  if(document.getElementById('clist-greekchat'))return;
-  var color='#7c3aed';var nm=userPro.org;var pn=(typeof _greekPartner==='function')?_greekPartner(nm):null;
-  var item=document.createElement('div');item.className='citem';item.id='clist-greekchat';item.setAttribute('data-csec','greek');
-  item.onclick=function(){openChat('greekchat',nm+' 🏛️',color,'🏛️',true,['Welcome to the '+nm+' chapter chat 🏛️',(pn?'Paired with '+pn+' — plan your next mixer here!':'Plan events and stay connected.')],false);};
-  item.innerHTML='<div class="cav grp" style="background:'+color+';"><span>🏛️</span></div><div class="cmeta"><div class="cnm">'+nm+'</div><div class="cpre">Chapter chat'+(pn?' · paired with '+pn:'')+'</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div></div>';
-  list.insertBefore(item,list.firstChild);
+var CHAT_SECTION_LABEL = {
+  all: 'All Messages',
+  friends: 'Friends',
+  individuals: 'Friends',
+  matches: 'Matches ❤️',
+  events: 'Events 🎉'
+};
+
+function _getChatCategory(item) {
+  var csec = (item.getAttribute('data-csec') || '').toLowerCase();
+  var id = (item.id || '').toLowerCase();
+  var onclick = (item.getAttribute('onclick') || '').toLowerCase();
+
+  if (csec === 'friends' || csec === 'individuals' || id.indexOf('chat_friend_') === 0 || id === 'clist-ana' || id === 'clist-miguel') {
+    return 'friends';
+  } else if (csec === 'matches' || id.indexOf('chat_match_') === 0 || onclick.indexOf('match') > -1) {
+    return 'matches';
+  } else {
+    return 'events';
+  }
 }
-function _ensureClubChats(){var cl=(userPro&&userPro.clubs)||[];cl.forEach(function(n){if(typeof _addClubChat==='function')_addClubChat(n);});}
-function setChatSection(sec){
-  if(sec==='greek'&&typeof _ensureGreekChat==='function')_ensureGreekChat();
-  if(sec==='clubs'&&typeof _ensureClubChats==='function')_ensureClubChats();
-  currentChatSection=sec;
-  var _uc=document.getElementById('cpanel-uchats');var _cl=document.getElementById('chat-list');if(_uc)_uc.style.display=(sec==='matches')?'block':'none';if(_cl)_cl.style.display=(sec==='matches')?'none':'block';
-  document.querySelectorAll('.chatsec-chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-sec')===sec);});
-  var lbl=document.getElementById('chat-section-label');if(lbl)lbl.textContent=CHAT_SECTION_LABEL[sec]||'Messages';
-  var _cs=document.getElementById('chat-search');if(_cs)_cs.placeholder=(sec==='study')?'🔍 Search classes — code, name, days, time, professor…':'🔍 Search chats, events or users…';
+
+function setChatSection(sec) {
+  if (sec === 'greek' && typeof _ensureGreekChat === 'function') _ensureGreekChat();
+  if (sec === 'clubs' && typeof _ensureClubChats === 'function') _ensureClubChats();
+  currentChatSection = sec;
+  var _uc = document.getElementById('cpanel-uchats');
+  var _cl = document.getElementById('chat-list');
+  if (_uc) _uc.style.display = (sec === 'matches') ? 'block' : 'none';
+  if (_cl) _cl.style.display = 'block';
+
+  document.querySelectorAll('.chatsec-chip').forEach(function(c) {
+    var s = c.getAttribute('data-sec');
+    c.classList.toggle('on', s === sec || (sec === 'friends' && s === 'individuals'));
+  });
+
+  var lbl = document.getElementById('chat-section-label');
+  if (lbl) lbl.textContent = CHAT_SECTION_LABEL[sec] || 'Messages';
+  var _cs = document.getElementById('chat-search');
+  if (_cs) _cs.placeholder = (sec === 'study') ? '🔍 Search classes — code, name, days, time, professor…' : '🔍 Search chats, events or users…';
   filterChatBySection();
 }
 
@@ -4891,30 +4912,63 @@ function _chatSearchFocus(){
   d.style.display='block';
 }
 
-function filterChatBySection(){
-  var list=document.getElementById('chat-list');if(!list)return;
-  var items=list.querySelectorAll('.citem');
-  var isStudy=(currentChatSection==='study');
-  list.style.display=isStudy?'none':'';
-  var sub=(typeof _chatSubMode!=='undefined')?_chatSubMode:'all';
-  var showHeaders=(currentChatSection==='all'&&sub==='all'&&!isStudy);
-  list.querySelectorAll('.chat-grp-hdr').forEach(function(h){h.style.display=showHeaders?'':'none';});
-  var anyVisible=false;
-  if(!isStudy){
-    items.forEach(function(it){
-      var sec=it.getAttribute('data-csec')||'individuals';
-      var show=(currentChatSection==='all')||(sec===currentChatSection);
-      if(show&&sub==='unread')show=!!it.querySelector('.cunrd');
-      if(show&&sub==='fav')show=it.getAttribute('data-fav')==='1';
-      it.style.display=show?'':'none';
-      if(show)anyVisible=true;
+function filterChatBySection() {
+  var list = document.getElementById('chat-list');
+  if (!list) return;
+
+  var items = Array.prototype.slice.call(list.querySelectorAll('.citem'));
+  var sub = (typeof _chatSubMode !== 'undefined') ? _chatSubMode : 'all';
+  var sec = currentChatSection || 'all';
+
+  // Sort items when viewing 'all': Friends (1) -> Matches (2) -> Events (3)
+  if (sec === 'all') {
+    items.sort(function(a, b) {
+      var catMap = { 'friends': 1, 'matches': 2, 'events': 3 };
+      var catA = catMap[_getChatCategory(a)] || 3;
+      var catB = catMap[_getChatCategory(b)] || 3;
+      return catA - catB;
+    });
+
+    items.forEach(function(it) {
+      list.appendChild(it);
     });
   }
-  var empty=document.getElementById('chat-empty-section');if(empty)empty.style.display=(isStudy||anyVisible)?'none':'block';
-  var sp=document.getElementById('study-panel');
-  if(sp){sp.style.display=isStudy?'block':'none';if(isStudy&&typeof renderStudyPanel==='function')renderStudyPanel();}
-  var searchWrap=document.getElementById('chat-search');
-  if(searchWrap&&searchWrap.parentElement)searchWrap.parentElement.style.display='';
+
+  // Hide old category headers
+  list.querySelectorAll('.chat-grp-hdr').forEach(function(h) {
+    h.style.display = 'none';
+  });
+
+  var anyVisible = false;
+  items.forEach(function(it) {
+    var itemCat = _getChatCategory(it);
+    var show = false;
+
+    if (sec === 'all') {
+      show = true;
+    } else if (sec === 'friends' || sec === 'individuals') {
+      show = (itemCat === 'friends');
+    } else if (sec === 'matches') {
+      show = (itemCat === 'matches');
+    } else if (sec === 'events') {
+      show = (itemCat === 'events');
+    } else {
+      var rawSec = (it.getAttribute('data-csec') || '').toLowerCase();
+      show = (rawSec === sec.toLowerCase());
+    }
+
+    if (show && sub === 'unread') show = !!it.querySelector('.cunrd');
+    if (show && sub === 'fav') show = it.getAttribute('data-fav') === '1';
+
+    it.style.display = show ? '' : 'none';
+    if (show) anyVisible = true;
+  });
+
+  var empty = document.getElementById('chat-empty-section');
+  if (empty) empty.style.display = anyVisible ? 'none' : 'block';
+
+  var searchWrap = document.getElementById('chat-search');
+  if (searchWrap && searchWrap.parentElement) searchWrap.parentElement.style.display = '';
 }
 function _openChatCreateMenu(){
   var m=document.getElementById('chat-create-menu');if(m)m.remove();
@@ -5483,16 +5537,16 @@ function openHangoutDetailModal(evtId) {
       var name = att.firstName || (att.name ? att.name.split(' ')[0] : 'Estudiante');
       var major = (att.profile && att.profile.major) || att.major || 'Student';
       var photoHtml = photo ?
-        '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid rgba(168,85,247,0.4);flex-shrink:0;"></div>' :
-        '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
+        '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid #a855f7;box-shadow:0 0 10px rgba(168,85,247,0.6);flex-shrink:0;"></div>' :
+        '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 0 10px rgba(236,72,153,0.5);">'+name.charAt(0).toUpperCase()+'</div>';
       
-      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;">' +
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(168,85,247,0.06);border:1.5px solid rgba(168,85,247,0.35);border-radius:18px;box-shadow:0 0 12px rgba(168,85,247,0.18);">' +
         photoHtml +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:14px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+name+'</div>' +
-          '<div style="font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+major+'</div>' +
+          '<div style="font-size:14px;font-weight:900;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+name+'</div>' +
+          '<div style="font-size:11.5px;color:#c4b5fd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;">'+major+'</div>' +
         '</div>' +
-        '<div style="font-size:11px;font-weight:800;color:#34d399;background:rgba(52,211,153,0.12);padding:4px 10px;border-radius:12px;">Asistirá ✓</div>' +
+        '<div style="font-size:11px;font-weight:900;color:#ffffff;background:linear-gradient(135deg,#10b981,#059669);border:1.5px solid #34d399;padding:4.5px 12px;border-radius:20px;box-shadow:0 0 14px rgba(52,211,153,0.6);letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><span style="filter:drop-shadow(0 0 4px #34d399);">⚡</span> <span>GOING</span></div>' +
       '</div>';
     }).join('');
   } else {
@@ -5504,83 +5558,88 @@ function openHangoutDetailModal(evtId) {
     ];
     var list = fg.length ? fg : friendPool;
     attendeesListHtml = list.slice(0, 4).map(function(f) {
-      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;">' +
-        '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#7c3aed')+';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;">'+(f.i||'U')+'</div>' +
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(168,85,247,0.06);border:1.5px solid rgba(168,85,247,0.35);border-radius:18px;box-shadow:0 0 12px rgba(168,85,247,0.18);">' +
+        '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#7c3aed')+';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 0 10px rgba(168,85,247,0.6);">'+(f.i||'U')+'</div>' +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:14px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(f.n || 'Estudiante')+'</div>' +
-          '<div style="font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(f.m || 'Student')+'</div>' +
+          '<div style="font-size:14px;font-weight:900;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+(f.n || 'Estudiante')+'</div>' +
+          '<div style="font-size:11.5px;color:#c4b5fd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;">'+(f.m || 'Student')+'</div>' +
         '</div>' +
-        '<div style="font-size:11px;font-weight:800;color:#34d399;background:rgba(52,211,153,0.12);padding:4px 10px;border-radius:12px;">Asistirá ✓</div>' +
+        '<div style="font-size:11px;font-weight:900;color:#ffffff;background:linear-gradient(135deg,#10b981,#059669);border:1.5px solid #34d399;padding:4.5px 12px;border-radius:20px;box-shadow:0 0 14px rgba(52,211,153,0.6);letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><span style="filter:drop-shadow(0 0 4px #34d399);">⚡</span> <span>GOING</span></div>' +
       '</div>';
     }).join('');
   }
 
   var key = e.section + '|' + e.name;
   var isJoined = !!joinedHangouts[key];
-  var joinBtnHtml = _hxJoin(e, 'linear-gradient(135deg, #6366f1 0%, #d946ef 100%)');
-  var groupChatBtnHtml = isJoined ?
-    '<button onclick="closeHangoutDetailModal();_eventJoinedTap(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:14px;border-radius:18px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border:1px solid rgba(168,85,247,0.5);color:#fff;font-family:var(--font);font-size:14px;font-weight:900;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(124,58,237,0.4);">💬 Ir al Chat del Grupo</button>' : '';
+
+  var actionButtonsHtml = isJoined ?
+    '<div style="display:flex;gap:10px;margin-top:14px;">' +
+      '<button onclick="closeHangoutDetailModal();_eventJoinedTap(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="flex:1;padding:14px 10px;border-radius:18px;background:linear-gradient(135deg,#7c3aed 0%,#ec4899 100%);border:none;color:#fff;font-family:var(--font);font-size:13.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 20px rgba(168,85,247,0.5);letter-spacing:0.3px;">💬 Ir a Chat</button>' +
+      '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="flex:1;padding:14px 10px;border-radius:18px;background:rgba(244,63,94,0.12);border:1.5px solid rgba(244,63,94,0.6);color:#f43f5e;font-family:var(--font);font-size:13.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 15px rgba(244,63,94,0.25);letter-spacing:0.3px;">🚪 Salir del Evento</button>' +
+    '</div>' :
+    '<div style="margin-top:14px;width:100%;">' +
+      '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:15px;border-radius:18px;background:linear-gradient(135deg,#6366f1 0%,#d946ef 100%);border:none;color:#fff;font-family:var(--font);font-size:14.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(217,70,239,0.55);letter-spacing:0.4px;">🔥 Unirse al Evento</button>' +
+    '</div>';
 
   var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
+
+  body.style.cssText = 'background:linear-gradient(180deg,#110926 0%,#090417 100%);border-radius:28px;overflow:hidden;border:1.5px solid rgba(168,85,247,0.45);box-shadow:0 0 40px rgba(168,85,247,0.3), inset 0 0 25px rgba(236,72,153,0.12);';
 
   body.innerHTML = 
     // Header image
     '<div style="height:230px;background:'+coverStyle+';position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:16px;box-sizing:border-box;">' +
-      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.4) 0%,rgba(10,5,24,0.2) 40%,#0a0518 100%);pointer-events:none;"></div>' +
+      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(10,5,24,0.3) 50%,#090417 100%);pointer-events:none;"></div>' +
       
       // Top bar with close button & badges
       '<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;">' +
         '<div style="display:flex;align-items:center;gap:8px;">' + badgeHtml + capFlagHtml + '</div>' +
-        '<button onclick="closeHangoutDetailModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);">✕</button>' +
+        '<button onclick="closeHangoutDetailModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(10,5,24,0.75);backdrop-filter:blur(10px);border:1.5px solid rgba(236,72,153,0.5);color:#fff;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(236,72,153,0.35);">✕</button>' +
       '</div>' +
 
       // Title over cover
       '<div style="position:relative;z-index:2;width:100%;margin-bottom:6px;">' +
-        '<div style="font-size:24px;font-weight:900;color:#fff;line-height:1.2;font-family:var(--font);letter-spacing:-0.5px;text-shadow:0 2px 12px rgba(0,0,0,0.95);">'+e.name+' '+evtEmoji+'</div>' +
+        '<div style="font-size:24px;font-weight:900;color:#fff;line-height:1.2;font-family:var(--font);letter-spacing:-0.5px;text-shadow:0 2px 12px rgba(0,0,0,0.95);filter:drop-shadow(0 0 10px rgba(168,85,247,0.5));">'+e.name+' '+evtEmoji+'</div>' +
       '</div>' +
     '</div>' +
 
     // Content container
     '<div style="padding:0 20px 24px;">' +
-      // Date, Time & Location section
-      '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:14px 16px;margin-bottom:18px;">' +
-        '<div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:#fff;margin-bottom:10px;">' +
-          '<div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);display:flex;align-items:center;justify-content:center;color:#60a5fa;flex-shrink:0;">📅</div>' +
+      // Date, Time & Location section with Neon frame
+      '<div style="background:rgba(168,85,247,0.08);border:1.5px solid rgba(168,85,247,0.35);border-radius:20px;padding:14px 16px;margin-bottom:18px;box-shadow:0 0 16px rgba(168,85,247,0.2);">' +
+        '<div style="display:flex;align-items:center;gap:12px;font-size:14px;font-weight:800;color:#fff;margin-bottom:12px;">' +
+          '<div style="width:34px;height:34px;border-radius:12px;background:rgba(59,130,246,0.2);border:1.5px solid rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;color:#60a5fa;flex-shrink:0;box-shadow:0 0 10px rgba(59,130,246,0.4);">📅</div>' +
           '<div>' +
-            '<div style="font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.5px;">Fecha y Hora</div>' +
-            '<div style="color:#fff;">'+formattedTime+'</div>' +
+            '<div style="font-size:10.5px;color:#c4b5fd;text-transform:uppercase;letter-spacing:0.6px;font-weight:900;">FECHA Y HORA</div>' +
+            '<div style="color:#ffffff;font-size:13.5px;font-weight:900;">'+formattedTime+'</div>' +
           '</div>' +
         '</div>' +
 
-        '<div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:#fff;">' +
-          '<div style="width:32px;height:32px;border-radius:10px;background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;color:#f43f5e;flex-shrink:0;">📍</div>' +
+        '<div style="display:flex;align-items:center;gap:12px;font-size:14px;font-weight:800;color:#fff;">' +
+          '<div style="width:34px;height:34px;border-radius:12px;background:rgba(244,63,94,0.2);border:1.5px solid rgba(244,63,94,0.6);display:flex;align-items:center;justify-content:center;color:#f43f5e;flex-shrink:0;box-shadow:0 0 10px rgba(244,63,94,0.4);">📍</div>' +
           '<div>' +
-            '<div style="font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.5px;">Lugar / Ubicación</div>' +
-            '<div style="color:#e0e7ff;">'+evtAddr+'</div>' +
+            '<div style="font-size:10.5px;color:#f9a8d4;text-transform:uppercase;letter-spacing:0.6px;font-weight:900;">LUGAR / UBICACIÓN</div>' +
+            '<div style="color:#ffffff;font-size:13.5px;font-weight:900;">'+evtAddr+'</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
 
       // Description section
-      '<div style="margin-bottom:20px;">' +
-        '<div style="font-size:12px;font-weight:900;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Descripción del Evento</div>' +
-        '<div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:1.55;white-space:pre-line;">'+desc+'</div>' +
+      '<div style="margin-bottom:20px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:18px;">' +
+        '<div style="font-size:11px;font-weight:900;color:#a78bfa;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">✨ DESCRIPCIÓN DEL EVENTO</div>' +
+        '<div style="font-size:13.5px;color:rgba(255,255,255,0.9);line-height:1.55;white-space:pre-line;">'+desc+'</div>' +
       '</div>' +
 
-      // "Quién irá" section
-      '<div style="margin-bottom:24px;">' +
+      // "Quién irá" section with Neon frame container
+      '<div style="margin-bottom:20px;padding:14px;background:rgba(168,85,247,0.05);border:1.5px solid rgba(168,85,247,0.3);border-radius:22px;box-shadow:0 0 20px rgba(168,85,247,0.2);">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
-          '<div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">👥 Quién irá <span style="font-size:12px;color:#22c55e;background:rgba(34,197,94,0.14);padding:3px 10px;border-radius:12px;font-weight:800;">🔥 '+totalGoing+' going</span></div>' +
-          '<div style="font-size:12px;font-weight:800;color:var(--fg2);">'+(e.spots||0)+' / '+(e.cap||10)+' cupos</div>' +
+          '<div style="font-size:14.5px;font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">👥 Quién irá <span style="font-size:11.5px;color:#34d399;background:rgba(52,211,153,0.22);border:1.5px solid #34d399;padding:3px 12px;border-radius:16px;font-weight:900;box-shadow:0 0 14px rgba(52,211,153,0.45);text-shadow:0 0 6px rgba(52,211,153,0.8);">🔥 '+totalGoing+' going</span></div>' +
+          '<div style="font-size:11.5px;font-weight:900;color:#e9d5ff;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);padding:3px 10px;border-radius:12px;">'+(e.spots||0)+' / '+(e.cap||10)+' cupos</div>' +
         '</div>' +
-        '<div style="display:flex;flex-direction:column;gap:8px;">' + attendeesListHtml + '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px;">' + attendeesListHtml + '</div>' +
       '</div>' +
 
-      // Main Action Buttons
-      '<div style="display:flex;flex-direction:column;gap:10px;">' +
-        '<div style="width:100%;">'+joinBtnHtml+'</div>' +
-        groupChatBtnHtml +
-      '</div>' +
+      // Main Action Buttons (Ir a Chat & Salir del Evento)
+      actionButtonsHtml +
     '</div>';
 
   modal.classList.add('open');
@@ -12182,8 +12241,12 @@ function _spotlightCard(r,i,opts){
     (opts.sport ? '<span style="font-size:10px;font-weight:900;color:#a5f3fc;background:rgba(6,182,212,0.25);border:1px solid rgba(6,182,212,0.65);border-radius:8px;padding:2.5px 8px;letter-spacing:0.5px;box-shadow:0 0 8px rgba(6,182,212,0.3);">🏅 ' + opts.sport.toUpperCase() + '</span>' : '') +
   '</div>';
 
+  var clickHandler = (opts.other && typeof curPlan !== 'undefined' && curPlan !== 'aplus')
+    ? "premAlert('🔒 Viewing profiles from other universities requires an A+ Student subscription. Upgrade to unlock!')"
+    : "viewUserUnicrush(null,'" + safe + "','" + p.bg + "','" + ((opts.other && r.uni) ? String(r.uni.name).replace(/'/g, "") : "") + "')";
+
   return '<div class="spotlight-rank-card" style="flex:0 0 205px;scroll-snap-align:start;border-radius:22px;overflow:hidden;border:1.5px solid '+brd+';'+glow+'background:#0e0a1e;transition:transform 0.25s ease, box-shadow 0.25s ease;">'+
-    '<div style="height:315px;'+cover+'position:relative;cursor:pointer;" onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\''+((opts.other&&r.uni)?String(r.uni.name).replace(/'/g,""):'')+'\')">'+
+    '<div style="height:315px;'+cover+'position:relative;cursor:pointer;" onclick="'+clickHandler+'">'+
       '<div style="position:absolute;top:10px;left:10px;'+rankBg+'font-size:11px;font-weight:900;padding:4px 11px;border-radius:20px;display:flex;align-items:center;gap:4px;z-index:2;">'+rankIco+' #'+(i+1)+'</div>'+
       likeBadgeHtml+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:50px 12px 14px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 65%, transparent 100%);">'+

@@ -5310,7 +5310,7 @@ svg {
   right: 0 !important;
   bottom: 0 !important;
   height: 100% !important;
-  display: flex !important;
+  display: none !important;
   align-items: center !important;
   justify-content: flex-end !important;
   gap: 8px !important;
@@ -5320,11 +5320,26 @@ svg {
   z-index: 10 !important;
   pointer-events: none;
   width: 0px;
-  background: #0d071d !important;
+  background: rgba(13, 7, 29, 0.95) !important;
 }
 
 .citem-actions.active {
+  display: flex !important;
   pointer-events: auto !important;
+  width: auto !important;
+}
+
+#sec-chats .chatsec-chip[data-sec="friends"].on,
+#sec-chats .chatsec-chip[data-sec="individuals"].on {
+  border: 1.5px solid #22c55e !important;
+  background: rgba(34, 197, 94, 0.12) !important;
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.45) !important;
+}
+
+#sec-chats .chatsec-chip[data-sec="events"].on {
+  border: 1.5px solid #a855f7 !important;
+  background: rgba(168, 85, 247, 0.14) !important;
+  box-shadow: 0 0 14px rgba(168, 85, 247, 0.5) !important;
 }
 
 .citem-act-btn {
