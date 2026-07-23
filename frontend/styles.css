@@ -4629,102 +4629,69 @@ svg {
   background: rgba(255, 255, 255, 0.07);
 }
 
-/* Category colors when UNSELECTED (Icon and Name in Neon Color, NO neon border) */
-.chatsec-chip[data-sec="all"] { color: #34d399; }
-.chatsec-chip[data-sec="individuals"] { color: #22c55e; }
-.chatsec-chip[data-sec="matches"] { color: #ec4899; }
-.chatsec-chip[data-sec="nightlife"] { color: #c084fc; }
-.chatsec-chip[data-sec="study"] { color: #60a5fa; }
-.chatsec-chip[data-sec="dorm"] { color: #f472b6; }
-.chatsec-chip[data-sec="sports"] { color: #34d399; }
-.chatsec-chip[data-sec="greek"] { color: #fbbf24; }
-.chatsec-chip[data-sec="abroad"] { color: #22d3ee; }
-.chatsec-chip[data-sec="campus"] { color: #f97316; }
-.chatsec-chip[data-sec="clubs"] { color: #f43f5e; }
-.chatsec-chip[data-sec="gaming"] { color: #a855f7; }
-.chatsec-chip[data-sec="alumni"] { color: #22c55e; }
-.chatsec-chip[data-sec="networking"] { color: #38bdf8; }
+/* ══ CHIP COLOR SYSTEM ══
+   Every filter chip owns a hue (--chip) and derives its whole look from it:
+     idle      → 10% tinted fill, 40% border, label + icon in the hue
+     selected  → 28% fill, solid border, glow, white label + icon
+   This is the recipe the Friends / Events chips already had; now every chip in
+   Chats and Hangouts follows it, so a chip's fill always matches its lettering. */
 
-/* Category styling when SELECTED (.on):
-   - Icon retains neon color
-   - Name text becomes white neon
-   - Border becomes neon color with neon glow
-*/
-.chatsec-chip.on .csl {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+/* Chats chips */
+.chatsec-chip[data-sec="all"]         { --chip: #34d399; }
+.chatsec-chip[data-sec="individuals"],
+.chatsec-chip[data-sec="friends"]     { --chip: #f97316; }
+.chatsec-chip[data-sec="matches"]     { --chip: #ec4899; }
+.chatsec-chip[data-sec="events"]      { --chip: #38bdf8; }
+.chatsec-chip[data-sec="nightlife"]   { --chip: #c084fc; }
+.chatsec-chip[data-sec="study"]       { --chip: #60a5fa; }
+.chatsec-chip[data-sec="dorm"]        { --chip: #f472b6; }
+.chatsec-chip[data-sec="sports"]      { --chip: #34d399; }
+.chatsec-chip[data-sec="greek"]       { --chip: #fbbf24; }
+.chatsec-chip[data-sec="abroad"]      { --chip: #22d3ee; }
+.chatsec-chip[data-sec="campus"]      { --chip: #f97316; }
+.chatsec-chip[data-sec="clubs"]       { --chip: #f43f5e; }
+.chatsec-chip[data-sec="gaming"]      { --chip: #a855f7; }
+.chatsec-chip[data-sec="alumni"]      { --chip: #22c55e; }
+.chatsec-chip[data-sec="networking"]  { --chip: #38bdf8; }
+
+/* Hangouts chips already declare their hue as --sec-color — reuse it */
+#sec-hangouts .evsec-chip { --chip: var(--sec-color, #a855f7); }
+
+/* Idle */
+#sec-chats .chatsec-chip,
+#sec-hangouts .evsec-chip {
+  background: color-mix(in srgb, var(--chip, #a855f7) 10%, transparent) !important;
+  border: 1.5px solid color-mix(in srgb, var(--chip, #a855f7) 40%, transparent) !important;
+  color: var(--chip, #a855f7) !important;
+}
+#sec-chats .chatsec-chip svg,
+#sec-hangouts .evsec-chip svg {
+  stroke: var(--chip, #a855f7) !important;
+  color: var(--chip, #a855f7) !important;
+  opacity: 1 !important;
+}
+#sec-chats .chatsec-chip .csl { color: var(--chip, #a855f7) !important; }
+
+/* Selected */
+#sec-chats .chatsec-chip.on,
+#sec-hangouts .evsec-chip.on {
+  background: color-mix(in srgb, var(--chip, #a855f7) 28%, transparent) !important;
+  border-color: var(--chip, #a855f7) !important;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--chip, #a855f7) 60%, transparent) !important;
+  color: #fff !important;
+}
+#sec-chats .chatsec-chip.on svg,
+#sec-hangouts .evsec-chip.on svg {
+  stroke: #fff !important;
+  color: #fff !important;
+  filter: drop-shadow(0 0 6px #fff) !important;
+}
+#sec-chats .chatsec-chip.on .csl {
+  color: #fff !important;
+  text-shadow: 0 0 8px #fff !important;
 }
 
-#sec-chats .chatsec-chip[data-sec="all"].on {
-  border: 1.5px solid #34d399 !important;
-  background: rgba(52, 211, 153, 0.12) !important;
-  box-shadow: 0 0 14px rgba(52, 211, 153, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="individuals"].on {
-  border: 1.5px solid #22c55e !important;
-  background: rgba(34, 197, 94, 0.12) !important;
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="matches"].on {
-  border: 1.5px solid #ec4899 !important;
-  background: rgba(236, 72, 153, 0.12) !important;
-  box-shadow: 0 0 14px rgba(236, 72, 153, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="nightlife"].on {
-  border: 1.5px solid #a855f7 !important;
-  background: rgba(168, 85, 247, 0.14) !important;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.5) !important;
-}
-#sec-chats .chatsec-chip[data-sec="study"].on {
-  border: 1.5px solid #60a5fa !important;
-  background: rgba(96, 165, 250, 0.12) !important;
-  box-shadow: 0 0 14px rgba(96, 165, 250, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="dorm"].on {
-  border: 1.5px solid #f472b6 !important;
-  background: rgba(244, 114, 182, 0.12) !important;
-  box-shadow: 0 0 14px rgba(244, 114, 182, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="sports"].on {
-  border: 1.5px solid #34d399 !important;
-  background: rgba(52, 211, 153, 0.12) !important;
-  box-shadow: 0 0 14px rgba(52, 211, 153, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="greek"].on {
-  border: 1.5px solid #fbbf24 !important;
-  background: rgba(251, 191, 36, 0.12) !important;
-  box-shadow: 0 0 14px rgba(251, 191, 36, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="abroad"].on {
-  border: 1.5px solid #22d3ee !important;
-  background: rgba(34, 211, 238, 0.12) !important;
-  box-shadow: 0 0 14px rgba(34, 211, 238, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="campus"].on {
-  border: 1.5px solid #f97316 !important;
-  background: rgba(249, 115, 22, 0.12) !important;
-  box-shadow: 0 0 14px rgba(249, 115, 22, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="clubs"].on {
-  border: 1.5px solid #f43f5e !important;
-  background: rgba(244, 63, 94, 0.12) !important;
-  box-shadow: 0 0 14px rgba(244, 63, 94, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="gaming"].on {
-  border: 1.5px solid #a855f7 !important;
-  background: rgba(168, 85, 247, 0.12) !important;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="alumni"].on {
-  border: 1.5px solid #22c55e !important;
-  background: rgba(34, 197, 94, 0.12) !important;
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.45) !important;
-}
-#sec-chats .chatsec-chip[data-sec="networking"].on {
-  border: 1.5px solid #38bdf8 !important;
-  background: rgba(56, 189, 248, 0.12) !important;
-  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45) !important;
-} /* All/Unread/Fav sub-tabs */
+/* All/Unread/Fav sub-tabs */
 #chat-subtabs {
   display: flex;
   gap: 8px;
@@ -5329,65 +5296,7 @@ svg {
   width: auto !important;
 }
 
-/* Friends Chip: Orange default, Neon White when selected (.on) */
-#sec-chats .chatsec-chip[data-sec="friends"],
-#sec-chats .chatsec-chip[data-sec="individuals"] {
-  border: 1.5px solid rgba(249, 115, 22, 0.4) !important;
-  background: rgba(249, 115, 22, 0.1) !important;
-  color: #f97316 !important;
-}
-#sec-chats .chatsec-chip[data-sec="friends"] .csl,
-#sec-chats .chatsec-chip[data-sec="individuals"] .csl {
-  color: #f97316 !important;
-}
-#sec-chats .chatsec-chip[data-sec="friends"] svg,
-#sec-chats .chatsec-chip[data-sec="individuals"] svg {
-  stroke: #f97316 !important;
-}
-
-#sec-chats .chatsec-chip[data-sec="friends"].on,
-#sec-chats .chatsec-chip[data-sec="individuals"].on {
-  border: 1.5px solid #f97316 !important;
-  background: rgba(249, 115, 22, 0.28) !important;
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.6) !important;
-}
-#sec-chats .chatsec-chip[data-sec="friends"].on .csl,
-#sec-chats .chatsec-chip[data-sec="individuals"].on .csl {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px #ffffff !important;
-}
-#sec-chats .chatsec-chip[data-sec="friends"].on svg,
-#sec-chats .chatsec-chip[data-sec="individuals"].on svg {
-  stroke: #ffffff !important;
-  filter: drop-shadow(0 0 6px #ffffff) !important;
-}
-
-/* Events Chip: Blue default, Neon White when selected (.on) */
-#sec-chats .chatsec-chip[data-sec="events"] {
-  border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
-  background: rgba(56, 189, 248, 0.1) !important;
-  color: #38bdf8 !important;
-}
-#sec-chats .chatsec-chip[data-sec="events"] .csl {
-  color: #38bdf8 !important;
-}
-#sec-chats .chatsec-chip[data-sec="events"] svg {
-  stroke: #38bdf8 !important;
-}
-
-#sec-chats .chatsec-chip[data-sec="events"].on {
-  border: 1.5px solid #38bdf8 !important;
-  background: rgba(56, 189, 248, 0.28) !important;
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
-}
-#sec-chats .chatsec-chip[data-sec="events"].on .csl {
-  color: #ffffff !important;
-  text-shadow: 0 0 8px #ffffff !important;
-}
-#sec-chats .chatsec-chip[data-sec="events"].on svg {
-  stroke: #ffffff !important;
-  filter: drop-shadow(0 0 6px #ffffff) !important;
-}
+/* Friends / Events chip colors now come from the CHIP COLOR SYSTEM block above. */
 
 .citem-act-btn {
   width: 34px !important;
@@ -6244,9 +6153,8 @@ html.light-secondary #ev-publish-btn {
     inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
 }
 
-/* ===== glass-primary active chips ===== */
-.chatsec-chip.on,
-#sec-chats .chatsec-chip.on,
+/* ===== glass-primary active chips =====
+   (.chatsec-chip.on is excluded — it gets its hue from the CHIP COLOR SYSTEM block) */
 .yr-chip[data-scope].on {
   background: rgba(124, 58, 237, 0.18) !important;
   background: color-mix(in srgb, var(--p) 20%, transparent) !important;
@@ -6690,9 +6598,9 @@ body::after {
 /* .np.active{color:#fff;background:var(--grad-purple);box-shadow:0 8px 22px rgba(168,85,247,0.45),0 0 18px rgba(236,72,153,0.35);} */
 /* .np.active .ni,.np.active .ico{filter:drop-shadow(0 0 6px rgba(255,255,255,0.6));} */
 
-/* ---- active tabs & chips: gradient fill + glow ---- */
+/* ---- active tabs & chips: gradient fill + glow ----
+   (.chatsec-chip.on is excluded — see the CHIP COLOR SYSTEM block) */
 .ev-tab.active,
-.chatsec-chip.on,
 .auth-mode-chip.on,
 .yr-chip.on,
 .plan-tab.on,
@@ -8012,13 +7920,7 @@ input, textarea, [contenteditable="true"] {
   font-weight: 900 !important;
 }
 
-.chatsec-chip.on {
-  background: linear-gradient(135deg, #a855f7, #ec4899) !important;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.6) !important;
-  border-color: rgba(236, 72, 153, 0.8) !important;
-  color: #ffffff !important;
-  font-weight: 900 !important;
-}
+.chatsec-chip.on { font-weight: 900 !important; }
 
 /* ══════════ PROFILE 4-SUBVIEW NEON OVERRIDES ══════════ */
 .prof-tab {

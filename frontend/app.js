@@ -4625,7 +4625,7 @@ function addLink(){var url=prompt('Enter URL (Instagram, YouTube, LinkedIn, etc.
 
 // ── HANGOUTS ──
 function switchEvTab(tab){
-  ['nearby','my','create'].forEach(function(t){
+  ['nearby','my','create','joined'].forEach(function(t){
     var tb=document.getElementById('evtab-'+t);
     var p=document.getElementById('evp-'+t);
     if(tb){
@@ -4638,7 +4638,7 @@ function switchEvTab(tab){
   });
   var modeIcon = document.getElementById('tb-mode-icon');
   if (modeIcon) {
-    if (tab === 'create' || tab === 'my') {
+    if (tab === 'create' || tab === 'my' || tab === 'joined') {
       modeIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left" style="cursor:pointer;"><path d="m15 18-6-6 6-6"/></svg>';
       modeIcon.style.cursor = 'pointer';
       modeIcon.onclick = function() {
@@ -4654,6 +4654,7 @@ function switchEvTab(tab){
   }
   if(tab==='nearby')renderHangouts();
   if(tab==='my')renderMyHangouts();
+  if(tab==='joined')renderJoinedHangouts();
   if(tab==='create'){
     if(typeof renderEventStockPickerGrid==='function'){
       var _sec=(document.getElementById('ev-section')&&document.getElementById('ev-section').value)||'nightlife';
@@ -4775,7 +4776,6 @@ function _evLocMode(el,m){
   if(box)box.querySelectorAll('.ehtog').forEach(function(b){b.classList.toggle('on',b===el);});
 }
 
-function _evUseLoc(el){var a=document.getElementById('ev-addr');if(a){a.value='\uD83D\uDCCD Near my current location';if(typeof _evReviewSync==='function')_evReviewSync();}}
 
 function _evReviewSync(){try{
   var nm=(document.getElementById('ev-nm')||{}).value||'';var t=document.getElementById('ev-prev-title');if(t)t.textContent=nm.trim()||'Your hangout';
@@ -4854,6 +4854,54 @@ function _getChatCategory(item) {
   } else {
     return 'events';
   }
+}
+
+// ── MATCHES BANNER ──
+// Tapping ✕ hides it for good. It only comes back once you've picked up another 20
+// matches since that dismissal — and dismissing again restarts the same 20-match wait.
+var _MATCH_BANNER_STEP = 20;
+
+function _matchBannerDismissedAt() {
+  try {
+    var v = localStorage.getItem('ugz_matchbanner_dismissed');
+    return v === null ? null : (parseInt(v, 10) || 0);
+  } catch (_) { return null; }
+}
+
+function _countWaitingMatches() {
+  var n = 0;
+  var uc = document.getElementById('uc-chat-list');
+  if (uc) n += uc.querySelectorAll('.citem').length;
+  var list = document.getElementById('chat-list');
+  if (list) {
+    Array.prototype.forEach.call(list.querySelectorAll('.citem'), function(it) {
+      if (_getChatCategory(it) === 'matches') n++;
+    });
+  }
+  // Offline/demo fallback — the static banner ships with a seed count
+  if (!n) {
+    var b = document.getElementById('chats-match-banner');
+    if (b && b.dataset.seedCount) n = parseInt(b.dataset.seedCount, 10) || 0;
+  }
+  return n;
+}
+
+function _syncMatchBanner() {
+  var b = document.getElementById('chats-match-banner');
+  if (!b) return;
+  var n = _countWaitingMatches();
+  var dismissedAt = _matchBannerDismissedAt();
+  var show = n > 0 && (dismissedAt === null || n >= dismissedAt + _MATCH_BANNER_STEP);
+  b.style.display = show ? 'flex' : 'none';
+  if (show) {
+    var c = document.getElementById('match-banner-count');
+    if (c) c.textContent = n + ' Match' + (n === 1 ? '' : 'es') + ' esperando tu mensaje';
+  }
+}
+
+function dismissMatchBanner() {
+  try { localStorage.setItem('ugz_matchbanner_dismissed', String(_countWaitingMatches())); } catch (_) {}
+  _syncMatchBanner();
 }
 
 function setChatSection(sec) {
@@ -4969,6 +5017,8 @@ function filterChatBySection() {
 
   var searchWrap = document.getElementById('chat-search');
   if (searchWrap && searchWrap.parentElement) searchWrap.parentElement.style.display = '';
+
+  _syncMatchBanner();
 }
 function _openChatCreateMenu(){
   var m=document.getElementById('chat-create-menu');if(m)m.remove();
@@ -5240,11 +5290,14 @@ function toggleEventDropdown(e) {
     
     var createSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-fading-plus-icon lucide-circle-fading-plus" style="color:#a855f7;filter:drop-shadow(0 0 3px rgba(168,85,247,0.7));"><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 8v8"/><path d="M16 12H8"/><path d="M2.5 8.875a10 10 0 0 0-.5 3"/><path d="M2.83 16a10 10 0 0 0 2.43 3.4"/><path d="M4.636 5.235a10 10 0 0 1 .891-.857"/><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"/></svg>';
     var myEventsSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-sparkles-icon lucide-pencil-sparkles" style="color:#ec4899;filter:drop-shadow(0 0 3px rgba(236,72,153,0.7));"><path d="M10 3H8"/><path d="m15.007 5.008 3.987 3.986"/><path d="M20 15v4"/><path d="M21.174 6.813a2.82 2.82 0 0 0-3.986-3.987L3.842 16.175a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="M22 17h-4"/><path d="M4 5v4"/><path d="M6 7H2"/><path d="M9 2v2"/></svg>';
-    
-    menu.innerHTML = 
+    var joinedSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ticket-check-icon lucide-ticket-check" style="color:#34d399;filter:drop-shadow(0 0 3px rgba(52,211,153,0.7));"><path d="M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="m9 12 2 2 4-4"/></svg>';
+
+    menu.innerHTML =
       '<button onclick="switchEvTab(\'create\');closeEventDropdown()" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;background:transparent;border:none;color:#fff;font-size:13px;font-weight:800;cursor:pointer;border-radius:10px;text-align:left;transition:background 0.2s;font-family:var(--font);">' + createSvg + '<span>Create Event</span></button>' +
       '<div style="height:1px;background:rgba(255,255,255,0.06);margin:4px 6px;"></div>' +
-      '<button onclick="switchEvTab(\'my\');closeEventDropdown()" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;background:transparent;border:none;color:#fff;font-size:13px;font-weight:800;cursor:pointer;border-radius:10px;text-align:left;transition:background 0.2s;font-family:var(--font);">' + myEventsSvg + '<span>My Events</span></button>';
+      '<button onclick="switchEvTab(\'my\');closeEventDropdown()" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;background:transparent;border:none;color:#fff;font-size:13px;font-weight:800;cursor:pointer;border-radius:10px;text-align:left;transition:background 0.2s;font-family:var(--font);">' + myEventsSvg + '<span>My Events</span></button>' +
+      '<div style="height:1px;background:rgba(255,255,255,0.06);margin:4px 6px;"></div>' +
+      '<button onclick="switchEvTab(\'joined\');closeEventDropdown()" style="width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;background:transparent;border:none;color:#fff;font-size:13px;font-weight:800;cursor:pointer;border-radius:10px;text-align:left;transition:background 0.2s;font-family:var(--font);">' + joinedSvg + '<span>Joined Events</span></button>';
     
     menu.querySelectorAll('button').forEach(function(btn) {
       btn.onmouseenter = function() { btn.style.background = 'rgba(255,255,255,0.05)'; };
@@ -5338,6 +5391,16 @@ function _hxAge(e){return (e.section==='nightlife'||e.section==='greek')?'21+':'
 function _hxTags(e){var P={nightlife:['Party','Drinks','Music'],study:['Study','Focus','Chill'],sports:['Sports','Active','Prizes'],dorm:['Chill','Social','Games'],greek:['Greek Life','DJ','Party'],abroad:['Travel','Culture','Meetup'],campus:['Campus','Social','Free'],networking:['Networking','Career','Alumni']};var t=(P[e.section]||['Social','Fun']).slice(0,3);if(e.langs&&e.langs.length&&t.indexOf(e.langs[0])===-1)t.push(e.langs[0]);return t.slice(0,4).map(function(x){return '<span class="evtag">'+x+'</span>';}).join('');}
 function _hxState(e){var pct=e.cap?Math.round(e.spots/e.cap*100):0;var cd=(typeof _evCountdown==='function')?_evCountdown(e):'';if(pct>=90)return {label:'⏳ Last chance to join',col:'#f43f5e',btn:'linear-gradient(135deg,#ec4899,#e11d48)',bar:'#f43f5e'};if(cd&&/^[0-9]+h/.test(cd))return {label:'🕐 Starts in '+cd,col:'#f59e0b',btn:'linear-gradient(135deg,#f97316,#ea580c)',bar:'#f59e0b'};if(pct>=70)return {label:'⭐ Almost full',col:'#818cf8',btn:'linear-gradient(135deg,#7c3aed,#6d28d9)',bar:'#818cf8'};return {label:'✨ Open spots',col:'#4ade80',btn:'linear-gradient(135deg,var(--p),var(--p2))',bar:'var(--p)'};}
 function _hxBadge(e){if(e.section==='greek'||e.section==='exclusive'||(e.restriction&&e.restriction!=='all'))return {t:'EXCLUSIVE',bg:'linear-gradient(135deg,#a855f7,#ec4899)'};return (_strHash(e.name||'')%2===0)?{t:'STAFF PICK',bg:'linear-gradient(135deg,#3b82f6,#2563eb)'}:{t:'POPULAR',bg:'linear-gradient(135deg,#22c55e,#16a34a)'};}
+// Promo badges (STAFF PICK / POPULAR / "Only N left") are a paid perk: they only show on
+// events pushed with a Hangout Boost or hosted by an A+ member. Everyone else gets a clean card.
+function _evIsPromoted(e){
+  if(!e)return false;
+  if(e.boosted||e.isBoosted||e.boost)return true;
+  if(e.hostPlan==='aplus'||e.creatorPlan==='aplus')return true;
+  if(typeof curPlan!=='undefined'&&curPlan==='aplus'&&_isMyOwnEvent(e))return true;
+  return false;
+}
+// Unused since cards became full-bleed posters — joining now happens from the detail sheet.
 function _hxJoin(e,bg){var key=e.section+'|'+e.name;var isJoined=!!joinedHangouts[key];var cd=(typeof _evCountdown==='function')?_evCountdown(e):'';var ended=(cd==='ENDED');var full=(e.spots>=e.cap);var nm=e.name.replace(/'/g,"\\'");if((ended||full)&&!isJoined)return '<button class="jbtn" style="background:#3a3a4a !important;cursor:default;margin-top:4px;height:36px;padding:0 16px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:rgba(255,255,255,0.4);" disabled>'+(ended?'⛔ Ended':'🚫 Full')+'</button>';if(isJoined){return '<div onclick="event.stopPropagation();joinHangoutEv(\''+e.section+'\',\''+nm+'\',\''+e.restriction+'\',this)" title="Leave event" style="cursor:pointer;color:#f43f5e;background:rgba(244,63,94,0.15);border:1.5px solid rgba(244,63,94,0.5);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(244,63,94,0.3);transition:transform 0.2s;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-x-icon lucide-circle-x"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></div>';}return '<button class="jbtn" style="background:'+bg+' !important;margin-top:4px;height:36px;padding:0 18px;border-radius:14px;border:none;color:#fff;font-family:var(--font);font-size:12.5px;font-weight:900;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,0.4);display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();joinHangoutEv(\''+e.section+'\',\''+nm+'\',\''+e.restriction+'\',this)">Join</button>';}
 
 function _getGenderProgressBarHtml(e) {
@@ -5384,16 +5447,19 @@ function _getGenderProgressBarHtml(e) {
   '</div>';
 }
 
-function _renderHangoutCardHtml(e, isMyEvent) {
+function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
   var st = (typeof _hxState === 'function') ? _hxState(e) : { col: '#22c55e', label: '✨ Open spots', btn: 'linear-gradient(135deg,#7c3aed,#ec4899)' };
   var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', t: 'POPULAR' };
   var fLeft = Math.max(1, (e.cap || 10) - (e.spots || 0));
 
-  var badgeHtml = isMyEvent ?
-    '<div style="font-size:10.5px;font-weight:900;color:#fff;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#a855f7,#ec4899);letter-spacing:0.4px;box-shadow:0 4px 12px rgba(168,85,247,0.4);border:1px solid rgba(255,255,255,0.25);">ORGANIZER · MY EVENT</div>' :
-    '<div style="font-size:10.5px;font-weight:900;color:#fff;padding:5px 14px;border-radius:20px;background:'+bd.bg+';letter-spacing:0.4px;box-shadow:0 4px 12px rgba(34,197,94,0.4);border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;"><span>🔥</span><span>'+bd.t+'</span></div>';
+  var promoted = (typeof _evIsPromoted === 'function') ? _evIsPromoted(e) : false;
 
-  var capFlagHtml = (!isMyEvent && fLeft <= 6) ?
+  var badgeHtml = isMyEvent ?
+    '<div style="font-size:10.5px;font-weight:900;color:#fff;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#a855f7,#ec4899);letter-spacing:0.4px;box-shadow:0 4px 12px rgba(168,85,247,0.4);border:1px solid rgba(255,255,255,0.25);">MY EVENT</div>' :
+    promoted ?
+    '<div style="font-size:10.5px;font-weight:900;color:#fff;padding:5px 14px;border-radius:20px;background:'+bd.bg+';letter-spacing:0.4px;box-shadow:0 4px 12px rgba(34,197,94,0.4);border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;"><span>🔥</span><span>'+bd.t+'</span></div>' : '';
+
+  var capFlagHtml = (!isMyEvent && promoted && fLeft <= 6) ?
     '<div style="font-size:10.5px;font-weight:900;color:#fff;background:linear-gradient(135deg,#f43f5e,#e11d48);padding:5px 14px;border-radius:20px;box-shadow:0 4px 12px rgba(244,63,94,0.5);border:1px solid rgba(255,255,255,0.25);">Only '+fLeft+' left</div>' : '';
 
   var evtId = e.id || ('ev-' + _strHash((e.section || '') + (e.name || '')));
@@ -5432,50 +5498,63 @@ function _renderHangoutCardHtml(e, isMyEvent) {
 
   var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
 
-  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="background:#0d0722;border:1.5px solid rgba(255,255,255,0.15);border-radius:24px;overflow:hidden;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;transition:transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;">' +
-    // Top cover image area with dark overlay gradient
-    '<div style="height:190px;background:'+coverStyle+';position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px;box-sizing:border-box;">' +
-      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.35) 0%,rgba(13,7,34,0.1) 45%,rgba(13,7,34,0.95) 100%);pointer-events:none;"></div>' +
-      
-      // Badges row
-      '<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;">' +
-        badgeHtml +
-        capFlagHtml +
+  // Avatars + "N going" — hidden on your own events (you know who's coming, it's your event)
+  var goingRowHtml = isMyEvent ? '' :
+    '<div style="display:flex;align-items:center;gap:10px;min-width:0;margin-top:12px;">' +
+      '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + extraPill + '</div>' +
+      '<div style="display:flex;align-items:center;gap:4px;font-size:13.5px;font-weight:900;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+        '<span>🔥</span><span>' + totalGoing + ' going</span>' +
       '</div>' +
+    '</div>';
 
-      // Title over photo
-      '<div style="position:relative;z-index:2;width:100%;margin-bottom:2px;">' +
-        '<div style="font-size:21px;font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.4px;text-shadow:0 2px 10px rgba(0,0,0,0.9);">' + e.name + ' ' + evtEmoji + '</div>' +
-      '</div>' +
+  var safeName = (e.name || '').replace(/'/g, "\\'");
+  var safeRef = String(e.id || e.name || '').replace(/'/g, "\\'");
+
+  // Action row under the info block. Nearby cards carry none — you join from the detail sheet.
+  var actionsHtml = '';
+  if (isMyEvent) {
+    actionsHtml =
+      '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;margin-top:14px;">' +
+        '<button onclick="_editMyEventCard(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:16px;background:linear-gradient(135deg,#7c3aed 0%,#a855f7 100%);border:none;color:#fff;font-family:var(--font);font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 0 18px rgba(168,85,247,0.5);">✏️ Editar</button>' +
+        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:16px;background:linear-gradient(135deg,#f59e0b 0%,#f43f5e 100%);border:none;color:#fff;font-family:var(--font);font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 0 18px rgba(245,158,11,0.5);">🚀 Boost</button>' +
+        '<button onclick="_deleteMyEventById(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:16px;background:linear-gradient(135deg,#f43f5e 0%,#be123c 100%);border:none;color:#fff;font-family:var(--font);font-size:12px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 0 18px rgba(244,63,94,0.5);">🗑 Eliminar</button>' +
+      '</div>';
+  } else if (isJoinedView) {
+    actionsHtml =
+      '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;margin-top:14px;">' +
+        '<button onclick="_eventJoinedTap(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" style="flex:1;padding:12px 10px;border-radius:18px;background:linear-gradient(135deg,#7c3aed 0%,#ec4899 100%);border:none;color:#fff;font-family:var(--font);font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 20px rgba(168,85,247,0.5);letter-spacing:0.3px;">💬 Ir a Chat</button>' +
+        '<button onclick="joinHangoutEv(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" style="flex:1;padding:12px 10px;border-radius:18px;background:rgba(244,63,94,0.12);border:1.5px solid rgba(244,63,94,0.6);color:#f43f5e;font-family:var(--font);font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 15px rgba(244,63,94,0.25);letter-spacing:0.3px;">🚪 Salir del Evento</button>' +
+      '</div>';
+  }
+
+  // Full-bleed poster: the whole card IS the photo, everything sits on a bottom scrim.
+  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0d0722;border:1.5px solid rgba(255,255,255,0.15);border-radius:24px;overflow:hidden;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;">' +
+    // Scrim: clear at the top so the photo reads, deep at the bottom so the text does
+    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.42) 0%,rgba(13,7,34,0) 28%,rgba(9,4,23,0.72) 58%,rgba(9,4,23,0.96) 100%);pointer-events:none;"></div>' +
+
+    // Badges row (top)
+    '<div style="position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:8px;min-height:1px;">' +
+      badgeHtml +
+      capFlagHtml +
     '</div>' +
 
-    // Body content: Date, Time, Location on ONE SINGLE LINE with ellipsis if location is long
-    '<div style="padding:14px 16px 18px;background:#0d0722;">' +
-      '<div style="display:flex;align-items:center;gap:6px;width:100%;white-space:nowrap;overflow:hidden;font-size:13px;font-weight:800;color:rgba(255,255,255,0.92);margin-bottom:16px;">' +
-        '<span style="display:inline-flex;align-items:center;gap:5px;flex-shrink:0;">' +
-          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>' +
-          formattedTime +
-        '</span>' +
-        '<span style="color:rgba(255,255,255,0.3);flex-shrink:0;">·</span>' +
-        '<span style="display:inline-flex;align-items:center;gap:5px;color:#e0e7ff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' +
-          '<span style="color:#f43f5e;flex-shrink:0;">📍</span>' +
-          '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + evtAddr + '</span>' +
-        '</span>' +
+    // Info block (bottom): title · date · location · who's going · actions
+    '<div style="position:relative;z-index:2;width:100%;">' +
+      // Clamped to 2 lines so a runaway title can never grow the block and swallow the photo
+      '<div style="font-size:18px;font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.3px;text-shadow:0 2px 12px rgba(0,0,0,0.95);margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + e.name + ' ' + evtEmoji + '</div>' +
+
+      '<div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.94);margin-bottom:5px;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>' +
+        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + formattedTime + '</span>' +
       '</div>' +
 
-      // Bottom Row: Avatars stack & going count on Left | Prominent Join Button on Right
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
-        '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">' +
-          '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + extraPill + '</div>' +
-          '<div style="display:flex;align-items:center;gap:4px;font-size:13.5px;font-weight:900;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-            '<span>🔥</span><span>' + totalGoing + ' going</span>' +
-          '</div>' +
-        '</div>' +
-
-        '<div style="flex-shrink:0;" onclick="event.stopPropagation();">' +
-          _hxJoin(e, 'linear-gradient(135deg, #6366f1 0%, #d946ef 100%)') +
-        '</div>' +
+      '<div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:800;color:#e0e7ff;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
+        '<span style="color:#f43f5e;flex-shrink:0;font-size:14px;line-height:1;">📍</span>' +
+        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + evtAddr + '</span>' +
       '</div>' +
+
+      goingRowHtml +
+      actionsHtml +
     '</div>' +
 
     (typeof _getGenderProgressBarHtml === 'function' ? _getGenderProgressBarHtml(e) : '') +
@@ -5518,11 +5597,14 @@ function openHangoutDetailModal(evtId) {
   var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', t: 'POPULAR' };
   var fLeft = Math.max(1, (e.cap || 10) - (e.spots || 0));
 
+  var promoted = (typeof _evIsPromoted === 'function') ? _evIsPromoted(e) : false;
+
   var badgeHtml = isMyEvent ?
     '<div style="font-size:11px;font-weight:900;color:#fff;padding:6px 16px;border-radius:20px;background:linear-gradient(135deg,#a855f7,#ec4899);letter-spacing:0.4px;box-shadow:0 4px 12px rgba(168,85,247,0.4);">ORGANIZER · MY EVENT</div>' :
-    '<div style="font-size:11px;font-weight:900;color:#fff;padding:6px 16px;border-radius:20px;background:'+bd.bg+';letter-spacing:0.4px;box-shadow:0 4px 12px rgba(34,197,94,0.4);display:flex;align-items:center;gap:6px;"><span>🔥</span><span>'+bd.t+'</span></div>';
+    promoted ?
+    '<div style="font-size:11px;font-weight:900;color:#fff;padding:6px 16px;border-radius:20px;background:'+bd.bg+';letter-spacing:0.4px;box-shadow:0 4px 12px rgba(34,197,94,0.4);display:flex;align-items:center;gap:6px;"><span>🔥</span><span>'+bd.t+'</span></div>' : '';
 
-  var capFlagHtml = (!isMyEvent && fLeft <= 6) ?
+  var capFlagHtml = (!isMyEvent && promoted && fLeft <= 6) ?
     '<div style="font-size:11px;font-weight:900;color:#fff;background:linear-gradient(135deg,#f43f5e,#e11d48);padding:6px 16px;border-radius:20px;box-shadow:0 4px 12px rgba(244,63,94,0.5);">Only '+fLeft+' left</div>' : '';
 
   // Attendees list for "Quién irá"
@@ -5572,11 +5654,8 @@ function openHangoutDetailModal(evtId) {
   var key = e.section + '|' + e.name;
   var isJoined = !!joinedHangouts[key];
 
-  var actionButtonsHtml = isJoined ?
-    '<div style="display:flex;gap:10px;margin-top:14px;">' +
-      '<button onclick="closeHangoutDetailModal();_eventJoinedTap(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="flex:1;padding:14px 10px;border-radius:18px;background:linear-gradient(135deg,#7c3aed 0%,#ec4899 100%);border:none;color:#fff;font-family:var(--font);font-size:13.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 20px rgba(168,85,247,0.5);letter-spacing:0.3px;">💬 Ir a Chat</button>' +
-      '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="flex:1;padding:14px 10px;border-radius:18px;background:rgba(244,63,94,0.12);border:1.5px solid rgba(244,63,94,0.6);color:#f43f5e;font-family:var(--font);font-size:13.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 15px rgba(244,63,94,0.25);letter-spacing:0.3px;">🚪 Salir del Evento</button>' +
-    '</div>' :
+  // Already joined? Chat / Leave live on the Joined Events card — no need to repeat them here.
+  var actionButtonsHtml = isJoined ? '' :
     '<div style="margin-top:14px;width:100%;">' +
       '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:15px;border-radius:18px;background:linear-gradient(135deg,#6366f1 0%,#d946ef 100%);border:none;color:#fff;font-family:var(--font);font-size:14.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 0 24px rgba(217,70,239,0.55);letter-spacing:0.4px;">🔥 Unirse al Evento</button>' +
     '</div>';
@@ -5654,21 +5733,11 @@ function renderMyHangouts() {
   var myPanel = document.getElementById('evp-my');
   if (!myPanel) return;
 
-  var myId = (typeof userPro !== 'undefined' && userPro) ? userPro.id : null;
-  var myHandle = (typeof userPro !== 'undefined' && userPro && userPro.handle) ? ('@' + userPro.handle.replace(/^@/, '').toLowerCase()) : null;
-  var myName = (typeof userPro !== 'undefined' && userPro) ? userPro.name : null;
-
   var allEvs = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
     window._userCreatedEvents || []
   );
 
-  var myEvents = allEvs.filter(function(e) {
-    if (e.isMine || e.isMyEvent) return true;
-    if (myId && (e.creatorId === myId || e.createdById === myId || e.userId === myId)) return true;
-    if (myHandle && e.host && e.host.toLowerCase() === myHandle) return true;
-    if (myName && e.host && e.host.toLowerCase() === myName.toLowerCase()) return true;
-    return false;
-  });
+  var myEvents = allEvs.filter(_isMyOwnEvent);
 
   var uniqueMyEvents = [];
   var seen = {};
@@ -5690,6 +5759,40 @@ function renderMyHangouts() {
   }).join('');
 
   myPanel.innerHTML = '<div style="padding:12px var(--s) 0;">' + cardsHtml + '</div>';
+}
+
+// Events the user joined that are still upcoming. Own events stay in 'My Events'.
+function renderJoinedHangouts() {
+  var panel = document.getElementById('evp-joined');
+  if (!panel) return;
+
+  var allEvs = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
+    typeof OTHER_UNI_EVENTS !== 'undefined' ? OTHER_UNI_EVENTS : [],
+    window._userCreatedEvents || []
+  );
+
+  var joined = [];
+  var seen = {};
+  allEvs.forEach(function(e) {
+    var k = (e.section || '') + '|' + (e.name || '');
+    if (seen[k]) return;
+    if (!joinedHangouts[k]) return;
+    if (_isMyOwnEvent(e)) return;
+    if (!_isEventStillActive(e)) return;
+    seen[k] = true;
+    joined.push(e);
+  });
+
+  if (!joined.length) {
+    panel.innerHTML = '<div style="text-align:center;padding:48px var(--s);color:var(--fg2);font-size:14px;" id="joined-events-empty">Aún no te has unido a ningún evento activo.<br><button class="gbtn" style="background:var(--p);width:auto;padding:9px 22px;display:inline-block;margin-top:14px;" onclick="switchEvTab(\'nearby\')">🔎 Explorar hangouts</button></div>';
+    return;
+  }
+
+  var cardsHtml = joined.map(function(e) {
+    return _renderHangoutCardHtml(e, false, true);
+  }).join('');
+
+  panel.innerHTML = '<div style="padding:12px var(--s) 0;">' + cardsHtml + '</div>';
 }
 
 function _parseEventDate(e) {
@@ -5764,10 +5867,69 @@ function _isEventExpired3Days(e) {
   return diffDays > 3;
 }
 
+// Was this event created by the logged-in user? (organizer view lives in 'My Events')
+function _isMyOwnEvent(e) {
+  if (!e) return false;
+  if (e.isMine || e.isMyEvent) return true;
+  var me = (typeof userPro !== 'undefined') ? userPro : null;
+  if (!me) return false;
+  if (me.id && (e.creatorId === me.id || e.createdById === me.id || e.userId === me.id)) return true;
+  var myHandle = me.handle ? ('@' + String(me.handle).replace(/^@/, '').toLowerCase()) : null;
+  if (myHandle && e.host && e.host.toLowerCase() === myHandle) return true;
+  if (me.name && e.host && e.host.toLowerCase() === me.name.toLowerCase()) return true;
+  return false;
+}
+
+// Still active = its date/time hasn't passed yet. Unparseable dates count as active.
+function _isEventStillActive(e) {
+  if (!e) return false;
+  if (typeof _evCountdown === 'function' && _evCountdown(e) === 'ENDED') return false;
+  var d = _parseEventDate(e);
+  return !d || d.getTime() >= new Date().getTime();
+}
+
+// Find one of my events by id or name, across every list it can live in.
+function _findMyEventByRef(idOrName) {
+  var target = String(idOrName).toLowerCase();
+  var all = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
+    window._userCreatedEvents || [],
+    window._myCreatedEvents || []
+  );
+  return all.find(function(item) {
+    return String(item.id || item.name).toLowerCase() === target ||
+           String(item.name || '').toLowerCase() === target;
+  }) || null;
+}
+
 function _deleteMyEventById(idOrName) {
-  if (!confirm('¿Estás seguro de que deseas eliminar este evento?')) return;
-  var targetName = idOrName.toLowerCase();
-  
+  var ev = _findMyEventByRef(idOrName);
+  var evName = ev ? ev.name : 'este evento';
+  ugzConfirm({
+    type: 'warning',
+    title: '🗑 Eliminar evento',
+    message: 'Se eliminará "' + evName + '" y su chat grupal ligado.\n\nLos asistentes perderán el acceso al chat y esta acción NO se puede revertir.',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    onConfirm: function() { _deleteMyEventConfirmed(idOrName, ev); }
+  });
+}
+
+function _deleteMyEventConfirmed(idOrName, ev) {
+  // Tear down the linked group chat first — same cleanup the leave flow does.
+  if (ev) {
+    var key = ev.section + '|' + ev.name;
+    var cid = (typeof _hangoutChatIds !== 'undefined') && _hangoutChatIds[key];
+    if (cid) {
+      if (typeof _deleteChatRow === 'function') _deleteChatRow(cid);
+      if (typeof chatHistory !== 'undefined' && chatHistory) delete chatHistory[cid];
+      delete _hangoutChatIds[key];
+      if (typeof filterChatBySection === 'function') filterChatBySection();
+    }
+    if (typeof joinedHangouts !== 'undefined') delete joinedHangouts[key];
+  }
+
+  var targetName = String(idOrName).toLowerCase();
+
   if (window.HANGOUT_EVENTS) {
     window.HANGOUT_EVENTS = window.HANGOUT_EVENTS.filter(function(e) {
       return String(e.id || e.name).toLowerCase() !== targetName;
@@ -5797,18 +5959,48 @@ function _deleteMyEventById(idOrName) {
   
   if (typeof renderHangouts === 'function') renderHangouts();
   if (typeof renderMyHangouts === 'function') renderMyHangouts();
-  if (typeof ugzAlert === 'function') ugzAlert('🗑️ Evento eliminado.');
+  if (typeof renderJoinedHangouts === 'function') renderJoinedHangouts();
+  if (typeof ugzAlert === 'function') ugzAlert('🗑️ Evento eliminado junto con su chat.');
+}
+
+// Hangout Boosts bought from the Store. A+ members can boost without spending one.
+function _hangoutBoostsOwned() {
+  try { return parseInt(localStorage.getItem('ugz_hangout_boosts') || '0', 10) || 0; }
+  catch (_) { return 0; }
+}
+function _setHangoutBoostsOwned(n) {
+  try { localStorage.setItem('ugz_hangout_boosts', String(Math.max(0, n))); } catch (_) {}
 }
 
 function _boostMyEvent(idOrName) {
-  var msg = '🚀 Want to Boost your Event?\n\nBoosting puts your event at the top of the feed with a glowing border!';
-  if (window.cheatAlert) {
-    window.cheatAlert(msg);
-  } else if (window.ugzModal && window.ugzModal.cheat) {
-    window.ugzModal.cheat(msg);
-  } else {
-    alert(msg);
+  var ev = _findMyEventByRef(idOrName);
+  var evName = ev ? ev.name : 'este evento';
+  var isAplus = (typeof curPlan !== 'undefined' && curPlan === 'aplus');
+  var boosts = _hangoutBoostsOwned();
+
+  // Nothing paid for yet → sell the plan instead of the action.
+  if (!isAplus && boosts <= 0) {
+    if (typeof premAlert === 'function') {
+      premAlert('🚀 Boost tu evento\n\nPon "' + evName + '" hasta arriba del feed con borde brillante para que lo vea todo el campus.\n\nDisponible con el plan A+ Student ($19.99/año), o compra un Hangout Boost suelto en la Store.');
+    }
+    return;
   }
+
+  var cost = isAplus ? 'Incluido con tu plan A+' : ('Te quedan ' + boosts + ' boost' + (boosts === 1 ? '' : 's'));
+  ugzConfirm({
+    type: 'info',
+    title: '🚀 Boost del evento',
+    message: '¿Quieres hacer boost a "' + evName + '"?\n\nSe irá hasta arriba del feed con borde brillante durante 24 h.\n\n' + cost + '.',
+    confirmText: 'Sí, boost',
+    cancelText: 'Cancelar',
+    onConfirm: function() {
+      if (ev) ev.boosted = true;
+      if (!isAplus) _setHangoutBoostsOwned(boosts - 1);
+      if (typeof renderHangouts === 'function') renderHangouts();
+      if (typeof renderMyHangouts === 'function') renderMyHangouts();
+      if (typeof ugzAlert === 'function') ugzAlert('🚀 "' + evName + '" está en boost. ¡Va hasta arriba del feed!');
+    }
+  });
 }
 
 function _editMyEventCard(idOrName) {
@@ -5830,19 +6022,16 @@ function _editMyEventCard(idOrName) {
     if (typeof onEvSectionChange === 'function') onEvSectionChange(secEl);
   }
 
-  var nameEl = document.getElementById('ev-name-input');
+  var nameEl = document.getElementById('ev-nm');
   if (nameEl) nameEl.value = e.name || '';
 
-  var emojiEl = document.getElementById('ev-emoji-picker');
-  if (emojiEl) emojiEl.value = e.emoji || '🎉';
-
-  var capEl = document.getElementById('ev-cap-picker');
+  var capEl = document.getElementById('ev-cap');
   if (capEl) capEl.value = e.cap || 10;
 
-  var addrEl = document.getElementById('ev-addr-input');
-  if (addrEl) addrEl.value = e.addr || '';
+  var addrEl = document.getElementById('ev-addr');
+  if (addrEl) addrEl.value = e.addr || e.address || '';
 
-  var descEl = document.getElementById('ev-desc-input');
+  var descEl = document.getElementById('ev-desc');
   if (descEl) descEl.value = e.desc || '';
 
   if (e.time) {
@@ -6032,15 +6221,11 @@ function renderHangouts(){
       return e.uni === (uni && uni.name);
     });
   }
-  // Exclude events created by the logged-in user from exploration (shown only in 'My Events')
-  var myId = (typeof userPro !== 'undefined' && userPro) ? userPro.id : null;
-  var myHandle = (typeof userPro !== 'undefined' && userPro && userPro.handle) ? ('@' + userPro.handle.replace(/^@/, '').toLowerCase()) : null;
-  var myName = (typeof userPro !== 'undefined' && userPro) ? userPro.name : null;
+  // Exclude events created by the logged-in user (shown only in 'My Events')
+  // and events already joined (shown only in 'Joined Events').
   evs = evs.filter(function(e) {
-    if (e.isMine || e.isMyEvent) return false;
-    if (myId && (e.creatorId === myId || e.createdById === myId || e.userId === myId)) return false;
-    if (myHandle && e.host && e.host.toLowerCase() === myHandle) return false;
-    if (myName && e.host && e.host.toLowerCase() === myName.toLowerCase()) return false;
+    if (_isMyOwnEvent(e)) return false;
+    if (joinedHangouts[(e.section || '') + '|' + (e.name || '')]) return false;
     return true;
   });
   // Hide gender-restricted events the user can't attend.
@@ -6137,6 +6322,9 @@ async function fetchAndRenderHangouts() {
   if (typeof renderMyHangouts === 'function') {
     renderMyHangouts();
   }
+  if (typeof renderJoinedHangouts === 'function') {
+    renderJoinedHangouts();
+  }
 }
 
 function joinHangoutEv(section,name,restriction,btn){
@@ -6192,6 +6380,7 @@ function joinHangoutEv(section,name,restriction,btn){
       var emoji=section==='nightlife'?'🌙':section==='study'?'📚':section==='dorm'?'🏠':section==='sports'?'⚽':section==='greek'?'🏛️':section==='campus'?'🎓':section==='networking'?'🤝':section==='exclusive'?'✨':'🎉';
       if(typeof addEventGroupChat==='function')_hangoutChatIds[key]=addEventGroupChat(name,section,emoji);
       renderHangouts();
+      if(typeof renderJoinedHangouts==='function')renderJoinedHangouts();
     }
   }else{
     ugzConfirm({
@@ -6228,6 +6417,7 @@ function joinHangoutEv(section,name,restriction,btn){
             if(typeof filterChatBySection==='function')filterChatBySection();
           }
           renderHangouts();
+          if(typeof renderJoinedHangouts==='function')renderJoinedHangouts();
         }
       }
     });
