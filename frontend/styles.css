@@ -5329,17 +5329,64 @@ svg {
   width: auto !important;
 }
 
+/* Friends Chip: Orange default, Neon White when selected (.on) */
+#sec-chats .chatsec-chip[data-sec="friends"],
+#sec-chats .chatsec-chip[data-sec="individuals"] {
+  border: 1.5px solid rgba(249, 115, 22, 0.4) !important;
+  background: rgba(249, 115, 22, 0.1) !important;
+  color: #f97316 !important;
+}
+#sec-chats .chatsec-chip[data-sec="friends"] .csl,
+#sec-chats .chatsec-chip[data-sec="individuals"] .csl {
+  color: #f97316 !important;
+}
+#sec-chats .chatsec-chip[data-sec="friends"] svg,
+#sec-chats .chatsec-chip[data-sec="individuals"] svg {
+  stroke: #f97316 !important;
+}
+
 #sec-chats .chatsec-chip[data-sec="friends"].on,
 #sec-chats .chatsec-chip[data-sec="individuals"].on {
-  border: 1.5px solid #22c55e !important;
-  background: rgba(34, 197, 94, 0.12) !important;
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.45) !important;
+  border: 1.5px solid #f97316 !important;
+  background: rgba(249, 115, 22, 0.28) !important;
+  box-shadow: 0 0 16px rgba(249, 115, 22, 0.6) !important;
+}
+#sec-chats .chatsec-chip[data-sec="friends"].on .csl,
+#sec-chats .chatsec-chip[data-sec="individuals"].on .csl {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px #ffffff !important;
+}
+#sec-chats .chatsec-chip[data-sec="friends"].on svg,
+#sec-chats .chatsec-chip[data-sec="individuals"].on svg {
+  stroke: #ffffff !important;
+  filter: drop-shadow(0 0 6px #ffffff) !important;
+}
+
+/* Events Chip: Blue default, Neon White when selected (.on) */
+#sec-chats .chatsec-chip[data-sec="events"] {
+  border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+  background: rgba(56, 189, 248, 0.1) !important;
+  color: #38bdf8 !important;
+}
+#sec-chats .chatsec-chip[data-sec="events"] .csl {
+  color: #38bdf8 !important;
+}
+#sec-chats .chatsec-chip[data-sec="events"] svg {
+  stroke: #38bdf8 !important;
 }
 
 #sec-chats .chatsec-chip[data-sec="events"].on {
-  border: 1.5px solid #a855f7 !important;
-  background: rgba(168, 85, 247, 0.14) !important;
-  box-shadow: 0 0 14px rgba(168, 85, 247, 0.5) !important;
+  border: 1.5px solid #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.28) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.6) !important;
+}
+#sec-chats .chatsec-chip[data-sec="events"].on .csl {
+  color: #ffffff !important;
+  text-shadow: 0 0 8px #ffffff !important;
+}
+#sec-chats .chatsec-chip[data-sec="events"].on svg {
+  stroke: #ffffff !important;
+  filter: drop-shadow(0 0 6px #ffffff) !important;
 }
 
 .citem-act-btn {
