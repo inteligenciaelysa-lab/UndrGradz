@@ -5331,79 +5331,264 @@ function _getGenderProgressBarHtml(e) {
 }
 
 function _renderHangoutCardHtml(e, isMyEvent) {
-  var st = (typeof _hxState === 'function') ? _hxState(e) : { col: '#4ade80', label: '✨ Open spots', btn: 'linear-gradient(135deg,var(--p),var(--p2))' };
-  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#3b82f6,#2563eb)', t: 'STAFF PICK' };
-  var pct = e.cap ? Math.round(e.spots / e.cap * 100) : 0;
+  var st = (typeof _hxState === 'function') ? _hxState(e) : { col: '#22c55e', label: '✨ Open spots', btn: 'linear-gradient(135deg,#7c3aed,#ec4899)' };
+  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', t: 'POPULAR' };
   var fLeft = Math.max(1, (e.cap || 10) - (e.spots || 0));
 
-  var neonBorder = 'rgba(168,85,247,0.55)';
-  var neonGlow = 'rgba(168,85,247,0.3)';
-  var neonBadgeGlow = '0 0 12px rgba(168,85,247,0.5)';
-  
-  if (e.section === 'nightlife' || e.section === 'greek') {
-    neonBorder = 'rgba(255,45,120,0.6)';
-    neonGlow = 'rgba(255,45,120,0.35)';
-    neonBadgeGlow = '0 0 12px rgba(255,45,120,0.5)';
-  } else if (e.section === 'study' || e.section === 'abroad') {
-    neonBorder = 'rgba(59,130,246,0.6)';
-    neonGlow = 'rgba(59,130,246,0.35)';
-    neonBadgeGlow = '0 0 12px rgba(59,130,246,0.5)';
-  } else if (e.section === 'sports' || e.section === 'dorm') {
-    neonBorder = 'rgba(34,197,94,0.6)';
-    neonGlow = 'rgba(34,197,94,0.35)';
-    neonBadgeGlow = '0 0 12px rgba(34,197,94,0.5)';
-  }
-
   var badgeHtml = isMyEvent ?
-    '<div style="position:absolute;top:12px;left:12px;font-size:9px;font-weight:900;color:#fff;padding:5px 12px;border-radius:12px;background:linear-gradient(135deg,#a855f7,#ec4899);white-space:nowrap;letter-spacing:0.5px;box-shadow:0 0 12px rgba(168,85,247,0.5);border:1px solid rgba(255,255,255,0.3);">ORGANIZER · MY EVENT</div>' :
-    '<div style="position:absolute;top:12px;left:12px;font-size:9px;font-weight:900;color:#fff;padding:5px 12px;border-radius:12px;background:'+bd.bg+';white-space:nowrap;letter-spacing:0.5px;box-shadow:'+neonBadgeGlow+';border:1px solid rgba(255,255,255,0.3);">'+bd.t+'</div>';
+    '<div style="font-size:10.5px;font-weight:900;color:#fff;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#a855f7,#ec4899);letter-spacing:0.4px;box-shadow:0 4px 12px rgba(168,85,247,0.4);border:1px solid rgba(255,255,255,0.25);">ORGANIZER · MY EVENT</div>' :
+    '<div style="font-size:10.5px;font-weight:900;color:#fff;padding:5px 14px;border-radius:20px;background:'+bd.bg+';letter-spacing:0.4px;box-shadow:0 4px 12px rgba(34,197,94,0.4);border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;"><span>🔥</span><span>'+bd.t+'</span></div>';
 
   var capFlagHtml = (!isMyEvent && fLeft <= 6) ?
-    '<div style="position:absolute;top:12px;right:12px;font-size:10px;font-weight:900;color:#fff;background:linear-gradient(135deg,#f43f5e,#e11d48);padding:4px 11px;border-radius:10px;box-shadow:0 0 12px rgba(244,63,94,0.7);border:1px solid rgba(255,255,255,0.3);">Only '+fLeft+' left</div>' : '';
+    '<div style="font-size:10.5px;font-weight:900;color:#fff;background:linear-gradient(135deg,#f43f5e,#e11d48);padding:5px 14px;border-radius:20px;box-shadow:0 4px 12px rgba(244,63,94,0.5);border:1px solid rgba(255,255,255,0.25);">Only '+fLeft+' left</div>' : '';
 
-  var evtId = e.id || ('ev-'+Date.now());
+  var evtId = e.id || ('ev-' + _strHash((e.section || '') + (e.name || '')));
   var evtAddr = e.addr || e.address || 'Campus';
-  var evtEmoji = e.emoji || '🎉';
+  var evtEmoji = e.emoji || '🍿';
 
-  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="background:rgba(18,10,35,0.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1.5px solid '+neonBorder+';border-radius:22px;overflow:hidden;margin-bottom:20px;box-shadow:0 0 20px '+neonGlow+', inset 0 0 12px '+neonGlow+'1f;position:relative;cursor:pointer;transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">' +
-    // Header visual area
-    '<div style="height:142px;background:'+(e.cover ? 'url(\''+e.cover+'\') center/cover' : _hxGrad(e.section))+';position:relative;display:flex;align-items:flex-end;padding:14px 16px;">' +
-      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(10,5,24,0.96) 100%);"></div>' +
-      badgeHtml +
-      capFlagHtml +
-      '<div style="position:absolute;right:16px;top:16px;font-size:56px;opacity:'+(e.cover ? '0.15' : '0.3')+';pointer-events:none;filter:drop-shadow(0 0 14px '+neonBorder+');">' + evtEmoji + '</div>' +
-      '<div style="position:relative;z-index:2;width:100%;">' +
-        '<div style="font-size:19px;font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.3px;text-shadow:0 2px 10px rgba(0,0,0,0.95);">' + e.name + '</div>' +
+  // Format relative date and time (no weekday, Today / Tomorrow / In 2 days / In 3 days / 23 Jul)
+  var formattedTime = (typeof _formatRelativeEventTime === 'function') ? _formatRelativeEventTime(e) : (e.time || 'Próximamente');
+
+  // Avatars Stack and Joined Count
+  var attendees = e.attendees || [];
+  var fg = (typeof _evFriendsGoing === 'function') ? _evFriendsGoing(e) : [];
+  var totalGoing = e.spots || (attendees.length > 0 ? attendees.length : (fg.length ? fg.length + 2 : 4));
+
+  var avatarItems = [];
+  if (attendees.length > 0) {
+    attendees.slice(0, 3).forEach(function(att, i) {
+      var photo = (att.photos && att.photos[0]) ? att.photos[0].url : '';
+      var init = att.firstName ? att.firstName.charAt(0).toUpperCase() : 'U';
+      if (photo) {
+        avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid #0d0722;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;"></div>');
+      } else {
+        avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:#8b5cf6;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;border:2px solid #0d0722;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;">'+init+'</div>');
+      }
+    });
+  } else {
+    var friendPool = (typeof _FRIEND_POOL !== 'undefined') ? _FRIEND_POOL : [{i:'A',c:'#e91e63'},{i:'M',c:'#3b82f6'},{i:'S',c:'#a855f7'}];
+    var list = fg.length ? fg : friendPool.slice(0, 3);
+    list.slice(0, 3).forEach(function(f, i) {
+      avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:'+(f.c||'#7c3aed')+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;border:2px solid #0d0722;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;">'+(f.i||'U')+'</div>');
+    });
+  }
+
+  var extraCount = totalGoing > 3 ? (totalGoing - 3) : 0;
+  var extraPill = extraCount > 0 ? '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;border:2px solid #0d0722;margin-left:-10px;flex-shrink:0;">+'+extraCount+'</div>' : '';
+
+  var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
+
+  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="background:#0d0722;border:1.5px solid rgba(255,255,255,0.15);border-radius:24px;overflow:hidden;margin-bottom:20px;box-shadow:0 8px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;transition:transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;">' +
+    // Top cover image area with dark overlay gradient
+    '<div style="height:190px;background:'+coverStyle+';position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px;box-sizing:border-box;">' +
+      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.35) 0%,rgba(13,7,34,0.1) 45%,rgba(13,7,34,0.95) 100%);pointer-events:none;"></div>' +
+      
+      // Badges row
+      '<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;">' +
+        badgeHtml +
+        capFlagHtml +
+      '</div>' +
+
+      // Title over photo
+      '<div style="position:relative;z-index:2;width:100%;margin-bottom:2px;">' +
+        '<div style="font-size:21px;font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.4px;text-shadow:0 2px 10px rgba(0,0,0,0.9);">' + e.name + ' ' + evtEmoji + '</div>' +
       '</div>' +
     '</div>' +
 
-    // Body details
-    '<div style="padding:14px 16px;background:rgba(10,5,24,0.45);">' +
-      '<div style="font-size:12px;color:rgba(255,255,255,0.9);margin-bottom:8px;line-height:1.35;display:flex;align-items:center;gap:8px;font-weight:700;">' +
-        '<span style="display:inline-flex;align-items:center;gap:4px;">📅 ' + e.time + '</span>' +
-        '<span style="color:rgba(255,255,255,0.3);">·</span>' +
-        '<span style="display:inline-flex;align-items:center;gap:4px;color:#c4b5fd;">📍 ' + evtAddr + '</span>' +
+    // Body content: Date, Time, Location on ONE SINGLE LINE with ellipsis if location is long
+    '<div style="padding:14px 16px 18px;background:#0d0722;">' +
+      '<div style="display:flex;align-items:center;gap:6px;width:100%;white-space:nowrap;overflow:hidden;font-size:13px;font-weight:800;color:rgba(255,255,255,0.92);margin-bottom:16px;">' +
+        '<span style="display:inline-flex;align-items:center;gap:5px;flex-shrink:0;">' +
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>' +
+          formattedTime +
+        '</span>' +
+        '<span style="color:rgba(255,255,255,0.3);flex-shrink:0;">·</span>' +
+        '<span style="display:inline-flex;align-items:center;gap:5px;color:#e0e7ff;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">' +
+          '<span style="color:#f43f5e;flex-shrink:0;">📍</span>' +
+          '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + evtAddr + '</span>' +
+        '</span>' +
       '</div>' +
 
-      (e.desc ? '<div style="font-size:12.5px;color:var(--fg2);line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + e.desc + '</div>' : '') +
-
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);">' +
-        '<div style="flex:1;min-width:0;">' +
-          (typeof _evFriendsGoingHtml === 'function' ? _evFriendsGoingHtml(e) : '') +
-        '</div>' +
-        '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
-          '<div style="text-align:right;">' +
-            '<div style="font-size:9.5px;font-weight:900;color:' + st.col + ';text-transform:uppercase;letter-spacing:0.5px;text-shadow:0 0 8px ' + st.col + '88;display:flex;align-items:center;gap:3px;justify-content:flex-end;">✨ ' + st.label + '</div>' +
-            '<div style="font-size:12px;font-weight:900;color:#fff;margin-top:2px;">' + (e.spots || 0) + ' / ' + (e.cap || 10) + ' <span style="font-size:9.5px;color:var(--fg2);font-weight:700;">joined</span></div>' +
+      // Bottom Row: Avatars stack & going count on Left | Prominent Join Button on Right
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">' +
+          '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + extraPill + '</div>' +
+          '<div style="display:flex;align-items:center;gap:4px;font-size:13.5px;font-weight:900;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+            '<span>🔥</span><span>' + totalGoing + ' going</span>' +
           '</div>' +
-          (!isMyEvent ? '<div style="margin-top:4px;flex-shrink:0;">' + _hxJoin(e, st.btn) + '</div>' : '') +
+        '</div>' +
+
+        '<div style="flex-shrink:0;" onclick="event.stopPropagation();">' +
+          _hxJoin(e, 'linear-gradient(135deg, #6366f1 0%, #d946ef 100%)') +
         '</div>' +
       '</div>' +
     '</div>' +
 
-    // Gender segment progress bar
     (typeof _getGenderProgressBarHtml === 'function' ? _getGenderProgressBarHtml(e) : '') +
   '</div>';
+}
+
+function openHangoutDetailModal(evtId) {
+  var modal = document.getElementById('hangout-detail-modal');
+  var body = document.getElementById('hangout-detail-body');
+  if (!modal || !body) return;
+
+  var allEvs = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
+    typeof OTHER_UNI_EVENTS !== 'undefined' ? OTHER_UNI_EVENTS : [],
+    window._userCreatedEvents || []
+  );
+
+  var e = allEvs.find(function(ev) {
+    var id = ev.id || ('ev-' + _strHash((ev.section || '') + (ev.name || '')));
+    return id === evtId || String(ev.id) === String(evtId) || (ev.section + '|' + ev.name) === evtId;
+  });
+
+  if (!e && allEvs.length > 0) {
+    e = allEvs[0];
+  }
+  if (!e) return;
+
+  var isMyEvent = false;
+  var myId = (typeof userPro !== 'undefined' && userPro) ? userPro.id : null;
+  var myHandle = (typeof userPro !== 'undefined' && userPro && userPro.handle) ? ('@' + userPro.handle.replace(/^@/, '').toLowerCase()) : null;
+  var myName = (typeof userPro !== 'undefined' && userPro) ? userPro.name : null;
+  if (e.isMine || e.isMyEvent || (myId && e.creatorId === myId) || (myHandle && e.host && e.host.toLowerCase() === myHandle) || (myName && e.host && e.host.toLowerCase() === myName.toLowerCase())) {
+    isMyEvent = true;
+  }
+
+  var formattedTime = (typeof _formatRelativeEventTime === 'function') ? _formatRelativeEventTime(e) : (e.time || 'Próximamente');
+  var evtAddr = e.addr || e.address || 'Campus';
+  var evtEmoji = e.emoji || '🍿';
+  var desc = e.desc || 'Únete a este evento para convivir, conocer a más personas de tu campus o áreas cercanas y pasar un momento increíble.';
+
+  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', t: 'POPULAR' };
+  var fLeft = Math.max(1, (e.cap || 10) - (e.spots || 0));
+
+  var badgeHtml = isMyEvent ?
+    '<div style="font-size:11px;font-weight:900;color:#fff;padding:6px 16px;border-radius:20px;background:linear-gradient(135deg,#a855f7,#ec4899);letter-spacing:0.4px;box-shadow:0 4px 12px rgba(168,85,247,0.4);">ORGANIZER · MY EVENT</div>' :
+    '<div style="font-size:11px;font-weight:900;color:#fff;padding:6px 16px;border-radius:20px;background:'+bd.bg+';letter-spacing:0.4px;box-shadow:0 4px 12px rgba(34,197,94,0.4);display:flex;align-items:center;gap:6px;"><span>🔥</span><span>'+bd.t+'</span></div>';
+
+  var capFlagHtml = (!isMyEvent && fLeft <= 6) ?
+    '<div style="font-size:11px;font-weight:900;color:#fff;background:linear-gradient(135deg,#f43f5e,#e11d48);padding:6px 16px;border-radius:20px;box-shadow:0 4px 12px rgba(244,63,94,0.5);">Only '+fLeft+' left</div>' : '';
+
+  // Attendees list for "Quién irá"
+  var attendees = e.attendees || [];
+  var fg = (typeof _evFriendsGoing === 'function') ? _evFriendsGoing(e) : [];
+  var totalGoing = e.spots || (attendees.length > 0 ? attendees.length : (fg.length ? fg.length + 2 : 4));
+
+  var attendeesListHtml = '';
+  if (attendees.length > 0) {
+    attendeesListHtml = attendees.map(function(att) {
+      var photo = (att.photos && att.photos[0]) ? att.photos[0].url : '';
+      var name = att.firstName || (att.name ? att.name.split(' ')[0] : 'Estudiante');
+      var major = (att.profile && att.profile.major) || att.major || 'Student';
+      var photoHtml = photo ?
+        '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid rgba(168,85,247,0.4);flex-shrink:0;"></div>' :
+        '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
+      
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;">' +
+        photoHtml +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:14px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+name+'</div>' +
+          '<div style="font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+major+'</div>' +
+        '</div>' +
+        '<div style="font-size:11px;font-weight:800;color:#34d399;background:rgba(52,211,153,0.12);padding:4px 10px;border-radius:12px;">Asistirá ✓</div>' +
+      '</div>';
+    }).join('');
+  } else {
+    var friendPool = (typeof _FRIEND_POOL !== 'undefined') ? _FRIEND_POOL : [
+      {n:'Ana M.',i:'A',c:'#e91e63', m:'Business Administration'},
+      {n:'Miguel R.',i:'M',c:'#3b82f6', m:'Computer Science'},
+      {n:'Sofía T.',i:'S',c:'#a855f7', m:'Architecture'},
+      {n:'Carlos M.',i:'C',c:'#f59e0b', m:'Industrial Engineering'}
+    ];
+    var list = fg.length ? fg : friendPool;
+    attendeesListHtml = list.slice(0, 4).map(function(f) {
+      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;">' +
+        '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#7c3aed')+';display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0;">'+(f.i||'U')+'</div>' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-size:14px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(f.n || 'Estudiante')+'</div>' +
+          '<div style="font-size:11.5px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(f.m || 'Student')+'</div>' +
+        '</div>' +
+        '<div style="font-size:11px;font-weight:800;color:#34d399;background:rgba(52,211,153,0.12);padding:4px 10px;border-radius:12px;">Asistirá ✓</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  var key = e.section + '|' + e.name;
+  var isJoined = !!joinedHangouts[key];
+  var joinBtnHtml = _hxJoin(e, 'linear-gradient(135deg, #6366f1 0%, #d946ef 100%)');
+  var groupChatBtnHtml = isJoined ?
+    '<button onclick="closeHangoutDetailModal();_eventJoinedTap(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:14px;border-radius:18px;background:linear-gradient(135deg,#7c3aed,#4c1d95);border:1px solid rgba(168,85,247,0.5);color:#fff;font-family:var(--font);font-size:14px;font-weight:900;cursor:pointer;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(124,58,237,0.4);">💬 Ir al Chat del Grupo</button>' : '';
+
+  var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
+
+  body.innerHTML = 
+    // Header image
+    '<div style="height:230px;background:'+coverStyle+';position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:16px;box-sizing:border-box;">' +
+      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.4) 0%,rgba(10,5,24,0.2) 40%,#0a0518 100%);pointer-events:none;"></div>' +
+      
+      // Top bar with close button & badges
+      '<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;">' +
+        '<div style="display:flex;align-items:center;gap:8px;">' + badgeHtml + capFlagHtml + '</div>' +
+        '<button onclick="closeHangoutDetailModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);color:#fff;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);">✕</button>' +
+      '</div>' +
+
+      // Title over cover
+      '<div style="position:relative;z-index:2;width:100%;margin-bottom:6px;">' +
+        '<div style="font-size:24px;font-weight:900;color:#fff;line-height:1.2;font-family:var(--font);letter-spacing:-0.5px;text-shadow:0 2px 12px rgba(0,0,0,0.95);">'+e.name+' '+evtEmoji+'</div>' +
+      '</div>' +
+    '</div>' +
+
+    // Content container
+    '<div style="padding:0 20px 24px;">' +
+      // Date, Time & Location section
+      '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:14px 16px;margin-bottom:18px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:#fff;margin-bottom:10px;">' +
+          '<div style="width:32px;height:32px;border-radius:10px;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.3);display:flex;align-items:center;justify-content:center;color:#60a5fa;flex-shrink:0;">📅</div>' +
+          '<div>' +
+            '<div style="font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.5px;">Fecha y Hora</div>' +
+            '<div style="color:#fff;">'+formattedTime+'</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:#fff;">' +
+          '<div style="width:32px;height:32px;border-radius:10px;background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.3);display:flex;align-items:center;justify-content:center;color:#f43f5e;flex-shrink:0;">📍</div>' +
+          '<div>' +
+            '<div style="font-size:11px;color:var(--fg2);text-transform:uppercase;letter-spacing:0.5px;">Lugar / Ubicación</div>' +
+            '<div style="color:#e0e7ff;">'+evtAddr+'</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      // Description section
+      '<div style="margin-bottom:20px;">' +
+        '<div style="font-size:12px;font-weight:900;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">Descripción del Evento</div>' +
+        '<div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:1.55;white-space:pre-line;">'+desc+'</div>' +
+      '</div>' +
+
+      // "Quién irá" section
+      '<div style="margin-bottom:24px;">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
+          '<div style="font-size:15px;font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">👥 Quién irá <span style="font-size:12px;color:#22c55e;background:rgba(34,197,94,0.14);padding:3px 10px;border-radius:12px;font-weight:800;">🔥 '+totalGoing+' going</span></div>' +
+          '<div style="font-size:12px;font-weight:800;color:var(--fg2);">'+(e.spots||0)+' / '+(e.cap||10)+' cupos</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;">' + attendeesListHtml + '</div>' +
+      '</div>' +
+
+      // Main Action Buttons
+      '<div style="display:flex;flex-direction:column;gap:10px;">' +
+        '<div style="width:100%;">'+joinBtnHtml+'</div>' +
+        groupChatBtnHtml +
+      '</div>' +
+    '</div>';
+
+  modal.classList.add('open');
+}
+
+function closeHangoutDetailModal() {
+  var modal = document.getElementById('hangout-detail-modal');
+  if (modal) modal.classList.remove('open');
 }
 
 function renderMyHangouts() {
@@ -5741,9 +5926,9 @@ function _formatRelativeEventTime(e) {
   } else if (diffDays === 1) {
     dateLabel = 'Tomorrow';
   } else if (diffDays === 2) {
-    dateLabel = 'In 2 Days';
+    dateLabel = 'In 2 days';
   } else if (diffDays === 3) {
-    dateLabel = 'In 3 Days';
+    dateLabel = 'In 3 days';
   } else {
     var monthsAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     var monthsAbbrEs = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -8573,7 +8758,7 @@ function renderCrush(){
   
   var p=crushData[crushIdx];
 
-  var currentSlides = buildHingeStackHtml(p,{isSelf:false, onlyCover:true});
+  var currentSlides = buildHingeStackHtml(p,{isSelf:false, onlyCover:false});
 
   var nextHtml = '<div class="crush-card-inner next">' +
     '<div class="neon-placeholder-container">' +
@@ -8596,7 +8781,7 @@ function renderCrush(){
     '</div>' +
   '</div>';
   
-  var currentHtml = '<div class="crush-card-inner current"><div class="crush-scroll" id="crush-scroll">' + currentSlides + '</div></div>';
+  var currentHtml = '<div class="crush-card-inner current"><div class="crush-scroll" id="crush-scroll" style="touch-action: pan-y;">' + currentSlides + '</div></div>';
 
   card.innerHTML = 
     '<div class="swipe-overlay" id="swipe-overlay-reject"></div>' +
@@ -8632,7 +8817,7 @@ function handleSwipeDecision(dir){
     }
     crushIdx+=2;
     renderCrush();
-    if(typeof maybeShowLikedYouPopup==='function')maybeShowLikedYouPopup();
+    if(typeof maybeShowLikedYouPopup==='function')maybeShowLikedYouPopup(dir==='like');
     return;
   }
 
@@ -8684,7 +8869,7 @@ function handleSwipeDecision(dir){
 
   crushIdx++;
   renderCrush();
-  if(typeof maybeShowLikedYouPopup==='function')maybeShowLikedYouPopup();
+  if(typeof maybeShowLikedYouPopup==='function')maybeShowLikedYouPopup(swipeType !== 'DISLIKE');
 }
 
 function renderCrushDoubleDate() {
@@ -8981,15 +9166,73 @@ function superLike(){
   SwipeEngineV2.swipe('maybe');
 }
 // ══════════ "LIKED YOU" — Tinder-style pop-up while swiping (pick 1 of 4) ══════════
-var _swipeCount=(function(){try{return parseInt(localStorage.getItem('ugz_swipes'))||0;}catch(e){return 0;}})(),_nextLikedYouAt=7,_likedYouPicks=[];
-function maybeShowLikedYouPopup(){
+var _swipeCount = (function(){try{return parseInt(localStorage.getItem('ugz_swipes'))||0;}catch(e){return 0;}})(),
+    _likesGivenCount = (function(){try{return parseInt(localStorage.getItem('ugz_likes_given'))||0;}catch(e){return 0;}})(),
+    _swipesSinceBook = (function(){try{return parseInt(localStorage.getItem('ugz_swipes_book'))||0;}catch(e){return 0;}})(),
+    _likesSinceBook = (function(){try{return parseInt(localStorage.getItem('ugz_likes_book'))||0;}catch(e){return 0;}})(),
+    _likedYouPicks = [];
+
+function maybeShowLikedYouPopup(isLikeAction) {
   _swipeCount++;
-  try{localStorage.setItem('ugz_swipes',String(_swipeCount));}catch(e){}
-  if(_swipeCount<_nextLikedYouAt)return;
-  if(document.getElementById('likedyou-pop'))return;
-  _nextLikedYouAt=_swipeCount+11+(_strHash('ly'+_swipeCount)%6);// next one in ~11-16 swipes
-  showLikedYouPopup();
+  _swipesSinceBook++;
+  if (isLikeAction) {
+    _likesGivenCount++;
+    _likesSinceBook++;
+  }
+  try {
+    localStorage.setItem('ugz_swipes', String(_swipeCount));
+    localStorage.setItem('ugz_likes_given', String(_likesGivenCount));
+    localStorage.setItem('ugz_swipes_book', String(_swipesSinceBook));
+    localStorage.setItem('ugz_likes_book', String(_likesSinceBook));
+  } catch(e) {}
+
+  if (document.getElementById('likedyou-pop')) return;
+
+  // Restriction 1: Minimum 4 likes received by user
+  var userLikesReceived = 0;
+  if (typeof userPro !== 'undefined' && userPro) {
+    if (Array.isArray(userPro.likedBy)) {
+      userLikesReceived = userPro.likedBy.length;
+    } else if (typeof userPro.likesCount === 'number') {
+      userLikesReceived = userPro.likesCount;
+    } else if (typeof userPro.likesReceived === 'number') {
+      userLikesReceived = userPro.likesReceived;
+    }
+  }
+  if (!userLikesReceived && typeof crushDataAll !== 'undefined' && crushDataAll) {
+    userLikesReceived = (typeof _userLikesReceivedCount !== 'undefined') ? _userLikesReceivedCount : 4;
+  }
+
+  if (userLikesReceived < 4) return;
+
+  // Restriction 2: Must appear every 20 swipes AND every 8 likes given
+  // "que aparezca cada 20 swipes y cada 8 personas den like, pq es algo premium entonces no debe de salir tan seguido"
+  if (_swipesSinceBook >= 20 && _likesSinceBook >= 8) {
+    _swipesSinceBook = 0;
+    _likesSinceBook = 0;
+    try {
+      localStorage.setItem('ugz_swipes_book', '0');
+      localStorage.setItem('ugz_likes_book', '0');
+    } catch(e) {}
+    showLikedYouPopup();
+  }
 }
+
+function closeLikedYouPopup() {
+  var pop = document.getElementById('likedyou-pop');
+  if (pop) {
+    pop.style.opacity = '0';
+    setTimeout(function() {
+      if (pop && pop.parentNode) pop.parentNode.removeChild(pop);
+      var anim = document.getElementById('ly-arrow-anim');
+      if (anim && anim.parentNode) anim.parentNode.removeChild(anim);
+    }, 400);
+  }
+  _lyBookOpening = false;
+  _lyChosenIndex = -1;
+  _lyActivePage = 1;
+}
+
 var _lyBookOpening = false;
 var _lyChosenIndex = -1;
 var _lyActivePage = 1;
@@ -9097,7 +9340,7 @@ function showLikedYouPopup(){
       '<button class="ly-btn ly-btn-yes" onclick="acceptLyChoice()">❤️ Sí</button>' +
     '</div>' +
     
-    '<button onclick="rejectLyChoice()" style="position:absolute;bottom:30px;background:transparent;border:none;color:var(--fg3);font-size:12px;font-weight:700;cursor:pointer;z-index:150;">Maybe later (you\'ll lose these)</button>' +
+    '<button onclick="closeLikedYouPopup()" style="position:absolute;bottom:30px;background:transparent;border:none;color:var(--fg3);font-size:12px;font-weight:700;cursor:pointer;z-index:150;">Maybe later (you\'ll lose these)</button>' +
   '</div>' +
   
   // Custom Match Celebration Screen
@@ -11925,15 +12168,10 @@ function _spotlightCard(r,i,opts){
     
   var rankIco = opts.other ? '🌎' : (i === 0 ? '👑' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '🌟')));
   
-  // High Contrast Solid Dark Glass Heart Pill - Solid white text for 100% legibility!
+  // High Contrast Solid Dark Glass Heart Pill
   var likeBadgeHtml = '<div style="position:absolute;top:10px;right:10px;background:rgba(10,5,24,0.92);border:1.5px solid #ec4899;color:#ffffff;font-size:11px;font-weight:900;padding:4px 10px;border-radius:20px;box-shadow:0 0 12px rgba(236,72,153,0.45);display:flex;align-items:center;gap:4px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:2;"><span style="color:#ec4899;filter:drop-shadow(0 0 4px #ec4899);">❤️</span> <span style="color:#ffffff;font-weight:900;text-shadow:0 1px 3px rgba(0,0,0,0.9);">' + _fmtLikes(r.likes) + '</span></div>';
 
-  var locked = opts.other && curPlan !== 'aplus';
-  var likeBtn = locked
-    ? '<button onclick="premAlert()" style="flex:1;background:transparent;border:none;padding:12px;color:#c4b5fd;font-size:15px;font-weight:900;cursor:pointer;" title="A+ Student only">🔒</button>'
-    : '<button onclick="quickLikeProfile(\''+safe+'\',\''+p.bg+'\',null)" style="flex:1;background:transparent;border:none;padding:12px;color:#ec4899;font-size:16px;font-weight:900;cursor:pointer;" title="Like">❤️</button>';
-
-  // University Acronym & Grade Pills side by side (e.g. [UANE] [FRESHMAN])
+  // University Acronym & Grade Pills side by side
   var uniObj = (opts.other && r.uni) ? r.uni : (p.uni || (typeof uni !== 'undefined' && uni) || null);
   var uniAcronym = _getUniAcronym(uniObj) || 'UTNC';
   var yrLabel = (_profileYearLabel(p) || 'Student').toUpperCase();
@@ -11945,18 +12183,14 @@ function _spotlightCard(r,i,opts){
   '</div>';
 
   return '<div class="spotlight-rank-card" style="flex:0 0 205px;scroll-snap-align:start;border-radius:22px;overflow:hidden;border:1.5px solid '+brd+';'+glow+'background:#0e0a1e;transition:transform 0.25s ease, box-shadow 0.25s ease;">'+
-    '<div style="height:280px;'+cover+'position:relative;cursor:pointer;" onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\''+((opts.other&&r.uni)?String(r.uni.name).replace(/'/g,""):'')+'\')">'+
+    '<div style="height:315px;'+cover+'position:relative;cursor:pointer;" onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\''+((opts.other&&r.uni)?String(r.uni.name).replace(/'/g,""):'')+'\')">'+
       '<div style="position:absolute;top:10px;left:10px;'+rankBg+'font-size:11px;font-weight:900;padding:4px 11px;border-radius:20px;display:flex;align-items:center;gap:4px;z-index:2;">'+rankIco+' #'+(i+1)+'</div>'+
       likeBadgeHtml+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:40px 12px 12px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, rgba(10,5,24,0.7) 65%, transparent 100%);">'+
-        '<div style="font-size:16.5px;font-weight:900;color:#ffffff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);">'+p.name+' '+(p.age||'')+(p.verified?_verBadge(15):'')+'</div>'+
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:50px 12px 14px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 65%, transparent 100%);">'+
+        '<div style="font-size:17px;font-weight:900;color:#ffffff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);">'+p.name+' '+(p.age||'')+(p.verified?_verBadge(15):'')+'</div>'+
         pillsHtml+
-        (!opts.sport && p.major ? '<div style="font-size:11px;color:#38bdf8;font-weight:700;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.major+'</div>' : '')+
+        (!opts.sport && p.major ? '<div style="font-size:11.5px;color:#38bdf8;font-weight:700;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.major+'</div>' : '')+
       '</div>'+
-    '</div>'+
-    '<div style="display:flex;gap:0;background:rgba(14,8,30,0.95);border-top:1.5px solid rgba(255,255,255,0.08);">'+
-      '<button onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\''+((opts.other&&r.uni)?String(r.uni.name).replace(/'/g,""):'')+'\')" style="flex:1.4;background:rgba(168,85,247,0.15);border:none;border-right:1.5px solid rgba(255,255,255,0.08);padding:11.5px;color:#ffffff;font-size:12.5px;font-weight:900;cursor:pointer;letter-spacing:0.4px;" onmouseenter="this.style.background=\'rgba(168,85,247,0.35)\'" onmouseleave="this.style.background=\'rgba(168,85,247,0.15)\'">View</button>'+
-      likeBtn+
     '</div>'+
   '</div>';
 }
@@ -11973,7 +12207,6 @@ function renderSpotlight(){
     col = col || '#f59e0b';
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px var(--s) 8px;">' +
       '<div style="font-size:14.5px;font-weight:900;color:' + col + ';letter-spacing:-0.2px;text-shadow:0 0 12px ' + col + '66;display:flex;align-items:center;gap:6px;">' + t + '</div>' +
-      '<span style="font-size:11px;font-weight:800;color:#c4b5fd;background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);border-radius:14px;padding:4px 12px;cursor:pointer;box-shadow:0 0 8px rgba(168,85,247,0.25);">See all</span>' +
     '</div>';
   }
   function row(cards){return '<div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 10px;-webkit-overflow-scrolling:touch;">'+cards+'</div>';}
@@ -15616,10 +15849,10 @@ sw=function(id,label){
   if(id==='hangouts'&&typeof switchEvTab==='function')switchEvTab('nearby');
   if(id==='premium')showPlansForGender();
   if(id==='unicrush'&&typeof switchCrushTab==='function')switchCrushTab('swipe');
-  if(id==='discover'&&typeof renderDiscover==='function')renderDiscover(label==='Campus'||label==='uni'?'uni':undefined);
+  if(id==='discover'&&typeof renderDiscover==='function')renderDiscover('foryou');
 };
 function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['foryou','liked','search','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});}
-function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var defaultTab=subTab||'foryou';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
+function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var defaultTab='foryou';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
 document.addEventListener('DOMContentLoaded',function(){setTimeout(_moveDiscover,60);setTimeout(function(){var uc=document.getElementById('cpanel-uchats'),sc=document.getElementById('sec-chats');if(uc&&sc&&uc.parentElement!==sc){uc.classList.remove('crush-tab-panel');uc.style.display='none';sc.appendChild(uc);}},90);setTimeout(function(){var mf=document.getElementById('match-filters-wrap'),fp=document.getElementById('ptab-panel-filters');if(mf&&fp&&mf.parentElement!==fp)fp.appendChild(mf);},80);});
 
 // Show plans when navigating to premium (Interested In filter now lives statically in the Match Filters markup)
@@ -18319,14 +18552,8 @@ window.addEventListener('click', function(e) {
 });
 
 function handleCrushTap(target) {
-  var curr = target;
-  while (curr && curr !== document.body) {
-    if (curr.tagName === 'BUTTON' || curr.tagName === 'A' || curr.getAttribute('onclick') || curr.classList.contains('crush-reply')) {
-      return;
-    }
-    curr = curr.parentNode;
-  }
-  openCrushDetailsModal();
+  // Details are displayed directly inside the scrollable card.
+  return;
 }
 
 function openCrushDetailsModal() {
