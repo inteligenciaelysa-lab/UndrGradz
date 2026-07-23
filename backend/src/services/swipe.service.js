@@ -634,6 +634,29 @@ class SwipeService {
       }
     });
 
+    const totalSentLikes = await prisma.swipe.count({
+      where: {
+        senderId: userId,
+        type: { in: ['LIKE', 'SUPERLIKE', 'ROSE'] }
+      }
+    });
+
+    const todaySentLikes = await prisma.swipe.count({
+      where: {
+        senderId: userId,
+        type: { in: ['LIKE', 'SUPERLIKE', 'ROSE'] },
+        createdAt: { gte: startOfToday }
+      }
+    });
+
+    const weekSentLikes = await prisma.swipe.count({
+      where: {
+        senderId: userId,
+        type: { in: ['LIKE', 'SUPERLIKE', 'ROSE'] },
+        createdAt: { gte: sevenDaysAgo }
+      }
+    });
+
     return {
       globalRank,
       uniRank,
@@ -646,7 +669,10 @@ class SwipeService {
       weekLikes,
       totalViews,
       todayViews,
-      weekViews
+      weekViews,
+      totalSentLikes,
+      todaySentLikes,
+      weekSentLikes
     };
   }
 

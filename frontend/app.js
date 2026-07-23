@@ -883,6 +883,12 @@ window.ugzModal = (function() {
       message = message || (window.currentLang === 'es' ? 'Esta función requiere el plan A+ Student ($19.99/año).\n\nActualiza tu plan para desbloquear esta función.' : 'This feature requires the A+ Student plan ($19.99/yr).\n\nUpgrade your plan to unlock this feature.');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Planes' : 'Go to Plans');
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Ahora no' : 'Not Now');
+    } else if (type === 'cheat') {
+      icon = '🔒';
+      title = title || (window.currentLang === 'es' ? 'Cheats Requeridos' : 'Cheats Required');
+      message = message || (window.currentLang === 'es' ? 'Esta función requiere Cheats.\n\nCompra un cheat para desbloquear esta función.' : 'This feature requires Cheats.\n\nPurchase a cheat to unlock this feature.');
+      confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Cheats' : 'Go to Cheats');
+      cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Ahora no' : 'Not Now');
     }
 
     var overlay = _getOrCreateDOM();
@@ -5074,6 +5080,44 @@ function _happeningTonightHtml(){
   return '<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:900;color:#fff;padding:2px var(--s) 8px;">🔥 Happening Tonight</div>'+
     '<div style="display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 var(--s) 6px;-webkit-overflow-scrolling:touch;">'+cards+'</div></div>';
 }
+function seeMyEvent(idx){
+  var e=(window._myCreatedEvents||[])[idx];if(!e){return;}
+  var cd=_evCountdown({time:e.time});var ended=(cd==='ENDED');var full=(e.spots>=e.cap);
+  var status=ended?'<span style="color:#f87171;font-weight:800;">⛔ Ended</span>':(full?'<span style="color:#f87171;font-weight:800;">🚫 Full</span>':'<span style="color:#4ade80;font-weight:800;">✅ Open</span>');
+  var modal=document.createElement('div');modal.className='mov open';modal.style.zIndex='9998';
+  modal.innerHTML='<div class="msheet" style="max-width:360px;"><div class="mhnd"></div>'+
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div class="mtitle" style="margin:0;">'+e.name+'</div><span style="font-size:11px;font-weight:800;color:#4ade80;background:rgba(74,222,128,0.15);border-radius:12px;padding:2px 8px;">Your event</span></div>'+
+    '<div style="font-size:12px;color:var(--fg2);margin-bottom:10px;">📍 '+(e.addr||'Campus')+(e.dtStr?' · '+e.dtStr:'')+'</div>'+
+    (e.desc?'<div style="font-size:13px;color:var(--fg);line-height:1.5;margin-bottom:12px;white-space:pre-wrap;">'+e.desc+'</div>':'')+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:10px;padding:8px 12px;background:rgba(255,255,255,0.05);border-radius:10px;"><span>Status: '+status+'</span><span>👥 '+e.spots+' / '+e.cap+' spots</span></div>'+
+    '<div style="display:flex;gap:8px;margin-top:14px;">'+
+      '<button class="gbtn" style="background:var(--p);flex:1;" onclick="this.closest(\'.mov\').remove();_editMyEventCard(\''+(e.id||e.name).toString().replace(/'/g,"\\'")+'\');">✏️ Edit Event</button>'+
+      '<button class="gbtn" style="background:#ef4444;flex:1;" onclick="this.closest(\'.mov\').remove();_deleteMyEventById(\''+(e.id||e.name).toString().replace(/'/g,"\\'")+'\');">🗑 Delete</button>'+
+    '</div>'+
+    '<button class="gbtn-ghost" style="margin-top:8px;" onclick="this.closest(\'.mov\').remove()">Close</button>'+
+  '</div>';
+  document.body.appendChild(modal);
+}
+function manageMyEvent(btn,name){
+  var modal=document.createElement('div');modal.className='mov open';modal.style.zIndex='9998';
+  modal.innerHTML='<div class="msheet" style="max-width:340px;"><div class="mhnd"></div>'+
+    '<div class="mtitle">'+name+'</div>'+
+    '<div style="font-size:12px;color:var(--fg2);margin-bottom:12px;">Edit or delete this event?</div>'+
+    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_editingEvent=true;this.closest(\'.mov\').remove();_editMyEventCard(\''+name.replace(/'/g,"\\'")+'\');">✏️ Edit</button>'+
+    '<button class="gbtn" style="background:#ef4444;margin-bottom:8px;" onclick="_deleteMyEventById(\''+name.replace(/'/g,"\\'")+'\');this.closest(\'.mov\').remove();">🗑 Delete</button>'+
+    '<button class="gbtn-ghost" onclick="this.closest(\'.mov\').remove()">Cancel</button>'+
+  '</div>';
+  modal._evBtn=btn;document.body.appendChild(modal);
+}
+function _deleteMyEvent(el){
+  var modal=el.closest('.mov');var btn=modal&&modal._evBtn;
+  if(btn){var card=btn.closest('.gc');if(card)card.remove();}
+  var myEl=document.getElementById('evp-my');var emptyEl=document.getElementById('my-events-empty');
+  if(myEl&&!myEl.querySelector('.gc')&&!emptyEl){
+    myEl.innerHTML='<div style="text-align:center;padding:48px var(--s);color:var(--fg2);font-size:14px;" id="my-events-empty">No events created yet.<br><button class="gbtn" style="background:var(--p);width:auto;padding:9px 22px;display:inline-block;margin-top:14px;" onclick="switchEvTab(\'create\')">+ Create an event</button></div>';
+  }
+  if(modal)modal.remove();
+}
 // 🗳️ CAMPUS POLLS & THIS-OR-THAT — one fresh question a day, see how campus voted
 var POLLS=[
   {id:'p_food',type:'tot',q:'Late-night campus craving?',opts:[{l:'Pizza',e:'🍕'},{l:'Tacos',e:'🌮'}]},
@@ -5402,6 +5446,312 @@ function renderMyHangouts() {
   }).join('');
 
   myPanel.innerHTML = '<div style="padding:12px var(--s) 0;">' + cardsHtml + '</div>';
+}
+
+function _parseEventDate(e) {
+  if (!e) return null;
+  if (e._dateMs) return new Date(e._dateMs);
+  if (e.dateObj instanceof Date && !isNaN(e.dateObj.getTime())) return e.dateObj;
+  
+  var str = e.time || e.dateStr || e.dtStr || '';
+  if (!str) return null;
+  
+  var monthNames = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  var monthNamesEs = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  
+  // Format 1: "Oct/25/26" or "10/25/26"
+  var parts = str.split(/[\s·]+/);
+  if (parts.length > 0 && parts[0].indexOf('/') > -1) {
+    var dateParts = parts[0].split('/');
+    if (dateParts.length === 3) {
+      var mVal = dateParts[0].toLowerCase();
+      var mIdx = monthNames.indexOf(mVal.slice(0, 3));
+      if (mIdx === -1) mIdx = monthNamesEs.indexOf(mVal.slice(0, 3));
+      if (mIdx === -1 && !isNaN(parseInt(mVal))) mIdx = parseInt(mVal) - 1;
+      var dayNum = parseInt(dateParts[1], 10);
+      var yrVal = parseInt(dateParts[2], 10);
+      if (yrVal < 100) yrVal += 2000;
+      if (mIdx >= 0 && mIdx < 12 && dayNum > 0) {
+        return new Date(yrVal, mIdx, dayNum, 23, 59, 59);
+      }
+    }
+  }
+
+  // Format 2: Month Day (e.g. "Jul 22", "Jul 22 2026")
+  var m = str.match(/(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Abr|Ago|Dic)[a-z]*[\/\s,]+(\d{1,2})(?:[\/\s,']+(\d{2,4}))?/i);
+  if (m) {
+    var monStr = m[1].toLowerCase().slice(0, 3);
+    var monIdx = monthNames.indexOf(monStr);
+    if (monIdx === -1) monIdx = monthNamesEs.indexOf(monStr);
+    var dayNum = parseInt(m[2], 10);
+    var yrStr = m[3] || new Date().getFullYear();
+    var yr = parseInt(yrStr, 10);
+    if (yr < 100) yr += 2000;
+    if (monIdx !== -1 && dayNum > 0) {
+      return new Date(yr, monIdx, dayNum, 23, 59, 59);
+    }
+  }
+
+  // Format 3: Day Month (e.g. "22 Jul - 1:00 PM", "22 Jul", "Jue 23 Jul")
+  var m2 = str.match(/(\d{1,2})[\/\s,]+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Abr|Ago|Dic)[a-z]*/i);
+  if (m2) {
+    var dayNum = parseInt(m2[1], 10);
+    var monStr = m2[2].toLowerCase().slice(0, 3);
+    var monIdx = monthNames.indexOf(monStr);
+    if (monIdx === -1) monIdx = monthNamesEs.indexOf(monStr);
+    var yr = new Date().getFullYear();
+    if (monIdx !== -1 && dayNum > 0) {
+      return new Date(yr, monIdx, dayNum, 23, 59, 59);
+    }
+  }
+  
+  var d = new Date(str);
+  if (!isNaN(d.getTime())) return d;
+  
+  return null;
+}
+
+function _isEventExpired3Days(e) {
+  var evtDate = _parseEventDate(e);
+  if (!evtDate) return false;
+  var now = new Date();
+  var diffMs = now.getTime() - evtDate.getTime();
+  var diffDays = diffMs / (1000 * 60 * 60 * 24);
+  return diffDays > 3;
+}
+
+function _deleteMyEventById(idOrName) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este evento?')) return;
+  var targetName = idOrName.toLowerCase();
+  
+  if (window.HANGOUT_EVENTS) {
+    window.HANGOUT_EVENTS = window.HANGOUT_EVENTS.filter(function(e) {
+      return String(e.id || e.name).toLowerCase() !== targetName;
+    });
+  }
+  if (window._userCreatedEvents) {
+    window._userCreatedEvents = window._userCreatedEvents.filter(function(e) {
+      return String(e.id || e.name).toLowerCase() !== targetName;
+    });
+  }
+  if (window._myCreatedEvents) {
+    window._myCreatedEvents = window._myCreatedEvents.filter(function(e) {
+      return String(e.id || e.name).toLowerCase() !== targetName;
+    });
+  }
+  if (window.OTHER_UNI_EVENTS) {
+    window.OTHER_UNI_EVENTS = window.OTHER_UNI_EVENTS.filter(function(e) {
+      return String(e.id || e.name).toLowerCase() !== targetName;
+    });
+  }
+  
+  if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
+    apiClient.deleteEvent(idOrName).catch(function(err) {
+      console.error("Failed to delete event on backend:", err);
+    });
+  }
+  
+  if (typeof renderHangouts === 'function') renderHangouts();
+  if (typeof renderMyHangouts === 'function') renderMyHangouts();
+  if (typeof ugzAlert === 'function') ugzAlert('🗑️ Evento eliminado.');
+}
+
+function _boostMyEvent(idOrName) {
+  var msg = '🚀 Want to Boost your Event?\n\nBoosting puts your event at the top of the feed with a glowing border!';
+  if (window.cheatAlert) {
+    window.cheatAlert(msg);
+  } else if (window.ugzModal && window.ugzModal.cheat) {
+    window.ugzModal.cheat(msg);
+  } else {
+    alert(msg);
+  }
+}
+
+function _editMyEventCard(idOrName) {
+  var all = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
+    window._userCreatedEvents || [],
+    window._myCreatedEvents || []
+  );
+  var targetName = idOrName.toLowerCase();
+  var e = all.find(function(item) {
+    return String(item.id || item.name).toLowerCase() === targetName;
+  });
+  if (!e) return;
+
+  window._editingEventObj = e;
+
+  var secEl = document.getElementById('ev-section');
+  if (secEl) {
+    secEl.value = e.section || 'nightlife';
+    if (typeof onEvSectionChange === 'function') onEvSectionChange(secEl);
+  }
+
+  var nameEl = document.getElementById('ev-name-input');
+  if (nameEl) nameEl.value = e.name || '';
+
+  var emojiEl = document.getElementById('ev-emoji-picker');
+  if (emojiEl) emojiEl.value = e.emoji || '🎉';
+
+  var capEl = document.getElementById('ev-cap-picker');
+  if (capEl) capEl.value = e.cap || 10;
+
+  var addrEl = document.getElementById('ev-addr-input');
+  if (addrEl) addrEl.value = e.addr || '';
+
+  var descEl = document.getElementById('ev-desc-input');
+  if (descEl) descEl.value = e.desc || '';
+
+  if (e.time) {
+    var parts = e.time.split(/[\s·]+/);
+    if (parts.length >= 1 && parts[0].indexOf('/') > -1) {
+      var dParts = parts[0].split('/');
+      if (dParts.length === 3) {
+        var mNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var mIdx = parseInt(dParts[0], 10) - 1;
+        if (isNaN(mIdx) || mIdx < 0) {
+          mIdx = mNames.findIndex(function(m){ return m.toLowerCase() === dParts[0].toLowerCase(); });
+        }
+        var dayNum = parseInt(dParts[1], 10);
+        var yrNum = parseInt(dParts[2], 10);
+        if (yrNum < 100) yrNum += 2000;
+        if (mIdx >= 0 && dayNum > 0) {
+          var yyyy = yrNum;
+          var mm = String(mIdx + 1).padStart(2, '0');
+          var dd = String(dayNum).padStart(2, '0');
+          var ymd = yyyy + '-' + mm + '-' + dd;
+          var monAbbr = mNames[mIdx] || 'Oct';
+
+          var hiddenYmd = document.getElementById('ev-date-hidden');
+          if (hiddenYmd) hiddenYmd.value = ymd;
+          var hiddenStr = document.getElementById('ev-date-str-hidden');
+          if (hiddenStr) hiddenStr.value = monAbbr + '/' + dd + '/' + String(yyyy).slice(-2);
+
+          var dateBtn = document.getElementById('ev-date-btn-text');
+          if (dateBtn) dateBtn.textContent = monAbbr + ' ' + dayNum;
+        }
+      }
+    }
+
+    var timeMatch = e.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?/i);
+    if (timeMatch) {
+      var h = parseInt(timeMatch[1], 10);
+      var mStr = timeMatch[2];
+      var ampm = (timeMatch[3] || 'PM').toUpperCase();
+      if (ampm === 'PM' && h < 12) h += 12;
+      if (ampm === 'AM' && h === 12) h = 0;
+      var hh = String(h).padStart(2, '0');
+      var timeInput = document.getElementById('ev-time-picker');
+      if (timeInput) timeInput.value = hh + ':' + mStr;
+    }
+  }
+
+  if (e.cover) {
+    window._activeStockPhotoUrl = e.cover;
+    var previewImg = document.getElementById('evc-cover-preview');
+    if (previewImg) {
+      previewImg.src = e.cover;
+      previewImg.style.display = 'block';
+    }
+    var previewWrap = document.getElementById('evc-cover-preview-wrap');
+    if (previewWrap) previewWrap.style.display = 'block';
+  }
+
+  if (typeof switchEvTab === 'function') {
+    switchEvTab('create');
+  }
+
+  var heading = document.querySelector('#evp-create .mtitle');
+  if (heading) heading.textContent = '✏️ Edit Event';
+  var submitBtn = document.querySelector('#evp-create .gbtn');
+  if (submitBtn) submitBtn.textContent = 'Save Changes';
+
+  if (typeof updateEvLivePreview === 'function') {
+    updateEvLivePreview();
+  }
+}
+
+function _formatRelativeEventTime(e) {
+  if (!e) return 'Próximamente';
+  var rawTime = e.time || e.dateStr || 'Próximamente';
+  if (!rawTime || rawTime === 'Próximamente') return rawTime;
+
+  var timePart = '';
+  var timeMatch = rawTime.match(/(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?)/i);
+  if (timeMatch) {
+    timePart = timeMatch[1].trim();
+  }
+
+  var d = null;
+  if (e._dateMs) {
+    d = new Date(e._dateMs);
+  } else if (e.dateObj instanceof Date && !isNaN(e.dateObj.getTime())) {
+    d = e.dateObj;
+  }
+
+  if (!d) {
+    var monthNames = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    var monthNamesEs = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+    var parts = rawTime.split(/[\s·]+/);
+    if (parts.length > 0 && parts[0].indexOf('/') > -1) {
+      var dateParts = parts[0].split('/');
+      if (dateParts.length === 3) {
+        var mVal = dateParts[0].toLowerCase();
+        var mIdx = monthNames.indexOf(mVal.slice(0, 3));
+        if (mIdx === -1) mIdx = monthNamesEs.indexOf(mVal.slice(0, 3));
+        if (mIdx === -1 && !isNaN(parseInt(mVal))) mIdx = parseInt(mVal) - 1;
+        var dayNum = parseInt(dateParts[1], 10);
+        var yrVal = parseInt(dateParts[2], 10);
+        if (yrVal < 100) yrVal += 2000;
+        if (mIdx >= 0 && mIdx < 12 && dayNum > 0) {
+          d = new Date(yrVal, mIdx, dayNum);
+        }
+      }
+    }
+
+    if (!d) {
+      var m2 = rawTime.match(/(\d{1,2})[\/\s,]+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|Ene|Abr|Ago|Dic)[a-z]*/i);
+      if (m2) {
+        var dayNum = parseInt(m2[1], 10);
+        var monStr = m2[2].toLowerCase().slice(0, 3);
+        var monIdx = monthNames.indexOf(monStr);
+        if (monIdx === -1) monIdx = monthNamesEs.indexOf(monStr);
+        var yr = new Date().getFullYear();
+        if (monIdx !== -1 && dayNum > 0) {
+          d = new Date(yr, monIdx, dayNum);
+        }
+      }
+    }
+  }
+
+  if (!d || isNaN(d.getTime())) {
+    return rawTime.replace(/^(?:Lun|Mar|Mié|Jue|Vie|Sáb|Dom|Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z.]*\s+/i, '');
+  }
+
+  var today = new Date();
+  var todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  var targetMidnight = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+  var diffMs = targetMidnight.getTime() - todayMidnight.getTime();
+  var diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  var dateLabel = '';
+  if (diffDays === 0) {
+    dateLabel = 'Today';
+  } else if (diffDays === 1) {
+    dateLabel = 'Tomorrow';
+  } else if (diffDays === 2) {
+    dateLabel = 'In 2 Days';
+  } else if (diffDays === 3) {
+    dateLabel = 'In 3 Days';
+  } else {
+    var monthsAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var monthsAbbrEs = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    var mName = monthsAbbr[d.getMonth()] || monthsAbbrEs[d.getMonth()];
+    dateLabel = d.getDate() + ' ' + mName;
+  }
+
+  return timePart ? (dateLabel + ' · ' + timePart) : dateLabel;
 }
 
 function renderHangouts(){
@@ -9176,20 +9526,14 @@ function _getUniAcronym(u) {
     if (lower.indexOf('americana del noreste') !== -1 || lower.indexOf('uane') !== -1) return 'UANE';
     if (lower.indexOf('politécnica de piedras negras') !== -1 || lower.indexOf('uppn') !== -1) return 'UPPN';
     if (lower.indexOf('tecnológica del norte de coahuila') !== -1 || lower.indexOf('utnc') !== -1) return 'UTNC';
-    if (lower.indexOf('autónoma de nuevo león') !== -1 || lower.indexOf('uanl') !== -1) return 'UANL';
-    if (lower.indexOf('autónoma de coahuila') !== -1 || lower.indexOf('uadec') !== -1) return 'UADEC';
-    if (lower.indexOf('tecnológico de monterrey') !== -1 || lower.indexOf('itesm') !== -1) return 'ITESM';
-    if (lower.indexOf('autónoma de méxico') !== -1 || lower.indexOf('unam') !== -1) return 'UNAM';
-    if (lower.indexOf('southern methodist') !== -1 || lower.indexOf('smu') !== -1) return 'SMU';
-
-    if (str.length <= 6) return str;
-    var words = str.split(/\s+/).filter(function(w){ return !/^(de|del|la|los|las|el|y|en|of|the|and)$/i.test(w); });
-    if (words.length > 1) {
-      var acr = words.map(function(w){ return w[0]; }).join('').toUpperCase();
-      if (acr.length >= 2 && acr.length <= 8) return acr;
-    }
     return str;
   }
+}
+
+function _getPhotoUrl(photo) {
+  if (!photo) return '';
+  if (typeof photo === 'string') return photo;
+  if (typeof photo === 'object' && photo.url) return photo.url;
   return '';
 }
 
@@ -9200,21 +9544,21 @@ function _getSentLikesHtml(pool){
   var pref=(typeof crushGenderPref!=='undefined')?crushGenderPref:'female';
   if (!pool) {
     pool = (crushDataAll||[]).filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);}).slice(0,8);
-  } else {
-    pool = pool.filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);});
   }
 
-  if(!pool.length){return '<div style="text-align:center;padding:40px var(--s);color:var(--fg2);font-size:13px;font-weight:700;">No le has dado like a nadie aún 💘<br><span style="font-size:11px;color:#a78bfa;">¡Empieza a explorar perfiles!</span></div>';}
+  if(!pool || !pool.length){return '<div style="text-align:center;padding:40px var(--s);color:var(--fg2);font-size:13px;font-weight:700;">No le has dado like a nadie aún 💘<br><span style="font-size:11px;color:#a78bfa;">¡Empieza a explorar perfiles!</span></div>';}
   var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name;});
 
   var cards = pool.map(function(p, i) {
     var h=_strHash((p.name||'')+'sent');
     var unRaw=(p.uni&&(p.uni.acronym||p.uni.name||p.uni))||(uniObjs.length?(uniObjs[h%uniObjs.length].acronym||uniObjs[h%uniObjs.length].name):'UANE');
     var un=_getUniAcronym(unRaw);
-    var cover = (p.photos&&p.photos[0])?'background-image:url('+p.photos[0]+');background-size:cover;background-position:center;':'background:linear-gradient(160deg,'+(p.bg||'#ec4899')+',rgba(0,0,0,0.55));';
+    var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
+    var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#38bdf8')+',rgba(0,0,0,0.55));';
     var safe = (p.name||'').replace(/'/g,"");
+    var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
     return '<div style="border-radius:20px;overflow:hidden;border:1.5px solid rgba(56,189,248,0.6);background:#0e0a1e;position:relative;box-shadow:0 0 18px rgba(56,189,248,0.3);">'+
-      '<div onclick="viewUserUnicrush(null,\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="height:190px;'+cover+'position:relative;cursor:pointer;">'+
+      '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="height:190px;'+cover+'position:relative;cursor:pointer;">'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, transparent 100%);"><div style="font-size:13.5px;font-weight:900;color:#fff;">'+p.name+' '+(p.age||'')+'</div><div style="font-size:11px;color:#38bdf8;font-weight:700;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
   }).join('');
 
@@ -9265,7 +9609,7 @@ async function loadProfileViews() {
     const views = await apiClient.getProfileViews();
     window._profileViewsData = views || [];
     var panel = document.getElementById('cpanel-liked');
-    if (panel && panel.classList.contains('active') && window._likedSubTab === 'saw' && typeof _renderLikedYouReveal === 'function') {
+    if (panel && (panel.classList.contains('active') || panel.style.display !== 'none') && window._likedSubTab === 'saw' && typeof _renderLikedYouReveal === 'function') {
       _renderLikedYouReveal(typeof curPlan !== 'undefined' && curPlan === 'aplus');
     }
   } catch (err) {
@@ -9279,7 +9623,7 @@ async function loadAdmirers() {
     const admirers = await apiClient.getAdmirers();
     window._admirersData = admirers || [];
     var panel = document.getElementById('cpanel-liked');
-    if (panel && panel.classList.contains('active') && (window._likedSubTab === 'liked' || window._likedSubTab === 'admirers') && typeof _renderLikedYouReveal === 'function') {
+    if (panel && (panel.classList.contains('active') || panel.style.display !== 'none') && (window._likedSubTab === 'liked' || window._likedSubTab === 'admirers') && typeof _renderLikedYouReveal === 'function') {
       _renderLikedYouReveal(typeof curPlan !== 'undefined' && curPlan === 'aplus');
     }
   } catch (err) {
@@ -9293,7 +9637,7 @@ async function loadSentLikes() {
     const likes = await apiClient.getSentLikes();
     window._sentLikesData = likes || [];
     var panel = document.getElementById('cpanel-liked');
-    if (panel && panel.classList.contains('active') && window._likedSubTab === 'likes' && typeof _renderLikedYouReveal === 'function') {
+    if (panel && (panel.classList.contains('active') || panel.style.display !== 'none') && window._likedSubTab === 'likes' && typeof _renderLikedYouReveal === 'function') {
       _renderLikedYouReveal(typeof curPlan !== 'undefined' && curPlan === 'aplus');
     }
   } catch (err) {
@@ -9317,12 +9661,14 @@ function _likedSawHtml(pool,unlimited){
   if(!pool.length)return banner+'<div style="text-align:center;padding:35px var(--s);color:var(--fg2);font-size:13px;font-weight:700;">Sin admiradores secretos aún 🕵️<br><span style="font-size:11px;color:#a78bfa;">¡Mantén actualizado tu perfil para recibir más visitas!</span></div>';
 
   var cards=pool.map(function(p, idx){
-    var cover=(p.photos&&p.photos[0])?'background-image:url('+p.photos[0]+');background-size:cover;background-position:center;':'background:linear-gradient(160deg,'+p.bg+',rgba(0,0,0,0.55));';
+    var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
+    var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#8b5cf6')+',rgba(0,0,0,0.55));';
     var safe=p.name.replace(/'/g,"");
     var timeText = p.timeAgo || 'hace 5m';
+    var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
 
     if(unlimited){
-      return '<div onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\'\')" style="cursor:pointer;border-radius:20px;overflow:hidden;border:1.5px solid rgba(168,85,247,0.5);position:relative;height:190px;'+cover+'box-shadow:0 0 16px rgba(168,85,247,0.25);">'+
+      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:20px;overflow:hidden;border:1.5px solid rgba(168,85,247,0.5);position:relative;height:190px;'+cover+'box-shadow:0 0 16px rgba(168,85,247,0.25);">'+
         '<div style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:900;color:#a5f3fc;padding:3px 7px;border-radius:12px;background:rgba(10,5,24,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
         '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, transparent 100%);font-size:13px;font-weight:900;color:#fff;">'+p.name+'</div>'+
       '</div>';
@@ -9412,7 +9758,7 @@ async function loadUserStats() {
     if (stats) {
       window.userStatsData = stats;
       var panel = document.getElementById('cpanel-liked');
-      if (panel && panel.classList.contains('active') && typeof _renderLikedYouReveal === 'function') {
+      if (panel && (panel.classList.contains('active') || panel.style.display !== 'none') && typeof _renderLikedYouReveal === 'function') {
         _renderLikedYouReveal(typeof curPlan !== 'undefined' && curPlan === 'aplus');
       }
     }
@@ -9460,7 +9806,17 @@ function _getAdmirersRanksHtml(subTab) {
   var stat3Icon = '📈', stat3Val = formatVal(rawWeek, '0'), stat3Lbl = 'Week Likes';
 
   var glowBorder = 'rgba(6,182,212,0.5)';
-  if (subTab === 'liked') {
+  if (subTab === 'likes') {
+    glowBorder = 'rgba(56,189,248,0.5)';
+    var sentPool = window._sentLikesData || [];
+    var sentTotal = (stats.totalSentLikes !== undefined && stats.totalSentLikes !== null) ? stats.totalSentLikes : sentPool.length;
+    var sentToday = (stats.todaySentLikes !== undefined && stats.todaySentLikes !== null) ? stats.todaySentLikes : 0;
+    var sentWeek = (stats.weekSentLikes !== undefined && stats.weekSentLikes !== null) ? stats.weekSentLikes : 0;
+
+    stat1Icon = '🚀'; stat1Val = formatVal(sentTotal, '0'); stat1Lbl = 'Likes Sent';
+    stat2Icon = '🔥'; stat2Val = formatVal(sentToday, '0'); stat2Lbl = 'Today';
+    stat3Icon = '📈'; stat3Val = formatVal(sentWeek, '0'); stat3Lbl = 'This Week';
+  } else if (subTab === 'liked') {
     glowBorder = 'rgba(236,72,153,0.5)';
     stat1Icon = '💖'; stat1Val = formatVal(rawTotal, '0'); stat1Lbl = 'Admirers';
     stat2Icon = '🔥'; stat2Val = formatVal(rawToday, '0'); stat2Lbl = 'Today';
@@ -9597,10 +9953,12 @@ function _renderLikedYouReveal(unlimited){
     var h=_strHash((p.name||'')+'ly');
     var unRaw=(p.uni&&(p.uni.acronym||p.uni.name||p.uni))||(uniObjs.length?(uniObjs[h%uniObjs.length].acronym||uniObjs[h%uniObjs.length].name):'UANE');
     var un=_getUniAcronym(unRaw);
-    var cover=(p.photos&&p.photos[0])?'background-image:url('+p.photos[0]+');background-size:cover;background-position:center;':'background:linear-gradient(160deg,'+p.bg+',rgba(0,0,0,0.55));';
+    var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
+    var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#ec4899')+',rgba(0,0,0,0.55));';
+    var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
     
     if(unlocked){
-      return '<div onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\'\')" style="cursor:pointer;border-radius:20px;overflow:hidden;border:1.5px solid rgba(168,85,247,0.6);background:#0e0a1e;position:relative;box-shadow:0 0 18px rgba(168,85,247,0.3);">'+
+      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:20px;overflow:hidden;border:1.5px solid rgba(168,85,247,0.6);background:#0e0a1e;position:relative;box-shadow:0 0 18px rgba(168,85,247,0.3);">'+
         '<div style="height:190px;'+cover+'position:relative;"><div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, transparent 100%);"><div style="font-size:13.5px;font-weight:900;color:#fff;">'+p.name+' '+(p.age||'')+'</div><div style="font-size:11px;color:#38bdf8;font-weight:700;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
     }
 
