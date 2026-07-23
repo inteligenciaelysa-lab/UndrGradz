@@ -15708,7 +15708,7 @@ var CHEATS=[
     n:'Profile Boost',
     d:'Appear 10x more often in others\u2019 Crush for 30 min.',
     c:'#f43f5e',
-    opts:[['1','$3.99',''],['5','$14.99','MOST POPULAR']]
+    opts:[['1','$3.99',''],['5','$14.99','POPULAR']]
   },
   {
     e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame" style="filter:drop-shadow(0 0 4px rgba(245,158,11,0.45));"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>',
