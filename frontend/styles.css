@@ -551,70 +551,7 @@ textarea.gi {
 }
 /* Hangout / Chat section chips */
 /* Custom categories colors for Hangouts section */
-.evsec-chip[data-sec="all"] {
-  --sec-color: #34d399;
-  --sec-bg: transparent;
-  background: transparent !important;
-  border: 1.5px solid rgba(52, 211, 153, 0.25) !important;
-  color: #34d399 !important;
-}
-.evsec-chip[data-sec="all"] svg {
-  color: #34d399 !important;
-  stroke: #34d399 !important;
-  opacity: 1 !important;
-}
-.evsec-chip[data-sec="all"].on {
-  background: transparent !important;
-  border: 1.5px solid #34d399 !important;
-  color: #34d399 !important;
-  box-shadow: 0 0 14px rgba(52, 211, 153, 0.65) !important;
-}
-.evsec-chip[data-sec="all"].on svg {
-  color: #34d399 !important;
-  stroke: #34d399 !important;
-  filter: drop-shadow(0 0 4px rgba(52, 211, 153, 0.8));
-}
-.evsec-chip[data-sec="nightlife"] {
-  --sec-color: #c084fc;
-  --sec-bg: rgba(192, 132, 252, 0.12);
-}
-.evsec-chip[data-sec="study"] {
-  --sec-color: #60a5fa;
-  --sec-bg: rgba(96, 165, 250, 0.12);
-}
-.evsec-chip[data-sec="sports"] {
-  --sec-color: #34d399;
-  --sec-bg: rgba(52, 211, 153, 0.12);
-}
-.evsec-chip[data-sec="dorm"] {
-  --sec-color: #f472b6;
-  --sec-bg: rgba(244, 114, 182, 0.12);
-}
-.evsec-chip[data-sec="greek"] {
-  --sec-color: #fbbf24;
-  --sec-bg: rgba(251, 191, 36, 0.12);
-}
-.evsec-chip[data-sec="abroad"] {
-  --sec-color: #22d3ee;
-  --sec-bg: rgba(34, 211, 238, 0.12);
-}
-.evsec-chip[data-sec="campus"] {
-  --sec-color: #fb923c;
-  --sec-bg: rgba(251, 146, 60, 0.12);
-}
-.evsec-chip[data-sec="networking"] {
-  --sec-color: #818cf8;
-  --sec-bg: rgba(129, 140, 248, 0.12);
-}
-.evsec-chip.evsec-clubs {
-  --sec-color: #f43f5e;
-  --sec-bg: rgba(244, 63, 94, 0.12);
-}
-.evsec-chip.evsec-alumni {
-  --sec-color: #2dd4bf;
-  --sec-bg: rgba(45, 212, 191, 0.12);
-}
-
+/* Per-section hues live in the CHIP COLOR SYSTEM block (--chip), further down. */
 .evsec-chip {
   display: inline-flex;
   align-items: center;
@@ -4636,26 +4573,27 @@ svg {
    This is the recipe the Friends / Events chips already had; now every chip in
    Chats and Hangouts follows it, so a chip's fill always matches its lettering. */
 
-/* Chats chips */
-.chatsec-chip[data-sec="all"]         { --chip: #34d399; }
-.chatsec-chip[data-sec="individuals"],
-.chatsec-chip[data-sec="friends"]     { --chip: #f97316; }
-.chatsec-chip[data-sec="matches"]     { --chip: #ec4899; }
-.chatsec-chip[data-sec="events"]      { --chip: #38bdf8; }
-.chatsec-chip[data-sec="nightlife"]   { --chip: #c084fc; }
-.chatsec-chip[data-sec="study"]       { --chip: #60a5fa; }
-.chatsec-chip[data-sec="dorm"]        { --chip: #f472b6; }
-.chatsec-chip[data-sec="sports"]      { --chip: #34d399; }
-.chatsec-chip[data-sec="greek"]       { --chip: #fbbf24; }
-.chatsec-chip[data-sec="abroad"]      { --chip: #22d3ee; }
-.chatsec-chip[data-sec="campus"]      { --chip: #f97316; }
-.chatsec-chip[data-sec="clubs"]       { --chip: #f43f5e; }
-.chatsec-chip[data-sec="gaming"]      { --chip: #a855f7; }
-.chatsec-chip[data-sec="alumni"]      { --chip: #22c55e; }
-.chatsec-chip[data-sec="networking"]  { --chip: #38bdf8; }
+/* Section hues — ordered so neighbours in the chip row never share a family:
+   green → rose → blue → orange → purple → amber → cyan → pink. No two sections
+   share a colour, and none sits next to the purple ⊕ button. */
+.chatsec-chip[data-sec="all"],        .evsec-chip[data-sec="all"]        { --chip: #34d399; } /* emerald */
+.chatsec-chip[data-sec="nightlife"],  .evsec-chip[data-sec="nightlife"]  { --chip: #f43f5e; } /* rose    */
+.chatsec-chip[data-sec="study"],      .evsec-chip[data-sec="study"]      { --chip: #60a5fa; } /* blue    */
+.chatsec-chip[data-sec="sports"],     .evsec-chip[data-sec="sports"]     { --chip: #fb923c; } /* orange  */
+.chatsec-chip[data-sec="dorm"],       .evsec-chip[data-sec="dorm"]       { --chip: #c084fc; } /* purple  */
+.chatsec-chip[data-sec="greek"],      .evsec-chip[data-sec="greek"]      { --chip: #fbbf24; } /* amber   */
+.chatsec-chip[data-sec="abroad"],     .evsec-chip[data-sec="abroad"]     { --chip: #22d3ee; } /* cyan    */
+.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: #f472b6; } /* pink    */
+.chatsec-chip[data-sec="gaming"],     .evsec-chip[data-sec="gaming"]     { --chip: #a855f7; } /* violet  */
+.chatsec-chip[data-sec="networking"], .evsec-chip[data-sec="networking"] { --chip: #818cf8; } /* indigo  */
+.chatsec-chip[data-sec="clubs"],      .evsec-chip.evsec-clubs            { --chip: #2dd4bf; } /* teal    */
+.chatsec-chip[data-sec="alumni"],     .evsec-chip.evsec-alumni           { --chip: #a3e635; } /* lime    */
 
-/* Hangouts chips already declare their hue as --sec-color — reuse it */
-#sec-hangouts .evsec-chip { --chip: var(--sec-color, #a855f7); }
+/* Chats-only chips */
+.chatsec-chip[data-sec="individuals"],
+.chatsec-chip[data-sec="friends"]     { --chip: #f97316; } /* orange */
+.chatsec-chip[data-sec="matches"]     { --chip: #ec4899; } /* pink   */
+.chatsec-chip[data-sec="events"]      { --chip: #38bdf8; } /* sky    */
 
 /* Idle */
 #sec-chats .chatsec-chip,
@@ -7936,11 +7874,34 @@ input, textarea, [contenteditable="true"] {
   transition: all 0.2s ease !important;
 }
 
+/* ══ PROFILE ACCENT ══
+   Each tab owns a hue and the whole section takes it while that tab is open, so
+   Profile stops reading as one endless wall of pink. #sec-profile carries
+   --prof-accent; switchProfTab() swaps it. */
+#ptab-crush    { --tab-accent: #ec4899; } /* pink   */
+#ptab-activity { --tab-accent: #fbbf24; } /* amber  */
+#ptab-safety   { --tab-accent: #34d399; } /* green  */
+#ptab-filters  { --tab-accent: #60a5fa; } /* blue   */
+
+.prof-tab { color: color-mix(in srgb, var(--tab-accent, #c4b5fd) 72%, #ffffff) !important; }
+
 .prof-tab.active {
-  background: linear-gradient(135deg, #a855f7, #ec4899) !important;
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.6) !important;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--tab-accent, #a855f7) 78%, #000000),
+    var(--tab-accent, #ec4899)) !important;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--tab-accent, #a855f7) 60%, transparent) !important;
   color: #ffffff !important;
   font-weight: 900 !important;
+}
+
+/* Tab strip + section chrome follow the active tab's hue */
+#sec-profile #prof-tabs {
+  border-color: color-mix(in srgb, var(--prof-accent, #a855f7) 50%, transparent) !important;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--prof-accent, #a855f7) 25%, transparent) !important;
+}
+#sec-profile .love-filter-section {
+  border-color: color-mix(in srgb, var(--prof-accent, #a855f7) 45%, transparent) !important;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--prof-accent, #a855f7) 20%, transparent) !important;
 }
 
 .love-filter-section {

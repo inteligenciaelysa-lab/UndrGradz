@@ -4039,20 +4039,28 @@ function _updateAddCellVis(){
 
 
 // ── PROFILE ──
+// One hue per profile tab — the section repaints itself when you switch tabs.
+var PROF_TAB_ACCENT={crush:'#ec4899',activity:'#fbbf24',safety:'#34d399',filters:'#60a5fa'};
+function _profAccent(){
+  var sec=document.getElementById('sec-profile');
+  var v=sec&&sec.style.getPropertyValue('--prof-accent').trim();
+  return v||PROF_TAB_ACCENT.crush;
+}
 function _profileCompleteness(){if(typeof userPro==='undefined'||!userPro)return {pct:100};var items=[!!(userPro.bio&&userPro.bio.trim()),!!(userPro.major&&String(userPro.major).trim()),!!(userPro.interests&&userPro.interests.length>=3),!!(userPro.prompts&&userPro.prompts.length>=1),!!((userPro.greenFlags&&userPro.greenFlags.length)||(userPro.tot&&Object.keys(userPro.tot).length)||userPro.loveLanguage),!!(userPro.anthem||userPro.workout||userPro.diet||userPro.height),!!(userPro.pronouns&&userPro.pronouns.length)];var done=items.filter(Boolean).length;return {done:done,total:items.length,pct:Math.round(done/items.length*100)};}
 function _renderCompleteness(){
   var el=document.getElementById('prof-completeness');if(!el||typeof userPro==='undefined'||!userPro)return;
   var c=_profileCompleteness();if(c.pct>=100){el.style.display='none';return;}
   var tip=!(userPro.bio&&userPro.bio.trim())?'Add a bio':((!userPro.prompts||!userPro.prompts.length)?'Add a prompt':((!userPro.interests||userPro.interests.length<3)?'Add interests':'Complete your vibe'));
   el.style.display='block';
-  el.innerHTML='<div onclick="openEdit()" style="cursor:pointer;background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(236,72,153,0.18));border:1.5px solid rgba(236,72,153,0.55);border-radius:20px;padding:14px 16px;box-shadow:0 0 22px rgba(236,72,153,0.25);backdrop-filter:blur(10px);">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
-      '<span style="font-size:13px;font-weight:900;color:#ffffff;display:flex;align-items:center;gap:6px;">⚡ Perfil <span style="color:#ec4899;text-shadow:0 0 10px rgba(236,72,153,0.8);">'+c.pct+'%</span> completo</span>'+
-      '<span style="font-size:10.5px;font-weight:900;color:#fde68a;background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.5);padding:3px 9px;border-radius:10px;">🔥 3.5x más Likes →</span>'+
+  var A=_profAccent();
+  el.innerHTML='<div onclick="openEdit()" style="cursor:pointer;background:linear-gradient(135deg,color-mix(in srgb,'+A+' 14%,transparent),rgba(255,255,255,0.03));border:1.5px solid color-mix(in srgb,'+A+' 50%,transparent);border-radius:20px;padding:14px 16px;box-shadow:0 0 22px color-mix(in srgb,'+A+' 22%,transparent);backdrop-filter:blur(10px);">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">'+
+      '<span style="font-size:13px;font-weight:900;color:#ffffff;display:flex;align-items:center;gap:6px;white-space:nowrap;">⚡ Perfil <span style="color:'+A+';text-shadow:0 0 10px color-mix(in srgb,'+A+' 80%,transparent);">'+c.pct+'%</span> completo</span>'+
+      '<span style="flex:1;min-width:0;text-align:center;font-size:12px;font-weight:900;color:#fde68a;background:rgba(245,158,11,0.18);border:1.5px solid rgba(245,158,11,0.5);padding:7px 12px;border-radius:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 0 14px rgba(245,158,11,0.25);">🔥 3.5x más Likes</span>'+
     '</div>'+
-    '<div style="font-size:11px;color:#e9d5ff;margin-bottom:9px;font-weight:700;">'+tip+' para posicionarte en el Top Rank de tu universidad</div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,0.72);margin-bottom:9px;font-weight:700;">'+tip+' para posicionarte en el Top Rank de tu universidad</div>'+
     '<div style="height:8px;border-radius:8px;background:rgba(10,5,24,0.8);overflow:hidden;border:1px solid rgba(255,255,255,0.1);">'+
-      '<div style="height:100%;width:'+c.pct+'%;background:linear-gradient(90deg,#06b6d4,#ec4899);border-radius:8px;box-shadow:0 0 12px rgba(236,72,153,0.8);"></div>'+
+      '<div style="height:100%;width:'+c.pct+'%;background:linear-gradient(90deg,color-mix(in srgb,'+A+' 45%,#06b6d4),'+A+');border-radius:8px;box-shadow:0 0 12px color-mix(in srgb,'+A+' 80%,transparent);"></div>'+
     '</div>'+
   '</div>';
 }
@@ -4142,6 +4150,10 @@ function switchProfTab(tab){
     if(btn)btn.classList.toggle('active',t===tab);
     if(panel)panel.style.display=(t===tab)?'block':'none';
   });
+  // Tint the whole Profile section with the active tab's hue
+  var _sec=document.getElementById('sec-profile');
+  if(_sec)_sec.style.setProperty('--prof-accent',PROF_TAB_ACCENT[tab]||PROF_TAB_ACCENT.crush);
+  if(typeof _renderCompleteness==='function')try{_renderCompleteness();}catch(e){}
   if(tab==='filters'&&typeof _initFilterAccordion==='function')try{_initFilterAccordion();}catch(e){}
   if(tab==='crush'){
     if(typeof _initProfileEditor==='function')_initProfileEditor();
@@ -4904,13 +4916,40 @@ function dismissMatchBanner() {
   _syncMatchBanner();
 }
 
+// A fresh Crush match becomes a row in #chat-list tagged 'matches', so it shows up
+// under All + Matches the moment you match — and never under Friends.
+function _addMatchChatRow(chatId, p) {
+  var container = document.getElementById('chat-dm-container') || document.getElementById('chat-list');
+  if (!container || !p) return;
+  if (document.getElementById('uc-match-' + chatId)) return;
+  var dupe = Array.prototype.slice.call(container.querySelectorAll('.cnm')).some(function(el) {
+    return el.textContent.replace(/\s*💘\s*$/, '').trim() === p.name;
+  });
+  if (dupe) return;
+
+  var item = document.createElement('div');
+  item.className = 'citem';
+  item.id = 'uc-match-' + chatId;
+  item.setAttribute('data-csec', 'matches');
+  item.onclick = function() { openChat(chatId, p.name + ' 💘', p.bg, p.init, false, [], false); };
+  item.innerHTML =
+    '<div class="cav" style="background:'+p.bg+';"><span>'+p.init+'</span><div class="online-d"></div></div>' +
+    '<div class="cmeta"><div class="cnm">'+p.name+' 💘</div><div class="cpre" style="color:#fbbf24;">⏳ Expires in 24h — say hi!</div></div>' +
+    '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div><div class="cunrd" style="background:#e91e63;">1</div></div>';
+  container.insertBefore(item, container.firstChild);
+
+  if (typeof filterChatBySection === 'function') filterChatBySection();
+}
+
 function setChatSection(sec) {
   if (sec === 'greek' && typeof _ensureGreekChat === 'function') _ensureGreekChat();
   if (sec === 'clubs' && typeof _ensureClubChats === 'function') _ensureClubChats();
   currentChatSection = sec;
   var _uc = document.getElementById('cpanel-uchats');
   var _cl = document.getElementById('chat-list');
-  if (_uc) _uc.style.display = (sec === 'matches') ? 'block' : 'none';
+  // Matches render inside #chat-list like every other chat — the old separate
+  // panel only produced a duplicate list stacked under an empty state.
+  if (_uc) _uc.style.display = 'none';
   if (_cl) _cl.style.display = 'block';
 
   document.querySelectorAll('.chatsec-chip').forEach(function(c) {
@@ -5020,17 +5059,160 @@ function filterChatBySection() {
 
   _syncMatchBanner();
 }
+// ── CREATE CHAT ──
+// Pick 1–15 friends and start a chat. One friend = a DM, two or more = a group.
+// Either way it's tagged 'individuals', so it lands in All + Friends only.
+var CREATE_CHAT_MAX=15;
+
+// Friends come from the API cache when we have it, otherwise from the seeded rows.
+function _friendsForPicker(){
+  var cache=window._myFriendsCache;
+  if(Array.isArray(cache)&&cache.length){
+    return cache.map(function(f){
+      var nm=((f.firstName||'')+' '+(f.lastName||'')).trim()||f.handle||'Friend';
+      return {
+        name:nm,
+        init:nm.charAt(0).toUpperCase(),
+        color:(f.profile&&f.profile.customization&&f.profile.customization.badgeColor)||'#7c3aed',
+        photo:(f.photos&&f.photos[0]&&f.photos[0].url)||'',
+        sub:(f.profile&&f.profile.major)||'Student'
+      };
+    });
+  }
+  return Array.prototype.map.call(document.querySelectorAll('#fr-rows .frr'),function(r){
+    var av=r.querySelector('div[style*="border-radius:50%"]');
+    var sub=r.querySelector('div[style*="color:var(--fg2)"]');
+    return {
+      name:r.getAttribute('data-nm')||'Friend',
+      init:(av&&av.textContent.trim())||'?',
+      color:(av&&av.style.background)||'#7c3aed',
+      photo:'',
+      sub:(sub&&sub.textContent.trim())||'Student'
+    };
+  });
+}
+
 function _openChatCreateMenu(){
   var m=document.getElementById('chat-create-menu');if(m)m.remove();
   m=document.createElement('div');m.id='chat-create-menu';m.className='mov open';m.style.zIndex='10000';
-  function opt(ic,icbg,label,onclick){return '<div onclick="document.getElementById(\'chat-create-menu\').remove();'+onclick+'" style="display:flex;align-items:center;gap:13px;padding:14px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);margin-bottom:10px;cursor:pointer;"><div style="width:44px;height:44px;border-radius:12px;background:'+icbg+';display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">'+ic+'</div><div style="font-size:15px;font-weight:800;color:#fff;">'+label+'</div></div>';}
-  m.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Create</div>'+
-    opt('💬','linear-gradient(135deg,#a855f7,#7c3aed)','New Chat',"openGrpModal()")+
-    opt('📅','linear-gradient(135deg,#e11d48,#be123c)','Create Event',"sw('hangouts','Hangouts');if(typeof switchEvTab==='function')switchEvTab('create');")+
-    opt('👥','linear-gradient(135deg,#f59e0b,#d97706)','Invite Friends',"if(typeof openReferral==='function')openReferral();else if(typeof sw==='function')sw('profile','Profile');")+
-    opt('📗','linear-gradient(135deg,#22c55e,#16a34a)','Start Study Group',"setChatSection('study')")+
-    '<button class="gbtn-ghost" onclick="document.getElementById(\'chat-create-menu\').remove()">Cancel</button></div>';
+
+  var friends=_friendsForPicker();
+  window._createChatFriends=friends;
+
+  var rows=friends.map(function(f,i){
+    var av=f.photo
+      ? '<div style="width:38px;height:38px;border-radius:50%;background:url(\''+f.photo+'\') center/cover;flex-shrink:0;"></div>'
+      : '<div style="width:38px;height:38px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px;flex-shrink:0;">'+f.init+'</div>';
+    return '<div class="ccf-row" data-idx="'+i+'" data-nm="'+f.name.replace(/"/g,'')+'" onclick="_toggleCreateChatFriend(this)" style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:14px;border:1.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);margin-bottom:7px;cursor:pointer;transition:all 0.18s ease;">'+
+      '<div class="ccf-chk" style="width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:transparent;flex-shrink:0;">✓</div>'+
+      av+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:13.5px;font-weight:800;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</div>'+
+        '<div style="font-size:11px;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.sub+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  if(!rows){
+    rows='<div style="text-align:center;padding:28px 0;font-size:13px;color:var(--fg2);">Aún no tienes amigos agregados.<br><span style="font-size:11.5px;">Agrega amigos para empezar un chat.</span></div>';
+  }
+
+  m.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Create Chat</div>'+
+    '<div style="font-size:11.5px;color:var(--fg2);margin:-6px 0 12px;">Elige de 1 a '+CREATE_CHAT_MAX+' amigos.</div>'+
+    '<input id="ccf-search" oninput="_filterCreateChatFriends(this.value)" placeholder="🔍 Buscar amigos" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:24px;color:#fff;font-size:13px;padding:10px 15px;margin-bottom:10px;"/>'+
+    '<div id="ccf-rows" style="max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 10px;font-size:11.5px;font-weight:800;color:var(--fg2);">'+
+      '<span><span id="ccf-count" style="color:#fff;">0</span> de '+CREATE_CHAT_MAX+' seleccionados</span>'+
+      '<div style="width:70px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;"><div id="ccf-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#a855f7);transition:width 0.2s;"></div></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:10px;">'+
+      '<button class="gbtn-ghost" style="flex:1;margin:0;" onclick="document.getElementById(\'chat-create-menu\').remove()">Cancel</button>'+
+      '<button class="gbtn" id="ccf-create" disabled style="flex:2;margin:0;background:linear-gradient(90deg,#6d28d9,#a855f7 55%,#f43f5e);opacity:0.45;" onclick="_createChatFromPicker()">💬 Create Chat</button>'+
+    '</div>'+
+  '</div>';
   document.body.appendChild(m);
+}
+
+function _createChatSelected(){
+  return Array.prototype.slice.call(document.querySelectorAll('#ccf-rows .ccf-row.sel'));
+}
+
+function _toggleCreateChatFriend(el){
+  var willSelect=!el.classList.contains('sel');
+  if(willSelect&&_createChatSelected().length>=CREATE_CHAT_MAX){
+    if(typeof ugzAlert==='function')ugzAlert('Puedes elegir hasta '+CREATE_CHAT_MAX+' amigos.');
+    return;
+  }
+  el.classList.toggle('sel');
+  var on=el.classList.contains('sel');
+  var chk=el.querySelector('.ccf-chk');
+  el.style.borderColor=on?'#a855f7':'rgba(255,255,255,0.08)';
+  el.style.background=on?'rgba(168,85,247,0.14)':'rgba(255,255,255,0.03)';
+  el.style.boxShadow=on?'0 0 14px rgba(168,85,247,0.3)':'none';
+  if(chk){
+    chk.style.background=on?'#a855f7':'transparent';
+    chk.style.borderColor=on?'#a855f7':'rgba(255,255,255,0.25)';
+    chk.style.color=on?'#fff':'transparent';
+  }
+  _syncCreateChatFooter();
+}
+
+function _syncCreateChatFooter(){
+  var n=_createChatSelected().length;
+  var c=document.getElementById('ccf-count');if(c)c.textContent=n;
+  var bar=document.getElementById('ccf-bar');if(bar)bar.style.width=Math.round(n/CREATE_CHAT_MAX*100)+'%';
+  var btn=document.getElementById('ccf-create');
+  if(btn){btn.disabled=(n===0);btn.style.opacity=n?'1':'0.45';btn.style.cursor=n?'pointer':'default';
+    btn.textContent=(n>1?('💬 Create Group ('+n+')'):'💬 Create Chat');}
+}
+
+function _filterCreateChatFriends(q){
+  q=(q||'').toLowerCase();
+  document.querySelectorAll('#ccf-rows .ccf-row').forEach(function(r){
+    var nm=(r.getAttribute('data-nm')||'').toLowerCase();
+    r.style.display=(!q||nm.indexOf(q)>-1)?'flex':'none';
+  });
+}
+
+function _createChatFromPicker(){
+  var sel=_createChatSelected();
+  if(!sel.length)return;
+  var all=window._createChatFriends||[];
+  var picked=sel.map(function(r){return all[parseInt(r.getAttribute('data-idx'),10)];}).filter(Boolean);
+  if(!picked.length)return;
+
+  var isGroup=picked.length>1;
+  var first=picked[0];
+  var name=isGroup
+    ? picked.slice(0,3).map(function(f){return f.name.split(' ')[0];}).join(', ')+(picked.length>3?(' +'+(picked.length-3)):'')
+    : first.name;
+  var color=isGroup?(uni?uni.p:'#7c3aed'):first.color;
+  var init=isGroup?'👥':first.init;
+  var chatId=(isGroup?'grp_':'dm_')+Date.now();
+
+  var menu=document.getElementById('chat-create-menu');if(menu)menu.remove();
+
+  var container=document.getElementById('chat-dm-container')||document.getElementById('chat-list');
+  if(container){
+    var item=document.createElement('div');
+    item.className='citem';
+    item.id='chatrow_'+chatId;
+    // 'individuals' → category 'friends' → shows under All and Friends, never Matches
+    item.setAttribute('data-csec','individuals');
+    item.onclick=function(){openChat(chatId,name,color,init,isGroup,[],false);};
+    item.innerHTML=(isGroup
+        ? '<div class="cav grp" style="background:'+color+';"><span>👥</span></div>'
+        : (first.photo
+            ? '<div class="cav" style="background:'+color+';"><img src="'+first.photo+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/></div>'
+            : '<div class="cav" style="background:'+color+';"><span>'+init+'</span></div>'))+
+      '<div class="cmeta"><div class="cnm">'+name+(isGroup?' 👥':'')+'</div><div class="cpre">'+(isGroup?(picked.length+' miembros · grupo creado'):'Chat creado · saluda 👋')+'</div></div>'+
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div></div>';
+    container.insertBefore(item,container.firstChild);
+  }
+
+  if(typeof filterChatBySection==='function')filterChatBySection();
+  openChat(chatId,name,color,init,isGroup,
+    isGroup?['🎉 Grupo creado con '+picked.length+' amigos. ¡Saluden! 👋']:[],false);
 }
 function addEventGroupChat(eventName,section,emoji){
   var list=document.getElementById('chat-list');if(!list)return;
@@ -8187,7 +8369,7 @@ function buildHingeStackHtml(p,opts){
   var _reply=function(key){return '<button class="crush-reply" onclick="replyToSection(\''+p.name.replace(/'/g,"\\'")+'\',\''+key+'\')">💬 Reply</button>';};
   var blocks=[];
   var bBlind='',bQuick='',bMatched='',bGreen='',bTot='',bLifestyle='',bWingmate='',bSecret='',bFromGreek='',bLikes='',bSpeaks='',bEthnicity='',bReligion='',bClubs='',bBucket='';
-  (function(){var bucket=isSelf?((typeof userPro!=='undefined'&&userPro.bucketList)||[]):((typeof _profileBucket==='function')?_profileBucket(p):[]);if(bucket&&bucket.length){bBucket='<div class="crush-info-block"><div style="font-size:10px;font-weight:800;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🪣 Senior bucket list</div>'+bucket.map(function(it){var t=(typeof _bucketText==='function')?_bucketText(it):((it&&it.t)||it);var done=(typeof _bucketDone==='function')?_bucketDone(it):!!(it&&it.done);return '<div style="font-size:12px;color:#fff;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;gap:7px;"><span>🪣</span><span style="flex:1;'+(done?'text-decoration:line-through;opacity:0.6;':'')+'">'+t+'</span>'+(done?'<span style="color:#4ade80;font-weight:800;">✓</span>':'')+'</div>';}).join('')+'</div>';}})();
+  (function(){var bucket=isSelf?((typeof userPro!=='undefined'&&userPro.bucketList)||[]):((typeof _profileBucket==='function')?_profileBucket(p):[]);if(bucket&&bucket.length){bBucket='<div class="crush-info-block"><div style="font-size:10px;font-weight:800;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🪣 Senior bucket list</div>'+bucket.map(function(it,_i){var _last=(_i===bucket.length-1);var t=(typeof _bucketText==='function')?_bucketText(it):((it&&it.t)||it);var done=(typeof _bucketDone==='function')?_bucketDone(it):!!(it&&it.done);return '<div style="font-size:12px;color:#fff;padding:4px 0;'+(_last?'':'border-bottom:1px solid rgba(255,255,255,0.05);')+'display:flex;align-items:center;gap:7px;"><span>🪣</span><span style="flex:1;'+(done?'text-decoration:line-through;opacity:0.6;':'')+'">'+t+'</span>'+(done?'<span style="color:#4ade80;font-weight:800;">✓</span>':'')+'</div>';}).join('')+'</div>';}})();
   if(blindHide)bBlind='<div class="crush-info-block" style="text-align:center;"><div style="font-size:24px;">🕯️</div><div style="font-size:13px;font-weight:900;color:#c4b5fd;">Blind date</div><div style="font-size:11px;color:var(--fg2);line-height:1.5;">Photos hidden — match on personality.<br>You\'ll both reveal after a few messages.</div></div>';
   // ── Quick facts: all the badges that used to crowd the photo, now a clean chip row below it ──
   (function(){
@@ -9914,20 +10096,7 @@ function acceptLyChoice() {
   chatHistory[chatId]._expires = Date.now() + 86400000;
   chatHistory[chatId]._matched = p.name;
   
-  var ucList = document.getElementById('uc-chat-list');
-  var ucEmpty = document.getElementById('uc-chat-empty');
-  if(ucEmpty) ucEmpty.style.display = 'none';
-  if(ucList){
-    var dupe = document.getElementById('uc-match-'+chatId) || Array.from(ucList.querySelectorAll('.cnm')).find(function(el){return el.textContent.replace(/\s*💘\s*$/,'').trim()===p.name;});
-    if(!dupe){
-      var item = document.createElement('div');
-      item.className = 'citem';
-      item.id = 'uc-match-' + chatId;
-      item.onclick = function(){ openChat(chatId, p.name+' 💘', p.bg, p.init, false, [], false); };
-      item.innerHTML = '<div class="cav" style="background:'+p.bg+';"><span>'+p.init+'</span><div class="online-d"></div></div><div class="cmeta"><div class="cnm">'+p.name+' 💘</div><div class="cpre" style="color:#fbbf24;">⏳ Expires in 24h — say hi!</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div><div class="cunrd" style="background:#e91e63;">1</div></div>';
-      ucList.insertBefore(item, ucList.firstChild);
-    }
-  }
+  _addMatchChatRow(chatId, p);
   var badge = document.getElementById('uc-badge') || document.getElementById('nbadge-chats');
   if(badge){ badge.style.display = 'flex'; badge.textContent = '1'; }
 
@@ -10635,13 +10804,8 @@ function showMatch(p,isRose){
   _showMatchOverlay({ matchId: chatId, partner: partnerObj });
   // Pre-create chat
   chatHistory[chatId]=chatHistory[chatId]||[];chatHistory[chatId]._expires=Date.now()+86400000;chatHistory[chatId]._matched=p.name;
-  // Add to Crush chat list
-  var ucList=document.getElementById('uc-chat-list');var ucEmpty=document.getElementById('uc-chat-empty');if(ucEmpty)ucEmpty.style.display='none';
-  if(ucList){
-    // Dedup: skip if a match row for this chatId or name already exists
-    var dupe=document.getElementById('uc-match-'+chatId)||Array.from(ucList.querySelectorAll('.cnm')).find(function(el){return el.textContent.replace(/\s*💘\s*$/,'').trim()===p.name;});
-    if(!dupe){var item=document.createElement('div');item.className='citem';item.id='uc-match-'+chatId;item.onclick=function(){openChat(chatId,p.name+' 💘',p.bg,p.init,false,[],false);};item.innerHTML='<div class="cav" style="background:'+p.bg+';"><span>'+p.init+'</span><div class="online-d"></div></div><div class="cmeta"><div class="cnm">'+p.name+' 💘</div><div class="cpre" style="color:#fbbf24;">⏳ Expires in 24h — say hi!</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div><div class="cunrd" style="background:#e91e63;">1</div></div>';ucList.insertBefore(item,ucList.firstChild);}
-  }
+  // Add to the Matches side of the chat list
+  _addMatchChatRow(chatId, p);
   var badge=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(badge){badge.style.display='flex'; badge.textContent='1';}
 }
 function matchDoOpen(chatId,name,color,init){
@@ -13694,21 +13858,13 @@ async function fetchAndRenderChats() {
     console.log("Loaded conversations from database:", list);
     
     var dmContainer = document.getElementById('chat-dm-container');
-    var ucList = document.getElementById('uc-chat-list');
-    var ucEmpty = document.getElementById('uc-chat-empty');
-
     if (dmContainer) dmContainer.innerHTML = '';
-    if (ucList) ucList.innerHTML = '';
 
     if (list.length === 0) {
-      if (ucEmpty) ucEmpty.style.display = 'block';
-      if (dmContainer) {
-        dmContainer.innerHTML = '<div style="font-size:12px;color:var(--fg3);padding:12px 14px;">No active matches yet. Swipe on Crush to find someone! 💘</div>';
-      }
+      // #chat-empty-section (driven by filterChatBySection) covers the empty case
+      if (typeof filterChatBySection === 'function') filterChatBySection();
       return;
     }
-
-    if (ucEmpty) ucEmpty.style.display = 'none';
 
     window._chatPartnerCache = window._chatPartnerCache || {};
     list.forEach(function(conv) {
@@ -13756,7 +13912,9 @@ async function fetchAndRenderChats() {
         var item = document.createElement('div');
         item.className = 'citem';
         item.id = 'dm-match-' + matchId;
-        item.setAttribute('data-csec', 'individuals');
+        // Crush matches belong to Matches only; everyone else is a friend DM.
+        // Keeping these apart is what stops friends showing up under Matches.
+        item.setAttribute('data-csec', isCrushMatch ? 'matches' : 'individuals');
         item.onclick = function() {
           openChat(matchId, nameToShow, bg, init, false, [], false);
         };
@@ -13766,19 +13924,10 @@ async function fetchAndRenderChats() {
         dmContainer.appendChild(item);
       }
 
-      if (ucList) {
-        var ucItem = document.createElement('div');
-        ucItem.className = 'citem';
-        ucItem.id = 'uc-match-' + matchId;
-        ucItem.onclick = function() {
-          openChat(matchId, nameToShow, bg, init, false, [], false);
-        };
-        ucItem.innerHTML = avatarHtml + 
-          '<div class="cmeta"><div class="cnm">'+nameToShow+'</div><div class="cpre">'+lastMsgTxt+'</div></div>' +
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">'+lastMsgTime+'</div>' + unreadHtml + '</div>';
-        ucList.appendChild(ucItem);
-      }
     });
+
+    // One list, one render — the Matches chip filters #chat-list by data-csec.
+    if (typeof filterChatBySection === 'function') filterChatBySection();
 
     var totalUnread = 0;
     if (window._unreadMessageCounts) {
@@ -17845,15 +17994,17 @@ function doubleDateChoose(myDateName,myDateBg,myDateInit,theirDateName,theirDate
   var groupName='💑 '+myDateName+' & '+theirDateName;
   chatHistory[chatId]=[];
   chatHistory[chatId].push({txt:'🎉 Double Date group created! You matched with '+myDateName+' — '+partnerName+' is going on a date with '+theirDateName+'!',out:false});
-  // Add to Crush chat list
-  var ucList=document.getElementById('uc-chat-list');var ucEmpty=document.getElementById('uc-chat-empty');if(ucEmpty)ucEmpty.style.display='none';
-  if(ucList){
+  // Add to the Matches side of the chat list
+  var ddContainer=document.getElementById('chat-dm-container')||document.getElementById('chat-list');
+  if(ddContainer&&!document.getElementById('uc-dd-'+chatId)){
     var item=document.createElement('div');item.className='citem';item.id='uc-dd-'+chatId;
+    item.setAttribute('data-csec','matches');
     item.onclick=function(){openChat(chatId,groupName,myDateBg,myDateInit,true,[],false);};
     item.innerHTML='<div class="cav grp" style="background:'+myDateBg+';"><span>💑</span></div>'+
       '<div class="cmeta"><div class="cnm">'+groupName+'</div><div class="cpre" style="color:#a855f7;">Double Date Group 💘</div></div>'+
       '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div><div class="cunrd" style="background:#e91e63;">1</div></div>';
-    ucList.insertBefore(item,ucList.firstChild);
+    ddContainer.insertBefore(item,ddContainer.firstChild);
+    if(typeof filterChatBySection==='function')filterChatBySection();
   }
   var badge=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(badge){badge.style.display='flex'; badge.textContent='1';}
   // Open the chat
