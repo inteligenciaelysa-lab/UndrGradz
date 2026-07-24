@@ -6194,7 +6194,9 @@ html.uni-set .tb-logo-gradz {
   display: none;
 }
 
-/* button glow follows the rounded shape (even halo) */
+/* Buttons: depth only, no coloured halo. The old `0 0 12px var(--p2)` stop tinted
+   every button with the university's secondary colour, producing green/yellow
+   rings that clashed with the button's own fill (and the line around Get A+). */
 .gbtn,
 .ob4-cta,
 .epb,
@@ -6203,8 +6205,7 @@ html.uni-set .tb-logo-gradz {
 .ahc-res,
 .set-chg,
 #ev-publish-btn {
-  box-shadow: 0 0 12px -3px var(--p2),
-    0 10px 22px -13px rgba(0, 0, 0, 0.55),
+  box-shadow: 0 10px 22px -13px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
 }
 
@@ -9138,4 +9139,12 @@ button[onclick], [role="button"] {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* Crush tabs (Search / Ranks / Admirers) active state → gradz red, not the
+   amber gradient. Higher specificity so it beats the --grad-purple rule. */
+#discover-tabs .crush-tab.active {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+  color: #fff !important;
 }
