@@ -249,6 +249,44 @@ class AdminApiClient {
       body: JSON.stringify({ key, value, description }),
     });
   }
+
+  // ANALYTICS & CHARTS
+  async getAnalytics(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/analytics?${query}`);
+  }
+
+  getAnalyticsExportUrl(format = 'xlsx') {
+    const token = this.getToken();
+    return `${this.baseUrl}/analytics/export/${format}?token=${token}`;
+  }
+
+  // VERIFICATIONS & CREATOR BADGES
+  async getVerifications(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/verifications?${query}`);
+  }
+
+  async approveVerification(id, adminNotes = '') {
+    return this.request(`/verifications/${id}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ adminNotes }),
+    });
+  }
+
+  async rejectVerification(id, rejectionReason = '') {
+    return this.request(`/verifications/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ rejectionReason }),
+    });
+  }
+
+  async updateUserVerifications(userId, payload) {
+    return this.request(`/users/${userId}/verifications`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
 }
 
 window.adminApi = new AdminApiClient();

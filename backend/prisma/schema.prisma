@@ -1,3 +1,8 @@
+
+
+
+
+
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -26,6 +31,8 @@ model User {
 
   isEmailVerified   Boolean  @default(false)
   isPhoneVerified   Boolean  @default(false)
+  isVerified        Boolean  @default(false) // Student ID verification badge 🎓 / ✅
+  isCreatorVerified Boolean  @default(false) // Content Creator verification badge ✨
 
   // Administrative & Security fields
   role              String   @default("STUDENT") // 'STUDENT', 'SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'
@@ -65,13 +72,15 @@ model User {
   joinedEvents        Event[]       @relation("EventAttendees")
 
   // Admin relations
-  adminAuditLogs        AuditLog[]     @relation("AdminAuditLogs")
-  reportsFiled          Report[]       @relation("ReportsFiled")
-  reportsReceived       Report[]       @relation("ReportsReceived")
-  resolvedReports       Report[]       @relation("ResolvedReports")
+  adminAuditLogs        AuditLog[]            @relation("AdminAuditLogs")
+  reportsFiled          Report[]              @relation("ReportsFiled")
+  reportsReceived       Report[]              @relation("ReportsReceived")
+  resolvedReports       Report[]              @relation("ResolvedReports")
   adminSessions         AdminSession[]
-  sentNotifications     Notification[] @relation("SentNotifications")
-  receivedNotifications Notification[] @relation("ReceivedNotifications")
+  sentNotifications     Notification[]        @relation("SentNotifications")
+  receivedNotifications Notification[]        @relation("ReceivedNotifications")
+  verificationRequests  VerificationRequest[] @relation("UserVerificationRequests")
+  reviewedVerifications VerificationRequest[] @relation("ReviewedVerifications")
 }
 
 model UserProfile {
@@ -309,4 +318,22 @@ model PlatformSetting {
   description String?
   updatedBy   String?
   updatedAt   DateTime @updatedAt
+}
+
+model VerificationRequest {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation("UserVerificationRequests", fields: [userId], references: [id], onDelete: Cascade)
+  type            String    // 'STUDENT_ID', 'CREATOR_BADGE'
+  status          String    @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED'
+  credentialUrl   String?   // Photo of Student ID / Credential card
+  socialLinks     Json?     // { instagram, tiktok, youtube, twitch, x, followerCount, notes }
+  creatorCategory String?   // 'Campus Vlogger', 'Gaming', 'Lifestyle', 'Tech', 'Student Athlete', etc.
+  notes           String?   // User applicant message
+  adminNotes      String?   // Notes left by admin reviewer
+  reviewedById    String?
+  reviewedBy      User?     @relation("ReviewedVerifications", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

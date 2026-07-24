@@ -289,6 +289,12 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'dashboard':
         loadDashboard();
         break;
+      case 'analytics':
+        loadAnalyticsView();
+        break;
+      case 'verifications':
+        loadVerificationsView();
+        break;
       case 'users':
         loadUsers();
         break;
@@ -1621,6 +1627,360 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(err.message, 'error');
       }
     });
+  };
+
+  /* ==========================================================================
+     10. ANALYTICS & CHARTS CONTROLLER
+     ========================================================================== */
+  let chartInstances = {};
+
+  async function loadAnalyticsView() {
+    try {
+      const res = await window.adminApi.getAnalytics();
+      const data = res.data;
+
+      // Update KPI Cards
+      document.getElementById('analytics-kpi-users').textContent = data.kpis.totalUsers || '0';
+      document.getElementById('analytics-kpi-verified').textContent = `${data.kpis.verifiedUsers || 0} (${data.kpis.verificationRate}%)`;
+      document.getElementById('analytics-kpi-creators').textContent = data.kpis.creatorUsers || '0';
+      document.getElementById('analytics-kpi-events').textContent = data.kpis.totalEvents || '0';
+
+      // Export Buttons
+      const excelBtn = document.getElementById('btn-export-excel');
+      const pdfBtn = document.getElementById('btn-export-pdf');
+
+      if (excelBtn) {
+        excelBtn.onclick = () => {
+          window.open(window.adminApi.getAnalyticsExportUrl('xlsx'), '_blank');
+        };
+      }
+      if (pdfBtn) {
+        pdfBtn.onclick = () => {
+          window.open(window.adminApi.getAnalyticsExportUrl('pdf'), '_blank');
+        };
+      }
+
+      // Render Chart.js charts
+      if (typeof Chart !== 'undefined') {
+        renderAnalyticsCharts(data);
+      }
+    } catch (err) {
+      showToast('Error cargando analítica: ' + err.message, 'error');
+    }
+  }
+
+  function renderAnalyticsCharts(data) {
+    // 1. User Growth Chart
+    const ctxGrowth = document.getElementById('chart-user-growth');
+    if (ctxGrowth) {
+      if (chartInstances.growth) chartInstances.growth.destroy();
+      chartInstances.growth = new Chart(ctxGrowth, {
+        type: 'line',
+        data: {
+          labels: data.growthTrend.map(d => d.date),
+          datasets: [{
+            label: 'Usuarios Totales',
+            data: data.growthTrend.map(d => d.users),
+            borderColor: '#3d7bff',
+            backgroundColor: 'rgba(61, 123, 255, 0.15)',
+            fill: true,
+            tension: 0.4
+          }, {
+            label: 'Usuarios Activos',
+            data: data.growthTrend.map(d => d.active),
+            borderColor: '#22c55e',
+            borderDash: [5, 5],
+            fill: false,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#94a3b8' } } },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+    }
+
+    // 2. University Breakdown Chart
+    const ctxUni = document.getElementById('chart-uni-breakdown');
+    if (ctxUni) {
+      if (chartInstances.uni) chartInstances.uni.destroy();
+      chartInstances.uni = new Chart(ctxUni, {
+        type: 'bar',
+        data: {
+          labels: data.uniBreakdown.map(u => u.name),
+          datasets: [{
+            label: 'Estudiantes Registrados',
+            data: data.uniBreakdown.map(u => u.students),
+            backgroundColor: ['#3d7bff', '#e04155', '#fbbf24', '#c084fc', '#22c55e', '#38bdf8']
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // 3. Verification Status Doughnut Chart
+    const ctxVerif = document.getElementById('chart-verification-status');
+    if (ctxVerif) {
+      if (chartInstances.verif) chartInstances.verif.destroy();
+      chartInstances.verif = new Chart(ctxVerif, {
+        type: 'doughnut',
+        data: {
+          labels: ['Estudiantes Verificados 🎓', 'Creadores Verificados ✨', 'Cuentas Estándar ⚪'],
+          datasets: [{
+            data: [
+              data.kpis.verifiedUsers,
+              data.kpis.creatorUsers,
+              Math.max(0, data.kpis.totalUsers - data.kpis.verifiedUsers - data.kpis.creatorUsers)
+            ],
+            backgroundColor: ['#3d7bff', '#f59e0b', '#475569']
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } }
+        }
+      });
+    }
+
+    // 4. Events Categories Bar Chart
+    const ctxCat = document.getElementById('chart-event-categories');
+    if (ctxCat) {
+      if (chartInstances.cat) chartInstances.cat.destroy();
+      chartInstances.cat = new Chart(ctxCat, {
+        type: 'bar',
+        data: {
+          labels: data.eventCategories.map(c => c.category),
+          datasets: [{
+            label: 'Eventos',
+            data: data.eventCategories.map(c => c.count),
+            backgroundColor: data.eventCategories.map(c => c.color)
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          }
+        }
+      });
+    }
+  }
+
+  /* ==========================================================================
+     11. VERIFICATIONS & CREATOR BADGES CONTROLLER
+     ========================================================================== */
+  let currentVerifTab = 'ALL';
+  let currentVerifStatus = 'PENDING';
+
+  async function loadVerificationsView() {
+    const grid = document.getElementById('verifications-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '<div class="glass-panel p-6 text-center col-span-full">Cargando solicitudes de verificación...</div>';
+
+    try {
+      const statusSelect = document.getElementById('verif-status-filter');
+      if (statusSelect) currentVerifStatus = statusSelect.value;
+
+      const res = await window.adminApi.getVerifications({
+        type: currentVerifTab,
+        status: currentVerifStatus
+      });
+
+      const { requests, pendingCount } = res.data;
+
+      // Update sidebar pending badge
+      const badge = document.getElementById('badge-pending-verifications');
+      if (badge) {
+        if (pendingCount > 0) {
+          badge.textContent = pendingCount;
+          badge.classList.remove('hidden');
+        } else {
+          badge.classList.add('hidden');
+        }
+      }
+
+      document.getElementById('verif-count-all').textContent = requests.length;
+
+      // Bind Tab Buttons
+      document.querySelectorAll('.verif-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.verif-tab-btn').forEach(b => {
+            b.classList.remove('btn-primary', 'active');
+            b.classList.add('btn-secondary');
+          });
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-primary', 'active');
+          currentVerifTab = btn.getAttribute('data-tab');
+          loadVerificationsView();
+        };
+      });
+
+      // Bind Search / Status filter
+      const searchInput = document.getElementById('verif-search-input');
+      if (searchInput && !searchInput.dataset.bound) {
+        searchInput.dataset.bound = 'true';
+        searchInput.oninput = () => renderVerificationCards(requests, grid);
+      }
+
+      if (statusSelect && !statusSelect.dataset.bound) {
+        statusSelect.dataset.bound = 'true';
+        statusSelect.onchange = () => loadVerificationsView();
+      }
+
+      renderVerificationCards(requests, grid);
+
+    } catch (err) {
+      grid.innerHTML = `<div class="glass-panel p-6 text-center col-span-full text-red-400">Error: ${err.message}</div>`;
+    }
+  }
+
+  function renderVerificationCards(requests, container) {
+    const searchVal = (document.getElementById('verif-search-input')?.value || '').toLowerCase();
+    const filtered = requests.filter(r => {
+      const u = r.user || {};
+      const name = `${u.firstName || ''} ${u.lastName || ''} ${u.handle || ''} ${u.email || ''}`.toLowerCase();
+      return name.includes(searchVal);
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="glass-panel p-6 text-center col-span-full text-gray-400">No hay solicitudes de verificación que coincidan con los filtros seleccionados.</div>';
+      return;
+    }
+
+    let html = '';
+    filtered.forEach(req => {
+      const u = req.user || {};
+      const isCreator = req.type === 'CREATOR_BADGE';
+      const isApproved = req.status === 'APPROVED';
+      const isRejected = req.status === 'REJECTED';
+
+      const photoUrl = req.credentialUrl || (u.photos && u.photos[0] ? u.photos[0].url : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600');
+
+      let badgeTypeLabel = isCreator 
+        ? '<span class="badge badge-warning" style="background:rgba(245,158,11,0.2); color:#f59e0b; border:1px solid rgba(245,158,11,0.4);">✨ Creador de Contenido</span>'
+        : '<span class="badge badge-info" style="background:rgba(61,123,255,0.2); color:#60a5fa; border:1px solid rgba(61,123,255,0.4);">🎓 Credencial Estudiante</span>';
+
+      let statusBadge = '<span class="badge badge-warning">⏳ Pendiente</span>';
+      if (isApproved) statusBadge = '<span class="badge badge-success">✅ Aprobado</span>';
+      if (isRejected) statusBadge = '<span class="badge badge-danger">❌ Rechazado</span>';
+
+      let extraContent = '';
+      if (isCreator && req.socialLinks) {
+        const s = req.socialLinks;
+        extraContent = `
+          <div style="margin-top:12px; padding:10px; background:rgba(255,255,255,0.04); border-radius:8px; font-size:12px;">
+            <div style="font-weight:700; color:#fbbf24; margin-bottom:4px;">🌐 Redes Sociales Presentadas:</div>
+            ${s.instagram ? `<div>📸 <strong>IG:</strong> <a href="https://instagram.com/${s.instagram.replace('@','')}" target="_blank" style="color:#60a5fa; text-decoration:underline;">${s.instagram}</a></div>` : ''}
+            ${s.tiktok ? `<div>🎵 <strong>TikTok:</strong> <a href="https://tiktok.com/@${s.tiktok.replace('@','')}" target="_blank" style="color:#60a5fa; text-decoration:underline;">${s.tiktok}</a></div>` : ''}
+            ${s.youtube ? `<div>🎥 <strong>YouTube:</strong> ${s.youtube}</div>` : ''}
+            ${s.followers ? `<div>📈 <strong>Alcance:</strong> ${s.followers}</div>` : ''}
+            ${req.creatorCategory ? `<div>🏷️ <strong>Categoría:</strong> <span class="text-xs bg-gray-800 px-2 py-0.5 rounded text-amber-300">${req.creatorCategory}</span></div>` : ''}
+          </div>
+        `;
+      } else {
+        extraContent = `
+          <div style="margin-top:12px;">
+            <div style="font-size:11px; color:#94a3b8; margin-bottom:4px;">📸 Fotografía de Credencial / Identificación:</div>
+            <img src="${photoUrl}" style="width:100%; height:140px; object-fit:cover; border-radius:8px; border:1px solid rgba(255,255,255,0.12); cursor:pointer;" onclick="openCredentialModal('${photoUrl}', '${u.firstName} ${u.lastName}')" title="Clic para ampliar">
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="glass-panel p-4 flex flex-col justify-between">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+              <div>
+                ${badgeTypeLabel}
+                <h3 style="font-size:15px; font-weight:700; margin-top:4px; color:#fff;">${u.firstName || ''} ${u.lastName || ''}</h3>
+                <div style="font-size:12px; color:#94a3b8;">${u.handle || u.email}</div>
+                <div style="font-size:11px; color:#60a5fa; margin-top:2px;">🎓 ${u.profile ? u.profile.university || 'Sin Universidad' : 'Sin Universidad'}</div>
+              </div>
+              <div>${statusBadge}</div>
+            </div>
+
+            ${req.notes ? `<p style="font-size:12px; color:#cbd5e1; font-style:italic; margin-top:6px; background:rgba(0,0,0,0.2); padding:6px 8px; border-radius:6px;">"${req.notes}"</p>` : ''}
+
+            ${extraContent}
+          </div>
+
+          <div style="margin-top:16px; display:flex; gap:8px; border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;">
+            ${!isApproved ? `
+              <button class="btn btn-sm btn-primary flex-1" onclick="approveVerifReq('${req.id}', '${req.type}')">
+                ${isCreator ? '✨ Otorgar Badge Creador' : '✅ Aprobar Verificación'}
+              </button>
+            ` : ''}
+            ${!isRejected ? `
+              <button class="btn btn-sm btn-secondary flex-1" onclick="rejectVerifReq('${req.id}')">
+                ❌ Rechazar
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  }
+
+  window.openCredentialModal = (photoUrl, name) => {
+    openModal(`
+      <div class="text-center">
+        <h2>Credencial de Estudiante — ${name}</h2>
+        <img src="${photoUrl}" style="max-width:100%; max-height:70vh; object-fit:contain; border-radius:8px; margin-top:16px;">
+      </div>
+    `);
+  };
+
+  window.approveVerifReq = (reqId, type) => {
+    showConfirmDialog(
+      type === 'CREATOR_BADGE' ? '✨ Otorgar Badge de Creador' : '🎓 Aprobar Verificación de Estudiante',
+      'Esta acción otorgará el distintivo oficial de verificación en la plataforma y notificará al usuario.',
+      async () => {
+        try {
+          await window.adminApi.approveVerification(reqId);
+          showToast('¡Verificación aprobada con éxito! Insignia otorgada.');
+          loadVerificationsView();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      }
+    );
+  };
+
+  window.rejectVerifReq = (reqId) => {
+    const reason = prompt('Motivo del rechazo de verificación (opcional):', 'Credencial no legible o información insuficiente.');
+    if (reason !== null) {
+      showConfirmDialog('Rechazar Solicitud', '¿Confirmas el rechazo de esta verificación?', async () => {
+        try {
+          await window.adminApi.rejectVerification(reqId, reason);
+          showToast('Solicitud rechazada.');
+          loadVerificationsView();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    }
   };
 
   // Run initialization

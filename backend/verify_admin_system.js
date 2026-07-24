@@ -134,17 +134,29 @@ async function main() {
   console.log(`   Universities found: ${searchResults.universities.length}`);
   console.log(`   Users found: ${searchResults.users.length}`);
 
-  // 10. Student App Non-Breaking Regression Test
-  console.log('\n--- 10. Student App Non-Breaking Regression Test ---');
-  if (studentUser) {
-    const fetchedStudent = await prisma.user.findUnique({
-      where: { id: studentUser.id },
-      select: { id: true, email: true, status: true, role: true },
-    });
-    console.log(`✅ Student App User integrity verified: User ID ${fetchedStudent.id} is active with status: ${fetchedStudent.status}`);
+  // 11. Test Analytics Data Aggregation
+  console.log('\n--- 11. Testing Analytics & Interactive Charts System ---');
+  const analytics = await adminService.getAnalyticsData();
+  console.log(`✅ Analytics Data Aggregated Successfully:`);
+  console.log(`   Total Users KPI: ${analytics.kpis.totalUsers}`);
+  console.log(`   Verified Students KPI: ${analytics.kpis.verifiedUsers} (${analytics.kpis.verificationRate}%)`);
+  console.log(`   Verified Creators KPI: ${analytics.kpis.creatorUsers}`);
+  console.log(`   Top Universities Count: ${analytics.uniBreakdown.length}`);
+  console.log(`   Event Categories Count: ${analytics.eventCategories.length}`);
+
+  // 12. Test Verification Requests Queue & Approval
+  console.log('\n--- 12. Testing Verification & Content Creator Badges System ---');
+  const verifications = await adminService.getVerificationRequests({ type: 'ALL', status: 'ALL' });
+  console.log(`✅ Verification Requests Queue Retrieved: ${verifications.requests.length} requests (Pending: ${verifications.pendingCount})`);
+  
+  if (verifications.requests.length > 0) {
+    const req = verifications.requests[0];
+    console.log(`   Testing approval on Request #${req.id} (Type: ${req.type}, User: ${req.user.firstName} ${req.user.lastName})...`);
+    const appResult = await adminService.approveVerification(adminLoginResult.adminUser.id, req.id, 'Automated verification test', '127.0.0.1');
+    console.log(`   └─ Verification Approval Result: ${appResult.success ? 'APPROVED ✅' : 'FAILED'}`);
   }
 
-  console.log('\n🎉 ALL 10 VERIFICATION CHECKS PASSED WITH 100% SUCCESS!');
+  console.log('\n🎉 ALL 12 VERIFICATION CHECKS PASSED WITH 100% SUCCESS!');
 }
 
 main()

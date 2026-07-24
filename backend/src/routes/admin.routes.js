@@ -77,6 +77,17 @@ router.get('/audit-logs', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.g
 // Administrative Notifications (ADMIN, SUPER_ADMIN)
 router.post('/notifications', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.sendNotification);
 
+// Analytics & Charts System
+router.get('/analytics', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getAnalytics);
+router.get('/analytics/export/xlsx', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.exportAnalyticsXlsx);
+router.get('/analytics/export/pdf', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.exportAnalyticsPdf);
+
+// Verifications & Creator Badges Portal
+router.get('/verifications', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getVerifications);
+router.post('/verifications/:id/approve', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.approveVerification);
+router.post('/verifications/:id/reject', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.rejectVerification);
+router.patch('/users/:userId/verifications', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.updateUserVerifications);
+
 // Platform Settings (ADMIN, SUPER_ADMIN)
 router.get('/settings', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.getSettings);
 router.patch('/settings', requireRole('SUPER_ADMIN'), adminController.updateSetting);

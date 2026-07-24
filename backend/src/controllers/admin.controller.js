@@ -394,15 +394,185 @@ class AdminController {
     }
   }
 
-  async updateSetting(req, res, next) {
-    try {
-      const { key, value, description } = req.body;
-      const ipAddress = req.ip || req.headers['x-forwarded-for'];
-
       const setting = await adminService.updateSetting(req.user.id, key, value, description, ipAddress);
       res.status(200).json({
         status: 'success',
         data: { setting },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAnalytics(req, res, next) {
+    try {
+      const { timeRange } = req.query;
+      const data = await adminService.getAnalyticsData({ timeRange });
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async exportAnalyticsXlsx(req, res, next) {
+    try {
+      const data = await adminService.getAnalyticsData();
+      res.setHeader('Content-Type', 'application/vnd.ms-excel');
+      res.setHeader('Content-Disposition', 'attachment; filename="UndrGradz_Analytics_Report.csv"');
+
+      let csv = 'METRICAS GENERALES PLATAFORMA UNDRGRADZ\n';
+      csv += `Total Usuarios,${data.kpis.totalUsers}\n`;
+      csv += `Estudiantes Verificados (Palomita),${data.kpis.verifiedUsers}\n`;
+      csv += `Creadores Verificados (✨),${data.kpis.creatorUsers}\n`;
+      csv += `Tasa de Verificación,${data.kpis.verificationRate}%\n`;
+      csv += `Total Eventos,${data.kpis.totalEvents}\n`;
+      csv += `Total Matches,${data.kpis.totalMatches}\n\n`;
+
+      csv += 'DISTRIBUCION POR UNIVERSIDAD\n';
+      csv += 'Universidad,Estudiantes\n';
+      data.uniBreakdown.forEach(u => {
+        csv += `"${u.fullName}",${u.students}\n`;
+      });
+
+      csv += '\nDESGLOSE DE EVENTOS Y HANGOUTS POR CATEGORIA\n';
+      csv += 'Categoría,Cantidad\n';
+      data.eventCategories.forEach(e => {
+        csv += `"${e.category}",${e.count}\n`;
+      });
+
+      res.status(200).send(csv);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async exportAnalyticsPdf(req, res, next) {
+    try {
+      const data = await adminService.getAnalyticsData();
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Reporte Ejecutivo - UndrGradz Analytics</title>
+          <style>
+            body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 30px; color: #1e293b; background: #fff; }
+            .header { border-bottom: 3px solid #3d7bff; padding-bottom: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+            .title { font-size: 24px; font-weight: bold; color: #0f172a; }
+            .subtitle { font-size: 13px; color: #64748b; margin-top: 4px; }
+            .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+            .kpi-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; background: #f8fafc; text-align: center; }
+            .kpi-num { font-size: 22px; font-weight: 800; color: #2563eb; }
+            .kpi-label { font-size: 11px; text-transform: uppercase; color: #64748b; margin-top: 4px; font-weight: 600; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+            th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; font-size: 13px; }
+            th { background: #f1f5f9; font-weight: 700; color: #334155; }
+            .footer { border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #94a3b8; text-align: center; margin-top: 40px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div>
+              <div class="title">Reporte Ejecutivo de Analítica — UndrGradz</div>
+              <div class="subtitle">Generado el ${new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card"><div class="kpi-num">${data.kpis.totalUsers}</div><div class="kpi-label">Total Usuarios</div></div>
+            <div class="kpi-card"><div class="kpi-num">${data.kpis.verifiedUsers}</div><div class="kpi-label">Estudiantes Verificados 🎓</div></div>
+            <div class="kpi-card"><div class="kpi-num">${data.kpis.creatorUsers}</div><div class="kpi-label">Creadores Verificados ✨</div></div>
+            <div class="kpi-card"><div class="kpi-num">${data.kpis.totalEvents}</div><div class="kpi-label">Eventos Registrados</div></div>
+          </div>
+
+          <h3>Distribución por Universidad Top</h3>
+          <table>
+            <thead><tr><th>Universidad</th><th>Estudiantes Activos</th></tr></thead>
+            <tbody>
+              ${data.uniBreakdown.map(u => `<tr><td>${u.fullName}</td><td>${u.students} estudiantes</td></tr>`).join('')}
+            </tbody>
+          </table>
+
+          <h3>Categorías de Eventos</h3>
+          <table>
+            <thead><tr><th>Categoría</th><th>Eventos Publicados</th></tr></thead>
+            <tbody>
+              ${data.eventCategories.map(c => `<tr><td>${c.category}</td><td>${c.count} eventos</td></tr>`).join('')}
+            </tbody>
+          </table>
+
+          <div class="footer">Confidencial — Documento de uso exclusivo para administración de UndrGradz Inc.</div>
+        </body>
+        </html>
+      `;
+      res.setHeader('Content-Type', 'text/html');
+      res.status(200).send(html);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getVerifications(req, res, next) {
+    try {
+      const { type, status, search, page, limit } = req.query;
+      const data = await adminService.getVerificationRequests({ type, status, search, page, limit });
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async approveVerification(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { adminNotes } = req.body;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+
+      const result = await adminService.approveVerification(req.user.id, id, adminNotes, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        message: 'Verificación aprobada con éxito',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async rejectVerification(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { rejectionReason } = req.body;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+
+      const result = await adminService.rejectVerification(req.user.id, id, rejectionReason, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        message: 'Verificación rechazada',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateUserVerifications(req, res, next) {
+    try {
+      const { userId } = req.params;
+      const { isVerified, isCreatorVerified, creatorCategory } = req.body;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+
+      const user = await adminService.updateUserVerifications(req.user.id, userId, { isVerified, isCreatorVerified, creatorCategory }, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        message: 'Insignias de verificación actualizadas',
+        data: { user },
       });
     } catch (error) {
       next(error);

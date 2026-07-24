@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="../logo.ico">
   <link rel="stylesheet" href="admin-styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="dark-theme">
   <!-- Toast Notification Container -->
@@ -80,8 +81,21 @@
         <ul>
           <li>
             <a href="#dashboard" class="nav-item active" data-view="dashboard">
-              <span class="nav-icon">📊</span>
+              <span class="nav-icon">📈</span>
               <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#analytics" class="nav-item" data-view="analytics">
+              <span class="nav-icon">📊</span>
+              <span class="nav-label">Gráficas</span>
+            </a>
+          </li>
+          <li>
+            <a href="#verifications" class="nav-item" data-view="verifications">
+              <span class="nav-icon">✅</span>
+              <span class="nav-label">Verificación</span>
+              <span id="badge-pending-verifications" class="nav-badge hidden">0</span>
             </a>
           </li>
           <li>
@@ -637,6 +651,141 @@
                 📢 Enviar Notificación
               </button>
             </form>
+          </div>
+        </section>
+
+        <!-- 8.5 ANALYTICS & CHARTS VIEW -->
+        <section id="view-analytics" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">📊 Analítica Visual & Reportes Estadísticos</h1>
+              <p class="view-subtitle">Métricas interactivas de crecimiento, universidades, verificaciones, eventos y retención.</p>
+            </div>
+            <div class="header-actions">
+              <button id="btn-export-excel" class="btn btn-secondary">
+                📗 Exportar Excel (.xlsx)
+              </button>
+              <button id="btn-export-pdf" class="btn btn-primary">
+                📄 Exportar Reporte PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards -->
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-icon">👥</div>
+              <div class="kpi-data">
+                <span class="kpi-value" id="analytics-kpi-users">--</span>
+                <span class="kpi-label">Usuarios Totales</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon">🎓</div>
+              <div class="kpi-data">
+                <span class="kpi-value" id="analytics-kpi-verified">--</span>
+                <span class="kpi-label">Estudiantes Verificados</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon">✨</div>
+              <div class="kpi-data">
+                <span class="kpi-value" id="analytics-kpi-creators">--</span>
+                <span class="kpi-label">Creadores de Contenido</span>
+              </div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-icon">🔥</div>
+              <div class="kpi-data">
+                <span class="kpi-value" id="analytics-kpi-events">--</span>
+                <span class="kpi-label">Eventos Registrados</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Grid (Chart.js Containers) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <!-- Chart 1: User Growth -->
+            <div class="glass-panel p-4">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title">📈 Crecimiento de Usuarios Registrados</h3>
+              </div>
+              <div style="position: relative; height: 280px; width: 100%;">
+                <canvas id="chart-user-growth"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 2: University Breakdown -->
+            <div class="glass-panel p-4">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title">🎓 Estudiantes por Universidad (Top 6)</h3>
+              </div>
+              <div style="position: relative; height: 280px; width: 100%;">
+                <canvas id="chart-uni-breakdown"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 3: Verification Status -->
+            <div class="glass-panel p-4">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title">✅ Estado de Verificación y Insignias</h3>
+              </div>
+              <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="chart-verification-status"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 4: Events Categories -->
+            <div class="glass-panel p-4">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title">🔥 Eventos y Hangouts por Categoría</h3>
+              </div>
+              <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="chart-event-categories"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8.6 VERIFICATIONS & CREATOR BADGES VIEW -->
+        <section id="view-verifications" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">✅ Portal de Verificación & Badges de Creadores</h1>
+              <p class="view-subtitle">Revisa credenciales de estudiantes para otorgar la palomita 🎓 y perfiles de creadores de contenido para distintivos ✨.</p>
+            </div>
+          </div>
+
+          <!-- Sub-Nav Tabs & Filter Bar -->
+          <div class="filter-bar glass-panel p-3 mb-6">
+            <div class="flex flex-wrap gap-2 items-center justify-between">
+              <div class="tab-group flex gap-2">
+                <button class="btn btn-sm btn-primary verif-tab-btn active" data-tab="ALL">
+                  📋 Todas (<span id="verif-count-all">0</span>)
+                </button>
+                <button class="btn btn-sm btn-secondary verif-tab-btn" data-tab="STUDENT_ID">
+                  🎓 Estudiantes (Credenciales)
+                </button>
+                <button class="btn btn-sm btn-secondary verif-tab-btn" data-tab="CREATOR_BADGE">
+                  ✨ Creadores de Contenido
+                </button>
+              </div>
+
+              <div class="flex gap-2 items-center">
+                <select id="verif-status-filter" class="form-select text-sm py-1">
+                  <option value="ALL">Todos los Estados</option>
+                  <option value="PENDING" selected>⏳ Pendientes</option>
+                  <option value="APPROVED">✅ Aprobados</option>
+                  <option value="REJECTED">❌ Rechazados</option>
+                </select>
+                <input type="text" id="verif-search-input" class="form-input text-sm py-1" placeholder="Buscar por nombre o handle...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Verifications Cards Grid -->
+          <div id="verifications-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="glass-panel p-6 text-center col-span-full">Cargando solicitudes de verificación...</div>
           </div>
         </section>
 
