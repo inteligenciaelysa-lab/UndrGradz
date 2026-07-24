@@ -12112,7 +12112,7 @@ function _injectBgStyles() {
       position: absolute; inset: 0; background: #04050a;\
     }\
     .ugz-nebula-cloud {\
-      position: absolute; inset: -15%; pointer-events: none; filter: blur(75px); opacity: 0.9;\
+      position: absolute; inset: -15%; pointer-events: none; filter: blur(55px); opacity: 1;\
     }\
     .ugz-bg-topographic {\
       position: absolute; inset: 0; background: #06070c;\
@@ -12299,10 +12299,10 @@ function getAuroraBgHtml(c1, c2) {
 
 function getNebulaBgHtml(c1, c2) {
   return '<div class="ugz-bg-nebula">' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 25% 25%, ' + hexToRgba(c1, 0.18) + ' 0%, transparent 60%);"></div>' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 75% 75%, ' + hexToRgba(c2, 0.16) + ' 0%, transparent 60%);"></div>' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 60% 30%, ' + hexToRgba(c2, 0.12) + ' 0%, transparent 55%);"></div>' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 35% 85%, ' + hexToRgba(c1, 0.12) + ' 0%, transparent 55%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 25% 25%, ' + hexToRgba(c1, 0.40) + ' 0%, transparent 62%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 75% 75%, ' + hexToRgba(c2, 0.36) + ' 0%, transparent 62%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 60% 30%, ' + hexToRgba(c2, 0.28) + ' 0%, transparent 58%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 35% 85%, ' + hexToRgba(c1, 0.28) + ' 0%, transparent 58%);"></div>' +
   '</div>';
 }
 
@@ -12353,8 +12353,8 @@ function getGeometricPulseBgHtml(c1, c2) {
 
 function getEnergyLinesBgHtml(c1, c2) {
   return '<div class="ugz-bg-energylines">' +
-    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, ' + hexToRgba(c1, 0.20) + ' 0%, transparent 60%);"></div>' +
-    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 80%, ' + hexToRgba(c2, 0.18) + ' 0%, transparent 60%);"></div>' +
+    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, ' + hexToRgba(c1, 0.28) + ' 0%, transparent 60%);"></div>' +
+    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 80%, ' + hexToRgba(c2, 0.26) + ' 0%, transparent 60%);"></div>' +
     '<svg class="ugz-energy-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">' +
       '<defs>' +
         '<filter id="energyGlow" x="-20%" y="-20%" width="140%" height="140%">' +
@@ -12373,15 +12373,15 @@ function getEnergyLinesBgHtml(c1, c2) {
         '</linearGradient>' +
       '</defs>' +
       '<g class="ugz-energy-group" filter="url(#energyGlow)">' +
-        '<path d="M -200,120 Q 400,240 1640,100" stroke="url(#engGrad1)" stroke-width="2.2" fill="none" opacity="0.8" class="ugz-flow-line-1"/>' +
-        '<path d="M -200,280 Q 600,180 1640,320" stroke="url(#engGrad2)" stroke-width="1.8" fill="none" opacity="0.75" class="ugz-flow-line-2"/>' +
-        '<path d="M -200,450 Q 500,550 1640,420" stroke="url(#engGrad1)" stroke-width="2.5" fill="none" opacity="0.85" class="ugz-flow-line-3"/>' +
-        '<path d="M -200,620 Q 700,520 1640,680" stroke="url(#engGrad2)" stroke-width="2.0" fill="none" opacity="0.75" class="ugz-flow-line-4"/>' +
-        '<path d="M -200,780 Q 450,880 1640,750" stroke="url(#engGrad1)" stroke-width="2.2" fill="none" opacity="0.8" class="ugz-flow-line-5"/>' +
-        '<circle cx="280" cy="180" r="2.5" fill="' + c1 + '" opacity="0.9"/>' +
-        '<circle cx="950" cy="240" r="3.0" fill="' + c2 + '" opacity="0.85"/>' +
-        '<circle cx="520" cy="510" r="3.5" fill="' + c1 + '" opacity="0.95"/>' +
-        '<circle cx="1180" cy="650" r="2.8" fill="' + c2 + '" opacity="0.8"/>' +
+        '<path d="M -200,120 Q 400,240 1640,100" stroke="url(#engGrad1)" stroke-width="2.6" fill="none" opacity="0.92" class="ugz-flow-line-1"/>' +
+        '<path d="M -200,280 Q 600,180 1640,320" stroke="url(#engGrad2)" stroke-width="2.2" fill="none" opacity="0.9" class="ugz-flow-line-2"/>' +
+        '<path d="M -200,450 Q 500,550 1640,420" stroke="url(#engGrad1)" stroke-width="2.9" fill="none" opacity="0.95" class="ugz-flow-line-3"/>' +
+        '<path d="M -200,620 Q 700,520 1640,680" stroke="url(#engGrad2)" stroke-width="2.4" fill="none" opacity="0.9" class="ugz-flow-line-4"/>' +
+        '<path d="M -200,780 Q 450,880 1640,750" stroke="url(#engGrad1)" stroke-width="2.6" fill="none" opacity="0.92" class="ugz-flow-line-5"/>' +
+        '<circle cx="280" cy="180" r="3.0" fill="' + c1 + '" opacity="0.95"/>' +
+        '<circle cx="950" cy="240" r="3.5" fill="' + c2 + '" opacity="0.9"/>' +
+        '<circle cx="520" cy="510" r="4.0" fill="' + c1 + '" opacity="1"/>' +
+        '<circle cx="1180" cy="650" r="3.2" fill="' + c2 + '" opacity="0.88"/>' +
       '</g>' +
     '</svg>' +
   '</div>';
@@ -12389,24 +12389,29 @@ function getEnergyLinesBgHtml(c1, c2) {
 
 function getFloatingOrbsBgHtml(c1, c2) {
   return '<div class="ugz-bg-floatingorbs">' +
-    '<div class="ugz-orb ugz-orb-1" style="background:' + c1 + '; width:130px; height:130px; top:10%; left:8%; filter:blur(32px); opacity:0.25;"></div>' +
-    '<div class="ugz-orb ugz-orb-2" style="background:' + c2 + '; width:160px; height:160px; top:65%; right:10%; filter:blur(38px); opacity:0.22;"></div>' +
-    '<div class="ugz-orb ugz-orb-3" style="background:' + c1 + '; width:95px; height:95px; top:80%; left:20%; filter:blur(26px); opacity:0.20;"></div>' +
-    '<div class="ugz-orb ugz-orb-4" style="background:' + c2 + '; width:115px; height:115px; top:25%; right:25%; filter:blur(30px); opacity:0.18;"></div>' +
+    '<div class="ugz-orb ugz-orb-1" style="background:' + c1 + '; width:130px; height:130px; top:10%; left:8%; filter:blur(28px); opacity:0.45;"></div>' +
+    '<div class="ugz-orb ugz-orb-2" style="background:' + c2 + '; width:160px; height:160px; top:65%; right:10%; filter:blur(32px); opacity:0.42;"></div>' +
+    '<div class="ugz-orb ugz-orb-3" style="background:' + c1 + '; width:95px; height:95px; top:80%; left:20%; filter:blur(24px); opacity:0.38;"></div>' +
+    '<div class="ugz-orb ugz-orb-4" style="background:' + c2 + '; width:115px; height:115px; top:25%; right:25%; filter:blur(26px); opacity:0.35;"></div>' +
   '</div>';
 }
 
 function getLiquidFlowBgHtml(c1, c2) {
   return '<div class="ugz-bg-liquidflow">' +
-    '<div class="ugz-liquid-shape ugz-liq-1" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.22) + ' 0%, transparent 70%); filter:blur(42px);"></div>' +
-    '<div class="ugz-liquid-shape ugz-liq-2" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c2, 0.20) + ' 0%, transparent 70%); filter:blur(46px);"></div>' +
-    '<div class="ugz-liquid-shape ugz-liq-3" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.15) + ' 0%, transparent 65%); filter:blur(36px);"></div>' +
+    '<div class="ugz-liquid-shape ugz-liq-1" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.38) + ' 0%, transparent 70%); filter:blur(34px);"></div>' +
+    '<div class="ugz-liquid-shape ugz-liq-2" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c2, 0.34) + ' 0%, transparent 70%); filter:blur(38px);"></div>' +
+    '<div class="ugz-liquid-shape ugz-liq-3" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.26) + ' 0%, transparent 65%); filter:blur(30px);"></div>' +
   '</div>';
 }
 
 function renderChatBackground(bgKey) {
   var cwbg = document.getElementById('cwbg');
   if (!cwbg) return;
+
+  // The .ugz-bg-* / cloud / orb / liquid classes live in the injected stylesheet.
+  // Ensure it exists even when a saved background renders before the sheet opens,
+  // otherwise CSS-driven layers (nebula, orbs, liquid) collapse to 0 height.
+  if (typeof _injectBgStyles === 'function') { try { _injectBgStyles(); } catch (e) {} }
 
   var flowDefault = document.getElementById('chat-flow-bg');
   var existingCustom = cwbg.querySelector('.ugz-custom-bg-container');
@@ -12433,6 +12438,9 @@ function renderChatBackground(bgKey) {
 
   var container = document.createElement('div');
   container.className = 'ugz-custom-bg-container';
+  // Give the container the full chat-window box so absolutely-positioned bg layers
+  // (nebula clouds, orbs, liquid shapes) don't collapse to 0 height.
+  container.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;';
 
   var html = '';
   if (bgKey === 'uni-aurora' || bgKey === 'Aurora' || bgKey === 'uni-2') {

@@ -3,20 +3,36 @@
  * Centralized HTTP Fetch Interceptor and Socket.io Wrapper.
  */
 
-// const apiHost = window.location.hostname || '127.0.0.1';
-// const BASE_URL = `http://${apiHost}:3000/api/v1`;
-// const SOCKET_URL = `http://${apiHost}:3000`;
+// El backend corre en el puerto 3000. Derivamos el host del backend del mismo
+// host desde el que se abre la app, para que funcione en cualquier contexto de
+// desarrollo local sin depender de un túnel efímero:
+//   - http://localhost:5500  (Live Server)   -> localhost:3000
+//   - file:// (index.html directo)           -> localhost:3000  (hostname vacío)
+//   - http://192.168.x.x:5500 (celular/LAN)  -> 192.168.x.x:3000
+// Solo cuando la app se sirve desde un dominio remoto real se usa el túnel público.
+const HOST = window.location.hostname; // '' cuando es file://
+const IS_LOCAL =
+  HOST === '' ||
+  HOST === 'localhost' ||
+  HOST === '127.0.0.1' ||
+  /^192\.168\./.test(HOST) ||
+  /^10\./.test(HOST) ||
+  /^172\.(1[6-9]|2\d|3[01])\./.test(HOST) ||
+  window.location.protocol === 'file:';
 
-const IS_DEV = window.location.hostname === 'localhost' ||
-               window.location.hostname === '127.0.0.1';
+const API_HOST = HOST || 'localhost'; // file:// deja hostname vacío -> localhost
 
-const BASE_URL = IS_DEV
-  ? 'http://localhost:3000/api/v1'
-  : 'https://tucson-seniors-multimedia-key.trycloudflare.com/api/v1';
+// Túnel público (efímero de trycloudflare) — reemplázalo por tu URL vigente si
+// vuelves a exponer el backend hacia afuera.
+const REMOTE_URL = 'https://tucson-seniors-multimedia-key.trycloudflare.com';
 
-const SOCKET_URL = IS_DEV
-  ? 'http://localhost:3000'
-  : 'https://tucson-seniors-multimedia-key.trycloudflare.com';
+const BASE_URL = IS_LOCAL
+  ? `http://${API_HOST}:3000/api/v1`
+  : `${REMOTE_URL}/api/v1`;
+
+const SOCKET_URL = IS_LOCAL
+  ? `http://${API_HOST}:3000`
+  : REMOTE_URL;
 
 console.log("BASE_URL:", BASE_URL);
 console.log("SOCKET_URL:", SOCKET_URL);
