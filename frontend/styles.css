@@ -8,10 +8,23 @@
   /* Varsity palette — collegiate blue / red / white. Bright enough to still
      read as neon on a near-black ground, but institutional rather than club. */
   --p: #3d7bff;        /* varsity blue — primary */
-  --p2: #f03e5a;       /* varsity red — accent */
+  --p2: #800614;       /* varsity red — deep crimson accent */
   --p-rgb: 61, 123, 255;
   --varsity-blue: #3d7bff;
-  --varsity-red: #f03e5a;
+  /* Red used three ways, because one deep crimson can't do all jobs on black:
+       --red-fill  solid fills with white text on top  (contrast 10.7 ✓)
+       --red-ink   red text / icons / borders ON dark   (fill is only 1.8 — unreadable)
+       --red-deep  the darker stop for red gradients */
+  --varsity-red: #800614;
+  --red-fill: #800614;
+  --red-ink: #e04155;
+  --red-deep: #5c040e;
+  /* Wine scale — reads burgundy, not pink. --wine is the darkest that still
+     works as text/border on dark (~2.9); --wine-fill is for solid backgrounds
+     with white text; --wine-glow the halo tint. */
+  --wine: #b0243a;
+  --wine-fill: #800614;
+  --wine-deep: #5c040e;
   --varsity-navy: #0f1b3d;   /* deep field for panels */
   --varsity-chalk: #ffffff;
   --gbd: rgba(255, 255, 255, 0.3);
@@ -60,9 +73,14 @@
      primary  → the ONE main action on a screen
      selected → the active chip / current state
      none     → everything else leans on border + fill (see --el-* for depth) */
-  --glow-primary: 0 0 20px rgba(61, 123, 255, 0.45);
+  --glow-primary: 0 0 20px rgba(234, 88, 12, 0.45);   /* burnt-orange halo on primary actions */
   --glow-selected: 0 0 12px rgba(61, 123, 255, 0.28);
   --glow-none: none;
+  /* Accent — burnt orange for primary actions. Complementary to the blue field,
+     so it pops (9:1) where the blue button barely did (5:1). White text on it. */
+  --accent: #ea580c;        /* burnt orange — primary action */
+  --accent-deep: #c2410c;   /* dark stop of the monochrome gradient */
+  --accent-light: #fb923c;  /* hover / detail */
   --fw-reg: 400;
   --fw-med: 600;
   --fw-bold: 800;
@@ -78,7 +96,7 @@
   /* semantic colors */
   --c-success: #34d399;
   --c-warning: #fbbf24;
-  --c-danger: #f87171;
+  --c-danger: #e04155;
   --c-info: #60a5fa;
   --c-accent: var(--p);
   --c-success-bg: rgba(52, 211, 153, 0.12);
@@ -108,7 +126,7 @@
 :root {
   /* neon accent palette */
   --neon-pink: #3d7bff;
-  --neon-magenta: #f03e5a;
+  --neon-magenta: #e04155;
   --neon-purple: #3d7bff;
   --neon-violet: #2b5fd9;
   --neon-blue: #3b82f6;
@@ -118,7 +136,7 @@
   --neon-orange: #fb923c;
   --neon-amber: #f59e0b;
   --neon-gold: #fbbf24;
-  --neon-red: #f03e5a;
+  --neon-red: #e04155;
   /* category colors (from reference key) */
   --cat-nightlife: #ff4d8d;
   --cat-study: #4d84ff;
@@ -140,9 +158,9 @@
   --grad-purple: linear-gradient(
     135deg,
     #3d7bff 0%,
-    #f03e5a 100%
+    #800614 100%
   ); /* purple→pink */
-  --grad-brand: linear-gradient(120deg, #2b5fd9 0%, #f03e5a 52%, #ff7a3d 100%);
+  --grad-brand: linear-gradient(120deg, #2b5fd9 0%, #800614 52%, #ff7a3d 100%);
   --grad-cyan: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
   --grad-gold: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%);
   /* neon glows */
@@ -956,11 +974,11 @@ textarea.gi {
 .gender-chip.female {
   background: rgba(240, 62, 90, 0.12);
   border-color: rgba(240, 62, 90, 0.3);
-  color: #ffb3bd;
+  color: #e04155;
 }
 .gender-chip.female.on {
-  background: #f03e5a;
-  border-color: #f03e5a;
+  background: #800614;
+  border-color: #e04155;
   color: #fff;
 }
 .gender-chip.other {
@@ -1226,7 +1244,7 @@ textarea.gi {
   display: flex;
 }
 .gf {
-  background: linear-gradient(90deg, #e91e8c, #ff6b7f);
+  background: linear-gradient(90deg, #e91e8c, #800614);
   transition: width 0.3s;
 }
 .gm {
@@ -2550,12 +2568,12 @@ textarea.gi {
 }
 /* Neon Red X (Reject) */
 .crb-neon-x {
-  border: 2.5px solid #ff3b30 !important;
-  color: #ff3b30 !important;
-  
+  border: 2.5px solid var(--wine) !important;
+  color: var(--wine) !important;
 }
 .crb-neon-x:hover {
-  box-shadow: 0 0 12px rgba(255, 59, 48, 0.7), inset 0 0 12px rgba(255, 59, 48, 0.4) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--wine) 60%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--wine) 35%, transparent) !important;
 }
 /* Neon Yellow Arrow (Rewind) */
 .crb-neon-undo {
@@ -2577,8 +2595,8 @@ textarea.gi {
 }
 /* Neon Pink Flower (Rose) */
 .crb-neon-rose {
-  border: 2.5px solid #f03e5a !important;
-  color: #f03e5a !important;
+  border: 2.5px solid #e04155 !important;
+  color: #e04155 !important;
   
 }
 .crb-neon-rose:hover {
@@ -2623,8 +2641,8 @@ textarea.gi {
 #swipe-overlay-reject {
   top: 30px !important;
   right: 20px !important;
-  border-color: #f87171 !important;
-  color: #f87171 !important;
+  border-color: #e04155 !important;
+  color: #e04155 !important;
   transform: rotate(15deg) scale(0.85) !important;
 }
 
@@ -4239,7 +4257,7 @@ svg {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f03e5a, #3d7bff);
+  background: linear-gradient(135deg, #800614, #3d7bff);
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -4310,7 +4328,7 @@ svg {
 }
 #evp-create .ehtog.on {
   background: rgba(240, 62, 90, 0.16);
-  color: #ff6b7f;
+  color: #e04155;
   box-shadow: inset 0 0 0 1px rgba(240, 62, 90, 0.4);
 }
 #evp-create .ehmini {
@@ -4356,7 +4374,7 @@ svg {
   width: 78px;
   height: 78px;
   border-radius:var(--rad-sm);
-  background: linear-gradient(135deg, #2b5fd9, #f03e5a);
+  background: linear-gradient(135deg, #2b5fd9, #800614);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4386,7 +4404,7 @@ svg {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: linear-gradient(120deg, #2b5fd9, #3d7bff 55%, #f03e5a);
+  background: linear-gradient(120deg, #2b5fd9, #3d7bff 55%, #800614);
   border-radius:var(--rad-lg);
   padding: 16px 18px;
   margin-bottom: 16px;
@@ -4473,7 +4491,7 @@ svg {
   margin-top: 1px;
 }
 #plans-content .pu-single .pu-count {
-  color: #ffb3bd;
+  color: #e04155;
 }
 #plans-content .pu-badge {
   position: absolute;
@@ -4688,13 +4706,13 @@ svg {
    green → rose → blue → orange → purple → amber → cyan → pink. No two sections
    share a colour, and none sits next to the purple ⊕ button. */
 .chatsec-chip[data-sec="all"],        .evsec-chip[data-sec="all"]        { --chip: #34d399; } /* emerald */
-.chatsec-chip[data-sec="nightlife"],  .evsec-chip[data-sec="nightlife"]  { --chip: #f03e5a; } /* rose    */
+.chatsec-chip[data-sec="nightlife"],  .evsec-chip[data-sec="nightlife"]  { --chip: var(--wine); } /* wine */
 .chatsec-chip[data-sec="study"],      .evsec-chip[data-sec="study"]      { --chip: #60a5fa; } /* blue    */
 .chatsec-chip[data-sec="sports"],     .evsec-chip[data-sec="sports"]     { --chip: #fb923c; } /* orange  */
 .chatsec-chip[data-sec="dorm"],       .evsec-chip[data-sec="dorm"]       { --chip: #6b9bff; } /* purple  */
 .chatsec-chip[data-sec="greek"],      .evsec-chip[data-sec="greek"]      { --chip: #fbbf24; } /* amber   */
 .chatsec-chip[data-sec="abroad"],     .evsec-chip[data-sec="abroad"]     { --chip: #22d3ee; } /* cyan    */
-.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: #ff6b7f; } /* pink    */
+.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: #a3e635; } /* lime — distinct from the wine now on nightlife */
 .chatsec-chip[data-sec="gaming"],     .evsec-chip[data-sec="gaming"]     { --chip: #3d7bff; } /* violet  */
 .chatsec-chip[data-sec="networking"], .evsec-chip[data-sec="networking"] { --chip: #818cf8; } /* indigo  */
 .chatsec-chip[data-sec="clubs"],      .evsec-chip.evsec-clubs            { --chip: #2dd4bf; } /* teal    */
@@ -4703,7 +4721,7 @@ svg {
 /* Chats-only chips */
 .chatsec-chip[data-sec="individuals"],
 .chatsec-chip[data-sec="friends"]     { --chip: #f97316; } /* orange */
-.chatsec-chip[data-sec="matches"]     { --chip: #f03e5a; } /* pink   */
+.chatsec-chip[data-sec="matches"]     { --chip: var(--wine); } /* wine */
 .chatsec-chip[data-sec="events"]      { --chip: #38bdf8; } /* sky    */
 
 /* Idle */
@@ -4738,6 +4756,16 @@ svg {
 #sec-chats .chatsec-chip.on .csl {
   color: #fff !important;
   text-shadow: 0 0 8px #fff !important;
+}
+
+/* Nightlife & Matches, when selected, take the deep wine fill (white text on
+   top) instead of a tint — this is where the user wanted the burgundy to read. */
+#sec-hangouts .evsec-chip[data-sec="nightlife"].on,
+#sec-chats .chatsec-chip[data-sec="nightlife"].on,
+#sec-chats .chatsec-chip[data-sec="matches"].on {
+  background: var(--wine-deep) !important;
+  border-color: var(--wine) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--wine-deep) 55%, transparent) !important;
 }
 
 /* All/Unread/Fav sub-tabs */
@@ -4870,7 +4898,7 @@ svg {
   opacity: 1;
 }
 .ah-tab.on .ah-tab-l {
-  color: #f03e5a;
+  color: #e04155;
 }
 .ah-week {
   display: flex;
@@ -4998,7 +5026,7 @@ svg {
 }
 .cm-tab.on {
   border-color: #c9243b;
-  color: #f03e5a;
+  color: #e04155;
   background: rgba(225, 29, 72, 0.08);
 }
 .cmc {
@@ -5385,7 +5413,7 @@ svg {
 }
 
 .citem-act-close {
-  background: #f03e5a !important;
+  background: #800614 !important;
   
 }
 .cav img {
@@ -6695,7 +6723,7 @@ body::after {
   
 }
 .gf {
-  background: linear-gradient(90deg, #f03e5a, #3d7bff);
+  background: linear-gradient(90deg, #800614, #3d7bff);
 }
 .gm {
   background: linear-gradient(90deg, #3b82f6, #22d3ee);
@@ -7179,7 +7207,7 @@ body::after {
   letter-spacing: 0.5px;
 }
 .ly-page-nav-indicator:hover {
-  color: #f03e5a;
+  color: #e04155;
   transform: scale(1.05);
 }
 .ly-page-nav-next {
@@ -7239,7 +7267,7 @@ body::after {
 .ly-reveal-card.card-selected {
   transform: translateY(-10px) scale(1.04) !important;
   box-shadow:var(--el-3);
-  border-color: #f03e5a !important;
+  border-color: #e04155 !important;
   z-index: 100;
 }
 
@@ -7391,7 +7419,7 @@ body::after {
 .ly-match-title {
   font-size: 36px;
   font-weight: 900;
-  color: #f03e5a;
+  color: #e04155;
   text-transform: uppercase;
   letter-spacing: 2px;
   text-shadow: 0 0 25px rgba(240, 62, 90, 0.7);
@@ -7415,7 +7443,7 @@ body::after {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  border: 3px solid #f03e5a;
+  border: 3px solid #e04155;
   
   object-fit: cover;
 }
@@ -7443,7 +7471,7 @@ body::after {
 /* Particle heart items */
 .ly-heart-particle {
   position: absolute;
-  color: #f03e5a;
+  color: #e04155;
   font-size:var(--fs-xl);
   pointer-events: none;
   animation: lyParticleFly 2s ease-out forwards;
@@ -7767,14 +7795,14 @@ input, textarea, [contenteditable="true"] {
 }
 
 .crb-neon-x {
-  border: 2px solid #f03e5a !important;
-  color: #f03e5a !important;
-  background: rgba(244, 63, 94, 0.12) !important;
-  
+  border: 2px solid var(--wine) !important;
+  color: var(--wine) !important;
+  background: color-mix(in srgb, var(--wine) 16%, transparent) !important;
 }
 .crb-neon-x:hover {
   transform: scale(1.16) !important;
-  box-shadow: 0 0 12px rgba(244, 63, 94, 0.85), inset 0 0 12px rgba(244, 63, 94, 0.5) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--wine) 70%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--wine) 45%, transparent) !important;
 }
 
 .crb-neon-undo {
@@ -7800,8 +7828,8 @@ input, textarea, [contenteditable="true"] {
 }
 
 .crb-neon-rose {
-  border: 2px solid #f03e5a !important;
-  color: #f03e5a !important;
+  border: 2px solid #e04155 !important;
+  color: #e04155 !important;
   background: rgba(240, 62, 90, 0.12) !important;
   
 }
@@ -7922,7 +7950,7 @@ input, textarea, [contenteditable="true"] {
 
 .fomo-locked-card:hover {
   transform: translateY(-4px) scale(1.03) !important;
-  border-color: #f03e5a !important;
+  border-color: #e04155 !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 30px rgba(240, 62, 90, 0.8) !important;
 }
 
@@ -7964,7 +7992,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 .cunrd {
-  background: linear-gradient(135deg, #f03e5a, #a01a2e) !important;
+  background: linear-gradient(135deg, #800614, #a01a2e) !important;
   
   color: #ffffff !important;
   font-weight:700 !important;
@@ -7990,7 +8018,7 @@ input, textarea, [contenteditable="true"] {
    Each tab owns a hue and the whole section takes it while that tab is open, so
    Profile stops reading as one endless wall of pink. #sec-profile carries
    --prof-accent; switchProfTab() swaps it. */
-#ptab-crush    { --tab-accent: #f03e5a; } /* pink   */
+#ptab-crush    { --tab-accent: var(--wine); } /* wine */
 #ptab-activity { --tab-accent: #fbbf24; } /* amber  */
 #ptab-safety   { --tab-accent: #34d399; } /* green  */
 #ptab-filters  { --tab-accent: #60a5fa; } /* blue   */
@@ -8000,7 +8028,7 @@ input, textarea, [contenteditable="true"] {
 .prof-tab.active {
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--tab-accent, #3d7bff) 78%, #000000),
-    var(--tab-accent, #f03e5a)) !important;
+    var(--tab-accent, #800614)) !important;
   box-shadow: 0 0 12px color-mix(in srgb, var(--tab-accent, #3d7bff) 60%, transparent) !important;
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8044,15 +8072,15 @@ input, textarea, [contenteditable="true"] {
 }
 
 .yr-chip.on {
-  background: linear-gradient(135deg, #f03e5a, #3d7bff) !important;
-  border: 1.5px solid #f03e5a !important;
+  background: linear-gradient(135deg, #800614, #3d7bff) !important;
+  border: 1.5px solid #e04155 !important;
   color: #ffffff !important;
   font-weight:700 !important;
   box-shadow: 0 0 12px rgba(240, 62, 90, 0.5) !important;
 }
 
 .age-range-pill {
-  background: linear-gradient(135deg, #f03e5a, #a01a2e) !important;
+  background: linear-gradient(135deg, #800614, #a01a2e) !important;
   
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8080,7 +8108,7 @@ input, textarea, [contenteditable="true"] {
   font-size: 34px;
   font-weight: 1000;
   letter-spacing: -1.5px;
-  background: linear-gradient(135deg, #ffffff 0%, var(--uni-p, var(--p, #f03e5a)) 45%, var(--uni-p2, var(--p2, #4d84ff)) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--uni-p, var(--p, #800614)) 45%, var(--uni-p2, var(--p2, #4d84ff)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   ));
@@ -8119,13 +8147,13 @@ input, textarea, [contenteditable="true"] {
   transition: all var(--dur) ease;
 }
 .ob4-step.done .ob4-dot {
-  background: linear-gradient(135deg, var(--uni-p, #f03e5a), var(--uni-p2, #4d84ff)) !important;
+  background: linear-gradient(135deg, var(--uni-p, #800614), var(--uni-p2, #4d84ff)) !important;
   border: 2px solid rgba(255, 255, 255, 0.85) !important;
   color: #ffffff !important;
   
 }
 .ob4-step.cur .ob4-dot {
-  background: linear-gradient(135deg, var(--uni-p, #f03e5a), var(--uni-p2, #4d84ff)) !important;
+  background: linear-gradient(135deg, var(--uni-p, #800614), var(--uni-p2, #4d84ff)) !important;
   border: 2px solid #ffffff !important;
   color: #ffffff !important;
   
@@ -8151,14 +8179,14 @@ input, textarea, [contenteditable="true"] {
   transition: all 0.3s ease;
 }
 .ob4-line.on {
-  background: linear-gradient(90deg, var(--uni-p, #f03e5a), var(--uni-p2, #4d84ff)) !important;
+  background: linear-gradient(90deg, var(--uni-p, #800614), var(--uni-p2, #4d84ff)) !important;
   box-shadow: 0 0 12px var(--uni-p, rgba(240, 62, 90, 0.7)) !important;
 }
 
 /* Neon CTA Button */
 .ob4-cta {
   width: 100% !important;
-  background: linear-gradient(135deg, var(--uni-p, #3d7bff), #f03e5a 50%, var(--uni-p2, #3d7bff)) !important;
+  background: linear-gradient(135deg, var(--uni-p, #3d7bff), #800614 50%, var(--uni-p2, #3d7bff)) !important;
   color: #ffffff !important;
   font-family: 'Outfit', 'Inter', sans-serif !important;
   font-weight: 1000 !important;
@@ -8199,7 +8227,7 @@ input, textarea, [contenteditable="true"] {
   gap: 6px !important;
 }
 .ob4-chip.on {
-  background: linear-gradient(135deg, var(--uni-p, #f03e5a), var(--uni-p2, #3d7bff)) !important;
+  background: linear-gradient(135deg, var(--uni-p, #800614), var(--uni-p2, #3d7bff)) !important;
   border: 1.5px solid #ffffff !important;
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8377,7 +8405,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 .pass-brand span {
-  color: #f03e5a;
+  color: #e04155;
 }
 
 .pass-chip {
@@ -8916,7 +8944,7 @@ input, textarea, [contenteditable="true"] {
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.4));
   border: 1.5px solid rgba(239, 68, 68, 0.6);
   
-  color: #f87171;
+  color: #e04155;
 }
 .ugz-modal-card.type-warning .ugz-modal-badge {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.4));
@@ -8934,7 +8962,7 @@ input, textarea, [contenteditable="true"] {
   background: linear-gradient(135deg, rgba(240, 62, 90, 0.25), rgba(61, 123, 255, 0.4));
   border: 1.5px solid rgba(240, 62, 90, 0.6);
   
-  color: #ff6b7f;
+  color: #e04155;
 }
 .ugz-modal-card.type-premium .ugz-modal-badge {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(240, 62, 90, 0.3));
@@ -8974,7 +9002,7 @@ input, textarea, [contenteditable="true"] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .ugz-modal-input:focus {
-  border-color: #f03e5a;
+  border-color: #e04155;
   box-shadow: 0 0 12px rgba(240, 62, 90, 0.45);
 }
 .ugz-modal-actions {
@@ -9011,7 +9039,7 @@ input, textarea, [contenteditable="true"] {
   color: #fff;
 }
 .ugz-btn-confirm {
-  background: linear-gradient(135deg, #f03e5a, #3d7bff);
+  background: linear-gradient(135deg, #800614, #3d7bff);
   color: #ffffff;
   box-shadow:var(--el-2);
 }
@@ -9036,7 +9064,7 @@ input, textarea, [contenteditable="true"] {
   box-shadow:var(--el-2);
 }
 .type-premium .ugz-btn-confirm {
-  background: linear-gradient(135deg, #f59e0b, #f03e5a, #4d84ff);
+  background: linear-gradient(135deg, #f59e0b, #800614, #4d84ff);
   box-shadow:var(--el-2);
 }
 .ugz-modal-card.type-cheat .ugz-modal-badge {
@@ -9046,7 +9074,7 @@ input, textarea, [contenteditable="true"] {
   color: #38bdf8;
 }
 .type-cheat .ugz-btn-confirm {
-  background: linear-gradient(135deg, #38bdf8, #4d84ff, #f03e5a);
+  background: linear-gradient(135deg, #38bdf8, #4d84ff, #800614);
   box-shadow:var(--el-2);
 }
 
@@ -9056,3 +9084,66 @@ input, textarea, [contenteditable="true"] {
 
 
 
+
+/* ══════════════════════════════════════════════════════════════════
+   MICRO-INTERACTIONS — "mature but alive"
+   Personality lives in how it FEELS, not in more colour. Applied through
+   classes that already exist, so no markup changes. Honours reduced-motion.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* 1 — Press feedback: everything tappable dips on touch. The single biggest
+      "this feels responsive" win, and it costs nothing structurally. */
+.gbtn, .gbtn-ghost, .evsec-chip, .chatsec-chip, .prof-tab, .es-cta,
+.jbtn, .app-fab, .chat-fab, .yr-chip, .hangout-item-card, .citem,
+button[onclick], [role="button"] {
+  transition: transform var(--dur-fast) var(--ease),
+              filter var(--dur-fast) var(--ease),
+              box-shadow var(--dur) var(--ease);
+}
+.gbtn:active, .gbtn-ghost:active, .es-cta:active, .jbtn:active,
+.yr-chip:active, button[onclick]:active {
+  transform: translateY(1px) scale(0.975);
+  filter: brightness(1.06);
+}
+/* Chips get a livelier pop — they're small, a subtle press is invisible */
+.evsec-chip:active, .chatsec-chip:active, .prof-tab:active {
+  transform: scale(0.94);
+}
+/* Cards lift slightly instead of dipping — they're surfaces, not buttons */
+.hangout-item-card:active, .citem:active {
+  transform: scale(0.99);
+  filter: brightness(1.03);
+}
+
+/* 2 — Selecting a chip gives a small confident bounce (spring easing) */
+.evsec-chip.on, .chatsec-chip.on {
+  animation: chipPop var(--dur) var(--ease-spring);
+}
+@keyframes chipPop {
+  0%   { transform: scale(0.94); }
+  55%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 3 — The "going" count / stat numbers tick in when they mount */
+.v-stat-num { animation: statIn 0.4s var(--ease-out) backwards; }
+@keyframes statIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 4 — FAB entrance: a small spring so it announces itself once */
+.app-fab, .chat-fab { animation: fabIn 0.34s var(--ease-spring) backwards; }
+@keyframes fabIn {
+  from { opacity: 0; transform: scale(0.6) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Accessibility: anyone who asked the OS to reduce motion gets none of it */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
