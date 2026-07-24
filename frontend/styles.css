@@ -9151,3 +9151,247 @@ button[onclick], [role="button"] {
   border-color: #dc2626 !important;
   color: #fff !important;
 }
+
+/* ══ GROUP SETTINGS SHEET (.gsx-*) ══
+   Own classes on purpose: the global rule at ~6594 forces every .gbtn/.jbtn to
+   the amber→wine gradient with !important, so any inline colour there loses.
+   These sit outside that selector list, which is what lets each action keep its
+   own colour without an !important war. */
+
+/* ── Banner header: the whole card IS the banner ── */
+.gsx-banner {
+  position: relative;
+  height: 132px;
+  border-radius: var(--rad-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+  border: 1px solid var(--gbdl);
+  background: linear-gradient(135deg, var(--p), var(--p2));
+  display: flex;
+  align-items: flex-end;
+}
+.gsx-banner-img {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+/* Scrim so the title stays legible over any photo */
+.gsx-banner-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 38%, rgba(0, 0, 0, 0.78));
+}
+.gsx-banner-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  opacity: 0.5;
+}
+.gsx-banner-foot {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  width: 100%;
+  min-width: 0;
+}
+.gsx-banner-title {
+  font-size: var(--fs-xl);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+/* Floating circular affordances on the banner itself */
+.gsx-banner-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: var(--fs-base);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.gsx-banner-btn:hover { background: rgba(0, 0, 0, 0.75); }
+.gsx-banner-btn:active { transform: scale(0.92); }
+.gsx-banner-btn.gsx-top {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+}
+
+/* ── Compact action buttons ── */
+.gsx-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--rad-md);
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  background: var(--surf-1);
+  color: var(--fg);
+  transition: filter var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease),
+              box-shadow var(--dur) var(--ease);
+}
+.gsx-btn:active { transform: scale(0.98); }
+.gsx-btn:hover { filter: brightness(1.12); }
+
+.gsx-btn--invite {
+  background: color-mix(in srgb, var(--p) 16%, transparent);
+  border-color: color-mix(in srgb, var(--p) 55%, transparent);
+  color: #cfe0ff;
+}
+.gsx-btn--invite:hover {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--p) 32%, transparent);
+}
+/* Green = constructive. Tinted outline, matching the app's Allow/＋ convention. */
+.gsx-btn--green {
+  background: rgba(34, 197, 94, 0.14);
+  border-color: rgba(34, 197, 94, 0.55);
+  color: #4ade80;
+}
+.gsx-btn--green:hover { box-shadow: 0 0 12px rgba(34, 197, 94, 0.35); }
+
+.gsx-btn--neutral {
+  background: var(--surf-2);
+  border-color: var(--gbdl);
+  color: #fff;
+}
+/* Wine FILL with white lettering — 10.7:1, unlike wine-as-text which is 1.8:1. */
+.gsx-btn--wine {
+  background: var(--wine-fill);
+  border-color: var(--wine);
+  color: #fff;
+}
+.gsx-btn--wine:hover { box-shadow: 0 0 12px color-mix(in srgb, var(--wine) 45%, transparent); }
+
+.gsx-btn--danger {
+  background: color-mix(in srgb, var(--wine-fill) 88%, #000);
+  border-color: var(--wine);
+  color: #fff;
+}
+.gsx-btn--danger:hover { box-shadow: 0 0 14px color-mix(in srgb, var(--wine) 50%, transparent); }
+
+.gsx-divider {
+  height: 1px;
+  background: var(--gbdl);
+  margin: 18px 0 14px;
+}
+
+/* ── Member bubble: neon, hue per member (--gsx-hue) ── */
+.gsx-member {
+  border-radius: var(--rad-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--gsx-hue, #3d7bff) 9%, rgba(255, 255, 255, 0.02));
+  border: 1.5px solid color-mix(in srgb, var(--gsx-hue, #3d7bff) 42%, transparent);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--gsx-hue, #3d7bff) 14%, transparent);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.gsx-member:hover {
+  border-color: color-mix(in srgb, var(--gsx-hue, #3d7bff) 70%, transparent);
+}
+/* Glow only intensifies on the OPEN row, so a list of members never turns into
+   a wall of competing halos. */
+.gsx-member.open {
+  border-color: var(--gsx-hue, #3d7bff);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--gsx-hue, #3d7bff) 38%, transparent),
+              inset 0 0 14px color-mix(in srgb, var(--gsx-hue, #3d7bff) 12%, transparent);
+}
+.gsx-member-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+}
+.gsx-av {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1.5px solid color-mix(in srgb, var(--gsx-hue, #3d7bff) 60%, transparent);
+}
+.gsx-name {
+  font-size: var(--fs-base);
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.gsx-handle {
+  font-size: var(--fs-xs);
+  color: var(--fg2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gsx-nick {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: color-mix(in srgb, var(--gsx-hue, #3d7bff) 72%, #fff);
+}
+/* Chevron: the same glyph used for navigation rows, rotated 90° when open. */
+.gsx-chev {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: transform var(--dur) var(--ease-out), background var(--dur) var(--ease),
+              color var(--dur) var(--ease);
+}
+.gsx-chev:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.gsx-member.open .gsx-chev {
+  transform: rotate(90deg);
+  color: var(--gsx-hue, #3d7bff);
+}
+/* Collapsed by default; JS sets max-height to open it. */
+.gsx-actions {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height var(--dur-slow) var(--ease-out), padding var(--dur-slow) var(--ease-out);
+  padding: 0 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.gsx-member.open .gsx-actions {
+  max-height: 220px;
+  padding: 0 11px 11px;
+}

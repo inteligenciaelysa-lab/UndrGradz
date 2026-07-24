@@ -11497,11 +11497,19 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
   var bgContainer = document.getElementById('cwbg');
   if (bgContainer) {
     if (chatBgStyle) {
-      bgContainer.style.background = chatBgStyle;
-    } else if (partnerUni) {
-      bgContainer.style.background = 'linear-gradient(135deg, ' + partnerUni.p + '33, ' + (partnerUni.p2 || partnerUni.p) + '18, var(--bg, #0a0518))';
+      // The saved value is a design id ('uni-aurora', 'black', ...), not a CSS
+      // value — it has to go through the renderer or the chosen background is
+      // silently lost every time the chat is reopened.
+      renderChatBackground(chatBgStyle);
     } else {
-      bgContainer.style.background = 'var(--bg, #0a0518)';
+      // Clear any container left over from the previously opened chat, then
+      // keep the existing partner-university tint fallback.
+      renderChatBackground('default');
+      if (partnerUni) {
+        bgContainer.style.background = 'linear-gradient(135deg, ' + partnerUni.p + '33, ' + (partnerUni.p2 || partnerUni.p) + '18, var(--bg, #0a0518))';
+      } else {
+        bgContainer.style.background = 'var(--bg, #0a0518)';
+      }
     }
   }
   
@@ -11556,9 +11564,44 @@ function closeChat(){
 function _e(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 window.groupChatMeta = window.groupChatMeta || {};
 
+// Group chats do not exist on the backend — they are DOM rows plus this in-memory
+// map, so without this everything (banner, title, nicknames, who is admin) is
+// lost on every reload. Persist to the device for now; when group endpoints
+// exist, swap these two bodies for the API calls and nothing else changes.
+var _GROUP_META_KEY = 'ugz_groupmeta';
+
+function _saveGroupMeta() {
+  try {
+    localStorage.setItem(_GROUP_META_KEY, JSON.stringify(window.groupChatMeta || {}));
+  } catch (e) {}
+}
+
+function _loadGroupMeta() {
+  try {
+    var raw = localStorage.getItem(_GROUP_META_KEY);
+    if (!raw) return;
+    var saved = JSON.parse(raw);
+    if (saved && typeof saved === 'object') {
+      window.groupChatMeta = window.groupChatMeta || {};
+      for (var k in saved) {
+        if (saved.hasOwnProperty(k) && !window.groupChatMeta[k]) window.groupChatMeta[k] = saved[k];
+      }
+    }
+  } catch (e) {}
+}
+try { _loadGroupMeta(); } catch (e) {}
+
 function _getGroupMeta(chatId) {
   window.groupChatMeta = window.groupChatMeta || {};
-  if (window.groupChatMeta[chatId]) return window.groupChatMeta[chatId];
+  if (window.groupChatMeta[chatId]) {
+    var cached = window.groupChatMeta[chatId];
+    // Older saved entries predate these fields.
+    if (!cached.nicknames) cached.nicknames = {};
+    if (typeof cached.isEvent === 'undefined') {
+      cached.isEvent = /^evgrp_/.test(chatId || '');
+    }
+    return cached;
+  }
 
   var ev = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).find(function(e) {
     var key = (e.section || '') + '|' + (e.name || '');
@@ -11608,11 +11651,23 @@ function _getGroupMeta(chatId) {
     adminHandle: adminHandle,
     adminName: adminName,
     bannerUrl: banner,
-    members: members
+    members: members,
+    // Event groups cannot be renamed — the title belongs to the event. The ev
+    // lookup above (via _hangoutChatIds / the evgrp_ prefix) is the only
+    // reliable "came from an event" signal in the codebase.
+    isEvent: !!ev || /^evgrp_/.test(chatId || ''),
+    nicknames: {}
   };
 
   window.groupChatMeta[chatId] = meta;
+  _saveGroupMeta();
   return meta;
+}
+
+// Nickname wins over the real name once set, for everyone looking at this group.
+function _gsDisplayName(meta, m) {
+  var nick = meta && meta.nicknames ? meta.nicknames[m.handle] : '';
+  return nick ? nick : m.name;
 }
 
 function _cwApplyChatHead(id,nm,color,isGrp){
@@ -11650,28 +11705,74 @@ function _cwApplyChatHead(id,nm,color,isGrp){
   }
 }
 
+// NOTE on prompt/confirm in this file: app.js:1020-1043 replaces the native
+// window.prompt/confirm/alert with ugzModal, which returns a PROMISE. Calling
+// them synchronously silently misbehaves (a Promise is always truthy, and
+// .trim() on one throws), so every group action below goes through
+// ugzPrompt(...).then(...) / ugzConfirm({onConfirm}).
 function groupChangeBanner(chatId) {
   var meta = _getGroupMeta(chatId);
-  var newUrl = prompt('Ingresa la URL de la imagen para el Banner Superior del Chat:', meta.bannerUrl || '');
-  if (newUrl === null) return;
-  meta.bannerUrl = newUrl.trim();
+  ugzPrompt('Ingresa la URL de la imagen para el Banner Superior del Chat:', meta.bannerUrl || '').then(function(newUrl) {
+    if (newUrl === null || typeof newUrl === 'undefined') return;
+    meta.bannerUrl = String(newUrl).trim();
+    _saveGroupMeta();
 
-  var ev = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).find(function(e) {
-    var key = (e.section || '') + '|' + (e.name || '');
-    return (typeof _hangoutChatIds !== 'undefined' && _hangoutChatIds[key] === chatId) || ('evgrp_' + e.id) === chatId || e.name === chatId;
+    var ev = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).find(function(e) {
+      var key = (e.section || '') + '|' + (e.name || '');
+      return (typeof _hangoutChatIds !== 'undefined' && _hangoutChatIds[key] === chatId) || ('evgrp_' + e.id) === chatId || e.name === chatId;
+    });
+    if (ev) {
+      ev.cover = meta.bannerUrl;
+      if (typeof fetchAndRenderHangouts === 'function') fetchAndRenderHangouts();
+    }
+
+    if (typeof _cwApplyChatHead === 'function') {
+      _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+    }
+    _gsRefreshBanner(chatId);
   });
-  if (ev) {
-    ev.cover = meta.bannerUrl;
-    if (typeof fetchAndRenderHangouts === 'function') fetchAndRenderHangouts();
-  }
+}
 
-  if (typeof _cwApplyChatHead === 'function') {
-    _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+// Only for groups made from friends: an event group's title belongs to the event.
+function groupChangeTitle(chatId) {
+  var meta = _getGroupMeta(chatId);
+  if (meta.isEvent) {
+    if (typeof ugzAlert === 'function') ugzAlert('El título de un grupo de evento no se puede cambiar.');
+    return;
   }
+  ugzPrompt('Nuevo título del grupo:', meta.name || '').then(function(val) {
+    if (val === null || typeof val === 'undefined') return;
+    var nm = String(val).trim();
+    if (!nm) return;
+    meta.name = nm;
+    _saveGroupMeta();
 
-  var m = document.getElementById('chat-settings-modal');
-  if (m) m.remove();
-  openChatSettings();
+    var cwnm = document.getElementById('cwnm');
+    if (cwnm) cwnm.textContent = nm;
+    if (typeof _curChatUser !== 'undefined' && _curChatUser) _curChatUser.name = nm;
+    // Keep the chat-list row label in sync too.
+    var rowNm = document.querySelector('#chatrow_' + chatId + ' .cnm');
+    if (rowNm) rowNm.textContent = nm;
+    if (typeof _cwApplyChatHead === 'function') _cwApplyChatHead(chatId, nm, 'var(--p)', true);
+    _gsRefreshBanner(chatId);
+  });
+}
+
+// Any member can set a nickname; it replaces the name for everyone viewing this
+// group (device-local until group chats exist on the backend).
+function groupSetMemberNickname(chatId, handle) {
+  var meta = _getGroupMeta(chatId);
+  meta.nicknames = meta.nicknames || {};
+  var current = meta.nicknames[handle] || '';
+  ugzPrompt('Nickname para @' + handle + ' (vacío para quitarlo):', current).then(function(val) {
+    if (val === null || typeof val === 'undefined') return;
+    var nn = String(val).trim();
+    if (nn) meta.nicknames[handle] = nn;
+    else delete meta.nicknames[handle];
+    _saveGroupMeta();
+    if (typeof _cwApplyChatHead === 'function') _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+    _gsRenderMembers(chatId, handle);
+  });
 }
 
 function groupInviteMembers(chatId) {
@@ -11738,51 +11839,84 @@ function _addFriendToGroup(chatId, friendName) {
 
 function groupRemoveMember(chatId, handle) {
   var meta = _getGroupMeta(chatId);
-  if (!confirm('¿Desinvitar/eliminar a @' + handle + ' del grupo?')) return;
-  meta.members = meta.members.filter(function(m) { return m.handle !== handle; });
-  if (typeof _cwApplyChatHead === 'function') {
-    _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
-  }
-  var sm = document.getElementById('chat-settings-modal');
-  if (sm) sm.remove();
-  openChatSettings();
+  ugzConfirm({
+    type: 'warning',
+    title: '✕ Desinvitar integrante',
+    message: '¿Sacar a @' + handle + ' del grupo?',
+    confirmText: 'Desinvitar',
+    cancelText: 'Cancelar',
+    onConfirm: function() {
+      meta.members = meta.members.filter(function(m) { return m.handle !== handle; });
+      if (meta.nicknames) delete meta.nicknames[handle];
+      _saveGroupMeta();
+      if (typeof _cwApplyChatHead === 'function') {
+        _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+      }
+      _gsRenderMembers(chatId);
+    }
+  });
 }
 
 function groupPromoteAdmin(chatId, handle) {
   var meta = _getGroupMeta(chatId);
-  if (!confirm('¿Nombrar a @' + handle + ' como Administrador del grupo?')) return;
-  meta.adminHandle = handle;
-  meta.members.forEach(function(m) {
-    if (m.handle === handle) m.isAdmin = true;
+  ugzConfirm({
+    type: 'confirm',
+    title: '👑 Hacer administrador',
+    message: '¿Nombrar a @' + handle + ' administrador del grupo?',
+    confirmText: 'Hacer Admin',
+    cancelText: 'Cancelar',
+    onConfirm: function() {
+      meta.adminHandle = handle;
+      meta.members.forEach(function(m) {
+        if (m.handle === handle) m.isAdmin = true;
+      });
+      _saveGroupMeta();
+      _gsRenderMembers(chatId, handle);
+    }
   });
-  var sm = document.getElementById('chat-settings-modal');
-  if (sm) sm.remove();
-  openChatSettings();
 }
 
 function groupDeleteChatCompletely(chatId) {
-  if (!confirm('¿Borrar este grupo por completo para todos los integrantes? Esta acción no se puede deshacer.')) return;
-  delete window.groupChatMeta[chatId];
-  if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
-  if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
-  var row = document.getElementById('chatrow_' + chatId) || document.getElementById('clist-' + chatId) || document.getElementById('uc-match-' + chatId) || document.getElementById('dm-match-' + chatId);
-  if (row) row.remove();
+  ugzConfirm({
+    type: 'warning',
+    title: '🗑️ Borrar chat',
+    message: '¿Borrar este grupo por completo? Esta acción no se puede deshacer.',
+    confirmText: 'Borrar',
+    cancelText: 'Cancelar',
+    onConfirm: function() {
+      delete window.groupChatMeta[chatId];
+      _saveGroupMeta();
+      if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
+      if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
+      var row = document.getElementById('chatrow_' + chatId) || document.getElementById('clist-' + chatId) || document.getElementById('uc-match-' + chatId) || document.getElementById('dm-match-' + chatId);
+      if (row) row.remove();
 
-  var sm = document.getElementById('chat-settings-modal');
-  if (sm) sm.remove();
-  closeChat();
+      var sm = document.getElementById('chat-settings-modal');
+      if (sm) sm.remove();
+      closeChat();
+    }
+  });
 }
 
 function groupExitGroup(chatId) {
-  if (!confirm('¿Salir de este grupo?')) return;
-  var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
-  var meta = _getGroupMeta(chatId);
-  meta.members = meta.members.filter(function(m) { return m.handle !== myHandle; });
-  if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
-  if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
-  var sm = document.getElementById('chat-settings-modal');
-  if (sm) sm.remove();
-  closeChat();
+  ugzConfirm({
+    type: 'warning',
+    title: '🚪 Salir del grupo',
+    message: '¿Salir de este grupo?',
+    confirmText: 'Salir',
+    cancelText: 'Cancelar',
+    onConfirm: function() {
+      var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+      var meta = _getGroupMeta(chatId);
+      meta.members = meta.members.filter(function(m) { return m.handle !== myHandle; });
+      _saveGroupMeta();
+      if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
+      if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
+      var sm = document.getElementById('chat-settings-modal');
+      if (sm) sm.remove();
+      closeChat();
+    }
+  });
 }
 
 function renderMsgs(){
@@ -12102,87 +12236,114 @@ function _injectBgStyles() {
       pointer-events: none;\
       z-index: 0;\
     }\
-    .ugz-bg-aurora {\
-      position: absolute; inset: 0; background: #05060d;\
+    /* ── Shared "Dark Field" frame: every University background is these 4 layers, ──\
+       only .ugz-bg-motif changes. This is what makes the 7 read as one collection. */\
+    .ugz-bg-root {\
+      position: absolute; inset: 0; overflow: hidden; pointer-events: none;\
     }\
-    .ugz-aurora-wave {\
-      position: absolute; inset: -10%; pointer-events: none; filter: blur(55px); opacity: 0.85;\
+    .ugz-bg-base, .ugz-bg-motif, .ugz-bg-veil, .ugz-bg-grain {\
+      position: absolute; inset: 0; pointer-events: none;\
     }\
-    .ugz-bg-nebula {\
-      position: absolute; inset: 0; background: #04050a;\
+    .ugz-bg-veil {\
+      background:\
+        linear-gradient(180deg, rgba(2,3,8,0.62) 0%, rgba(2,3,8,0.10) 18%, rgba(2,3,8,0.10) 74%, rgba(2,3,8,0.50) 100%),\
+        radial-gradient(120% 78% at 50% 46%, rgba(2,3,8,0) 42%, rgba(2,3,8,0.30) 82%, rgba(2,3,8,0.55) 100%);\
     }\
-    .ugz-nebula-cloud {\
-      position: absolute; inset: -15%; pointer-events: none; filter: blur(55px); opacity: 1;\
+    /* Fine grain: kills gradient banding on cheap panels and is the strongest\
+       single "same family" cue across all 7. */\
+    .ugz-bg-grain {\
+      background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22140%22 height=%22140%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3CfeColorMatrix type=%22saturate%22 values=%220%22/%3E%3C/filter%3E%3Crect width=%22140%22 height=%22140%22 filter=%22url(%23n)%22/%3E%3C/svg%3E");\
+      background-size: 140px 140px;\
+      opacity: 0.04;\
     }\
-    .ugz-bg-topographic {\
-      position: absolute; inset: 0; background: #06070c;\
-    }\
-    .ugz-topographic-svg {\
+    .ugz-bg-svg {\
       width: 100%; height: 100%; display: block;\
     }\
-    .ugz-bg-geometric {\
-      position: absolute; inset: 0; background: #05060b;\
+    /* The shared .cwbgo scrim is 42% black, which halves every motif. Scope it\
+       down ONLY while a University background is mounted — Default/Black never\
+       get this class, so their look is untouched. */\
+    .cwin.ugz-uni-bg .cwbgo { background: rgba(4,2,10,0.20) !important; }\
+    /* ── Energy Lines: drift lives on wrapper divs (compositor-only), not on the\
+       SVG itself, so the GPU just moves an already-rasterized bitmap. ── */\
+    .ugz-eline {\
+      position: absolute; inset: 0; will-change: transform;\
+      animation: ugzDriftX linear infinite;\
     }\
-    .ugz-geo-svg {\
-      width: 100%; height: 100%; display: block;\
+    .ugz-eline-1 { animation-duration: 52s; }\
+    .ugz-eline-2 { animation-duration: 64s; animation-delay: -18s; }\
+    .ugz-eline-3 { animation-duration: 44s; animation-delay: -31s; }\
+    @keyframes ugzDriftX {\
+      0%   { transform: translate3d(-14px, 0, 0); }\
+      50%  { transform: translate3d(14px, 0, 0); }\
+      100% { transform: translate3d(-14px, 0, 0); }\
     }\
-    .ugz-bg-energylines {\
-      position: absolute; inset: 0; background: #06070d;\
+    .ugz-edot { animation: ugzTwinkle 9s ease-in-out infinite alternate; }\
+    .ugz-edot-b { animation-duration: 13s; animation-delay: -4s; }\
+    .ugz-edot-c { animation-duration: 17s; animation-delay: -9s; }\
+    @keyframes ugzTwinkle {\
+      0%   { opacity: 0.30; }\
+      100% { opacity: 0.72; }\
     }\
-    .ugz-energy-svg {\
-      width: 100%; height: 100%; display: block;\
-    }\
-    .ugz-energy-group path {\
-      animation: ugzEnergyPulse 18s ease-in-out infinite alternate;\
-    }\
-    .ugz-flow-line-1 { animation-delay: 0s; }\
-    .ugz-flow-line-2 { animation-delay: -3.5s; }\
-    .ugz-flow-line-3 { animation-delay: -7s; }\
-    .ugz-flow-line-4 { animation-delay: -10.5s; }\
-    .ugz-flow-line-5 { animation-delay: -14s; }\
-    @keyframes ugzEnergyPulse {\
-      0% { opacity: 0.6; transform: translateY(0px) scale(1); }\
-      50% { opacity: 0.95; transform: translateY(-7px) scale(1.02); }\
-      100% { opacity: 0.6; transform: translateY(0px) scale(1); }\
-    }\
-    .ugz-energy-group circle {\
-      animation: ugzDotGlow 7s ease-in-out infinite alternate;\
-    }\
-    @keyframes ugzDotGlow {\
-      0% { opacity: 0.35; transform: scale(0.85); }\
-      100% { opacity: 0.95; transform: scale(1.3); }\
-    }\
-    .ugz-bg-floatingorbs {\
-      position: absolute; inset: 0; background: #05060a;\
-    }\
+    /* ── Floating Orbs: no filter:blur() — the radial gradient IS the blur and it\
+       is free, plus it stays stable under animation. Transform only. ── */\
     .ugz-orb {\
       position: absolute; border-radius: 50%; pointer-events: none;\
-      animation: ugzOrbFloat 22s ease-in-out infinite alternate;\
+      will-change: transform;\
+      animation: ugzOrbA 72s linear infinite;\
     }\
-    .ugz-orb-1 { animation-duration: 20s; animation-delay: 0s; }\
-    .ugz-orb-2 { animation-duration: 26s; animation-delay: -5s; }\
-    .ugz-orb-3 { animation-duration: 23s; animation-delay: -10s; }\
-    .ugz-orb-4 { animation-duration: 27s; animation-delay: -15s; }\
-    @keyframes ugzOrbFloat {\
-      0% { transform: translate(0, 0) scale(1); opacity: 0.22; }\
-      50% { transform: translate(24px, -32px) scale(1.12); opacity: 0.38; }\
-      100% { transform: translate(-18px, 18px) scale(0.96); opacity: 0.22; }\
+    .ugz-orb-ring {\
+      position: absolute; top: 29%; left: 29%; width: 42%; height: 42%;\
+      border-radius: 50%; pointer-events: none;\
     }\
-    .ugz-bg-liquidflow {\
-      position: absolute; inset: 0; background: #040509;\
+    .ugz-orb-1 { animation-name: ugzOrbA; animation-duration: 72s; }\
+    .ugz-orb-2 { animation-name: ugzOrbB; animation-duration: 96s; animation-delay: -23s; }\
+    .ugz-orb-3 { animation-name: ugzOrbC; animation-duration: 60s; animation-delay: -41s; }\
+    .ugz-orb-4 { animation-name: ugzOrbB; animation-duration: 84s; animation-delay: -12s; }\
+    .ugz-orb-5 { animation-name: ugzOrbA; animation-duration: 66s; animation-delay: -50s; }\
+    @keyframes ugzOrbA {\
+      0%   { transform: translate3d(0, 0, 0); }\
+      50%  { transform: translate3d(22px, -30px, 0); }\
+      100% { transform: translate3d(0, 0, 0); }\
     }\
-    .ugz-liquid-shape {\
+    @keyframes ugzOrbB {\
+      0%   { transform: translate3d(0, 0, 0); }\
+      50%  { transform: translate3d(-26px, 18px, 0); }\
+      100% { transform: translate3d(0, 0, 0); }\
+    }\
+    @keyframes ugzOrbC {\
+      0%   { transform: translate3d(0, 0, 0); }\
+      50%  { transform: translate3d(14px, 26px, 0); }\
+      100% { transform: translate3d(0, 0, 0); }\
+    }\
+    /* ── Liquid Flow: deform WITHOUT touching a paint property. Two nested\
+       transforms at incommensurate periods never visibly repeat. ── */\
+    .ugz-liq-wrap {\
       position: absolute; pointer-events: none;\
-      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;\
-      animation: ugzLiquidMorph 24s ease-in-out infinite alternate;\
+      animation: ugzLiquidOrbit linear infinite;\
     }\
-    .ugz-liq-1 { width: 140%; height: 80%; top: -10%; left: -20%; animation-duration: 22s; }\
-    .ugz-liq-2 { width: 120%; height: 90%; bottom: -20%; right: -10%; animation-duration: 28s; animation-delay: -8s; }\
-    .ugz-liq-3 { width: 100%; height: 70%; top: 20%; left: 0%; animation-duration: 25s; animation-delay: -14s; }\
-    @keyframes ugzLiquidMorph {\
-      0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1); opacity: 0.8; }\
-      50% { border-radius: 60% 40% 30% 70% / 50% 30% 70% 40%; transform: rotate(180deg) scale(1.06); opacity: 1; }\
-      100% { border-radius: 30% 70% 50% 50% / 60% 40% 50% 50%; transform: rotate(360deg) scale(1); opacity: 0.8; }\
+    .ugz-liq-shape {\
+      position: absolute; inset: 0; border-radius: 50%; pointer-events: none;\
+      will-change: transform;\
+      animation: ugzLiquidBreathe ease-in-out infinite alternate;\
+    }\
+    .ugz-liq-1 { width: 128%; height: 70%; top: -8%; left: -20%; animation-duration: 78s; }\
+    .ugz-liq-1 .ugz-liq-shape { animation-duration: 46s; }\
+    .ugz-liq-2 { width: 112%; height: 78%; bottom: -14%; right: -18%; animation-duration: 94s; animation-delay: -30s; }\
+    .ugz-liq-2 .ugz-liq-shape { animation-duration: 58s; animation-delay: -19s; }\
+    .ugz-liq-3 { width: 96%; height: 62%; top: 26%; left: -6%; animation-duration: 66s; animation-delay: -47s; }\
+    .ugz-liq-3 .ugz-liq-shape { animation-duration: 52s; animation-delay: -33s; }\
+    @keyframes ugzLiquidOrbit {\
+      from { transform: rotate(0deg); }\
+      to   { transform: rotate(360deg); }\
+    }\
+    @keyframes ugzLiquidBreathe {\
+      from { transform: scale(1, 1); }\
+      to   { transform: scale(1.20, 0.84); }\
+    }\
+    /* Particle Wave tiles — dot field shaped by mask, set inline per layer. */\
+    .ugz-pw-layer { position: absolute; inset: 0; pointer-events: none; }\
+    @media (prefers-reduced-motion: reduce) {\
+      .ugz-custom-bg-container * { animation: none !important; }\
     }\
   ';
   document.head.appendChild(style);
@@ -12199,6 +12360,37 @@ function hexToRgba(hex, alpha) {
   var g = parseInt(hex.substring(2, 4), 16);
   var b = parseInt(hex.substring(4, 6), 16);
   return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
+
+// Many schools have very dark primaries (navy, maroon, forest). At the low
+// alphas this background family uses they would be invisible over near-black,
+// so lift the luminance while keeping the hue. Bright colors pass through.
+function _ugzBrighten(hex, minL) {
+  var m = hexToRgba(hex, 1).match(/(\d+),\s*(\d+),\s*(\d+)/);
+  if (!m) return hex;
+  var r = +m[1], g = +m[2], b = +m[3];
+  var luma = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  if (luma >= minL || luma <= 0.001) return hex;
+  var k = minL / luma;
+  r = Math.min(255, Math.round(r * k));
+  g = Math.min(255, Math.round(g * k));
+  b = Math.min(255, Math.round(b * k));
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+// Every University background is composed of the same 4 layers; only the motif
+// differs. Identical base + uni tint + veil + grain across all 7 is what makes
+// them read as one collection instead of 7 unrelated wallpapers.
+function _ugzBgFrame(c1, c2, motifHtml) {
+  return '<div class="ugz-bg-root">' +
+    '<div class="ugz-bg-base" style="background:' +
+      'radial-gradient(78% 52% at 18% 12%, ' + hexToRgba(c1, 0.10) + ' 0%, transparent 62%),' +
+      'radial-gradient(72% 48% at 85% 88%, ' + hexToRgba(c2, 0.085) + ' 0%, transparent 62%),' +
+      'radial-gradient(120% 80% at 50% 0%, #0a0c14 0%, #06070d 45%, #030409 100%);"></div>' +
+    '<div class="ugz-bg-motif">' + motifHtml + '</div>' +
+    '<div class="ugz-bg-veil"></div>' +
+    '<div class="ugz-bg-grain"></div>' +
+  '</div>';
 }
 
 function getUniColors() {
@@ -12231,189 +12423,329 @@ function getUniColors() {
   return { c1: c1, c2: c2 };
 }
 
-function getAuroraBgHtml(c1, c2) {
-  var darkBaseC1 = hexToRgba(c1, 0.08);
-  return '<div class="ugz-bg-aurora" style="position:absolute;inset:0;background:linear-gradient(160deg, #020307 0%, ' + darkBaseC1 + ' 50%, #030409 100%);overflow:hidden;pointer-events:none;">' +
-    /* Base Ambient Radial Glows */
-    '<div style="position:absolute;top:5%;left:-10%;width:65%;height:65%;background:radial-gradient(circle, ' + hexToRgba(c1, 0.35) + ' 0%, transparent 70%);filter:blur(35px);pointer-events:none;"></div>' +
-    '<div style="position:absolute;top:15%;right:-10%;width:65%;height:65%;background:radial-gradient(circle, ' + hexToRgba(c2, 0.35) + ' 0%, transparent 70%);filter:blur(35px);pointer-events:none;"></div>' +
-    '<div style="position:absolute;bottom:0;left:15%;width:75%;height:55%;background:radial-gradient(circle, ' + hexToRgba(c1, 0.25) + ' 0%, transparent 70%);filter:blur(45px);pointer-events:none;"></div>' +
+// ── University chat backgrounds ──────────────────────────────────────────────
+// All 7 share the same frame (_ugzBgFrame): identical dark base, uni tint, veil
+// and grain. Only the motif below changes, so they read as one collection.
+//
+// Three rules keep the intensity numbers meaningful across all of them:
+//   A) every stroked path carries vector-effect="non-scaling-stroke", so
+//      stroke-width is real CSS pixels regardless of viewBox scaling;
+//   B) no SVG filters — glow is a wide low-alpha stroke under a thin bright one
+//      (a full-screen feGaussianBlur forces an offscreen pass every paint);
+//   C) one alpha per element, carried in the color, never stacked opacities.
+// Ceilings: area fills <= 0.26 alpha, strokes <= 0.58, stroke-width 0.8-1.6px.
+// All SVGs use viewBox 0 0 400 880 (~1:1 with a 412x915 viewport).
 
-    /* Silky Ribbon Aurora SVG (Exact 1:1 match to reference image geometry) */
-    '<svg viewBox="0 0 1000 1400" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;">' +
-      '<defs>' +
-        '<filter id="auroraSilkGlow" x="-20%" y="-20%" width="140%" height="140%">' +
-          '<feGaussianBlur stdDeviation="16" result="blur"/>' +
-          '<feMerge>' +
-            '<feMergeNode in="blur"/>' +
-            '<feMergeNode in="SourceGraphic"/>' +
-          '</feMerge>' +
-        '</filter>' +
+var UGZ_VB = '0 0 400 880';
 
-        /* Left Curtain Gradient (Primary c1) */
-        '<linearGradient id="auroraGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">' +
-          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.88"/>' +
-          '<stop offset="40%" stop-color="' + c1 + '" stop-opacity="0.65"/>' +
-          '<stop offset="85%" stop-color="' + c2 + '" stop-opacity="0.25"/>' +
-          '<stop offset="100%" stop-color="#020307" stop-opacity="0"/>' +
-        '</linearGradient>' +
+// Energy Lines is the reference design: every other motif is calibrated to sit
+// at the same perceived intensity (alpha x sqrt(coverage) ~= 0.08-0.10).
+function getEnergyLinesBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
 
-        /* Right Curtain Gradient (Secondary c2) */
-        '<linearGradient id="auroraGradRight" x1="100%" y1="0%" x2="0%" y2="100%">' +
-          '<stop offset="0%" stop-color="' + c2 + '" stop-opacity="0.92"/>' +
-          '<stop offset="45%" stop-color="' + c2 + '" stop-opacity="0.70"/>' +
-          '<stop offset="85%" stop-color="' + c1 + '" stop-opacity="0.25"/>' +
-          '<stop offset="100%" stop-color="#020307" stop-opacity="0"/>' +
-        '</linearGradient>' +
+  // Very shallow curves (max ~40 units of deviation over 520 of run) are what
+  // make these read as energy lines rather than waves.
+  var lines = [
+    { d: 'M -60,150 Q 200,118 460,162', c: c1, a: 0.55, w: 1.2 },
+    { d: 'M -60,300 Q 200,338 460,286', c: c2, a: 0.45, w: 1.0 },
+    { d: 'M -60,452 Q 200,414 460,470', c: c1, a: 0.55, w: 1.3 },
+    { d: 'M -60,606 Q 200,644 460,598', c: c2, a: 0.45, w: 1.0 },
+    { d: 'M -60,752 Q 200,722 460,778', c: c1, a: 0.50, w: 1.2 }
+  ];
+  // Dots sit on the lines; the wide companion circle is their glow.
+  var dots = [
+    { x: 96,  y: 138, r: 1.8, c: c1, cls: '' },
+    { x: 262, y: 140, r: 1.4, c: c1, cls: ' ugz-edot-b' },
+    { x: 158, y: 320, r: 2.0, c: c2, cls: ' ugz-edot-c' },
+    { x: 320, y: 300, r: 1.5, c: c2, cls: '' },
+    { x: 128, y: 436, r: 2.2, c: c1, cls: ' ugz-edot-b' },
+    { x: 288, y: 626, r: 1.7, c: c2, cls: ' ugz-edot-c' },
+    { x: 186, y: 742, r: 1.6, c: c1, cls: '' }
+  ];
 
-        /* Central Sweeping Arch Gradient (c1 -> c2 blend) */
-        '<linearGradient id="auroraGradArch" x1="0%" y1="100%" x2="100%" y2="0%">' +
-          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.12"/>' +
-          '<stop offset="30%" stop-color="' + c1 + '" stop-opacity="0.88"/>' +
-          '<stop offset="65%" stop-color="' + c2 + '" stop-opacity="0.88"/>' +
-          '<stop offset="100%" stop-color="' + c2 + '" stop-opacity="0.12"/>' +
-        '</linearGradient>' +
-      '</defs>' +
+  function grad(id, col, alpha) {
+    return '<linearGradient id="' + id + '" x1="0%" y1="0%" x2="100%" y2="0%">' +
+      '<stop offset="0%" stop-color="' + col + '" stop-opacity="0"/>' +
+      '<stop offset="25%" stop-color="' + col + '" stop-opacity="' + alpha + '"/>' +
+      '<stop offset="72%" stop-color="' + col + '" stop-opacity="' + alpha + '"/>' +
+      '<stop offset="100%" stop-color="' + col + '" stop-opacity="0"/>' +
+    '</linearGradient>';
+  }
 
-      '<g filter="url(#auroraSilkGlow)">' +
-        '<!-- 1. Left Vertical Curtain (Smooth flow on left border) -->' +
-        '<path d="M -80,-50 C 120,150 180,450 60,750 C 20,850 -60,950 -120,1050 L -120,-50 Z" fill="url(#auroraGradLeft)" opacity="0.9"/>' +
+  // Split across 3 wrappers so the drift animation runs on plain divs
+  // (compositor-only) instead of transforming the SVG every frame.
+  var groups = [[0, 1], [2, 3], [4]];
+  var html = '';
+  for (var g = 0; g < groups.length; g++) {
+    var paths = '';
+    for (var i = 0; i < groups[g].length; i++) {
+      var L = lines[groups[g][i]];
+      var isC1 = (L.c === c1);
+      paths +=
+        '<path d="' + L.d + '" stroke="' + hexToRgba(L.c, 0.09) + '" stroke-width="' + (L.w + 2.4) +
+          '" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+        '<path d="' + L.d + '" stroke="url(#ugzELc' + (isC1 ? '1' : '2') + ')" stroke-width="' + L.w +
+          '" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+    }
+    html += '<div class="ugz-eline ugz-eline-' + (g + 1) + '">' +
+      '<svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
+        (g === 0 ? '<defs>' + grad('ugzELc1', c1, 0.55) + grad('ugzELc2', c2, 0.45) + '</defs>' : '') +
+        paths +
+      '</svg>' +
+    '</div>';
+  }
 
-        '<!-- 2. Right Vertical Curtain (Rich curtain along right edge) -->' +
-        '<path d="M 1080,-50 C 820,250 860,650 1020,1050 C 1060,1150 1120,1250 1120,1450 L 1120,-50 Z" fill="url(#auroraGradRight)" opacity="0.95"/>' +
+  var dotSvg = '';
+  for (var k = 0; k < dots.length; k++) {
+    var D = dots[k];
+    dotSvg += '<g class="ugz-edot' + D.cls + '">' +
+      '<circle cx="' + D.x + '" cy="' + D.y + '" r="5" fill="' + hexToRgba(D.c, 0.10) + '"/>' +
+      '<circle cx="' + D.x + '" cy="' + D.y + '" r="' + D.r + '" fill="' + hexToRgba(D.c, 0.60) + '"/>' +
+    '</g>';
+  }
+  html += '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="' + UGZ_VB +
+    '" preserveAspectRatio="xMidYMid slice">' + dotSvg + '</svg>';
 
-        '<!-- 3. Main Sweeping Organic Arch (The central curved wave from image) -->' +
-        '<path d="M -100,720 C 180,780 320,680 480,540 C 640,400 780,480 1100,820 L 1100,1050 C 780,680 620,600 460,720 C 300,840 140,920 -100,880 Z" fill="url(#auroraGradArch)" opacity="0.9"/>' +
-
-        '<!-- 4. Luminous Crest Ribbons (Glowing highlight lines along wave crests) -->' +
-        '<path d="M -80,700 C 180,760 320,660 480,520 C 640,380 780,460 1080,800" stroke="' + c1 + '" stroke-width="6" fill="none" opacity="0.85"/>' +
-        '<path d="M 1050,50 C 800,300 840,650 1000,1020" stroke="' + c2 + '" stroke-width="7" fill="none" opacity="0.85"/>' +
-        '<path d="M -50,50 C 140,220 160,480 40,720" stroke="' + c1 + '" stroke-width="5" fill="none" opacity="0.75"/>' +
-      '</g>' +
-    '</svg>' +
-
-    /* Dark Center Vignette for Chat Message Legibility */
-    '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(2,3,7,0.78) 100%);pointer-events:none;"></div>' +
-  '</div>';
-}
-
-function getNebulaBgHtml(c1, c2) {
-  return '<div class="ugz-bg-nebula">' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 25% 25%, ' + hexToRgba(c1, 0.40) + ' 0%, transparent 62%);"></div>' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 75% 75%, ' + hexToRgba(c2, 0.36) + ' 0%, transparent 62%);"></div>' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 60% 30%, ' + hexToRgba(c2, 0.28) + ' 0%, transparent 58%);"></div>' +
-    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 35% 85%, ' + hexToRgba(c1, 0.28) + ' 0%, transparent 58%);"></div>' +
-  '</div>';
+  return _ugzBgFrame(c1, c2, html);
 }
 
 function getTopographicBgHtml(c1, c2) {
-  return '<div class="ugz-bg-topographic">' +
-    '<svg class="ugz-topographic-svg" viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice">' +
-      '<defs>' +
-        '<filter id="topoGlow" x="-20%" y="-20%" width="140%" height="140%">' +
-          '<feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-        '</filter>' +
-        '<linearGradient id="topoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">' +
-          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.65"/>' +
-          '<stop offset="100%" stop-color="' + c2 + '" stop-opacity="0.4"/>' +
-        '</linearGradient>' +
-        '<linearGradient id="topoGrad2" x1="100%" y1="0%" x2="0%" y2="100%">' +
-          '<stop offset="0%" stop-color="' + c2 + '" stop-opacity="0.55"/>' +
-          '<stop offset="100%" stop-color="' + c1 + '" stop-opacity="0.35"/>' +
-        '</linearGradient>' +
-      '</defs>' +
-      '<g filter="url(#topoGlow)">' +
-        '<path d="M-50,150 C200,80 450,220 850,120 M-50,230 C180,160 490,300 850,200 M-50,310 C220,240 520,380 850,280" stroke="url(#topoGrad1)" stroke-width="1.2" fill="none" opacity="0.55"/>' +
-        '<path d="M-50,450 C300,350 550,520 850,420 M-50,550 C250,470 580,620 850,530 M-50,650 C280,590 610,720 850,640" stroke="url(#topoGrad2)" stroke-width="1.0" fill="none" opacity="0.45"/>' +
-        '<path d="M-50,780 C220,700 500,860 850,760 M-50,890 C260,820 540,970 850,870 M-50,1010 C240,940 520,1080 850,980" stroke="url(#topoGrad1)" stroke-width="1.1" fill="none" opacity="0.5"/>' +
-      '</g>' +
-    '</svg>' +
-  '</div>';
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // Elongated nested loops whose ends run off-canvas: reads as contour rings
+  // sliced by the frame, futuristic rather than a literal map.
+  var islands = [
+    { cy: 196, x0: -90, x1: 490, h0: 24, step: 15, n: 6, skew: -18 },
+    { cy: 508, x0: -70, x1: 470, h0: 20, step: 14, n: 6, skew: 22 },
+    { cy: 782, x0: -100, x1: 500, h0: 18, score: 0, step: 13, n: 5, skew: -12 }
+  ];
+
+  function ring(is, h) {
+    var cy = is.cy, a = is.x0, b = is.x1, s = is.skew;
+    var c1x = a + (b - a) * 0.22, c2x = a + (b - a) * 0.72;
+    return 'M ' + a + ',' + cy +
+      ' C ' + c1x + ',' + (cy - h + s) + ' ' + c2x + ',' + (cy - h - s) + ' ' + b + ',' + cy +
+      ' C ' + c2x + ',' + (cy + h - s) + ' ' + c1x + ',' + (cy + h + s) + ' ' + a + ',' + cy + ' Z';
+  }
+
+  var paths = '', pts = '';
+  for (var i = 0; i < islands.length; i++) {
+    var is = islands[i];
+    // Exactly two rings per island get the bright double-stroke treatment;
+    // that restraint is what keeps this minimal instead of busy.
+    var accentA = 1, accentB = is.n - 2;
+    for (var j = 0; j < is.n; j++) {
+      var h = is.h0 + j * is.step;
+      var d = ring(is, h);
+      if (j === accentA || j === accentB) {
+        paths += '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.10) + '" stroke-width="3.2" fill="none" vector-effect="non-scaling-stroke"/>' +
+                 '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.52) + '" stroke-width="1.1" fill="none" vector-effect="non-scaling-stroke"/>';
+      } else if (j % 2 === 0) {
+        paths += '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.34) + '" stroke-width="1.1" fill="none" vector-effect="non-scaling-stroke"/>';
+      } else {
+        paths += '<path d="' + d + '" stroke="' + hexToRgba(c2, 0.24) + '" stroke-width="0.8" fill="none" vector-effect="non-scaling-stroke"/>';
+      }
+    }
+    // Survey points — the technical cue, and a deliberate rhyme with the dots
+    // in Energy Lines.
+    var sx = [72, 214, 336];
+    for (var p = 0; p < sx.length; p++) {
+      var oy = is.cy + (p - 1) * (is.h0 + is.step * 2);
+      pts += '<circle cx="' + sx[p] + '" cy="' + oy + '" r="1.1" fill="' + hexToRgba(p === 1 ? c2 : c1, 0.50) + '"/>';
+    }
+  }
+
+  var html = '<svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
+    paths + pts + '</svg>';
+  return _ugzBgFrame(c1, c2, html);
 }
 
-function getGeometricPulseBgHtml(c1, c2) {
-  return '<div class="ugz-bg-geometric">' +
-    '<svg class="ugz-geo-svg" viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice">' +
-      '<defs>' +
-        '<filter id="geoGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
-      '</defs>' +
-      '<g filter="url(#geoGlow)" stroke="' + c1 + '" fill="none" opacity="0.38" stroke-width="1">' +
-        '<circle cx="100" cy="150" r="180" stroke-dasharray="8 6"/>' +
-        '<circle cx="700" cy="950" r="240" stroke="' + c2 + '" stroke-dasharray="12 8"/>' +
-        '<path d="M 50 400 L 250 400 L 300 450 L 300 600" stroke="' + c1 + '" opacity="0.4"/>' +
-        '<path d="M 750 700 L 550 700 L 500 650 L 500 500" stroke="' + c2 + '" opacity="0.4"/>' +
-        '<line x1="50" y1="50" x2="120" y2="50" stroke="' + c1 + '"/>' +
-        '<line x1="50" y1="50" x2="50" y2="120" stroke="' + c1 + '"/>' +
-        '<line x1="750" y1="1150" x2="680" y2="1150" stroke="' + c2 + '"/>' +
-        '<line x1="750" y1="1150" x2="750" y2="1080" stroke="' + c2 + '"/>' +
-      '</g>' +
-    '</svg>' +
-  '</div>';
+function getParticleWaveBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // Three tiled radial-gradient dot fields at different scales, each shaped by a
+  // mask of three elliptical crests. ~5000 dots for zero DOM nodes and zero JS —
+  // and, unlike canvas, it renders correctly even when the chat window has no
+  // measured size yet.
+  var layers = [
+    { col: c1, a: 0.42, r: 0.7, tile: 11, off: '0px 0px',  shift: 0 },
+    { col: c1, a: 0.55, r: 0.9, tile: 17, off: '5px 3px',  shift: 5 },
+    { col: c2, a: 0.62, r: 1.2, tile: 29, off: '9px 11px', shift: 10 }
+  ];
+
+  var html = '';
+  for (var i = 0; i < layers.length; i++) {
+    var L = layers[i];
+    var col = hexToRgba(L.col, L.a);
+    // Two identical stops then transparent gives a crisp dot with a controlled
+    // antialias edge instead of a fuzzy blob.
+    var dot = 'radial-gradient(circle at 50% 50%, ' + col + ' 0px, ' + col + ' ' + L.r + 'px, transparent ' + (L.r * 2) + 'px)';
+    // Crests shift down per layer — that offset is the parallax that reads as depth.
+    var mask =
+      'radial-gradient(ellipse 140% 26% at 22% ' + (26 + L.shift) + '%, #000 0%, rgba(0,0,0,0.55) 42%, transparent 78%),' +
+      'radial-gradient(ellipse 150% 24% at 76% ' + (54 + L.shift) + '%, #000 0%, rgba(0,0,0,0.50) 44%, transparent 80%),' +
+      'radial-gradient(ellipse 130% 22% at 38% ' + (82 + L.shift) + '%, #000 0%, rgba(0,0,0,0.45) 40%, transparent 76%)';
+    html += '<div class="ugz-pw-layer" style="' +
+      'background-image:' + dot + ';' +
+      'background-size:' + L.tile + 'px ' + L.tile + 'px;' +
+      'background-position:' + L.off + ';' +
+      '-webkit-mask-image:' + mask + ';mask-image:' + mask + ';' +
+      '-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;"></div>';
+  }
+
+  // Family signature: two hairlines tracing the top crests.
+  html += '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
+    '<path d="M -60,250 Q 150,196 460,244" stroke="' + hexToRgba(c1, 0.22) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>' +
+    '<path d="M -60,512 Q 250,462 460,506" stroke="' + hexToRgba(c2, 0.18) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>' +
+  '</svg>';
+
+  return _ugzBgFrame(c1, c2, html);
 }
 
-function getEnergyLinesBgHtml(c1, c2) {
-  return '<div class="ugz-bg-energylines">' +
-    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, ' + hexToRgba(c1, 0.28) + ' 0%, transparent 60%);"></div>' +
-    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 80%, ' + hexToRgba(c2, 0.26) + ' 0%, transparent 60%);"></div>' +
-    '<svg class="ugz-energy-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">' +
-      '<defs>' +
-        '<filter id="energyGlow" x="-20%" y="-20%" width="140%" height="140%">' +
-          '<feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-        '</filter>' +
-        '<linearGradient id="engGrad1" x1="0%" y1="0%" x2="100%" y2="0%">' +
-          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.1"/>' +
-          '<stop offset="40%" stop-color="' + c1 + '" stop-opacity="0.85"/>' +
-          '<stop offset="70%" stop-color="' + c2 + '" stop-opacity="0.9"/>' +
-          '<stop offset="100%" stop-color="' + c2 + '" stop-opacity="0.1"/>' +
-        '</linearGradient>' +
-        '<linearGradient id="engGrad2" x1="100%" y1="0%" x2="0%" y2="0%">' +
-          '<stop offset="0%" stop-color="' + c2 + '" stop-opacity="0.1"/>' +
-          '<stop offset="50%" stop-color="' + c1 + '" stop-opacity="0.8"/>' +
-          '<stop offset="100%" stop-color="' + c1 + '" stop-opacity="0.15"/>' +
-        '</linearGradient>' +
-      '</defs>' +
-      '<g class="ugz-energy-group" filter="url(#energyGlow)">' +
-        '<path d="M -200,120 Q 400,240 1640,100" stroke="url(#engGrad1)" stroke-width="2.6" fill="none" opacity="0.92" class="ugz-flow-line-1"/>' +
-        '<path d="M -200,280 Q 600,180 1640,320" stroke="url(#engGrad2)" stroke-width="2.2" fill="none" opacity="0.9" class="ugz-flow-line-2"/>' +
-        '<path d="M -200,450 Q 500,550 1640,420" stroke="url(#engGrad1)" stroke-width="2.9" fill="none" opacity="0.95" class="ugz-flow-line-3"/>' +
-        '<path d="M -200,620 Q 700,520 1640,680" stroke="url(#engGrad2)" stroke-width="2.4" fill="none" opacity="0.9" class="ugz-flow-line-4"/>' +
-        '<path d="M -200,780 Q 450,880 1640,750" stroke="url(#engGrad1)" stroke-width="2.6" fill="none" opacity="0.92" class="ugz-flow-line-5"/>' +
-        '<circle cx="280" cy="180" r="3.0" fill="' + c1 + '" opacity="0.95"/>' +
-        '<circle cx="950" cy="240" r="3.5" fill="' + c2 + '" opacity="0.9"/>' +
-        '<circle cx="520" cy="510" r="4.0" fill="' + c1 + '" opacity="1"/>' +
-        '<circle cx="1180" cy="650" r="3.2" fill="' + c2 + '" opacity="0.88"/>' +
-      '</g>' +
-    '</svg>' +
-  '</div>';
+function getAuroraBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // Pure CSS: an elongated radial IS the blur, so no filter is needed. Peak
+  // alpha 0.16 (the old version stacked 0.35 fills under 0.88 SVG strokes,
+  // which is why it read as a saturated generic wallpaper).
+  function band(top, h, col, alpha, rot) {
+    return '<div style="position:absolute;left:-30%;right:-30%;top:' + top + '%;height:' + h + '%;' +
+      'transform:rotate(' + rot + 'deg);background:radial-gradient(ellipse 60% 50% at 50% 50%, ' +
+      hexToRgba(col, alpha) + ' 0%, ' + hexToRgba(col, alpha * 0.38) + ' 45%, transparent 72%);"></div>';
+  }
+  // 1px crests are the family's thin-luminous-line signature applied to Aurora:
+  // they turn a soft wash into something composed.
+  function crest(top, rot, colA, colB) {
+    return '<div style="position:absolute;left:-24%;right:-24%;top:' + top + '%;height:1px;' +
+      'transform:rotate(' + rot + 'deg);filter:blur(0.5px);background:linear-gradient(90deg, transparent 0%, ' +
+      hexToRgba(colA, 0.52) + ' 28%, ' + hexToRgba(colB, 0.42) + ' 62%, transparent 100%);"></div>';
+  }
+
+  var html =
+    band(14, 34, c1, 0.30, -11) +
+    band(44, 32, c2, 0.25, 7) +
+    band(68, 30, c1, 0.17, -5) +
+    crest(16, -11, c1, c2) +
+    crest(46, 7, c2, c1);
+
+  return _ugzBgFrame(c1, c2, html);
+}
+
+function getNebulaBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // Only three clouds, centres far apart. The old version stacked four
+  // full-viewport blurred divs that averaged c1 and c2 into flat mud.
+  // Each cloud is nucleus + halo — that two-stop falloff is the difference
+  // between a cloud and a wash.
+  function cloud(at, size, col, a) {
+    return '<div style="position:absolute;inset:0;background:radial-gradient(ellipse ' + size + ' at ' + at + ', ' +
+      hexToRgba(col, a) + ' 0%, ' + hexToRgba(col, a * 0.42) + ' 33%, transparent 57%);"></div>';
+  }
+
+  var html =
+    cloud('22% 18%', '78% 52%', c1, 0.32) +
+    cloud('84% 62%', '70% 48%', c2, 0.28) +
+    cloud('46% 92%', '96% 40%', c1, 0.16);
+
+  // Dust motes + one thin arc give it structure at close range.
+  var motes = [
+    [78, 128], [132, 96], [166, 176], [104, 212], [58, 178], [198, 132], [148, 248],
+    [300, 512], [342, 468], [268, 556], [318, 596], [356, 542], [286, 470], [330, 628]
+  ];
+  var mote = '';
+  for (var i = 0; i < motes.length; i++) {
+    mote += '<circle cx="' + motes[i][0] + '" cy="' + motes[i][1] + '" r="0.9" fill="' +
+      hexToRgba(i < 7 ? c1 : c2, 0.55) + '"/>';
+  }
+  html += '<svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
+    mote +
+    '<path d="M 200,404 Q 330,470 372,616" stroke="' + hexToRgba(c2, 0.38) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>' +
+  '</svg>';
+
+  return _ugzBgFrame(c1, c2, html);
 }
 
 function getFloatingOrbsBgHtml(c1, c2) {
-  return '<div class="ugz-bg-floatingorbs">' +
-    '<div class="ugz-orb ugz-orb-1" style="background:' + c1 + '; width:130px; height:130px; top:10%; left:8%; filter:blur(28px); opacity:0.45;"></div>' +
-    '<div class="ugz-orb ugz-orb-2" style="background:' + c2 + '; width:160px; height:160px; top:65%; right:10%; filter:blur(32px); opacity:0.42;"></div>' +
-    '<div class="ugz-orb ugz-orb-3" style="background:' + c1 + '; width:95px; height:95px; top:80%; left:20%; filter:blur(24px); opacity:0.38;"></div>' +
-    '<div class="ugz-orb ugz-orb-4" style="background:' + c2 + '; width:115px; height:115px; top:25%; right:25%; filter:blur(26px); opacity:0.35;"></div>' +
-  '</div>';
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // No filter:blur() — it re-blurs every animated frame and eats the alpha. A
+  // radial gradient is a blur, for free, and stays stable under animation.
+  // The smallest orbs carry the highest alpha: that inversion is what reads as
+  // "small light sources" with depth rather than as big soft blobs.
+  var orbs = [
+    { size: 150, top: '11%',  left: '9%',   col: c1, a: 0.36, ring: false },
+    { size: 210, top: '58%',  right: '8%',  col: c2, a: 0.31, ring: false },
+    { size: 120, top: '78%',  left: '22%',  col: c1, a: 0.40, ring: true  },
+    { size: 260, top: '28%',  right: '26%', col: c2, a: 0.24, ring: false },
+    { size: 96,  top: '40%',  left: '44%',  col: c1, a: 0.42, ring: true  }
+  ];
+
+  var html = '';
+  for (var i = 0; i < orbs.length; i++) {
+    var o = orbs[i];
+    var pos = 'top:' + o.top + ';' + (o.left ? 'left:' + o.left + ';' : 'right:' + o.right + ';');
+    html += '<div class="ugz-orb ugz-orb-' + (i + 1) + '" style="' + pos +
+      'width:' + o.size + 'px;height:' + o.size + 'px;' +
+      'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(o.col, o.a) + ' 0%, ' +
+        hexToRgba(o.col, o.a * 0.45) + ' 38%, transparent 70%);">' +
+      // A hairline ring is what stops an orb reading as a generic blob.
+      (o.ring ? '<div class="ugz-orb-ring" style="border:1px solid ' + hexToRgba(o.col, 0.26) + ';"></div>' : '') +
+    '</div>';
+  }
+  return _ugzBgFrame(c1, c2, html);
 }
 
 function getLiquidFlowBgHtml(c1, c2) {
-  return '<div class="ugz-bg-liquidflow">' +
-    '<div class="ugz-liquid-shape ugz-liq-1" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.38) + ' 0%, transparent 70%); filter:blur(34px);"></div>' +
-    '<div class="ugz-liquid-shape ugz-liq-2" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c2, 0.34) + ' 0%, transparent 70%); filter:blur(38px);"></div>' +
-    '<div class="ugz-liquid-shape ugz-liq-3" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.26) + ' 0%, transparent 65%); filter:blur(30px);"></div>' +
-  '</div>';
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // Deform without touching a paint property: the old version animated
+  // border-radius (full re-rasterization every frame). Instead a slow orbit on
+  // the wrapper and a non-uniform scale on the shape, at incommensurate
+  // periods, so the motion never visibly repeats. The off-centre gradient is
+  // what makes rotation read as flow instead of as a spinning wheel.
+  function shape(cls, col, a, at) {
+    return '<div class="ugz-liq-wrap ' + cls + '">' +
+      '<div class="ugz-liq-shape" style="background:radial-gradient(circle at ' + at + ', ' +
+        hexToRgba(col, a) + ' 0%, ' + hexToRgba(col, a * 0.38) + ' 40%, transparent 68%);"></div>' +
+    '</div>';
+  }
+
+  var html =
+    shape('ugz-liq-1', c1, 0.30, '38% 42%') +
+    // The stroked ellipse sits inside shape 2's wrapper so it inherits the
+    // orbit and reads as the surface tension edge of the ink.
+    '<div class="ugz-liq-wrap ugz-liq-2">' +
+      '<div class="ugz-liq-shape" style="background:radial-gradient(circle at 58% 46%, ' +
+        hexToRgba(c2, 0.26) + ' 0%, ' + hexToRgba(c2, 0.10) + ' 40%, transparent 68%);"></div>' +
+      '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="0 0 200 200" preserveAspectRatio="none">' +
+        '<ellipse cx="100" cy="100" rx="76" ry="62" fill="none" stroke="' + hexToRgba(c2, 0.34) +
+          '" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+      '</svg>' +
+    '</div>' +
+    shape('ugz-liq-3', c1, 0.17, '44% 56%');
+
+  return _ugzBgFrame(c1, c2, html);
 }
 
 function renderChatBackground(bgKey) {
   var cwbg = document.getElementById('cwbg');
   if (!cwbg) return;
 
-  // The .ugz-bg-* / cloud / orb / liquid classes live in the injected stylesheet.
-  // Ensure it exists even when a saved background renders before the sheet opens,
-  // otherwise CSS-driven layers (nebula, orbs, liquid) collapse to 0 height.
+  // The .ugz-bg-* classes live in the injected stylesheet. Ensure it exists even
+  // when a saved background renders before the sheet is ever opened, otherwise
+  // the CSS-driven layers collapse to 0 height.
   if (typeof _injectBgStyles === 'function') { try { _injectBgStyles(); } catch (e) {} }
 
   var flowDefault = document.getElementById('chat-flow-bg');
+  var chatWin = document.getElementById('cwin');
   var existingCustom = cwbg.querySelector('.ugz-custom-bg-container');
   if (existingCustom) existingCustom.remove();
 
@@ -12424,12 +12756,14 @@ function renderChatBackground(bgKey) {
   if (!bgKey || bgKey === 'default' || bgKey === 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
     cwbg.style.background = 'linear-gradient(135deg,#1a0a2e,#0d1a3a)';
     if (flowDefault) flowDefault.style.display = 'block';
+    if (chatWin) chatWin.classList.remove('ugz-uni-bg');
     return;
   }
 
   if (bgKey === 'black' || bgKey === '#050505') {
     cwbg.style.background = '#050505';
     if (flowDefault) flowDefault.style.display = 'none';
+    if (chatWin) chatWin.classList.remove('ugz-uni-bg');
     return;
   }
 
@@ -12438,19 +12772,20 @@ function renderChatBackground(bgKey) {
 
   var container = document.createElement('div');
   container.className = 'ugz-custom-bg-container';
-  // Give the container the full chat-window box so absolutely-positioned bg layers
-  // (nebula clouds, orbs, liquid shapes) don't collapse to 0 height.
+  // Give the container the full chat-window box so absolutely-positioned bg
+  // layers don't collapse to 0 height.
   container.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;';
 
   var html = '';
-  if (bgKey === 'uni-aurora' || bgKey === 'Aurora' || bgKey === 'uni-2') {
-    html = getAuroraBgHtml(c1, c2);
-  } else if (bgKey === 'uni-nebula' || bgKey === 'Nebula' || bgKey === 'uni-9') {
+  if (bgKey === 'uni-nebula' || bgKey === 'Nebula' || bgKey === 'uni-9') {
     html = getNebulaBgHtml(c1, c2);
   } else if (bgKey === 'uni-topographic' || bgKey === 'Topographic') {
     html = getTopographicBgHtml(c1, c2);
-  } else if (bgKey === 'uni-geometric-pulse' || bgKey === 'Geometric Pulse' || bgKey === 'uni-4') {
-    html = getGeometricPulseBgHtml(c1, c2);
+  } else if (bgKey === 'uni-particle-wave' || bgKey === 'Particle Wave' ||
+             // Geometric Pulse was replaced by Particle Wave; migrate saved keys
+             // so existing chats don't fall through to the unknown-key branch.
+             bgKey === 'uni-geometric-pulse' || bgKey === 'Geometric Pulse' || bgKey === 'uni-4') {
+    html = getParticleWaveBgHtml(c1, c2);
   } else if (bgKey === 'uni-energy-lines' || bgKey === 'Energy Lines') {
     html = getEnergyLinesBgHtml(c1, c2);
   } else if (bgKey === 'uni-floating-orbs' || bgKey === 'Floating Orbs' || bgKey === 'uni-3') {
@@ -12458,47 +12793,114 @@ function renderChatBackground(bgKey) {
   } else if (bgKey === 'uni-liquid-flow' || bgKey === 'Liquid Flow' || bgKey === 'uni-1' || bgKey === 'uni-6') {
     html = getLiquidFlowBgHtml(c1, c2);
   } else {
-    cwbg.style.background = bgKey;
-    return;
+    // Includes 'uni-aurora' / 'Aurora' / 'uni-2' and any unrecognised legacy
+    // value. Aurora is the safe default: assigning bgKey as a CSS background
+    // (the old behaviour) left the chat with no background layer at all.
+    html = getAuroraBgHtml(c1, c2);
   }
 
+  if (chatWin) chatWin.classList.add('ugz-uni-bg');
   container.innerHTML = html;
   cwbg.appendChild(container);
 }
 
+// Thumbnails mirror each motif at 76x112. Two deliberate differences from the
+// real background: the veil is edge-only (a full veil would swallow everything
+// at this size) and alphas run ~1.4x hotter, because thin lines lose most of
+// their perceived energy at thumbnail scale.
 function getMiniaturePreviewHtml(id, c1, c2) {
-  if (id === 'uni-aurora') {
-    return '<div style="position:absolute;inset:0;background:#030408;overflow:hidden;">' +
-      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 130% 60% at 10% 20%, ' + hexToRgba(c1, 0.35) + ' 0%, transparent 70%);"></div>' +
-      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 110% 70% at 90% 75%, ' + hexToRgba(c2, 0.30) + ' 0%, transparent 70%);"></div>' +
-      '<svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 100 150">' +
-        '<path d="M -15,140 C 10,100 35,60 22,10" stroke="' + c1 + '" stroke-width="12" fill="none" opacity="0.65"/>' +
-        '<path d="M 115,20 C 85,50 95,90 115,130" stroke="' + c2 + '" stroke-width="10" fill="none" opacity="0.55"/>' +
-      '</svg>' +
-      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(3,4,8,0.75) 100%);"></div>' +
-    '</div>';
-  } else if (id === 'uni-nebula') {
-    return '<div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 30%, ' + hexToRgba(c1, 0.4) + ' 0%, transparent 60%), radial-gradient(circle at 70% 70%, ' + hexToRgba(c2, 0.35) + ' 0%, transparent 60%), #04050a;"></div>';
-  } else if (id === 'uni-topographic') {
-    return '<div style="position:absolute;inset:0;background:#06070c;"><svg style="width:100%;height:100%;"><path d="M -10,30 Q 35,10 80,40 M -10,60 Q 35,40 80,70" stroke="' + c1 + '" stroke-width="1.2" fill="none" opacity="0.6"/><path d="M -10,80 Q 35,60 80,90" stroke="' + c2 + '" stroke-width="1.2" fill="none" opacity="0.5"/></svg></div>';
-  } else if (id === 'uni-geometric-pulse') {
-    return '<div style="position:absolute;inset:0;background:#05060b;"><svg style="width:100%;height:100%;"><circle cx="20" cy="20" r="30" stroke="' + c1 + '" stroke-width="1" fill="none" opacity="0.6" stroke-dasharray="4 3"/><line x1="10" y1="90" x2="60" y2="90" stroke="' + c2 + '" stroke-width="1" opacity="0.5"/></svg></div>';
-  } else if (id === 'uni-energy-lines') {
-    return '<div style="position:absolute;inset:0;background:#06070d;"><svg style="width:100%;height:100%;"><path d="M -10,25 Q 40,45 85,20" stroke="' + c1 + '" stroke-width="1.8" fill="none" opacity="0.8"/><path d="M -10,65 Q 40,85 85,60" stroke="' + c2 + '" stroke-width="1.6" fill="none" opacity="0.75"/><circle cx="35" cy="35" r="2" fill="' + c1 + '"/></svg></div>';
-  } else if (id === 'uni-floating-orbs') {
-    return '<div style="position:absolute;inset:0;background:#05060a;"><div style="position:absolute;width:24px;height:24px;border-radius:50%;background:' + c1 + ';top:15%;left:15%;filter:blur(6px);opacity:0.6;"></div><div style="position:absolute;width:28px;height:28px;border-radius:50%;background:' + c2 + ';bottom:25%;right:15%;filter:blur(7px);opacity:0.55;"></div></div>';
-  } else if (id === 'uni-liquid-flow') {
-    return '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%, ' + hexToRgba(c1, 0.4) + ' 0%, ' + hexToRgba(c2, 0.3) + ' 60%, transparent 100%), #040509;"></div>';
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // Same base + uni tint as the real frame, so the cards read as one set too.
+  var base = '<div style="position:absolute;inset:0;background:' +
+    'radial-gradient(78% 52% at 18% 12%, ' + hexToRgba(c1, 0.16) + ' 0%, transparent 62%),' +
+    'radial-gradient(72% 48% at 85% 88%, ' + hexToRgba(c2, 0.13) + ' 0%, transparent 62%),' +
+    'radial-gradient(120% 80% at 50% 0%, #0a0c14 0%, #06070d 45%, #030409 100%);"></div>';
+  var edge = '<div style="position:absolute;inset:0;background:radial-gradient(120% 86% at 50% 46%, ' +
+    'rgba(2,3,8,0) 52%, rgba(2,3,8,0.35) 100%);"></div>';
+  var motif = '';
+
+  function svg(inner) {
+    return '<svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 76 112" preserveAspectRatio="none">' + inner + '</svg>';
   }
-  return '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + c1 + ',' + c2 + ');"></div>';
+
+  if (id === 'uni-aurora') {
+    motif =
+      '<div style="position:absolute;left:-30%;right:-30%;top:16%;height:34%;transform:rotate(-11deg);background:radial-gradient(ellipse 60% 50% at 50% 50%, ' + hexToRgba(c1, 0.30) + ' 0%, transparent 72%);"></div>' +
+      '<div style="position:absolute;left:-30%;right:-30%;top:48%;height:32%;transform:rotate(7deg);background:radial-gradient(ellipse 60% 50% at 50% 50%, ' + hexToRgba(c2, 0.24) + ' 0%, transparent 72%);"></div>' +
+      '<div style="position:absolute;left:-24%;right:-24%;top:19%;height:1px;transform:rotate(-11deg);background:linear-gradient(90deg, transparent, ' + hexToRgba(c1, 0.55) + ' 45%, transparent);"></div>' +
+      '<div style="position:absolute;left:-24%;right:-24%;top:50%;height:1px;transform:rotate(7deg);background:linear-gradient(90deg, transparent, ' + hexToRgba(c2, 0.45) + ' 55%, transparent);"></div>';
+  } else if (id === 'uni-nebula') {
+    motif =
+      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 78% 52% at 22% 18%, ' + hexToRgba(c1, 0.32) + ' 0%, ' + hexToRgba(c1, 0.13) + ' 33%, transparent 57%);"></div>' +
+      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 48% at 84% 62%, ' + hexToRgba(c2, 0.28) + ' 0%, ' + hexToRgba(c2, 0.12) + ' 33%, transparent 57%);"></div>' +
+      svg('<circle cx="18" cy="22" r="0.8" fill="' + hexToRgba(c1, 0.6) + '"/><circle cx="27" cy="15" r="0.7" fill="' + hexToRgba(c1, 0.5) + '"/><circle cx="13" cy="31" r="0.7" fill="' + hexToRgba(c1, 0.45) + '"/>' +
+          '<circle cx="58" cy="66" r="0.8" fill="' + hexToRgba(c2, 0.55) + '"/><circle cx="66" cy="59" r="0.7" fill="' + hexToRgba(c2, 0.5) + '"/>' +
+          '<path d="M 38,50 Q 62,60 70,80" stroke="' + hexToRgba(c2, 0.34) + '" stroke-width="0.8" fill="none"/>');
+  } else if (id === 'uni-topographic') {
+    var rings = '';
+    var isles = [{ cy: 26, n: 4 }, { cy: 64, n: 4 }, { cy: 98, n: 3 }];
+    for (var t = 0; t < isles.length; t++) {
+      for (var r = 0; r < isles[t].n; r++) {
+        var h = 4 + r * 4.5;
+        var acc = (r === 1);
+        rings += '<path d="M -12,' + isles[t].cy + ' C 12,' + (isles[t].cy - h) + ' 60,' + (isles[t].cy - h) + ' 88,' + isles[t].cy +
+          ' C 60,' + (isles[t].cy + h) + ' 12,' + (isles[t].cy + h) + ' -12,' + isles[t].cy + ' Z" stroke="' +
+          hexToRgba(acc ? c1 : (r % 2 === 0 ? c1 : c2), acc ? 0.62 : (r % 2 === 0 ? 0.44 : 0.32)) +
+          '" stroke-width="' + (acc ? 0.9 : 0.7) + '" fill="none"/>';
+      }
+    }
+    motif = svg(rings + '<circle cx="20" cy="26" r="0.9" fill="' + hexToRgba(c1, 0.6) + '"/><circle cx="52" cy="64" r="0.9" fill="' + hexToRgba(c2, 0.6) + '"/>');
+  } else if (id === 'uni-particle-wave') {
+    var pw = [
+      { col: c1, a: 0.50, r: 0.6, tile: 5, sh: 0 },
+      { col: c1, a: 0.62, r: 0.8, tile: 8, sh: 5 },
+      { col: c2, a: 0.70, r: 1.0, tile: 13, sh: 10 }
+    ];
+    for (var p = 0; p < pw.length; p++) {
+      var L = pw[p], cc = hexToRgba(L.col, L.a);
+      var mk = 'radial-gradient(ellipse 140% 26% at 22% ' + (26 + L.sh) + '%, #000 0%, rgba(0,0,0,0.55) 42%, transparent 78%),' +
+               'radial-gradient(ellipse 150% 24% at 76% ' + (54 + L.sh) + '%, #000 0%, rgba(0,0,0,0.5) 44%, transparent 80%),' +
+               'radial-gradient(ellipse 130% 22% at 38% ' + (82 + L.sh) + '%, #000 0%, rgba(0,0,0,0.45) 40%, transparent 76%)';
+      motif += '<div style="position:absolute;inset:0;background-image:radial-gradient(circle at 50% 50%, ' + cc + ' 0px, ' + cc + ' ' + L.r + 'px, transparent ' + (L.r * 2) + 'px);' +
+        'background-size:' + L.tile + 'px ' + L.tile + 'px;-webkit-mask-image:' + mk + ';mask-image:' + mk + ';-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;"></div>';
+    }
+    motif += svg('<path d="M -8,32 Q 30,24 84,31" stroke="' + hexToRgba(c1, 0.38) + '" stroke-width="0.8" fill="none"/>');
+  } else if (id === 'uni-energy-lines') {
+    motif = svg(
+      '<path d="M -10,20 Q 38,15 86,22" stroke="' + hexToRgba(c1, 0.16) + '" stroke-width="3" fill="none"/>' +
+      '<path d="M -10,20 Q 38,15 86,22" stroke="' + hexToRgba(c1, 0.72) + '" stroke-width="1" fill="none"/>' +
+      '<path d="M -10,46 Q 38,52 86,44" stroke="' + hexToRgba(c2, 0.60) + '" stroke-width="0.9" fill="none"/>' +
+      '<path d="M -10,72 Q 38,66 86,75" stroke="' + hexToRgba(c1, 0.66) + '" stroke-width="1" fill="none"/>' +
+      '<path d="M -10,96 Q 38,101 86,93" stroke="' + hexToRgba(c2, 0.52) + '" stroke-width="0.9" fill="none"/>' +
+      '<circle cx="26" cy="18" r="3" fill="' + hexToRgba(c1, 0.14) + '"/><circle cx="26" cy="18" r="1.2" fill="' + hexToRgba(c1, 0.85) + '"/>' +
+      '<circle cx="56" cy="48" r="3" fill="' + hexToRgba(c2, 0.14) + '"/><circle cx="56" cy="48" r="1.1" fill="' + hexToRgba(c2, 0.8) + '"/>');
+  } else if (id === 'uni-floating-orbs') {
+    motif =
+      '<div style="position:absolute;top:12%;left:8%;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.34) + ' 0%, ' + hexToRgba(c1, 0.15) + ' 38%, transparent 70%);"></div>' +
+      '<div style="position:absolute;top:56%;right:6%;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c2, 0.28) + ' 0%, ' + hexToRgba(c2, 0.12) + ' 38%, transparent 70%);"></div>' +
+      '<div style="position:absolute;top:74%;left:18%;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.38) + ' 0%, ' + hexToRgba(c1, 0.16) + ' 38%, transparent 70%);">' +
+        '<div style="position:absolute;top:29%;left:29%;width:42%;height:42%;border-radius:50%;border:1px solid ' + hexToRgba(c1, 0.3) + ';"></div></div>' +
+      '<div style="position:absolute;top:36%;left:40%;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.42) + ' 0%, transparent 70%);"></div>';
+  } else if (id === 'uni-liquid-flow') {
+    motif =
+      '<div style="position:absolute;width:128%;height:70%;top:-8%;left:-20%;border-radius:50%;background:radial-gradient(circle at 38% 42%, ' + hexToRgba(c1, 0.30) + ' 0%, ' + hexToRgba(c1, 0.12) + ' 40%, transparent 68%);"></div>' +
+      '<div style="position:absolute;width:112%;height:78%;bottom:-14%;right:-18%;border-radius:50%;background:radial-gradient(circle at 58% 46%, ' + hexToRgba(c2, 0.26) + ' 0%, ' + hexToRgba(c2, 0.10) + ' 40%, transparent 68%);"></div>' +
+      svg('<ellipse cx="46" cy="74" rx="26" ry="21" fill="none" stroke="' + hexToRgba(c2, 0.30) + '" stroke-width="0.8"/>');
+  } else {
+    motif = '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + hexToRgba(c1, 0.4) + ',' + hexToRgba(c2, 0.3) + ');"></div>';
+  }
+
+  return '<div style="position:absolute;inset:0;overflow:hidden;">' + base + motif + edge + '</div>';
 }
 
 function getUniColorDesigns() {
   return [
     { id: 'uni-aurora', name: 'Aurora', type: 'static' },
     { id: 'uni-nebula', name: 'Nebula', type: 'static' },
+    { id: 'uni-particle-wave', name: 'Particle Wave', type: 'static' },
     { id: 'uni-topographic', name: 'Topographic', type: 'static' },
-    { id: 'uni-geometric-pulse', name: 'Geometric Pulse', type: 'static' },
     { id: 'uni-energy-lines', name: 'Energy Lines', type: 'animated' },
     { id: 'uni-floating-orbs', name: 'Floating Orbs', type: 'animated' },
     { id: 'uni-liquid-flow', name: 'Liquid Flow', type: 'animated' }
@@ -16296,6 +16698,174 @@ function openPartnerProfileCard(matchId) {
   }
 }
 
+// ══ GROUP SETTINGS SHEET ══════════════════════════════════════════════════
+// Layout: the whole header card is the banner (with the change-banner and
+// change-title affordances ON it), then Invite sits directly above the full
+// member list (no inner scroll), and the destructive action lives alone at the
+// bottom. Per-member actions hide behind a chevron instead of crowding the row.
+// Styling lives in styles.css as .gsx-* — deliberately not .gbtn/.jbtn, whose
+// colours are forced to one gradient with !important.
+
+// Per-member neon hue, stable across renders. The admin always reads gold to
+// match the existing 👑 badge convention (.tag.gold).
+var _GSX_HUES = ['#3d7bff', '#22d3ee', '#22c55e', '#a3e635', '#fb923c', '#e04155', '#3b82f6', '#06b6d4'];
+function _gsHue(m) {
+  if (m.isAdmin) return '#fbbf24';
+  return _GSX_HUES[Math.abs(_strHash(m.handle || m.name || 'x')) % _GSX_HUES.length];
+}
+
+function _gsMemberRowHtml(chatId, meta, m, isUserAdmin, myHandle, openHandle) {
+  var isMe = (m.handle === myHandle);
+  var hue = _gsHue(m);
+  var photo = m.photo || ('https://randomuser.me/api/portraits/' + (m.name.length % 2 === 0 ? 'women' : 'men') + '/' + (Math.abs(_strHash(m.name)) % 70) + '.jpg');
+  var nick = (meta.nicknames && meta.nicknames[m.handle]) || '';
+  var badge = m.isAdmin
+    ? '<span class="tag gold" style="font-size:var(--fs-2xs);padding:2px 6px;">👑 Admin</span>'
+    : '<span style="font-size:var(--fs-2xs);color:var(--fg3);">Integrante</span>';
+
+  // Nickname is open to every member; promote/remove stay admin-only.
+  var acts = '';
+  if (isUserAdmin && !isMe && !m.isAdmin) {
+    acts += '<button class="gsx-btn gsx-btn--green" onclick="groupPromoteAdmin(\'' + chatId + '\',\'' + _e(m.handle) + '\')">👑 Hacer Admin</button>';
+  }
+  acts += '<button class="gsx-btn gsx-btn--neutral" onclick="groupSetMemberNickname(\'' + chatId + '\',\'' + _e(m.handle) + '\')">✏️ Cambiar Nickname</button>';
+  if (isUserAdmin && !isMe) {
+    acts += '<button class="gsx-btn gsx-btn--wine" onclick="groupRemoveMember(\'' + chatId + '\',\'' + _e(m.handle) + '\')">✕ Desinvitar</button>';
+  }
+
+  var chev = '<button class="gsx-chev" onclick="_gsToggleMember(this)" aria-label="Acciones de integrante">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:20px;height:20px;">' +
+      '<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />' +
+    '</svg></button>';
+
+  return '<div class="gsx-member' + (openHandle === m.handle ? ' open' : '') + '" style="--gsx-hue:' + hue + ';" data-handle="' + _e(m.handle) + '">' +
+    '<div class="gsx-member-head">' +
+      '<img class="gsx-av" src="' + photo + '" alt=""/>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="gsx-name">' + _e(nick || m.name) + ' ' + badge + '</div>' +
+        '<div class="gsx-handle">@' + _e(m.handle) +
+          (nick ? ' · <span class="gsx-nick">' + _e(m.name) + '</span>' : '') +
+        '</div>' +
+      '</div>' +
+      chev +
+    '</div>' +
+    '<div class="gsx-actions">' + acts + '</div>' +
+  '</div>';
+}
+
+function _gsToggleMember(btn) {
+  var row = btn.closest('.gsx-member');
+  if (!row) return;
+  var wasOpen = row.classList.contains('open');
+  // One row open at a time keeps the sheet short and the glow unambiguous.
+  var all = row.parentNode ? row.parentNode.querySelectorAll('.gsx-member.open') : [];
+  for (var i = 0; i < all.length; i++) all[i].classList.remove('open');
+  if (!wasOpen) row.classList.add('open');
+}
+
+// Re-render ONLY the list, so an action doesn't destroy and rebuild the whole
+// sheet (which used to reset scroll position on every tap).
+function _gsRenderMembers(chatId, openHandle) {
+  var box = document.getElementById('gsx-members');
+  if (!box) return;
+  var meta = _getGroupMeta(chatId);
+  var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+  var isUserAdmin = (meta.adminHandle === myHandle || meta.members.some(function(m) { return m.handle === myHandle && m.isAdmin; }));
+  if (!openHandle) {
+    var stillOpen = box.querySelector('.gsx-member.open');
+    if (stillOpen) openHandle = stillOpen.getAttribute('data-handle');
+  }
+  box.innerHTML = meta.members.map(function(m) {
+    return _gsMemberRowHtml(chatId, meta, m, isUserAdmin, myHandle, openHandle);
+  }).join('');
+  var count = document.getElementById('gsx-count');
+  if (count) count.textContent = 'INTEGRANTES DEL GRUPO (' + meta.members.length + ')';
+}
+
+function _gsRefreshBanner(chatId) {
+  var meta = _getGroupMeta(chatId);
+  var img = document.getElementById('gsx-banner-img');
+  var fb = document.getElementById('gsx-banner-fb');
+  if (img) {
+    img.style.backgroundImage = meta.bannerUrl ? 'url("' + meta.bannerUrl + '")' : '';
+    img.style.display = meta.bannerUrl ? 'block' : 'none';
+  }
+  if (fb) fb.style.display = meta.bannerUrl ? 'none' : 'flex';
+  var t = document.getElementById('gsx-title');
+  if (t) t.textContent = meta.name;
+}
+
+function _gsBuildGroupSheet(chatId) {
+  var meta = _getGroupMeta(chatId);
+  var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+  var isUserAdmin = (meta.adminHandle === myHandle || meta.members.some(function(m) { return m.handle === myHandle && m.isAdmin; }));
+
+  var modal = document.createElement('div');
+  modal.id = 'chat-settings-modal';
+  modal.className = 'mov open';
+
+  // Banner header — the card IS the banner. No "Admin: @x · N Integrantes"
+  // line: both facts are already visible in the members section below.
+  var banner =
+    '<div class="gsx-banner">' +
+      '<div class="gsx-banner-img" id="gsx-banner-img" style="' +
+        (meta.bannerUrl ? 'background-image:url(\'' + meta.bannerUrl + '\');' : 'display:none;') + '"></div>' +
+      '<div class="gsx-banner-fallback" id="gsx-banner-fb" style="' + (meta.bannerUrl ? 'display:none;' : '') + '">👥</div>' +
+      '<div class="gsx-banner-scrim"></div>' +
+      (isUserAdmin ? '<button class="gsx-banner-btn gsx-top" onclick="groupChangeBanner(\'' + chatId + '\')" aria-label="Cambiar banner" title="Cambiar banner">🖼️</button>' : '') +
+      '<div class="gsx-banner-foot">' +
+        '<div class="gsx-banner-title" id="gsx-title">' + _e(meta.name) + '</div>' +
+        // Event titles belong to the event, so the pencil only exists on
+        // groups made from friends.
+        ((isUserAdmin && !meta.isEvent)
+          ? '<button class="gsx-banner-btn" onclick="groupChangeTitle(\'' + chatId + '\')" aria-label="Cambiar título" title="Cambiar título">✏️</button>'
+          : '') +
+      '</div>' +
+    '</div>';
+
+  var label = function(txt, id) {
+    return '<div' + (id ? ' id="' + id + '"' : '') + ' style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">' + txt + '</div>';
+  };
+
+  modal.innerHTML = '<div class="msheet" style="max-height:92vh;overflow-y:auto;">' +
+    '<div class="mhnd"></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+      '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Ajustes de Grupo</div>' +
+      '<div onclick="document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div>' +
+    '</div>' +
+
+    banner +
+
+    label('INTEGRANTES DEL GRUPO (' + meta.members.length + ')', 'gsx-count') +
+    // Invite sits directly above the list it affects.
+    (isUserAdmin
+      ? '<button class="gsx-btn gsx-btn--invite" style="margin-bottom:10px;" onclick="groupInviteMembers(\'' + chatId + '\')">➕ Invitar Integrantes</button>'
+      : '') +
+    // No max-height here on purpose: the whole list is visible and .msheet
+    // does the scrolling, so there is no nested scroll to fight.
+    '<div id="gsx-members" style="margin-bottom:16px;"></div>' +
+
+    label('PERSONALIZACIÓN') +
+    '<div class="cps-row" onclick="toggleBgSheet();document.getElementById(\'chat-settings-modal\').remove();" style="cursor:pointer;">' +
+      '<div class="cps-ic" style="background:linear-gradient(135deg,#3d7bff,#2b5fd9);">🎨</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:var(--fs-md);font-weight:600;color:#fff;">Fondo del Chat</div>' +
+        '<div class="t-sub">Cambia el fondo de esta conversación</div>' +
+      '</div>' +
+      '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>' +
+    '</div>' +
+
+    // Destructive action alone at the bottom, behind a divider.
+    '<div class="gsx-divider"></div>' +
+    (isUserAdmin
+      ? '<button class="gsx-btn gsx-btn--danger" onclick="groupDeleteChatCompletely(\'' + chatId + '\')">🗑️ Borrar Chat por Completo</button>'
+      : '<button class="gsx-btn gsx-btn--danger" onclick="groupExitGroup(\'' + chatId + '\')">🚪 Salir del Grupo</button>') +
+  '</div>';
+
+  document.body.appendChild(modal);
+  _gsRenderMembers(chatId);
+}
+
 function openChatSettings(){
   var modal=document.getElementById('chat-settings-modal');if(modal)modal.remove();
   var currentName=document.getElementById('cwnm')?document.getElementById('cwnm').textContent.replace(/[^\x20-\x7E].*$/,'').trim():'Chat';
@@ -16305,92 +16875,7 @@ function openChatSettings(){
   var h=_strHash((curChatId||currentName));
 
   if (isGroup) {
-    var meta = _getGroupMeta(curChatId);
-    var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
-    var isUserAdmin = (meta.adminHandle === myHandle || (meta.members.some(function(m) { return m.handle === myHandle && m.isAdmin; })));
-
-    function row(icBg,ic,title,sub,right,onclick,extra){return '<div class="cps-row"'+(onclick?' onclick="'+onclick+'" style="cursor:pointer;'+(extra||'')+'"':(extra?' style="'+extra+'"':''))+'><div class="cps-ic" style="background:'+icBg+';">'+ic+'</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-md);font-weight:600;color:#fff;">'+title+'</div><div class="t-sub">'+sub+'</div></div>'+(right||'')+'</div>';}
-
-    var membersHtml = meta.members.map(function(m) {
-      var isMe = (m.handle === myHandle);
-      var photo = m.photo || ('https://randomuser.me/api/portraits/' + (m.name.length % 2 === 0 ? 'women' : 'men') + '/' + (_strHash(m.name) % 70) + '.jpg');
-      var badge = m.isAdmin ? '<span class="tag gold" style="font-size:var(--fs-2xs);padding:2px 6px;">👑 Admin</span>' : '<span style="font-size:var(--fs-2xs);color:var(--fg3);">Integrante</span>';
-
-      var actionBtns = '';
-      if (isUserAdmin && !isMe) {
-        actionBtns = '<div style="display:flex;gap:6px;">' +
-          (!m.isAdmin ? '<button class="jbtn" style="padding:4px 9px;font-size:var(--fs-2xs);background:rgba(255,255,255,0.08)!important;border:none!important;" onclick="groupPromoteAdmin(\'' + curChatId + '\',\'' + m.handle + '\')">👑 Hacer Admin</button>' : '') +
-          '<button class="jbtn" style="padding:4px 9px;font-size:var(--fs-2xs);background:rgba(244,63,94,0.15)!important;color:#f43f5e!important;border:none!important;" onclick="groupRemoveMember(\'' + curChatId + '\',\'' + m.handle + '\')">❌ Desinvitar</button>' +
-        '</div>';
-      }
-
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:var(--rad-md);margin-bottom:6px;">' +
-        '<div style="display:flex;align-items:center;gap:10px;">' +
-          '<img src="' + photo + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"/>' +
-          '<div>' +
-            '<div style="font-weight:600;color:#fff;font-size:var(--fs-base);display:flex;align-items:center;gap:6px;">' + m.name + ' ' + badge + '</div>' +
-            '<div style="font-size:var(--fs-xs);color:var(--fg2);">@' + m.handle + '</div>' +
-          '</div>' +
-        '</div>' +
-        actionBtns +
-      '</div>';
-    }).join('');
-
-    modal = document.createElement('div');
-    modal.id = 'chat-settings-modal';
-    modal.className = 'mov open';
-
-    modal.innerHTML = '<div class="msheet" style="max-height:92vh;overflow-y:auto;">' +
-      '<div class="mhnd"></div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
-        '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Ajustes de Grupo</div>' +
-        '<div onclick="document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div>' +
-      '</div>' +
-
-      // Group Avatar & Title Header
-      '<div style="text-align:center;padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-lg);margin-bottom:16px;">' +
-        '<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px;box-shadow:0 0 16px rgba(43,95,217,0.4);overflow:hidden;">' +
-          (meta.bannerUrl ? '<img src="' + meta.bannerUrl + '" style="width:100%;height:100%;object-fit:cover;"/>' : '👥') +
-        '</div>' +
-        '<div style="font-size:var(--fs-lg);font-weight:800;color:#fff;">' + meta.name + '</div>' +
-        '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
-          '<span>👑 Admin: <b>@' + meta.adminHandle + '</b></span> · ' +
-          '<span>👥 ' + meta.members.length + ' Integrantes</span>' +
-        '</div>' +
-      '</div>' +
-
-      // Admin Actions
-      (isUserAdmin ? (
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">ACCIONES DE ADMINISTRADOR</div>' +
-        '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">' +
-          '<button class="gbtn" style="background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);color:#fff;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:space-between;" onclick="groupChangeBanner(\'' + curChatId + '\')">' +
-            '<span>🖼️ Cambiar Banner Superior del Chat</span><span style="color:var(--fg3);">›</span>' +
-          '</button>' +
-          '<button class="gbtn" style="background:rgba(43,95,217,0.15);border:1px solid rgba(43,95,217,0.4);color:#fff;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:space-between;" onclick="groupInviteMembers(\'' + curChatId + '\')">' +
-            '<span>➕ Invitar Integrantes al Grupo</span><span style="color:var(--fg3);">›</span>' +
-          '</button>' +
-          '<button class="gbtn" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.4);color:#f43f5e;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:space-between;" onclick="groupDeleteChatCompletely(\'' + curChatId + '\')">' +
-            '<span>🗑️ Borrar Chat por Completo</span><span style="color:#f43f5e;">›</span>' +
-          '</button>' +
-        '</div>'
-      ) : (
-        '<div style="margin-bottom:16px;">' +
-          '<button class="gbtn" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.4);color:#f43f5e;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);width:100%;" onclick="groupExitGroup(\'' + curChatId + '\')">' +
-            '🚪 Salir del Grupo' +
-          '</button>' +
-        '</div>'
-      )) +
-
-      // Members List
-      '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">INTEGRANTES DEL GRUPO (' + meta.members.length + ')</div>' +
-      '<div style="max-height:220px;overflow-y:auto;margin-bottom:16px;">' + membersHtml + '</div>' +
-
-      // Customization
-      '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">PERSONALIZACIÓN</div>' +
-      row('linear-gradient(135deg,#3d7bff,#2b5fd9)', '🎨', 'Fondo del Chat', 'Cambia el fondo de esta conversación', '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>', "toggleBgSheet();document.getElementById('chat-settings-modal').remove();") +
-    '</div>';
-
-    document.body.appendChild(modal);
+    _gsBuildGroupSheet(curChatId);
     return;
   }
 
