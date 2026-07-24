@@ -1537,11 +1537,11 @@ function switchAuthTab(tab){
   var tsu=document.getElementById('auth-tab-su-btn'),tli=document.getElementById('auth-tab-li-btn');
   if(tab==='signup'){
     if(su)su.style.display='block';if(li)li.style.display='none';
-    if(tsu){tsu.classList.add('active');tsu.style.background='linear-gradient(135deg, #c9243b 0%, #1d4ed8 55%, #06b6d4 100%)';tsu.style.color='#fff';tsu.style.boxShadow='0 0 24px rgba(37,99,235,0.65)';}
+    if(tsu){tsu.classList.add('active');tsu.style.background='#dc2626';tsu.style.color='#fff';tsu.style.boxShadow='0 0 24px rgba(37,99,235,0.65)';}
     if(tli){tli.classList.remove('active');tli.style.background='transparent';tli.style.color='rgba(255,255,255,0.55)';tli.style.boxShadow='none';}
   }else{
     if(su)su.style.display='none';if(li)li.style.display='block';
-    if(tli){tli.classList.add('active');tli.style.background='linear-gradient(135deg, #c9243b 0%, #1d4ed8 55%, #06b6d4 100%)';tli.style.color='#fff';tli.style.boxShadow='0 0 24px rgba(37,99,235,0.65)';}
+    if(tli){tli.classList.add('active');tli.style.background='#dc2626';tli.style.color='#fff';tli.style.boxShadow='0 0 24px rgba(37,99,235,0.65)';}
     if(tsu){tsu.classList.remove('active');tsu.style.background='transparent';tsu.style.color='rgba(255,255,255,0.55)';tsu.style.boxShadow='none';}
   }
 }
@@ -2201,7 +2201,7 @@ function _ob4P1(){
    '<div class="field" style="margin-top:14px;"><label>'+lblEmail+'</label>'+
    '<div style="display:flex;gap:8px;">'+
      '<input class="gi" id="ob-email" type="email" value="'+st.email+'" placeholder="you@school.edu" oninput="_ob4State.email=this.value;if(typeof detectUni===\'function\')detectUni(this.value);_ob4Strength();_ob4ValidateAll();" style="flex:1;"/>'+
-     '<button type="button" id="ob-email-verify-btn" onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">'+btnVerify+'</button>'+
+     '<button type="button" id="ob-email-verify-btn" onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">'+btnVerify+'</button>'+
    '</div>'+
    '<div id="email-code-container" style="display:none;margin-top:10px;">'+
      '<label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">'+codeLabel+'</label>'+
@@ -3994,14 +3994,17 @@ function _detachFabs(){
 }
 // Fixed FABs live outside their section now, so visibility is driven by screen.
 function _syncFabs(screen){
+  // FABs only belong inside the app — never over the Sign Up / Log In screen.
+  var appEl=document.getElementById('app');
+  var appOn=!!(appEl && appEl.classList.contains('active'));
   var hf=document.getElementById('hangouts-fab');
   if(hf){
     var onCreate=(document.getElementById('evp-create')||{}).classList &&
                  document.getElementById('evp-create').classList.contains('active');
-    hf.style.display=(screen==='hangouts'&&!onCreate)?'':'none';
+    hf.style.display=(appOn&&screen==='hangouts'&&!onCreate)?'':'none';
   }
   var cf=document.querySelector('.chat-fab');
-  if(cf)cf.style.display=(screen==='chats')?'':'none';
+  if(cf)cf.style.display=(appOn&&screen==='chats')?'':'none';
 }
 document.addEventListener('DOMContentLoaded',function(){
   _detachFabs();
@@ -5879,7 +5882,6 @@ function openHangoutDetailModal(evtId) {
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+name+'</div>' +
           '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+major+'</div>' +
         '</div>' +
-        '<div style="font-size:var(--fs-xs);font-weight:700;color:#ffffff;background:linear-gradient(135deg,#10b981,#059669);border:1.5px solid #34d399;padding:4.5px 12px;border-radius:var(--rad-pill);letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><span style="">⚡</span> <span>GOING</span></div>' +
       '</div>';
     }).join('');
   } else {
@@ -5897,7 +5899,6 @@ function openHangoutDetailModal(evtId) {
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+(f.n || 'Estudiante')+'</div>' +
           '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+(f.m || 'Student')+'</div>' +
         '</div>' +
-        '<div style="font-size:var(--fs-xs);font-weight:700;color:#ffffff;background:linear-gradient(135deg,#10b981,#059669);border:1.5px solid #34d399;padding:4.5px 12px;border-radius:var(--rad-pill);letter-spacing:0.5px;display:flex;align-items:center;gap:4px;"><span style="">⚡</span> <span>GOING</span></div>' +
       '</div>';
     }).join('');
   }
@@ -10385,7 +10386,7 @@ function _likedSawHtml(pool,unlimited){
   var n = pool.length;
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
   
-  var banner='<div style="background:linear-gradient(135deg,#3b0764 0%,#2b5fd9 50%,#a01a2e 100%);border-radius:var(--rad-xl);padding:18px;margin:0 var(--s) 14px;display:flex;align-items:center;gap:14px;border:1.5px solid rgba(240,62,90,0.7);position:relative;overflow:hidden;">'+
+  var banner='<div style="background:#800614;border-radius:var(--rad-xl);padding:18px;margin:0 var(--s) 14px;display:flex;align-items:center;gap:14px;border:1.5px solid rgba(240,62,90,0.7);position:relative;overflow:hidden;">'+
     '<div style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.18);color:#fff;flex-shrink:0;">'+hatGlassesSvg+'</div>'+
     '<div style="flex:1;">'+
       '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;letter-spacing:-0.2px;">🔥 '+n+' Secret Admirers</div>'+
@@ -10414,7 +10415,7 @@ function _likedSawHtml(pool,unlimited){
       '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(10,5,24,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
       '<div style="height:100%;'+cover+'filter:blur(18px) saturate(180%);transform:scale(1.15);"></div>'+
       '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(61,123,255,0.25) 0%, rgba(10,5,24,0.8) 100%);z-index:2;">'+
-        '<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#4d84ff,#800614);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">🕵️</div>'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:#800614;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">🕵️</div>'+
         '<div style="font-size:var(--fs-2xs);font-weight:700;color:#a9c4ff;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #4d84ff;">QUIÉN TE VIO</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 70%, transparent 100%);z-index:3;">'+
@@ -10701,7 +10702,7 @@ function _renderLikedYouReveal(unlimited){
     return '<div onclick="revealLikedYou()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(240,62,90,0.75);background:#0e0a1e;position:relative;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
       '<div style="height:190px;'+cover+'filter:blur(18px) saturate(180%);transform:scale(1.15);"></div>'+
       '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(240,62,90,0.2) 0%, rgba(10,5,24,0.75) 100%);z-index:2;">'+
-        '<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#800614,#4d84ff);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',16)+'</div>'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:#800614;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',16)+'</div>'+
         '<div style="font-size:var(--fs-2xs);font-weight:700;color:#e04155;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #e04155;">TAP TO REVEAL</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 70%, transparent 100%);z-index:3;">'+
@@ -13722,11 +13723,11 @@ function _showMatchOverlay(data) {
   overlay.innerHTML = `
     <div class="ugz-modal-card type-confirm" style="max-width:380px;text-align:center;padding:30px 22px;background:linear-gradient(145deg, #0d061f, #1a0a38);border:1.5px solid rgba(240,62,90,0.45);box-shadow:var(--el-3);animation:ugzPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
       <div style="font-size:42px;margin-bottom:6px;);">🎉</div>
-      <div style="font-size:var(--fs-2xl);font-weight:900;background:linear-gradient(135deg,#800614,#3d7bff,#3b82f6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;font-family:var(--font-serif);letter-spacing:0.5px;">IT'S A MATCH!</div>
+      <div style="font-size:var(--fs-2xl);font-weight:900;background:#800614;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;font-family:var(--font-serif);letter-spacing:0.5px;">IT'S A MATCH!</div>
       <div style="font-size:var(--fs-base);color:rgba(255,255,255,0.85);margin-bottom:22px;line-height:1.4;">You and <strong style="color:#fff;font-weight:600;">${partnerName}</strong> liked each other!</div>
 
       <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:26px;">
-        <div style="width:76px;height:76px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#800614,#3b82f6);box-shadow:var(--el-2);">
+        <div style="width:76px;height:76px;border-radius:50%;padding:3px;background:#800614;box-shadow:var(--el-2);">
           <img src="${userPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"/>
         </div>
         <div style="font-size:var(--fs-xl);color:#e04155;animation:pulse 1s infinite;">❤️</div>
@@ -14434,27 +14435,32 @@ function detectUni(v){
   if(typeof _ob4UpdateUniTheme==='function')try{_ob4UpdateUniTheme();}catch(e){}
 }
 function _ob4UpdateUniTheme(){
-  var col = (uni && uni.p) ? uni.p : '#e04155';
+  var col = (uni && uni.p) ? uni.p : '#dc2626';
   var col2 = (uni && uni.p2) ? uni.p2 : '#3d7bff';
   document.documentElement.style.setProperty('--uni-p', col);
   document.documentElement.style.setProperty('--uni-p2', col2);
   
-  var gradzLogos = document.querySelectorAll('.logo-gradz, .ob4-brand .logo-gradz');
+  // Sign-up (ob4) GRADZ only: solid university colour + black 3D shadow (not a glow).
+  var BLACK_3D = '3px 3px 0 rgba(0,0,0,0.85), 4px 5px 8px rgba(0,0,0,0.5)';
+  var gradzLogos = document.querySelectorAll('.ob4-brand .logo-gradz');
   gradzLogos.forEach(function(gEl){
     gEl.style.color = col;
-    gEl.style.textShadow = '0 0 16px ' + col;
+    gEl.style.webkitTextFillColor = col;
+    gEl.style.textShadow = BLACK_3D;
   });
 
+  // Step circles: solid fill of the university colour, no gradient, no coloured glow.
+  // setProperty(...'important') so it beats the CSS !important background rule.
   var curDot = document.querySelector('.ob4-step.cur .ob4-dot');
   if(curDot){
-    curDot.style.background = col;
-    curDot.style.borderColor = col;
-    curDot.style.boxShadow = '0 0 16px ' + col;
+    curDot.style.setProperty('background', col, 'important');
+    curDot.style.borderColor = '#ffffff';
+    curDot.style.boxShadow = 'none';
   }
   document.querySelectorAll('.ob4-step.done .ob4-dot').forEach(function(dot){
-    dot.style.background = col;
-    dot.style.borderColor = col;
-    dot.style.boxShadow = '0 0 10px ' + col;
+    dot.style.setProperty('background', col, 'important');
+    dot.style.borderColor = 'rgba(255,255,255,0.85)';
+    dot.style.boxShadow = 'none';
   });
   document.querySelectorAll('.ob4-line.on').forEach(function(line){
     line.style.background = 'linear-gradient(90deg, ' + col + ', ' + col2 + ')';
@@ -16179,7 +16185,7 @@ function renderInviteEarn(){
   return ''+
   '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
   '<img class="ap-banner" src="images/banner_invite.png" style="width:calc(100% - 32px);height:auto;border-radius:30px;margin: 0 16px 16px 16px;display:block;box-sizing:border-box;" />'+
-  '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:15px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">🛡️ '+LN[lvl]+'</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:600;color:#000;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:linear-gradient(90deg,#2b5fd9,#800614);width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#e04155;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#e04155;">'+toNext+' more friends</b> to unlock <b style="color:#e04155;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
+  '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:15px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">🛡️ '+LN[lvl]+'</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:600;color:#000;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:#800614;width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#e04155;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#e04155;">'+toNext+' more friends</b> to unlock <b style="color:#e04155;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
   '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.6px;margin:0 16px 10px 16px;text-align:left;">Rewards path</div><div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 16px 6px 16px;margin-bottom:14px;width:100%;box-sizing:border-box;">'+PATH.map(function(x){return _iePath(x,c,nextT);}).join('')+'</div>'+
   '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin:0 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:left;">Your invite code</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed rgba(240,62,90,0.5);background:rgba(240,62,90,0.04);border-radius:var(--rad-sm);padding:12px 14px;margin-bottom:14px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#e04155;letter-spacing:1px;">'+code+'</div><div onclick="_inviteCopy(\''+code+'\')" style="cursor:pointer;font-size:var(--fs-md);color:#fff;">📋</div></div>'+
   '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:left;">Share your link</div><div style="display:flex;gap:6px;margin-bottom:14px;">'+shareBtn(_waSvg,'WhatsApp','whatsapp','#25D366')+shareBtn(_igSvg,'Instagram','instagram','linear-gradient(135deg,#f58529,#dd2a7b,#8134af)')+shareBtn(_msgSvg,'Messages','sms','#22c55e')+shareBtn(_moreSvg,'More','more','rgba(255,255,255,0.1)')+'</div>'+
@@ -16279,7 +16285,7 @@ function showPlansForGender(){
 
     sec.innerHTML = tabs
       + '<img class="ap-banner" src="images/banner_plans.png" style="width:calc(100% - 32px);height:auto;border-radius:30px;margin: 0 16px 0 16px;display:block;box-sizing:border-box;" />'
-      + '<div style="text-align:center;font-size:var(--fs-base);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:linear-gradient(90deg,#ff007f,#800614,#3d7bff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 12px rgba(240,62,90,0.3);margin: 18px 12px 14px 10px;">⚡ Unleash A+ Privileges ⚡</div>'
+      + '<div style="text-align:center;font-size:var(--fs-base);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:#800614;-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 12px rgba(240,62,90,0.3);margin: 18px 12px 14px 10px;">⚡ Unleash A+ Privileges ⚡</div>'
       + '<div class="ap-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin: 0 16px 16px 16px;width:calc(100% - 32px);box-sizing:border-box;">' + featsHtml + '</div>'
       + '<div style="display:flex;gap:8px;margin:30px 16px 18px 16px;width:calc(100% - 32px);box-sizing:border-box;">' + plansHtml + '</div>'
       + '<button class="gbtn" style="width:calc(100% - 32px);background:linear-gradient(135deg,var(--accent),var(--accent-deep));font-size:var(--fs-md);font-weight:700;margin:12px 16px 0 16px;box-shadow:var(--el-3);padding:14px;border-radius:var(--rad-md);border:none;color:#fff;cursor:pointer;box-sizing:border-box;" onclick="openPayment(\'aplus\',\''+selectedBill.pay+'\',\''+selectedBill.name+'\')">Get A+ Now</button>'
