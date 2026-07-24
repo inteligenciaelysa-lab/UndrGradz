@@ -60,6 +60,16 @@ class UserService {
       })
     ]);
 
+    if (user.profile && (!user.profile.university || user.profile.university.trim() === '')) {
+      const domain = user.email ? user.email.split('@')[1] : '';
+      if (domain) {
+        if (domain.includes('utnc') || domain.includes('utn')) user.profile.university = 'Universidad Tecnológica del Norte de Coahuila';
+        else if (domain.includes('uane')) user.profile.university = 'Universidad Americana del Noreste';
+        else if (domain.includes('uadec')) user.profile.university = 'Universidad Autónoma de Coahuila';
+        else if (domain.includes('utexas')) user.profile.university = 'The University of Texas at Austin';
+      }
+    }
+
     user.friendsCount = friendsCount;
     user.matchesCount = matchesCount;
     user.eventsJoinedCount = eventsJoinedCount;

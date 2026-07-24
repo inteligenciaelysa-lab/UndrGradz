@@ -20,12 +20,24 @@ model User {
   passwordHash      String
 
   firstName         String
-  lastName         String
+  lastName          String
 
   birthDate         DateTime
 
   isEmailVerified   Boolean  @default(false)
   isPhoneVerified   Boolean  @default(false)
+
+  // Administrative & Security fields
+  role              String   @default("STUDENT") // 'STUDENT', 'SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'
+  status            String   @default("ACTIVE")  // 'ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED'
+  isDeleted         Boolean  @default(false)
+  deletedAt         DateTime?
+  suspensionReason  String?
+  suspendedUntil    DateTime?
+  failedLoginAttempts Int    @default(0)
+  lockoutUntil      DateTime?
+  twoFactorEnabled  Boolean  @default(false)
+  twoFactorSecret   String?
 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -44,13 +56,22 @@ model User {
   referredBy        User?    @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
   referredUsers     User[]   @relation("Referrals")
   
-  sentFriendships     Friendship[] @relation("SentFriendships")
-  receivedFriendships Friendship[] @relation("ReceivedFriendships")
+  sentFriendships     Friendship[]  @relation("SentFriendships")
+  receivedFriendships Friendship[]  @relation("ReceivedFriendships")
   sentProfileViews    ProfileView[] @relation("SentViews")
   receivedProfileViews ProfileView[] @relation("ReceivedViews")
   messages            Message[]
-  createdEvents       Event[]      @relation("CreatedEvents")
-  joinedEvents        Event[]      @relation("EventAttendees")
+  createdEvents       Event[]       @relation("CreatedEvents")
+  joinedEvents        Event[]       @relation("EventAttendees")
+
+  // Admin relations
+  adminAuditLogs        AuditLog[]     @relation("AdminAuditLogs")
+  reportsFiled          Report[]       @relation("ReportsFiled")
+  reportsReceived       Report[]       @relation("ReportsReceived")
+  resolvedReports       Report[]       @relation("ResolvedReports")
+  adminSessions         AdminSession[]
+  sentNotifications     Notification[] @relation("SentNotifications")
+  receivedNotifications Notification[] @relation("ReceivedNotifications")
 }
 
 model UserProfile {
@@ -60,7 +81,9 @@ model UserProfile {
   bio              String?
   gender           String?   // 'MAN', 'WOMAN', 'NON_BINARY'
   interestedIn     String?   // 'MAN', 'WOMAN', 'EVERYONE'
-  university       String?   
+  university       String?   // Legacy string representation
+  universityId     String?
+  universityRef    University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
   major            String?   
   grad             String?   // Año de graduación, ej. "May '26"
   crossover        Boolean   @default(false)
@@ -159,9 +182,13 @@ model Event {
   capacity    Int
   description String?
   filters     Json?    // e.g. { majors: [], years: [] }
+  status      String   @default("ACTIVE") // 'ACTIVE', 'HIDDEN', 'REJECTED'
+  isDeleted   Boolean  @default(false)
+  deletedAt   DateTime?
   creatorId   String
   creator     User     @relation("CreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
   attendees   User[]   @relation("EventAttendees")
+  reports     Report[] @relation("EventReports")
   createdAt   DateTime @default(now())
 }
 
@@ -175,4 +202,111 @@ model ProfileView {
   updatedAt  DateTime @updatedAt
 
   @@unique([viewerId, viewedId])
+}
+
+model University {
+  id             String        @id @default(cuid())
+  domain         String        @unique
+  name           String
+  acronym        String
+  type           String        @default("public") // 'public', 'private'
+  primaryColor   String?
+  secondaryColor String?
+  website        String?
+  coverPhotos    Json?         // Array of image URLs
+  city           String?
+  state          String?
+  country        String        @default("Mexico")
+  logoUrl        String?
+  isOfficial     Boolean       @default(false)
+  status         String        @default("AVAILABLE") // 'AVAILABLE', 'PENDING', 'INTEGRATED', 'SUSPENDED'
+  isDeleted      Boolean       @default(false)
+  deletedAt      DateTime?
+  userProfiles   UserProfile[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([name])
+  @@index([acronym])
+  @@index([type])
+  @@index([status])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  reporterId      String
+  reporter        User     @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  targetType      String   // 'USER', 'EVENT', 'MESSAGE', 'PHOTO'
+  targetId        String
+  targetUserId    String?
+  targetUser      User?    @relation("ReportsReceived", fields: [targetUserId], references: [id], onDelete: SetNull)
+  eventId         String?
+  event           Event?   @relation("EventReports", fields: [eventId], references: [id], onDelete: SetNull)
+  reason          String   // 'SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'FAKE_PROFILE', 'OTHER'
+  details         String?
+  status          String   @default("PENDING") // 'PENDING', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED'
+  resolutionNotes String?
+  resolvedById    String?
+  resolvedBy      User?    @relation("ResolvedReports", fields: [resolvedById], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  adminId    String
+  admin      User     @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
+  action     String   // e.g., 'USER_SUSPENDED', 'USER_ROLE_UPDATED', 'EVENT_HIDDEN'
+  targetType String?  // 'USER', 'EVENT', 'REPORT', 'UNIVERSITY', 'SETTING'
+  targetId   String?
+  details    Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+}
+
+model AdminSession {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  ipAddress  String?
+  userAgent  String?
+  deviceInfo String?
+  lastActive DateTime @default(now())
+  isRevoked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  email     String
+  ipAddress String?
+  userAgent String?
+  success   Boolean
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id               String   @id @default(cuid())
+  senderId         String?
+  sender           User?    @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
+  recipientId      String?
+  recipient        User?    @relation("ReceivedNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  title            String
+  message          String
+  type             String   @default("SYSTEM") // 'SYSTEM', 'ANNOUNCEMENT', 'WARNING', 'MODERATION'
+  targetUniversity String?
+  targetCriteria   Json?
+  isRead           Boolean  @default(false)
+  createdAt        DateTime @default(now())
+}
+
+model PlatformSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedBy   String?
+  updatedAt   DateTime @updatedAt
 }

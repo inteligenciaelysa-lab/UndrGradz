@@ -1042,79 +1042,150 @@ try {
   window.prompt = function(msg, defaultVal) { return window.ugzModal.prompt(msg, defaultVal); };
 } catch(e) {}
 
-var UNI = {};
-var UNI_LIST = [];
+function _isSameUniversity(uniStr1, uniStr2) {
+  if (!uniStr1 || !uniStr2) return true;
+  var u1 = String(uniStr1).toLowerCase().trim();
+  var u2 = String(uniStr2).toLowerCase().trim();
+  if (u1 === u2) return true;
+  if (u1.includes(u2) || u2.includes(u1)) return true;
+  
+  var obj1 = typeof _resolveUserUniversity === 'function' ? _resolveUserUniversity(uniStr1) : null;
+  var obj2 = typeof _resolveUserUniversity === 'function' ? _resolveUserUniversity(uniStr2) : null;
+  if (obj1 && obj2) {
+    if (obj1.domain && obj2.domain && obj1.domain === obj2.domain) return true;
+    if (obj1.acronym && obj2.acronym && obj1.acronym.toLowerCase() === obj2.acronym.toLowerCase()) return true;
+    if (obj1.name && obj2.name && obj1.name.toLowerCase() === obj2.name.toLowerCase()) return true;
+  }
+  return false;
+}
+
+function _resolveUserUniversity(targetUni) {
+  if (!targetUni || String(targetUni).trim() === '') {
+    if (typeof userPro !== 'undefined' && userPro && userPro.email && userPro.email.includes('@')) {
+      targetUni = userPro.email.split('@')[1];
+    } else {
+      return null;
+    }
+  }
+  if (typeof UNI === 'undefined' || !UNI) return null;
+  
+  var targetLower = String(targetUni).toLowerCase().trim();
+  
+  // 1. Direct domain key match
+  if (UNI[targetLower]) {
+    return Object.assign({ domain: targetLower }, UNI[targetLower]);
+  }
+  
+  // 2. Direct name match
+  for (var d in UNI) {
+    if (UNI[d] && UNI[d].name && UNI[d].name.toLowerCase() === targetLower) {
+      return Object.assign({ domain: d }, UNI[d]);
+    }
+  }
+  
+  // 3. Partial name match or acronym match
+  for (var d in UNI) {
+    if (UNI[d]) {
+      var uName = (UNI[d].name || '').toLowerCase();
+      var uAcr = (UNI[d].acronym || '').toLowerCase();
+      if (uName.includes(targetLower) || targetLower.includes(uName) || uAcr === targetLower) {
+        return Object.assign({ domain: d }, UNI[d]);
+      }
+    }
+  }
+  
+  // 4. Fallback object for custom university string
+  return {
+    name: targetUni,
+    acronym: String(targetUni).slice(0, 4).toUpperCase(),
+    p: '#6366f1',
+    p2: '#ec4899',
+    domain: targetLower.replace(/[^a-z0-9.]/g, '') || 'custom.edu'
+  };
+}
 
 async function _loadUniversities() {
-  var paths = ['universities.json', '/universities.json', '../universities.json'];
-  var response = null;
-  var cacheBust = '?v=' + new Date().getTime();
-  for (var i = 0; i < paths.length; i++) {
-    try {
-      var r = await fetch(paths[i] + cacheBust);
-      if (r.ok) {
-        response = r;
-        break;
-      }
-    } catch (e) {}
-  }
-  
-  var fallbackUsed = false;
-  if (!response) {
-    console.warn('Could not fetch universities.json from standard paths. Using fallback database.');
-    UNI = {
-      'saltillo.tecnm.mx': {t:'public', name:'Instituto Tecnológico de Saltillo', acronym:'ITS', p:'#1C3F94', p2:'#6E6F72', ig:'https://www.instagram.com/tecnmitsaltillo/'},
-      'uaaan.edu.mx': {t:'public', name:'Universidad Autónoma Agraria Antonio Narro', acronym:'UAAAN', p:'#1A1A1A', p2:'#C5A253', ig:'https://www.instagram.com/uaaan_oficial/'},
-      'un.edu.mx': {t:'private', name:'Universidad del Norte (Mexico)', acronym:'UN', p:'#000000', p2:'#ED1C24', ig:'https://www.instagram.com/un_mty/'},
-      'upn.mx': {t:'public', name:'Universidad Pedagógica Nacional (Mexico)', acronym:'UPN', p:'#005CAB', p2:'#000000', ig:'https://www.instagram.com/upn.mx/'},
-      'u-erre.mx': {t:'private', name:'Universidad Regiomontana', acronym:'U-ERRE', p:'#009639', p2:'#FFD200', ig:'https://www.instagram.com/uerre/'},
-      'tecmilenio.mx': {t:'private', name:'Universidad Tecmilenio', p:'#8DC63F', p2:'#1B365D', ig:'https://www.instagram.com/tecmileniomx/'},
-      'uane.edu.mx': {t:'private', name:'Universidad Americana del Noreste', acronym:'UANE', p:'#6b1426', p2:'#d4af37', mascot:'uane_bear.png', ig:'https://instagram.com/uaneoficial'},
-      'uvm.mx': {t:'private', name:'Universidad del Valle de México', acronym:'UVM', p:'#C8102E', p2:'#003057', ig:'https://www.instagram.com/uvmcomunidad/'},
-      'lasallesaltillo.edu.mx': {t:'private', name:'Universidad La Salle Saltillo', acronym:'ULSA', p:'#002D62', p2:'#E4002B', ig:'https://www.instagram.com/lasallesaltillo/'},
-      'ucarolina.edu.mx': {t:'private', name:'Universidad Carolina', p:'#1D3C6E', p2:'#C5A253', ig:'https://www.instagram.com/universidadcarolina/'},
-      'utnc.edu.mx': {t:'public', name:'Universidad Tecnológica del Norte de Coahuila', acronym:'UTNC', p:'#01A986', p2:'#B28A44', ig:'http://utnc.edu.mx'},
-      'uppn.edu.mx': {t:'public', name:'Universidad Politécnica de Piedras Negras (UPPN)', acronym:'UP', p:'#7A0019', p2:'#D4AF37', ig:'http://uppn.edu.mx', coverPhotos:['coverPhotos/UPPN/Docencia_UPPN.jpg', 'coverPhotos/UPPN/Campus_UPPN.jpeg']},
-      'smu.edu': {t:'private', name:'Southern Methodist University', acronym:'SMU', p:'#CC0035', p2:'#354CA1', mascot:'smu_mustang.jpg', ig:'https://instagram.com/smudallas', coverPhotos:['coverPhotos/SMU/Dallas_Hall.jpg', 'coverPhotos/SMU/Gerald_J._Ford_Stadium.webp', 'coverPhotos/SMU/Southern_Methodist_University_Campus.jpg']},
-      'itesm.mx': {t:'private', name:'Tec de Monterrey', acronym:'Tec', p:'#003fda', p2:'#ffffff', mascot:'tec_borrego.jpg', ig:'https://instagram.com/tecdecomexico'},
-      'uanl.mx': {t:'public', name:'Universidad Autónoma de Nuevo León', acronym:'UANL', p:'#003da5', p2:'#ffc72c', mascot:'uanl_tiger.jpg', ig:'https://instagram.com/uanl_oficial'},
-      'uadec.mx': {t:'public', name:'Universidad Autónoma de Coahuila', acronym:'UAdeC', p:'#002f6c', p2:'#d4af37', mascot:'uadec_wolf.png', ig:'https://instagram.com/uadec_oficial'},
-      'utexas.edu': {t:'public', name:'The University of Texas at Austin', acronym:'UT Austin', p:'#BF5700', p2:'#FFFFFF', mascot:'ut_longhorn.jpg', ig:'https://instagram.com/utaustintx', coverPhotos:['coverPhotos/UT AUSTIN/UT_Austin_Tower_and_Main_Building.jpg', 'coverPhotos/UT AUSTIN/Darrell_K_Royal-Texas_Memorial_Stadium.jpg', 'coverPhotos/UT AUSTIN/UT_Austin_Campus.jpg']},
-      'olemiss.edu': {t:'public', name:'University of Mississippi', acronym:'Ole Miss', p:'#CE1126', p2:'#14213D', mascot:'olemiss_shark.jpg', ig:'https://instagram.com/olemiss'},
-      'louisville.edu': {t:'public', name:'University of Louisville', acronym:'UofL', p:'#AD0000', p2:'#000000', mascot:'louisville_cardinal.jpg', ig:'https://instagram.com/universityoflouisville'},
-      'utsa.edu': {t:'public', name:'The University of Texas at San Antonio', acronym:'UTSA', p:'#0C2340', p2:'#F15A22', mascot:'utsa_roadrunner.jpg', ig:'https://instagram.com/utsa', coverPhotos:['coverPhotos/UTSA/UTSA_Main_Building.png', 'coverPhotos/UTSA/Alamodome_Inside.webp', 'coverPhotos/UTSA/UTSA_Campus.png']},
-      'byu.edu': {t:'private', name:'Brigham Young University', acronym:'BYU', p:'#002E5D', p2:'#0047BA', mascot:'byu_cougar.jpg', ig:'https://instagram.com/brighamyounguniversity'},
-      'indiana.edu': {t:'public', name:'Indiana University Bloomington', acronym:'IU', p:'#990000', p2:'#EDEBEB', mascot:'indiana_trident.jpg', ig:'https://instagram.com/iubloomington'},
-      'ou.edu': {t:'public', name:'University of Oklahoma', acronym:'OU', p:'#841617', p2:'#FDF9D8', mascot:'oklahoma_ou.jpg', ig:'https://instagram.com/uofoklahoma'},
-      'uiowa.edu': {t:'public', name:'University of Iowa', acronym:'Iowa', p:'#000000', p2:'#FFCD00', mascot:'iowa_hawk.jpg', ig:'https://instagram.com/uiowa'},
-      'pitt.edu': {t:'public', name:'University of Pittsburgh', acronym:'Pitt', p:'#003594', p2:'#FFB81C', mascot:'pitt_panther.jpg', ig:'https://instagram.com/upitt'},
-      'colorado.edu': {t:'public', name:'University of Colorado Boulder', acronym:'CU Boulder', p:'#CFB87C', p2:'#000000', mascot:'colorado_buffalo.jpg', ig:'https://instagram.com/cuboulder'},
-      'fsu.edu': {t:'public', name:'Florida State University', acronym:'FSU', p:'#782F40', p2:'#CEB888', mascot:'fsu_spear.jpg', ig:'https://instagram.com/floridastateuniversity'},
-      'baylor.edu': {t:'public', name:'Baylor University', acronym:'BU', p:'#154734', p2:'#FFB81C', mascot:'baylor_bear.jpg', ig:'https://instagram.com/bayloruniversity', coverPhotos:['coverPhotos/BAYLOR/Baylor_Main.jpg', 'coverPhotos/BAYLOR/Baylor_Football.png', 'coverPhotos/BAYLOR/Baylor_Campus.jpg']},
-      'ttu.edu': {t:'public', name:'Texas Tech University', acronym:'TTU', p:'#E90802', p2:'#000000', mascot:'ttu_mascot.jpg', ig:'https://instagram.com/texastech', coverPhotos:['coverPhotos/TTU/TTU_Main.jpg', 'coverPhotos/TTU/TTU_Field.webp', 'coverPhotos/TTU/TTU_Campus.jpg']},
-      'rice.edu': {t:'private', name:'Rice University', acronym:'RICE', p:'#00205B', p2:'#7C7E7F', mascot:'rice_owl.jpg', ig:'https://instagram.com/riceuniversity', coverPhotos:['https://cdn.britannica.com/84/117884-050-2A107043/Lovett-Hall-Rice-University-Houston-Texas.jpg', 'https://upload.wikimedia.org/wikipedia/commons/9/90/Aerial_view_of_Rice_Stadium_in_Houston%2C_Texas_2024.jpg', 'https://storage.googleapis.com/borderless-so.appspot.com/posts%2Fnontrivial-college-application-tips-from-a-rice-university-student%2Frice-university-campus.jpeg']},
-      'tamu.edu': {t:'public', name:'Texas A&M University', acronym:'Texas A&M', p:'#500000', p2:'#FFFFFF', mascot:'tamu_reveille.jpg', ig:'https://instagram.com/tamu', coverPhotos:['https://news.tamus.edu/wp-content/uploads/sites/180/2026/05/BOR-May-26-Web-Academic-Building-1920-x-1080-scaled.jpg', 'https://visit.cstx.gov/imager/files_idss_com/C485/fcc870da-ca0f-4a46-8411-c47360487f7f_e45adf5f6bc0c5c2a30a39868f44eab6.png', 'https://thebatt.com/wp-content/uploads/2024/09/DJI_0233-2-2-1200x799.jpg']},
-      'uh.edu': {t:'public', name:'University of Houston', acronym:'UH', p:'#C8102E', p2:'#FFFFFF', mascot:'uh_cougar.jpg', ig:'https://instagram.com/universityofhouston', coverPhotos:['https://d13b2ieg84qqce.cloudfront.net/51b0f5f122c94bc9f903dcd809ee20327c1f54bd', 'https://www.uh.edu/tdecu-stadium/_images/dw24_ts_main.jpg', 'https://www.usnews.com/dims4/USNEWS/9b8a4d7/17177859217/resize/800x540%3E/quality/85/?url=https%3A%2F%2Fwww.usnews.com%2Fcmsmedia%2Fcd%2F43%2Fbfbee92f4520b7dd877e73170c86%2Fuhlc-building-1.png']}
-    };
-    fallbackUsed = true;
-    
-    try {
-      var msg = window.location.protocol === 'file:' 
-        ? '⚠️ CORS block detected (file:// protocol). For full database search, run a local web server (e.g. VS Code Live Server). Using local fallback for testing.'
-        : '⚠️ Could not load universities.json. Using local fallback list for testing.';
-      var warn = document.createElement('div');
-      warn.style.cssText = 'position:fixed;bottom:12px;right:12px;background:rgba(30,41,59,0.9);color:rgba(255,255,255,0.7);font-size:var(--fs-2xs);padding:8px 12px;border-radius:var(--rad-lg);border:1px solid rgba(255,255,255,0.1);z-index:9999;font-family:system-ui;backdrop-filter:blur(5px);pointer-events:none;';
-      warn.textContent = msg;
-      document.body.appendChild(warn);
-    } catch(e) {}
-  }
-  
   try {
-    if (!fallbackUsed) {
-      UNI = await response.json();
+    // Step 1: Load base universities catalog (17,670 records)
+    var paths = ['universities.json', '/universities.json', '../universities.json'];
+    var response = null;
+    var cacheBust = '?v=' + new Date().getTime();
+    for (var i = 0; i < paths.length; i++) {
+      try {
+        var r = await fetch(paths[i] + cacheBust);
+        if (r.ok) {
+          response = r;
+          break;
+        }
+      } catch (e) {}
     }
     
-    // Build UNI_LIST
+    if (response) {
+      try {
+        UNI = await response.json();
+      } catch(e) {}
+    }
+
+    if (!UNI || Object.keys(UNI).length === 0) {
+      console.warn('Could not fetch universities.json from standard paths. Using fallback database.');
+      UNI = {
+        'saltillo.tecnm.mx': {t:'public', name:'Instituto Tecnológico de Saltillo', acronym:'ITS', p:'#1C3F94', p2:'#6E6F72', ig:'https://www.instagram.com/tecnmitsaltillo/'},
+        'uaaan.edu.mx': {t:'public', name:'Universidad Autónoma Agraria Antonio Narro', acronym:'UAAAN', p:'#1A1A1A', p2:'#C5A253', ig:'https://www.instagram.com/uaaan_oficial/'},
+        'un.edu.mx': {t:'private', name:'Universidad del Norte (Mexico)', acronym:'UN', p:'#000000', p2:'#ED1C24', ig:'https://www.instagram.com/un_mty/'},
+        'upn.mx': {t:'public', name:'Universidad Pedagógica Nacional (Mexico)', acronym:'UPN', p:'#005CAB', p2:'#000000', ig:'https://www.instagram.com/upn.mx/'},
+        'u-erre.mx': {t:'private', name:'Universidad Regiomontana', acronym:'U-ERRE', p:'#009639', p2:'#FFD200', ig:'https://www.instagram.com/uerre/'},
+        'tecmilenio.mx': {t:'private', name:'Universidad Tecmilenio', p:'#8DC63F', p2:'#1B365D', ig:'https://www.instagram.com/tecmileniomx/'},
+        'uane.edu.mx': {t:'private', name:'Universidad Americana del Noreste', acronym:'UANE', p:'#6b1426', p2:'#d4af37', mascot:'uane_bear.png', ig:'https://instagram.com/uaneoficial'},
+        'uvm.mx': {t:'private', name:'Universidad del Valle de México', acronym:'UVM', p:'#C8102E', p2:'#003057', ig:'https://www.instagram.com/uvmcomunidad/'},
+        'lasallesaltillo.edu.mx': {t:'private', name:'Universidad La Salle Saltillo', acronym:'ULSA', p:'#002D62', p2:'#E4002B', ig:'https://www.instagram.com/lasallesaltillo/'},
+        'ucarolina.edu.mx': {t:'private', name:'Universidad Carolina', p:'#1D3C6E', p2:'#C5A253', ig:'https://www.instagram.com/universidadcarolina/'},
+        'utnc.edu.mx': {t:'public', name:'Universidad Tecnológica del Norte de Coahuila', acronym:'UTNC', p:'#01A986', p2:'#B28A44', ig:'http://utnc.edu.mx'},
+        'uppn.edu.mx': {t:'public', name:'Universidad Politécnica de Piedras Negras (UPPN)', acronym:'UP', p:'#7A0019', p2:'#D4AF37', ig:'http://uppn.edu.mx', coverPhotos:['coverPhotos/UPPN/Docencia_UPPN.jpg', 'coverPhotos/UPPN/Campus_UPPN.jpeg']},
+        'smu.edu': {t:'private', name:'Southern Methodist University', acronym:'SMU', p:'#CC0035', p2:'#354CA1', mascot:'smu_mustang.jpg', ig:'https://instagram.com/smudallas', coverPhotos:['coverPhotos/SMU/Dallas_Hall.jpg', 'coverPhotos/SMU/Gerald_J._Ford_Stadium.webp', 'coverPhotos/SMU/Southern_Methodist_University_Campus.jpg']},
+        'itesm.mx': {t:'private', name:'Tec de Monterrey', acronym:'Tec', p:'#003fda', p2:'#ffffff', mascot:'tec_borrego.jpg', ig:'https://instagram.com/tecdecomexico'},
+        'uanl.mx': {t:'public', name:'Universidad Autónoma de Nuevo León', acronym:'UANL', p:'#003da5', p2:'#ffc72c', mascot:'uanl_tiger.jpg', ig:'https://instagram.com/uanl_oficial'},
+        'uadec.mx': {t:'public', name:'Universidad Autónoma de Coahuila', acronym:'UAdeC', p:'#002f6c', p2:'#d4af37', mascot:'uadec_wolf.png', ig:'https://instagram.com/uadec_oficial'},
+        'utexas.edu': {t:'public', name:'The University of Texas at Austin', acronym:'UT Austin', p:'#BF5700', p2:'#FFFFFF', mascot:'ut_longhorn.jpg', ig:'https://instagram.com/utaustintx', coverPhotos:['coverPhotos/UT AUSTIN/UT_Austin_Tower_and_Main_Building.jpg', 'coverPhotos/UT AUSTIN/Darrell_K_Royal-Texas_Memorial_Stadium.jpg', 'coverPhotos/UT AUSTIN/UT_Austin_Campus.jpg']},
+        'olemiss.edu': {t:'public', name:'University of Mississippi', acronym:'Ole Miss', p:'#CE1126', p2:'#14213D', mascot:'olemiss_shark.jpg', ig:'https://instagram.com/olemiss'},
+        'louisville.edu': {t:'public', name:'University of Louisville', acronym:'UofL', p:'#AD0000', p2:'#000000', mascot:'louisville_cardinal.jpg', ig:'https://instagram.com/universityoflouisville'},
+        'utsa.edu': {t:'public', name:'The University of Texas at San Antonio', acronym:'UTSA', p:'#0C2340', p2:'#F15A22', mascot:'utsa_roadrunner.jpg', ig:'https://instagram.com/utsa', coverPhotos:['coverPhotos/UTSA/UTSA_Main_Building.png', 'coverPhotos/UTSA/Alamodome_Inside.webp', 'coverPhotos/UTSA/UTSA_Campus.png']},
+        'byu.edu': {t:'private', name:'Brigham Young University', acronym:'BYU', p:'#002E5D', p2:'#0047BA', mascot:'byu_cougar.jpg', ig:'https://instagram.com/brighamyounguniversity'},
+        'indiana.edu': {t:'public', name:'Indiana University Bloomington', acronym:'IU', p:'#990000', p2:'#EDEBEB', mascot:'indiana_trident.jpg', ig:'https://instagram.com/iubloomington'},
+        'ou.edu': {t:'public', name:'University of Oklahoma', acronym:'OU', p:'#841617', p2:'#FDF9D8', mascot:'oklahoma_ou.jpg', ig:'https://instagram.com/uofoklahoma'},
+        'uiowa.edu': {t:'public', name:'University of Iowa', acronym:'Iowa', p:'#000000', p2:'#FFCD00', mascot:'iowa_hawk.jpg', ig:'https://instagram.com/uiowa'},
+        'pitt.edu': {t:'public', name:'University of Pittsburgh', acronym:'Pitt', p:'#003594', p2:'#FFB81C', mascot:'pitt_panther.jpg', ig:'https://instagram.com/upitt'},
+        'colorado.edu': {t:'public', name:'University of Colorado Boulder', acronym:'CU Boulder', p:'#CFB87C', p2:'#000000', mascot:'colorado_buffalo.jpg', ig:'https://instagram.com/cuboulder'},
+        'fsu.edu': {t:'public', name:'Florida State University', acronym:'FSU', p:'#782F40', p2:'#CEB888', mascot:'fsu_spear.jpg', ig:'https://instagram.com/floridastateuniversity'},
+        'baylor.edu': {t:'public', name:'Baylor University', acronym:'BU', p:'#154734', p2:'#FFB81C', mascot:'baylor_bear.jpg', ig:'https://instagram.com/bayloruniversity', coverPhotos:['coverPhotos/BAYLOR/Baylor_Main.jpg', 'coverPhotos/BAYLOR/Baylor_Football.png', 'coverPhotos/BAYLOR/Baylor_Campus.jpg']},
+        'ttu.edu': {t:'public', name:'Texas Tech University', acronym:'TTU', p:'#E90802', p2:'#000000', mascot:'ttu_mascot.jpg', ig:'https://instagram.com/texastech', coverPhotos:['coverPhotos/TTU/TTU_Main.jpg', 'coverPhotos/TTU/TTU_Field.webp', 'coverPhotos/TTU/TTU_Campus.jpg']},
+        'rice.edu': {t:'private', name:'Rice University', acronym:'RICE', p:'#00205B', p2:'#7C7E7F', mascot:'rice_owl.jpg', ig:'https://instagram.com/riceuniversity', coverPhotos:['https://cdn.britannica.com/84/117884-050-2A107043/Lovett-Hall-Rice-University-Houston-Texas.jpg', 'https://upload.wikimedia.org/wikipedia/commons/9/90/Aerial_view_of_Rice_Stadium_in_Houston%2C_Texas_2024.jpg', 'https://storage.googleapis.com/borderless-so.appspot.com/posts%2Fnontrivial-college-application-tips-from-a-rice-university-student%2Frice-university-campus.jpeg']},
+        'tamu.edu': {t:'public', name:'Texas A&M University', acronym:'Texas A&M', p:'#500000', p2:'#FFFFFF', mascot:'tamu_reveille.jpg', ig:'https://instagram.com/tamu', coverPhotos:['https://news.tamus.edu/wp-content/uploads/sites/180/2026/05/BOR-May-26-Web-Academic-Building-1920-x-1080-scaled.jpg', 'https://visit.cstx.gov/imager/files_idss_com/C485/fcc870da-ca0f-4a46-8411-c47360487f7f_e45adf5f6bc0c5c2a30a39868f44eab6.png', 'https://thebatt.com/wp-content/uploads/2024/09/DJI_0233-2-2-1200x799.jpg']},
+        'uh.edu': {t:'public', name:'University of Houston', acronym:'UH', p:'#C8102E', p2:'#FFFFFF', mascot:'uh_cougar.jpg', ig:'https://instagram.com/universityofhouston', coverPhotos:['https://d13b2ieg84qqce.cloudfront.net/51b0f5f122c94bc9f903dcd809ee20327c1f54bd', 'https://www.uh.edu/tdecu-stadium/_images/dw24_ts_main.jpg', 'https://www.usnews.com/dims4/USNEWS/9b8a4d7/17177859217/resize/800x540%3E/quality/85/?url=https%3A%2F%2Fwww.usnews.com%2Fcmsmedia%2Fcd%2F43%2Fbfbee92f4520b7dd877e73170c86%2Fuhlc-building-1.png']}
+      };
+    }
+
+    // Step 2: Merge live database updates from PostgreSQL API into UNI
+    try {
+      var apiRes = await fetch('http://localhost:3000/api/v1/campus/universities?limit=2000');
+      if (apiRes.ok) {
+        var apiData = await apiRes.json();
+        if (apiData && apiData.data && Array.isArray(apiData.data.universities)) {
+          apiData.data.universities.forEach(function(u) {
+            var existing = UNI[u.domain] || {};
+            UNI[u.domain] = Object.assign({}, existing, {
+              t: u.type || existing.t || 'public',
+              name: u.name || existing.name,
+              acronym: u.acronym || existing.acronym,
+              p: u.primaryColor || existing.p || '#6366f1',
+              p2: u.secondaryColor || existing.p2 || '#ec4899',
+              ig: u.website || existing.ig || ''
+            });
+          });
+        }
+      }
+    } catch(e) {}
+      
+    // Step 3: Build UNI_LIST from full merged UNI
     UNI_LIST = Object.keys(UNI).map(function(domain){
       var u=UNI[domain];
       var acr=u.acronym||domain.replace('.edu','').toUpperCase();
@@ -1128,6 +1199,11 @@ async function _loadUniversities() {
       } catch (e) {
         console.error('Error in _populateFilterChips:', e);
       }
+    }
+
+    // Resolve active logged in user's university if present
+    if (typeof userPro !== 'undefined' && userPro && userPro.university) {
+      uni = _resolveUserUniversity(userPro.university);
     }
     
     // Auto-update uni and run detectUni if user typed or pre-loaded an email
@@ -1150,71 +1226,87 @@ async function _loadUniversities() {
       }
     }
 
-    // Update theme or colors if needed
-    if (typeof uni !== 'undefined' && uni) {
-      var fresh = null;
-      if (uni.domain) {
-        fresh = UNI[uni.domain];
-      } else {
-        // Try matching by name
-        for (var d in UNI) {
-          if (UNI[d] && UNI[d].name === uni.name) {
-            fresh = UNI[d];
-            uni.domain = d;
-            break;
-          }
-        }
-      }
-      if (fresh) {
-        uni = Object.assign({}, fresh, uni);
-      } else if (emailVal) {
-        var d = emailVal.split('@')[1];
-        if (d) {
-          var resolved = _resolveUniDomain(d);
-          if (resolved && UNI[resolved]) {
-            uni = Object.assign({}, UNI[resolved], uni);
-          }
-        }
-      }
-    }
     if (typeof applyColors === 'function') {
       try { applyColors(); } catch(e){}
     }
   } catch (err) {
-    console.error('Failed to parse universities.json:', err);
+    console.error('Error loading universities:', err);
   }
 }
 _loadUniversities();
 
 var FLAGS = [
-  {f:'🇺🇸',l:'English'},{f:'🇲🇽',l:'Spanish'},{f:'🇫🇷',l:'French'},
-  {f:'🇧🇷',l:'Portuguese'},{f:'🇩🇪',l:'German'},{f:'🇯🇵',l:'Japanese'},
-  {f:'🇨🇳',l:'Mandarin'},{f:'🇰🇷',l:'Korean'},{f:'🇮🇳',l:'Hindi'},
-  {f:'🇸🇦',l:'Arabic'},{f:'🇮🇹',l:'Italian'}
+  {f:'🇺🇸',l:'English'},{f:'🇬🇧',l:'English'},{f:'🇨🇦',l:'English'},{f:'🇦🇺',l:'English'},
+  {f:'🇲🇽',l:'Spanish'},{f:'🇪🇸',l:'Spanish'},{f:'🇦🇷',l:'Spanish'},{f:'🇨🇴',l:'Spanish'},
+  {f:'🇫🇷',l:'French'},{f:'🇨🇦',l:'French (Québécois)'},{f:'🇩🇪',l:'German'},{f:'🇮🇹',l:'Italian'},
+  {f:'🇧🇷',l:'Portuguese'},{f:'🇵🇹',l:'Portuguese'},{f:'🇨🇳',l:'Mandarin'},{f:'🇭🇰',l:'Cantonese'},
+  {f:'🇯🇵',l:'Japanese'},{f:'🇰🇷',l:'Korean'},{f:'🇻🇳',l:'Vietnamese'},{f:'🇸🇦',l:'Arabic'},{f:'🇷🇺',l:'Russian'},
+  {f:'🇺🇦',l:'Ukrainian'},{f:'🇹🇷',l:'Turkish'},{f:'🇬🇷',l:'Greek'},{f:'🇮🇳',l:'Hindi'},{f:'🇵🇰',l:'Urdu'},
+  {f:'🇧🇩',l:'Bengali'},{f:'🇳🇱',l:'Dutch'},{f:'🇸🇪',l:'Swedish'},{f:'🇳🇴',l:'Norwegian'},{f:'🇩🇰',l:'Danish'},
+  {f:'🇫🇮',l:'Finnish'},{f:'🇵🇱',l:'Polish'},{f:'🇨🇿',l:'Czech'},{f:'🇵🇭',l:'Tagalog'},{f:'🇮🇩',l:'Indonesian'},
+  {f:'🇲🇾',l:'Malay'},{f:'🇹🇭',l:'Thai'},{f:'🇮🇱',l:'Hebrew'},{f:'🇮🇷',l:'Persian'},{f:'🤟',l:'ASL (Sign Language)'}
 ];
+
 function _getLangFlag(l) {
   if (!l) return '🗣️';
   var str = String(l).toLowerCase();
-  if (str.includes('us') || str.includes('american') || str.includes('english (us)')) return '🇺🇸';
-  if (str.includes('uk') || str.includes('british') || str.includes('english (uk)')) return '🇬🇧';
-  if (str.includes('mexico') || str.includes('méxico') || str.includes('spanish (mexico)') || str.includes('español (méxico)')) return '🇲🇽';
-  if (str.includes('spain') || str.includes('españa') || str.includes('spanish (spain)')) return '🇪🇸';
-  if (str.includes('argentina')) return '🇦🇷';
-  if (str.includes('colombia')) return '🇨🇴';
-  if (str.includes('english')) return '🇺🇸';
-  if (str.includes('spanish') || str.includes('español')) return '🇲🇽';
-  if (str.includes('french') || str.includes('francés')) return '🇫🇷';
-  if (str.includes('german') || str.includes('alemán')) return '🇩🇪';
-  if (str.includes('italian') || str.includes('italiano')) return '🇮🇹';
-  if (str.includes('portuguese') || str.includes('português')) return str.includes('brazil') ? '🇧🇷' : '🇵🇹';
-  if (str.includes('chinese') || str.includes('mandarin') || str.includes('chino')) return '🇨🇳';
-  if (str.includes('japanese') || str.includes('japonés')) return '🇯🇵';
-  if (str.includes('korean') || str.includes('coreano')) return '🇰🇷';
-  if (str.includes('arabic') || str.includes('árabe')) return '🇸🇦';
-  if (str.includes('russian') || str.includes('ruso')) return '🇷🇺';
-  if (str.includes('hindi')) return '🇮🇳';
-  if (str.includes('dutch') || str.includes('holandés')) return '🇳🇱';
-  if (str.includes('swedish') || str.includes('sueco')) return '🇸🇪';
+  
+  if (str.includes('asl') || str.includes('sign language')) return '🤟';
+  
+  var codeMap = [
+    { k: ['english (us)', 'us english', 'american'], code: 'us' },
+    { k: ['english (uk)', 'uk english', 'british'], code: 'gb' },
+    { k: ['english (can', 'canada', 'canadian english'], code: 'ca' },
+    { k: ['english (aus', 'australia', 'australian english'], code: 'au' },
+    { k: ['english'], code: 'us' },
+    { k: ['spanish (mexico)', 'español (méxico)', 'mexico'], code: 'mx' },
+    { k: ['spanish (spain)', 'español (españa)', 'spain'], code: 'es' },
+    { k: ['spanish (argentina)', 'argentina'], code: 'ar' },
+    { k: ['spanish (colombia)', 'colombia'], code: 'co' },
+    { k: ['spanish', 'español'], code: 'mx' },
+    { k: ['quebecois', 'québécois', 'french (can', 'french (québec'], code: 'ca' },
+    { k: ['french', 'francés'], code: 'fr' },
+    { k: ['german', 'alemán'], code: 'de' },
+    { k: ['italian', 'italiano'], code: 'it' },
+    { k: ['portuguese (brazil)', 'português (brasil)', 'brazil'], code: 'br' },
+    { k: ['portuguese (portugal)', 'português (portugal)', 'portugal'], code: 'pt' },
+    { k: ['portuguese', 'português'], code: 'br' },
+    { k: ['cantonese', 'chino (cantonés)'], code: 'hk' },
+    { k: ['mandarin', 'chinese (mandarin)', 'chino (mandarín)'], code: 'cn' },
+    { k: ['chinese', 'chino'], code: 'cn' },
+    { k: ['japanese', 'japonés'], code: 'jp' },
+    { k: ['korean', 'coreano'], code: 'kr' },
+    { k: ['vietnamese', 'vietnamita'], code: 'vn' },
+    { k: ['arabic', 'árabe'], code: 'sa' },
+    { k: ['russian', 'ruso'], code: 'ru' },
+    { k: ['ukrainian', 'ucraniano'], code: 'ua' },
+    { k: ['turkish', 'turco'], code: 'tr' },
+    { k: ['greek', 'griego'], code: 'gr' },
+    { k: ['hindi'], code: 'in' },
+    { k: ['urdu'], code: 'pk' },
+    { k: ['bengali'], code: 'bd' },
+    { k: ['dutch', 'holandés'], code: 'nl' },
+    { k: ['swedish', 'sueco'], code: 'se' },
+    { k: ['norwegian', 'noruego'], code: 'no' },
+    { k: ['danish', 'danés'], code: 'dk' },
+    { k: ['finnish', 'finlandés'], code: 'fi' },
+    { k: ['polish', 'polaco'], code: 'pl' },
+    { k: ['czech', 'checo'], code: 'cz' },
+    { k: ['tagalog'], code: 'ph' },
+    { k: ['indonesian', 'indonesio'], code: 'id' },
+    { k: ['malay', 'malayo'], code: 'my' },
+    { k: ['thai', 'tailandés'], code: 'th' },
+    { k: ['hebrew', 'hebreo'], code: 'il' },
+    { k: ['persian', 'persa'], code: 'ir' }
+  ];
+
+  for (var i = 0; i < codeMap.length; i++) {
+    var item = codeMap[i];
+    if (item.k.some(function(key){ return str.includes(key); })) {
+      return '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:4px;display:inline-block;box-shadow:var(--el-1);"/>';
+    }
+  }
+
   var f = (typeof FLAGS !== 'undefined' ? FLAGS : []).find(function(x){ return x.l === l; });
   return f ? f.f : '🗣️';
 }
@@ -1252,6 +1344,37 @@ function _populateFilterChips(){
   if(typeof WORKOUTS!=='undefined')set('crush-workout-chips',WORKOUTS.map(mkFree).join(''));
   if(typeof DIETS!=='undefined')set('crush-diet-chips',DIETS.map(mkFree).join(''));
   if(typeof LIVING!=='undefined')set('crush-living-chips',LIVING.map(mkFree).join(''));
+  if(typeof DRINK_OPTS!=='undefined')set('crush-drink-chips',DRINK_OPTS.map(mkFree).join(''));
+  if(typeof SMOKE_OPTS!=='undefined')set('crush-smoke-chips',SMOKE_OPTS.map(mkFree).join(''));
+  if(typeof POLITICS_OPTS!=='undefined')set('crush-politics-chips',POLITICS_OPTS.map(mkFree).join(''));
+
+  var langsP4List = [
+    { code: 'us', name: 'English' }, { code: 'gb', name: 'English' }, { code: 'ca', name: 'English' }, { code: 'au', name: 'English' },
+    { code: 'mx', name: 'Spanish' }, { code: 'es', name: 'Spanish' }, { code: 'ar', name: 'Spanish' }, { code: 'co', name: 'Spanish' },
+    { code: 'fr', name: 'French' }, { code: 'ca', name: 'French (Québécois)' }, { code: 'de', name: 'German' }, { code: 'it', name: 'Italian' },
+    { code: 'br', name: 'Portuguese' }, { code: 'pt', name: 'Portuguese' }, { code: 'cn', name: 'Mandarin' }, { code: 'hk', name: 'Cantonese' },
+    { code: 'jp', name: 'Japanese' }, { code: 'kr', name: 'Korean' }, { code: 'vn', name: 'Vietnamese' }, { code: 'sa', name: 'Arabic' },
+    { code: 'ru', name: 'Russian' }, { code: 'ua', name: 'Ukrainian' }, { code: 'tr', name: 'Turkish' }, { code: 'gr', name: 'Greek' },
+    { code: 'in', name: 'Hindi' }, { code: 'pk', name: 'Urdu' }, { code: 'bd', name: 'Bengali' }, { code: 'nl', name: 'Dutch' },
+    { code: 'se', name: 'Swedish' }, { code: 'no', name: 'Norwegian' }, { code: 'dk', name: 'Danish' }, { code: 'fi', name: 'Finnish' },
+    { code: 'pl', name: 'Polish' }, { code: 'cz', name: 'Czech' }, { code: 'ph', name: 'Tagalog' }, { code: 'id', name: 'Indonesian' },
+    { code: 'my', name: 'Malay' }, { code: 'th', name: 'Thai' }, { code: 'il', name: 'Hebrew' }, { code: 'ir', name: 'Persian' },
+    { flag: '🤟', name: 'ASL (Sign Language)' }
+  ];
+  set('crush-lang-chips', langsP4List.map(function(item){
+    var flagIco = item.flag ? ('<span style="font-size:13px;margin-right:4px;">' + item.flag + '</span>') : '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:4px;display:inline-block;box-shadow:var(--el-1);"/>';
+    return '<div class="yr-chip" style="font-size:var(--fs-2xs);display:inline-flex;align-items:center;" onclick="this.classList.toggle(\'on\')">' + flagIco + ' ' + item.name + '</div>';
+  }).join(''));
+
+  var ethnicitiesP4 = ['White', 'Latino / Hispanic', 'Black / African American', 'Asian', 'Middle Eastern', 'Native American', 'Pacific Islander', 'Mixed / Biracial', 'Other', 'Prefer not to say'];
+  set('crush-ethnicity-chips', ethnicitiesP4.map(mkFree).join(''));
+
+  var religionsP4 = ['Atheist', 'Agnostic', 'Christian', 'Catholic', 'Jewish', 'Muslim', 'Hindu', 'Buddhist', 'Spiritual', 'Other', 'Prefer not to say'];
+  set('crush-religion-chips', religionsP4.map(mkFree).join(''));
+
+  var greekP4 = ['Fraternity', 'Sorority', 'Rushing', 'None'];
+  set('crush-frat-chips', greekP4.map(mkFree).join(''));
+
   if(typeof _renderGreekFilterSection==='function')_renderGreekFilterSection();
   if(typeof FAITH_LEVELS!=='undefined')set('crush-faith-chips',FAITH_LEVELS.map(mkFree).join(''));
 }
@@ -1510,13 +1633,9 @@ window.addEventListener('load', function() {
                 userPro.customization = profile.customization || {};
                 
                 // Resolving uni
-                if (profile.university && typeof UNI !== 'undefined') {
-                  for (var d in UNI) {
-                    if (UNI[d] && UNI[d].name === profile.university) {
-                      uni = Object.assign({}, UNI[d], { domain: d });
-                      break;
-                    }
-                  }
+                if (userPro.university) {
+                  uni = _resolveUserUniversity(userPro.university);
+                  if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
                 }
                 
                 // Map & render database photos in UI grid on session restore
@@ -1825,7 +1944,7 @@ async function doLoginAuth(){
 
     const profile = dbProfile.profile || {};
     userPro.bio = profile.bio || '';
-    userPro.university = profile.university || '';
+    userPro.university = profile.university || (userPro.email ? userPro.email.split('@')[1] : '');
     userPro.major = profile.major || '';
     userPro.grad = profile.grad || '';
     userPro.crossover = profile.crossover || false;
@@ -1894,15 +2013,11 @@ async function doLoginAuth(){
     }
 
     // Set university colors
-    if (profile.university && typeof UNI !== 'undefined') {
-      // Find matching university in frontend database to resolve styles
-      for (var d in UNI) {
-        if (UNI[d] && UNI[d].name === profile.university) {
-          uni = Object.assign({}, UNI[d], { domain: d });
-          break;
-        }
-      }
+    uni = _resolveUserUniversity(userPro.university || userPro.email);
+    if (uni && uni.name) {
+      userPro.university = uni.name;
     }
+    if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
 
     // Update global variables
     userMode = profile.subscriptionTier === 'PLATINUM' ? 'alumni' : 'student';
@@ -2657,25 +2772,47 @@ function _ob4RenderLangsP4(){
   var selectedLbl = isEs ? 'SELECCIONADOS' : 'SELECTED';
 
   var langList = [
-    { code: 'us', en: 'English (US)', es: 'Inglés (EE.UU.)', family: 'en' },
-    { code: 'gb', en: 'English (UK)', es: 'Inglés (Reino Unido)', family: 'en' },
-    { code: 'mx', en: 'Spanish (Mexico)', es: 'Español (México)', family: 'es' },
-    { code: 'es', en: 'Spanish (Spain)', es: 'Español (España)', family: 'es' },
-    { code: 'ar', en: 'Spanish (Argentina)', es: 'Español (Argentina)', family: 'es' },
-    { code: 'co', en: 'Spanish (Colombia)', es: 'Español (Colombia)', family: 'es' },
-    { code: 'fr', en: 'French', es: 'Francés' },
+    { code: 'us', en: 'English', es: 'Inglés', family: 'en' },
+    { code: 'gb', en: 'English', es: 'Inglés', family: 'en' },
+    { code: 'ca', en: 'English', es: 'Inglés', family: 'en' },
+    { code: 'au', en: 'English', es: 'Inglés', family: 'en' },
+    { code: 'mx', en: 'Spanish', es: 'Español', family: 'es' },
+    { code: 'es', en: 'Spanish', es: 'Español', family: 'es' },
+    { code: 'ar', en: 'Spanish', es: 'Español', family: 'es' },
+    { code: 'co', en: 'Spanish', es: 'Español', family: 'es' },
+    { code: 'fr', en: 'French', es: 'Francés', family: 'fr' },
+    { code: 'ca', en: 'French (Québécois)', es: 'Francés (Québécois)', family: 'fr' },
     { code: 'de', en: 'German', es: 'Alemán' },
     { code: 'it', en: 'Italian', es: 'Italiano' },
-    { code: 'br', en: 'Portuguese (Brazil)', es: 'Português (Brasil)', family: 'pt' },
-    { code: 'pt', en: 'Portuguese (Portugal)', es: 'Português (Portugal)', family: 'pt' },
-    { code: 'cn', en: 'Chinese (Mandarin)', es: 'Chino (Mandarín)' },
+    { code: 'br', en: 'Portuguese', es: 'Português', family: 'pt' },
+    { code: 'pt', en: 'Portuguese', es: 'Português', family: 'pt' },
+    { code: 'cn', en: 'Mandarin', es: 'Mandarín' },
+    { code: 'hk', en: 'Cantonese', es: 'Cantonés' },
     { code: 'jp', en: 'Japanese', es: 'Japonés' },
     { code: 'kr', en: 'Korean', es: 'Coreano' },
+    { code: 'vn', en: 'Vietnamese', es: 'Vietnamita' },
     { code: 'sa', en: 'Arabic', es: 'Árabe' },
     { code: 'ru', en: 'Russian', es: 'Ruso' },
+    { code: 'ua', en: 'Ukrainian', es: 'Ucraniano' },
+    { code: 'tr', en: 'Turkish', es: 'Turco' },
+    { code: 'gr', en: 'Greek', es: 'Griego' },
     { code: 'in', en: 'Hindi', es: 'Hindi' },
+    { code: 'pk', en: 'Urdu', es: 'Urdu' },
+    { code: 'bd', en: 'Bengali', es: 'Bengalí' },
     { code: 'nl', en: 'Dutch', es: 'Holandés' },
-    { code: 'se', en: 'Swedish', es: 'Sueco' }
+    { code: 'se', en: 'Swedish', es: 'Sueco' },
+    { code: 'no', en: 'Norwegian', es: 'Noruego' },
+    { code: 'dk', en: 'Danish', es: 'Danés' },
+    { code: 'fi', en: 'Finnish', es: 'Finlandés' },
+    { code: 'pl', en: 'Polish', es: 'Polaco' },
+    { code: 'cz', en: 'Czech', es: 'Checo' },
+    { code: 'ph', en: 'Tagalog', es: 'Tagalo' },
+    { code: 'id', en: 'Indonesian', es: 'Indonesio' },
+    { code: 'my', en: 'Malay', es: 'Malayo' },
+    { code: 'th', en: 'Thai', es: 'Tailandés' },
+    { code: 'il', en: 'Hebrew', es: 'Hebreo' },
+    { code: 'ir', en: 'Persian', es: 'Persa' },
+    { code: 'asl', en: 'ASL (Sign Language)', es: 'ASL (Sign Language)', flag: '🤟' }
   ];
 
   // Language family mutual exclusion
@@ -2701,7 +2838,7 @@ function _ob4RenderLangsP4(){
     var label = isEs ? item.es : item.en;
     var canonical = item.en;
     var on = sel.some(function(s){ return s === item.en || s === item.es || s === item.code; });
-    var flagImg = '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:6px;box-shadow:var(--el-1);"/>';
+    var flagImg = item.flag ? ('<span style="font-size:14px;margin-right:6px;">' + item.flag + '</span>') : '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:6px;box-shadow:var(--el-1);"/>';
     return '<div class="ob4-chip' + (on ? ' on' : '') + '" onclick="_ob4ToggleLang(\'' + canonical.replace(/'/g, "\\'") + '\')" style="padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;border-radius:var(--rad-md);display:inline-flex;align-items:center;white-space:nowrap;">' + (on ? '✓ ' : '') + flagImg + label + '</div>';
   }).join('');
 
@@ -4273,6 +4410,12 @@ function updateProfileUI(){
   if(statFriends) statFriends.textContent = userPro.friendsCount || 0;
   if(statMatches) statMatches.textContent = userPro.matchesCount || 0;
   if(statEvents) statEvents.textContent = userPro.eventsJoinedCount || 0;
+
+  var pun = document.getElementById('prof-uni-nm');
+  if (pun) {
+    var uObj = (typeof uni !== 'undefined' && uni && uni.name) ? uni : _resolveUserUniversity((userPro && userPro.university) || '');
+    pun.textContent = uObj ? uObj.name : ((userPro && userPro.university) || 'University');
+  }
 }
 function switchProfTab(tab){
   if(tab==='posts')tab='crush';
@@ -5085,9 +5228,27 @@ function _addMatchChatRow(chatId, p) {
   if (typeof filterChatBySection === 'function') filterChatBySection();
 }
 
+function _ensureEventChats() {
+  var list = document.getElementById('chat-list');
+  if (!list) return;
+
+  var events = (typeof HANGOUT_EVENTS !== 'undefined') ? HANGOUT_EVENTS : [];
+  events.forEach(function(e) {
+    var key = (e.section || '') + '|' + (e.name || '');
+    var isJoined = !!joinedHangouts[key] || (userPro && (e.creatorId === userPro.id || (e.creator && e.creator.id === userPro.id)));
+    if (isJoined) {
+      var emoji = e.emoji || (e.section==='nightlife'?'🌙':e.section==='study'?'📚':e.section==='dorm'?'🏠':e.section==='sports'?'⚽':e.section==='greek'?'🏛️':e.section==='campus'?'🎓':e.section==='networking'?'🤝':e.section==='exclusive'?'✨':'🎉');
+      if (typeof addEventGroupChat === 'function' && !_hangoutChatIds[key]) {
+        _hangoutChatIds[key] = addEventGroupChat(e.name, e.section, emoji);
+      }
+    }
+  });
+}
+
 function setChatSection(sec) {
   if (sec === 'greek' && typeof _ensureGreekChat === 'function') _ensureGreekChat();
   if (sec === 'clubs' && typeof _ensureClubChats === 'function') _ensureClubChats();
+  if ((sec === 'all' || sec === 'events') && typeof _ensureEventChats === 'function') _ensureEventChats();
   currentChatSection = sec;
   var _uc = document.getElementById('cpanel-uchats');
   var _cl = document.getElementById('chat-list');
@@ -5147,9 +5308,40 @@ function filterChatBySection() {
   var list = document.getElementById('chat-list');
   if (!list) return;
 
+  var dmContainer = document.getElementById('chat-dm-container');
+  var sec = currentChatSection || 'all';
+  if ((sec === 'all' || sec === 'events') && typeof _ensureEventChats === 'function') {
+    var hasEvs = Array.prototype.slice.call(list.querySelectorAll('.citem')).some(function(it) {
+      return _getChatCategory(it) === 'events';
+    });
+    if (!hasEvs) _ensureEventChats();
+  }
+
   var items = Array.prototype.slice.call(list.querySelectorAll('.citem'));
   var sub = (typeof _chatSubMode !== 'undefined') ? _chatSubMode : 'all';
   var sec = currentChatSection || 'all';
+
+  // Deduplicate items in DOM by ID or (Category + Name)
+  var seenIds = {};
+  var seenKeys = {};
+  items = items.filter(function(it) {
+    if (it.id && seenIds[it.id]) {
+      it.remove();
+      return false;
+    }
+    if (it.id) seenIds[it.id] = true;
+
+    var nameEl = it.querySelector('.cnm');
+    var nameKey = nameEl ? nameEl.textContent.trim() : '';
+    var cat = _getChatCategory(it);
+    var key = cat + '::' + nameKey;
+    if (nameKey && seenKeys[key]) {
+      it.remove();
+      return false;
+    }
+    if (nameKey) seenKeys[key] = true;
+    return true;
+  });
 
   // Sort items when viewing 'all': Friends (1) -> Matches (2) -> Events (3)
   if (sec === 'all') {
@@ -5161,7 +5353,12 @@ function filterChatBySection() {
     });
 
     items.forEach(function(it) {
-      list.appendChild(it);
+      var cat = _getChatCategory(it);
+      if (dmContainer && (cat === 'friends' || cat === 'matches')) {
+        dmContainer.appendChild(it);
+      } else {
+        list.appendChild(it);
+      }
     });
   }
 
@@ -6600,8 +6797,9 @@ function renderHangouts(){
     }
   }
   if (curPlan !== 'aplus') {
+    var myUniName = (uni && uni.name) || (userPro && userPro.university) || '';
     evs = evs.filter(function(e) {
-      return e.uni === (uni && uni.name);
+      return !e.uni || _isSameUniversity(e.uni, myUniName);
     });
   }
   // Exclude events created by the logged-in user (shown only in 'My Events')
@@ -6682,7 +6880,9 @@ async function fetchAndRenderHangouts() {
         };
         
         var key = mapped.section + '|' + mapped.name;
-        var isUserAttendee = e.attendees && e.attendees.some(function(att) { return att.id === userPro.id; });
+        var isUserAttendee = (e.creatorId && userPro && e.creatorId === userPro.id) ||
+                             (e.creator && userPro && (e.creator.id === userPro.id || e.creator.handle === userPro.handle)) ||
+                             (e.attendees && e.attendees.some(function(att) { return userPro && att.id === userPro.id; }));
         if (isUserAttendee) {
           joinedHangouts[key] = true;
           var emoji = mapped.section==='nightlife'?'🌙':mapped.section==='study'?'📚':mapped.section==='dorm'?'🏠':mapped.section==='sports'?'⚽':mapped.section==='greek'?'🏛️':mapped.section==='campus'?'🎓':mapped.section==='networking'?'🤝':mapped.section==='exclusive'?'✨':'🎉';
@@ -11354,16 +11554,237 @@ function closeChat(){
   }
 }
 function _e(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+window.groupChatMeta = window.groupChatMeta || {};
+
+function _getGroupMeta(chatId) {
+  window.groupChatMeta = window.groupChatMeta || {};
+  if (window.groupChatMeta[chatId]) return window.groupChatMeta[chatId];
+
+  var ev = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).find(function(e) {
+    var key = (e.section || '') + '|' + (e.name || '');
+    return (typeof _hangoutChatIds !== 'undefined' && _hangoutChatIds[key] === chatId) || ('evgrp_' + e.id) === chatId || e.name === chatId;
+  });
+
+  var adminHandle = (userPro && userPro.handle) ? userPro.handle.replace('@','') : 'admin';
+  var adminName = (userPro && userPro.name) || 'Admin';
+  var banner = '';
+  var members = [];
+
+  if (ev) {
+    adminHandle = (ev.host || (ev.creator && ev.creator.handle) || adminHandle).replace('@','');
+    adminName = (ev.creator ? (ev.creator.firstName + ' ' + (ev.creator.lastName || '')) : adminHandle);
+    banner = ev.cover || '';
+    if (ev.attendees && ev.attendees.length) {
+      members = ev.attendees.map(function(att) {
+        var isAdm = (att.id === ev.creatorId || att.handle === adminHandle);
+        return {
+          id: att.id,
+          name: att.firstName ? (att.firstName + ' ' + (att.lastName || '')) : (att.handle || 'Member'),
+          handle: (att.handle || att.firstName || 'user').replace('@',''),
+          photo: (att.photos && att.photos[0] && att.photos[0].url) || '',
+          isAdmin: isAdm
+        };
+      });
+    }
+  }
+
+  var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+  if (!members.some(function(m) { return m.handle === myHandle; })) {
+    members.unshift({
+      id: userPro ? (userPro.id || 'me') : 'me',
+      name: (userPro && userPro.name) ? userPro.name : 'You',
+      handle: myHandle,
+      photo: (userPro && userPro.photos && userPro.photos[0]) || '',
+      isAdmin: true
+    });
+  }
+
+  if (!members.some(function(m) { return m.isAdmin; })) {
+    members[0].isAdmin = true;
+  }
+
+  var meta = {
+    name: ev ? ev.name : (document.getElementById('cwnm') ? document.getElementById('cwnm').textContent : 'Group Chat'),
+    adminHandle: adminHandle,
+    adminName: adminName,
+    bannerUrl: banner,
+    members: members
+  };
+
+  window.groupChatMeta[chatId] = meta;
+  return meta;
+}
+
 function _cwApplyChatHead(id,nm,color,isGrp){
   var head=document.getElementById('cw-eventhead');var sub=document.getElementById('cwsub');
   if(!isGrp){if(head)head.style.display='none';return;}
-  var h=_strHash(id||nm||'');var parts=8+(h%50);
-  if(sub)sub.textContent=parts+' participants';
-  if(head){head.style.display='';
-    var cov=document.getElementById('cw-eventcover');if(cov)cov.style.background='linear-gradient(150deg,'+(color||'#2b5fd9')+',rgba(0,0,0,0.68))';
-    var avs=document.getElementById('cw-eventavs');if(avs){var g=['men/11','women/21','men/31','women/41','men/51'];avs.innerHTML=g.map(function(u,i){return '<img src="https://randomuser.me/api/portraits/'+u+'.jpg" style="width:30px;height:30px;border-radius:50%;border:2px solid #12091f;margin-left:'+(i?'-9px':'0')+';object-fit:cover;"/>';}).join('')+'<span style="margin-left:8px;font-size:var(--fs-sm);font-weight:600;color:#fff;background:rgba(0,0,0,0.45);border-radius:var(--rad-sm);padding:3px 9px;">+'+Math.max(1,parts-5)+'</span>';}
+
+  var meta = _getGroupMeta(id);
+  var members = meta.members || [];
+  var memberCount = members.length || 8;
+  if(sub)sub.textContent=memberCount+' participants';
+
+  if(head){
+    head.style.display='block';
+    var cov=document.getElementById('cw-eventcover');
+    if(cov){
+      if(meta.bannerUrl){
+        cov.style.background='url("'+meta.bannerUrl+'") center/cover no-repeat';
+      }else{
+        cov.style.background='linear-gradient(150deg,'+(color||'#2b5fd9')+',rgba(0,0,0,0.68))';
+      }
+    }
+    var avs=document.getElementById('cw-eventavs');
+    if(avs){
+      var displayAvatars = members.slice(0, 5);
+      var overflowCount = Math.max(0, members.length - 5);
+      var avsHtml = displayAvatars.map(function(m, i) {
+        var photo = m.photo || ('https://randomuser.me/api/portraits/' + (i % 2 === 0 ? 'women' : 'men') + '/' + (i * 11 + 10) + '.jpg');
+        return '<img src="' + photo + '" title="' + m.name + (m.isAdmin ? ' (Admin)' : '') + '" style="width:30px;height:30px;border-radius:50%;border:2px solid #12091f;margin-left:' + (i ? '-9px' : '0') + ';object-fit:cover;"/>';
+      }).join('');
+      if (overflowCount > 0) {
+        avsHtml += '<span style="margin-left:8px;font-size:var(--fs-sm);font-weight:600;color:#fff;background:rgba(0,0,0,0.55);border-radius:var(--rad-sm);padding:3px 9px;">+' + overflowCount + '</span>';
+      }
+      avs.innerHTML = avsHtml;
+    }
   }
 }
+
+function groupChangeBanner(chatId) {
+  var meta = _getGroupMeta(chatId);
+  var newUrl = prompt('Ingresa la URL de la imagen para el Banner Superior del Chat:', meta.bannerUrl || '');
+  if (newUrl === null) return;
+  meta.bannerUrl = newUrl.trim();
+
+  var ev = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).find(function(e) {
+    var key = (e.section || '') + '|' + (e.name || '');
+    return (typeof _hangoutChatIds !== 'undefined' && _hangoutChatIds[key] === chatId) || ('evgrp_' + e.id) === chatId || e.name === chatId;
+  });
+  if (ev) {
+    ev.cover = meta.bannerUrl;
+    if (typeof fetchAndRenderHangouts === 'function') fetchAndRenderHangouts();
+  }
+
+  if (typeof _cwApplyChatHead === 'function') {
+    _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+  }
+
+  var m = document.getElementById('chat-settings-modal');
+  if (m) m.remove();
+  openChatSettings();
+}
+
+function groupInviteMembers(chatId) {
+  var meta = _getGroupMeta(chatId);
+  var friends = (typeof _friendsForPicker === 'function') ? _friendsForPicker() : [
+    { name: 'Ana Garcia', sub: 'Student', color: '#e91e63', init: 'A' },
+    { name: 'Carlos Mendez', sub: 'Student', color: '#3b82f6', init: 'C' },
+    { name: 'Sofia Torres', sub: 'Student', color: '#10b981', init: 'S' }
+  ];
+
+  var m = document.getElementById('group-invite-modal');
+  if (m) m.remove();
+  m = document.createElement('div');
+  m.id = 'group-invite-modal';
+  m.className = 'mov open';
+  m.style.zIndex = '10010';
+
+  var rows = friends.map(function(f) {
+    var alreadyIn = meta.members.some(function(mem) {
+      return mem.name.toLowerCase() === f.name.toLowerCase() || mem.handle.toLowerCase() === (f.name.split(' ')[0]).toLowerCase();
+    });
+    var av = f.photo
+      ? '<img src="' + f.photo + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"/>'
+      : '<div style="width:36px;height:36px;border-radius:50%;background:' + (f.color || 'var(--p)') + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;">' + (f.init || f.name.charAt(0)) + '</div>';
+
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.04);border-radius:var(--rad-md);margin-bottom:6px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;flex:1;">' + av +
+        '<div><div style="font-weight:600;color:#fff;font-size:var(--fs-base);">' + f.name + '</div><div style="font-size:var(--fs-xs);color:var(--fg2);">' + (f.sub || 'Friend') + '</div></div>' +
+      '</div>' +
+      (alreadyIn
+        ? '<span style="font-size:var(--fs-xs);color:var(--fg3);">En el grupo</span>'
+        : '<button class="jbtn" style="padding:6px 14px;font-size:var(--fs-xs);background:var(--p) !important;border:none!important;" onclick="_addFriendToGroup(\'' + chatId + '\',\'' + f.name.replace(/'/g, "\\'") + '\')">Invitar</button>') +
+    '</div>';
+  }).join('');
+
+  m.innerHTML = '<div class="msheet" style="max-height:80vh;overflow-y:auto;"><div class="mhnd"></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+      '<div style="font-size:var(--fs-lg);font-weight:800;color:#fff;">Invitar Integrantes</div>' +
+      '<div onclick="document.getElementById(\'group-invite-modal\').remove()" style="cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div>' +
+    '</div>' +
+    '<div>' + (rows || '<div style="color:var(--fg2);padding:12px;text-align:center;">No hay integrantes disponibles para invitar.</div>') + '</div>' +
+  '</div>';
+  document.body.appendChild(m);
+}
+
+function _addFriendToGroup(chatId, friendName) {
+  var meta = _getGroupMeta(chatId);
+  meta.members.push({
+    id: 'f_' + Date.now(),
+    name: friendName,
+    handle: friendName.toLowerCase().replace(/\s+/g, ''),
+    photo: '',
+    isAdmin: false
+  });
+  if (typeof _cwApplyChatHead === 'function') {
+    _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+  }
+  var m = document.getElementById('group-invite-modal');
+  if (m) m.remove();
+  var sm = document.getElementById('chat-settings-modal');
+  if (sm) sm.remove();
+  openChatSettings();
+}
+
+function groupRemoveMember(chatId, handle) {
+  var meta = _getGroupMeta(chatId);
+  if (!confirm('¿Desinvitar/eliminar a @' + handle + ' del grupo?')) return;
+  meta.members = meta.members.filter(function(m) { return m.handle !== handle; });
+  if (typeof _cwApplyChatHead === 'function') {
+    _cwApplyChatHead(chatId, meta.name, 'var(--p)', true);
+  }
+  var sm = document.getElementById('chat-settings-modal');
+  if (sm) sm.remove();
+  openChatSettings();
+}
+
+function groupPromoteAdmin(chatId, handle) {
+  var meta = _getGroupMeta(chatId);
+  if (!confirm('¿Nombrar a @' + handle + ' como Administrador del grupo?')) return;
+  meta.adminHandle = handle;
+  meta.members.forEach(function(m) {
+    if (m.handle === handle) m.isAdmin = true;
+  });
+  var sm = document.getElementById('chat-settings-modal');
+  if (sm) sm.remove();
+  openChatSettings();
+}
+
+function groupDeleteChatCompletely(chatId) {
+  if (!confirm('¿Borrar este grupo por completo para todos los integrantes? Esta acción no se puede deshacer.')) return;
+  delete window.groupChatMeta[chatId];
+  if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
+  if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
+  var row = document.getElementById('chatrow_' + chatId) || document.getElementById('clist-' + chatId) || document.getElementById('uc-match-' + chatId) || document.getElementById('dm-match-' + chatId);
+  if (row) row.remove();
+
+  var sm = document.getElementById('chat-settings-modal');
+  if (sm) sm.remove();
+  closeChat();
+}
+
+function groupExitGroup(chatId) {
+  if (!confirm('¿Salir de este grupo?')) return;
+  var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+  var meta = _getGroupMeta(chatId);
+  meta.members = meta.members.filter(function(m) { return m.handle !== myHandle; });
+  if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
+  if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
+  var sm = document.getElementById('chat-settings-modal');
+  if (sm) sm.remove();
+  closeChat();
+}
+
 function renderMsgs(){
   var box=document.getElementById('cmsgs');if(!box||!curChatId)return;box.innerHTML='';
   var isGrp=!!(typeof _curChatUser!=='undefined'&&_curChatUser&&_curChatUser.isGrp);
@@ -11586,7 +12007,7 @@ function _injectBgStyles() {
       padding: 8px;\
       border-radius:var(--rad-sm);\
       background: rgba(255,255,255,0.02);\
-      border: 1px solid transparent;\
+      border: 1.5px solid transparent;\
       width: 90px;\
       transition: all 0.2s ease;\
     }\
@@ -11594,8 +12015,8 @@ function _injectBgStyles() {
       background: rgba(255,255,255,0.06);\
     }\
     .bg-main-opt.active {\
-      background: rgba(43,95,217,0.1);\
-      border-color: rgba(43,95,217,0.4);\
+      background: rgba(43,95,217,0.14);\
+      border-color: rgba(43,95,217,0.5);\
     }\
     .bg-preview-circle {\
       width: 48px;\
@@ -11611,45 +12032,178 @@ function _injectBgStyles() {
     .bg-main-opt.active .bg-label {\
       color: #fff;\
     }\
-    .uni-design-btn {\
-      width: 50px;\
-      height: 80px;\
-      border-radius:var(--rad-sm);\
-      cursor: pointer;\
-      border: 2px solid transparent;\
-      box-shadow:var(--el-1);\
-      transition: all 0.2s ease;\
-      position: relative;\
-      overflow: hidden;\
-      flex-shrink: 0;\
-    }\
-    .uni-design-btn:hover {\
-      transform: scale(1.05);\
-    }\
-    .uni-design-btn.active {\
-      border-color: #fff;\
-      ;\
-    }\
     #uni-designs-list {\
       display: flex;\
-      gap: 10px;\
+      gap: 12px;\
       justify-content: flex-start;\
       flex-wrap: nowrap;\
       overflow-x: auto;\
-      padding: 8px 4px;\
+      padding: 10px 4px;\
       scrollbar-width: none;\
       -webkit-overflow-scrolling: touch;\
     }\
     #uni-designs-list::-webkit-scrollbar {\
       display: none;\
     }\
+    .uni-design-btn {\
+      width: 76px;\
+      height: 112px;\
+      border-radius: var(--rad-sm);\
+      cursor: pointer;\
+      border: 1.5px solid rgba(255,255,255,0.12);\
+      box-shadow: var(--el-1);\
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);\
+      position: relative;\
+      overflow: hidden;\
+      flex-shrink: 0;\
+      background: #05060b;\
+    }\
+    .uni-design-btn:hover {\
+      transform: translateY(-2px) scale(1.04);\
+      border-color: rgba(255,255,255,0.4);\
+    }\
+    .uni-design-btn.active {\
+      border-color: #3d7bff;\
+      box-shadow: 0 0 16px rgba(61,123,255,0.55);\
+    }\
+    .uni-design-label {\
+      position: absolute;\
+      bottom: 0;\
+      left: 0;\
+      right: 0;\
+      background: rgba(5,6,11,0.88);\
+      backdrop-filter: blur(4px);\
+      -webkit-backdrop-filter: blur(4px);\
+      font-size: 9.5px;\
+      font-weight: 700;\
+      color: #fff;\
+      text-align: center;\
+      padding: 4px 2px;\
+      white-space: nowrap;\
+      overflow: hidden;\
+      text-overflow: ellipsis;\
+      letter-spacing: 0.3px;\
+      border-top: 1px solid rgba(255,255,255,0.08);\
+    }\
+    .uni-design-anim-badge {\
+      position: absolute;\
+      top: 4px;\
+      right: 4px;\
+      background: rgba(0,0,0,0.65);\
+      border-radius: 4px;\
+      padding: 1px 4px;\
+      font-size: 9px;\
+      color: #fbbf24;\
+    }\
+    .ugz-custom-bg-container {\
+      position: absolute;\
+      inset: 0;\
+      overflow: hidden;\
+      pointer-events: none;\
+      z-index: 0;\
+    }\
+    .ugz-bg-aurora {\
+      position: absolute; inset: 0; background: #05060d;\
+    }\
+    .ugz-aurora-wave {\
+      position: absolute; inset: -10%; pointer-events: none; filter: blur(55px); opacity: 0.85;\
+    }\
+    .ugz-bg-nebula {\
+      position: absolute; inset: 0; background: #04050a;\
+    }\
+    .ugz-nebula-cloud {\
+      position: absolute; inset: -15%; pointer-events: none; filter: blur(75px); opacity: 0.9;\
+    }\
+    .ugz-bg-topographic {\
+      position: absolute; inset: 0; background: #06070c;\
+    }\
+    .ugz-topographic-svg {\
+      width: 100%; height: 100%; display: block;\
+    }\
+    .ugz-bg-geometric {\
+      position: absolute; inset: 0; background: #05060b;\
+    }\
+    .ugz-geo-svg {\
+      width: 100%; height: 100%; display: block;\
+    }\
+    .ugz-bg-energylines {\
+      position: absolute; inset: 0; background: #06070d;\
+    }\
+    .ugz-energy-svg {\
+      width: 100%; height: 100%; display: block;\
+    }\
+    .ugz-energy-group path {\
+      animation: ugzEnergyPulse 18s ease-in-out infinite alternate;\
+    }\
+    .ugz-flow-line-1 { animation-delay: 0s; }\
+    .ugz-flow-line-2 { animation-delay: -3.5s; }\
+    .ugz-flow-line-3 { animation-delay: -7s; }\
+    .ugz-flow-line-4 { animation-delay: -10.5s; }\
+    .ugz-flow-line-5 { animation-delay: -14s; }\
+    @keyframes ugzEnergyPulse {\
+      0% { opacity: 0.6; transform: translateY(0px) scale(1); }\
+      50% { opacity: 0.95; transform: translateY(-7px) scale(1.02); }\
+      100% { opacity: 0.6; transform: translateY(0px) scale(1); }\
+    }\
+    .ugz-energy-group circle {\
+      animation: ugzDotGlow 7s ease-in-out infinite alternate;\
+    }\
+    @keyframes ugzDotGlow {\
+      0% { opacity: 0.35; transform: scale(0.85); }\
+      100% { opacity: 0.95; transform: scale(1.3); }\
+    }\
+    .ugz-bg-floatingorbs {\
+      position: absolute; inset: 0; background: #05060a;\
+    }\
+    .ugz-orb {\
+      position: absolute; border-radius: 50%; pointer-events: none;\
+      animation: ugzOrbFloat 22s ease-in-out infinite alternate;\
+    }\
+    .ugz-orb-1 { animation-duration: 20s; animation-delay: 0s; }\
+    .ugz-orb-2 { animation-duration: 26s; animation-delay: -5s; }\
+    .ugz-orb-3 { animation-duration: 23s; animation-delay: -10s; }\
+    .ugz-orb-4 { animation-duration: 27s; animation-delay: -15s; }\
+    @keyframes ugzOrbFloat {\
+      0% { transform: translate(0, 0) scale(1); opacity: 0.22; }\
+      50% { transform: translate(24px, -32px) scale(1.12); opacity: 0.38; }\
+      100% { transform: translate(-18px, 18px) scale(0.96); opacity: 0.22; }\
+    }\
+    .ugz-bg-liquidflow {\
+      position: absolute; inset: 0; background: #040509;\
+    }\
+    .ugz-liquid-shape {\
+      position: absolute; pointer-events: none;\
+      border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;\
+      animation: ugzLiquidMorph 24s ease-in-out infinite alternate;\
+    }\
+    .ugz-liq-1 { width: 140%; height: 80%; top: -10%; left: -20%; animation-duration: 22s; }\
+    .ugz-liq-2 { width: 120%; height: 90%; bottom: -20%; right: -10%; animation-duration: 28s; animation-delay: -8s; }\
+    .ugz-liq-3 { width: 100%; height: 70%; top: 20%; left: 0%; animation-duration: 25s; animation-delay: -14s; }\
+    @keyframes ugzLiquidMorph {\
+      0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: rotate(0deg) scale(1); opacity: 0.8; }\
+      50% { border-radius: 60% 40% 30% 70% / 50% 30% 70% 40%; transform: rotate(180deg) scale(1.06); opacity: 1; }\
+      100% { border-radius: 30% 70% 50% 50% / 60% 40% 50% 50%; transform: rotate(360deg) scale(1); opacity: 0.8; }\
+    }\
   ';
   document.head.appendChild(style);
 }
 
-function getUniColorDesigns() {
-  var c1 = '#01A986';
-  var c2 = '#B28A44';
+function hexToRgba(hex, alpha) {
+  if (!hex || typeof hex !== 'string') return 'rgba(61,123,255,' + alpha + ')';
+  hex = hex.replace('#', '');
+  if (hex.length === 3) {
+    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  }
+  if (hex.length !== 6) return 'rgba(61,123,255,' + alpha + ')';
+  var r = parseInt(hex.substring(0, 2), 16);
+  var g = parseInt(hex.substring(2, 4), 16);
+  var b = parseInt(hex.substring(4, 6), 16);
+  return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+}
+
+function getUniColors() {
+  var c1 = '#3d7bff';
+  var c2 = '#e04155';
   if (typeof uni !== 'undefined' && uni) {
     var rawUni = null;
     if (typeof UNI !== 'undefined') {
@@ -11672,76 +12226,290 @@ function getUniColorDesigns() {
       c2 = uni._schoolP2 || uni.p2 || c2;
     }
   }
-  
+  if (!c1 || c1 === 'undefined') c1 = '#3d7bff';
+  if (!c2 || c2 === 'undefined' || c2 === c1) c2 = '#e04155';
+  return { c1: c1, c2: c2 };
+}
+
+function getAuroraBgHtml(c1, c2) {
+  var darkBaseC1 = hexToRgba(c1, 0.08);
+  return '<div class="ugz-bg-aurora" style="position:absolute;inset:0;background:linear-gradient(160deg, #020307 0%, ' + darkBaseC1 + ' 50%, #030409 100%);overflow:hidden;pointer-events:none;">' +
+    /* Base Ambient Radial Glows */
+    '<div style="position:absolute;top:5%;left:-10%;width:65%;height:65%;background:radial-gradient(circle, ' + hexToRgba(c1, 0.35) + ' 0%, transparent 70%);filter:blur(35px);pointer-events:none;"></div>' +
+    '<div style="position:absolute;top:15%;right:-10%;width:65%;height:65%;background:radial-gradient(circle, ' + hexToRgba(c2, 0.35) + ' 0%, transparent 70%);filter:blur(35px);pointer-events:none;"></div>' +
+    '<div style="position:absolute;bottom:0;left:15%;width:75%;height:55%;background:radial-gradient(circle, ' + hexToRgba(c1, 0.25) + ' 0%, transparent 70%);filter:blur(45px);pointer-events:none;"></div>' +
+
+    /* Silky Ribbon Aurora SVG (Exact 1:1 match to reference image geometry) */
+    '<svg viewBox="0 0 1000 1400" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;">' +
+      '<defs>' +
+        '<filter id="auroraSilkGlow" x="-20%" y="-20%" width="140%" height="140%">' +
+          '<feGaussianBlur stdDeviation="16" result="blur"/>' +
+          '<feMerge>' +
+            '<feMergeNode in="blur"/>' +
+            '<feMergeNode in="SourceGraphic"/>' +
+          '</feMerge>' +
+        '</filter>' +
+
+        /* Left Curtain Gradient (Primary c1) */
+        '<linearGradient id="auroraGradLeft" x1="0%" y1="0%" x2="100%" y2="100%">' +
+          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.88"/>' +
+          '<stop offset="40%" stop-color="' + c1 + '" stop-opacity="0.65"/>' +
+          '<stop offset="85%" stop-color="' + c2 + '" stop-opacity="0.25"/>' +
+          '<stop offset="100%" stop-color="#020307" stop-opacity="0"/>' +
+        '</linearGradient>' +
+
+        /* Right Curtain Gradient (Secondary c2) */
+        '<linearGradient id="auroraGradRight" x1="100%" y1="0%" x2="0%" y2="100%">' +
+          '<stop offset="0%" stop-color="' + c2 + '" stop-opacity="0.92"/>' +
+          '<stop offset="45%" stop-color="' + c2 + '" stop-opacity="0.70"/>' +
+          '<stop offset="85%" stop-color="' + c1 + '" stop-opacity="0.25"/>' +
+          '<stop offset="100%" stop-color="#020307" stop-opacity="0"/>' +
+        '</linearGradient>' +
+
+        /* Central Sweeping Arch Gradient (c1 -> c2 blend) */
+        '<linearGradient id="auroraGradArch" x1="0%" y1="100%" x2="100%" y2="0%">' +
+          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.12"/>' +
+          '<stop offset="30%" stop-color="' + c1 + '" stop-opacity="0.88"/>' +
+          '<stop offset="65%" stop-color="' + c2 + '" stop-opacity="0.88"/>' +
+          '<stop offset="100%" stop-color="' + c2 + '" stop-opacity="0.12"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+
+      '<g filter="url(#auroraSilkGlow)">' +
+        '<!-- 1. Left Vertical Curtain (Smooth flow on left border) -->' +
+        '<path d="M -80,-50 C 120,150 180,450 60,750 C 20,850 -60,950 -120,1050 L -120,-50 Z" fill="url(#auroraGradLeft)" opacity="0.9"/>' +
+
+        '<!-- 2. Right Vertical Curtain (Rich curtain along right edge) -->' +
+        '<path d="M 1080,-50 C 820,250 860,650 1020,1050 C 1060,1150 1120,1250 1120,1450 L 1120,-50 Z" fill="url(#auroraGradRight)" opacity="0.95"/>' +
+
+        '<!-- 3. Main Sweeping Organic Arch (The central curved wave from image) -->' +
+        '<path d="M -100,720 C 180,780 320,680 480,540 C 640,400 780,480 1100,820 L 1100,1050 C 780,680 620,600 460,720 C 300,840 140,920 -100,880 Z" fill="url(#auroraGradArch)" opacity="0.9"/>' +
+
+        '<!-- 4. Luminous Crest Ribbons (Glowing highlight lines along wave crests) -->' +
+        '<path d="M -80,700 C 180,760 320,660 480,520 C 640,380 780,460 1080,800" stroke="' + c1 + '" stroke-width="6" fill="none" opacity="0.85"/>' +
+        '<path d="M 1050,50 C 800,300 840,650 1000,1020" stroke="' + c2 + '" stroke-width="7" fill="none" opacity="0.85"/>' +
+        '<path d="M -50,50 C 140,220 160,480 40,720" stroke="' + c1 + '" stroke-width="5" fill="none" opacity="0.75"/>' +
+      '</g>' +
+    '</svg>' +
+
+    /* Dark Center Vignette for Chat Message Legibility */
+    '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%, transparent 40%, rgba(2,3,7,0.78) 100%);pointer-events:none;"></div>' +
+  '</div>';
+}
+
+function getNebulaBgHtml(c1, c2) {
+  return '<div class="ugz-bg-nebula">' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 25% 25%, ' + hexToRgba(c1, 0.18) + ' 0%, transparent 60%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 75% 75%, ' + hexToRgba(c2, 0.16) + ' 0%, transparent 60%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 60% 30%, ' + hexToRgba(c2, 0.12) + ' 0%, transparent 55%);"></div>' +
+    '<div class="ugz-nebula-cloud" style="background: radial-gradient(circle at 35% 85%, ' + hexToRgba(c1, 0.12) + ' 0%, transparent 55%);"></div>' +
+  '</div>';
+}
+
+function getTopographicBgHtml(c1, c2) {
+  return '<div class="ugz-bg-topographic">' +
+    '<svg class="ugz-topographic-svg" viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice">' +
+      '<defs>' +
+        '<filter id="topoGlow" x="-20%" y="-20%" width="140%" height="140%">' +
+          '<feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+        '</filter>' +
+        '<linearGradient id="topoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">' +
+          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.65"/>' +
+          '<stop offset="100%" stop-color="' + c2 + '" stop-opacity="0.4"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="topoGrad2" x1="100%" y1="0%" x2="0%" y2="100%">' +
+          '<stop offset="0%" stop-color="' + c2 + '" stop-opacity="0.55"/>' +
+          '<stop offset="100%" stop-color="' + c1 + '" stop-opacity="0.35"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      '<g filter="url(#topoGlow)">' +
+        '<path d="M-50,150 C200,80 450,220 850,120 M-50,230 C180,160 490,300 850,200 M-50,310 C220,240 520,380 850,280" stroke="url(#topoGrad1)" stroke-width="1.2" fill="none" opacity="0.55"/>' +
+        '<path d="M-50,450 C300,350 550,520 850,420 M-50,550 C250,470 580,620 850,530 M-50,650 C280,590 610,720 850,640" stroke="url(#topoGrad2)" stroke-width="1.0" fill="none" opacity="0.45"/>' +
+        '<path d="M-50,780 C220,700 500,860 850,760 M-50,890 C260,820 540,970 850,870 M-50,1010 C240,940 520,1080 850,980" stroke="url(#topoGrad1)" stroke-width="1.1" fill="none" opacity="0.5"/>' +
+      '</g>' +
+    '</svg>' +
+  '</div>';
+}
+
+function getGeometricPulseBgHtml(c1, c2) {
+  return '<div class="ugz-bg-geometric">' +
+    '<svg class="ugz-geo-svg" viewBox="0 0 800 1200" preserveAspectRatio="xMidYMid slice">' +
+      '<defs>' +
+        '<filter id="geoGlow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+      '</defs>' +
+      '<g filter="url(#geoGlow)" stroke="' + c1 + '" fill="none" opacity="0.38" stroke-width="1">' +
+        '<circle cx="100" cy="150" r="180" stroke-dasharray="8 6"/>' +
+        '<circle cx="700" cy="950" r="240" stroke="' + c2 + '" stroke-dasharray="12 8"/>' +
+        '<path d="M 50 400 L 250 400 L 300 450 L 300 600" stroke="' + c1 + '" opacity="0.4"/>' +
+        '<path d="M 750 700 L 550 700 L 500 650 L 500 500" stroke="' + c2 + '" opacity="0.4"/>' +
+        '<line x1="50" y1="50" x2="120" y2="50" stroke="' + c1 + '"/>' +
+        '<line x1="50" y1="50" x2="50" y2="120" stroke="' + c1 + '"/>' +
+        '<line x1="750" y1="1150" x2="680" y2="1150" stroke="' + c2 + '"/>' +
+        '<line x1="750" y1="1150" x2="750" y2="1080" stroke="' + c2 + '"/>' +
+      '</g>' +
+    '</svg>' +
+  '</div>';
+}
+
+function getEnergyLinesBgHtml(c1, c2) {
+  return '<div class="ugz-bg-energylines">' +
+    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 20%, ' + hexToRgba(c1, 0.20) + ' 0%, transparent 60%);"></div>' +
+    '<div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 80%, ' + hexToRgba(c2, 0.18) + ' 0%, transparent 60%);"></div>' +
+    '<svg class="ugz-energy-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice">' +
+      '<defs>' +
+        '<filter id="energyGlow" x="-20%" y="-20%" width="140%" height="140%">' +
+          '<feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+        '</filter>' +
+        '<linearGradient id="engGrad1" x1="0%" y1="0%" x2="100%" y2="0%">' +
+          '<stop offset="0%" stop-color="' + c1 + '" stop-opacity="0.1"/>' +
+          '<stop offset="40%" stop-color="' + c1 + '" stop-opacity="0.85"/>' +
+          '<stop offset="70%" stop-color="' + c2 + '" stop-opacity="0.9"/>' +
+          '<stop offset="100%" stop-color="' + c2 + '" stop-opacity="0.1"/>' +
+        '</linearGradient>' +
+        '<linearGradient id="engGrad2" x1="100%" y1="0%" x2="0%" y2="0%">' +
+          '<stop offset="0%" stop-color="' + c2 + '" stop-opacity="0.1"/>' +
+          '<stop offset="50%" stop-color="' + c1 + '" stop-opacity="0.8"/>' +
+          '<stop offset="100%" stop-color="' + c1 + '" stop-opacity="0.15"/>' +
+        '</linearGradient>' +
+      '</defs>' +
+      '<g class="ugz-energy-group" filter="url(#energyGlow)">' +
+        '<path d="M -200,120 Q 400,240 1640,100" stroke="url(#engGrad1)" stroke-width="2.2" fill="none" opacity="0.8" class="ugz-flow-line-1"/>' +
+        '<path d="M -200,280 Q 600,180 1640,320" stroke="url(#engGrad2)" stroke-width="1.8" fill="none" opacity="0.75" class="ugz-flow-line-2"/>' +
+        '<path d="M -200,450 Q 500,550 1640,420" stroke="url(#engGrad1)" stroke-width="2.5" fill="none" opacity="0.85" class="ugz-flow-line-3"/>' +
+        '<path d="M -200,620 Q 700,520 1640,680" stroke="url(#engGrad2)" stroke-width="2.0" fill="none" opacity="0.75" class="ugz-flow-line-4"/>' +
+        '<path d="M -200,780 Q 450,880 1640,750" stroke="url(#engGrad1)" stroke-width="2.2" fill="none" opacity="0.8" class="ugz-flow-line-5"/>' +
+        '<circle cx="280" cy="180" r="2.5" fill="' + c1 + '" opacity="0.9"/>' +
+        '<circle cx="950" cy="240" r="3.0" fill="' + c2 + '" opacity="0.85"/>' +
+        '<circle cx="520" cy="510" r="3.5" fill="' + c1 + '" opacity="0.95"/>' +
+        '<circle cx="1180" cy="650" r="2.8" fill="' + c2 + '" opacity="0.8"/>' +
+      '</g>' +
+    '</svg>' +
+  '</div>';
+}
+
+function getFloatingOrbsBgHtml(c1, c2) {
+  return '<div class="ugz-bg-floatingorbs">' +
+    '<div class="ugz-orb ugz-orb-1" style="background:' + c1 + '; width:130px; height:130px; top:10%; left:8%; filter:blur(32px); opacity:0.25;"></div>' +
+    '<div class="ugz-orb ugz-orb-2" style="background:' + c2 + '; width:160px; height:160px; top:65%; right:10%; filter:blur(38px); opacity:0.22;"></div>' +
+    '<div class="ugz-orb ugz-orb-3" style="background:' + c1 + '; width:95px; height:95px; top:80%; left:20%; filter:blur(26px); opacity:0.20;"></div>' +
+    '<div class="ugz-orb ugz-orb-4" style="background:' + c2 + '; width:115px; height:115px; top:25%; right:25%; filter:blur(30px); opacity:0.18;"></div>' +
+  '</div>';
+}
+
+function getLiquidFlowBgHtml(c1, c2) {
+  return '<div class="ugz-bg-liquidflow">' +
+    '<div class="ugz-liquid-shape ugz-liq-1" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.22) + ' 0%, transparent 70%); filter:blur(42px);"></div>' +
+    '<div class="ugz-liquid-shape ugz-liq-2" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c2, 0.20) + ' 0%, transparent 70%); filter:blur(46px);"></div>' +
+    '<div class="ugz-liquid-shape ugz-liq-3" style="background: radial-gradient(ellipse at center, ' + hexToRgba(c1, 0.15) + ' 0%, transparent 65%); filter:blur(36px);"></div>' +
+  '</div>';
+}
+
+function renderChatBackground(bgKey) {
+  var cwbg = document.getElementById('cwbg');
+  if (!cwbg) return;
+
+  var flowDefault = document.getElementById('chat-flow-bg');
+  var existingCustom = cwbg.querySelector('.ugz-custom-bg-container');
+  if (existingCustom) existingCustom.remove();
+
+  var colors = getUniColors();
+  var c1 = colors.c1;
+  var c2 = colors.c2;
+
+  if (!bgKey || bgKey === 'default' || bgKey === 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
+    cwbg.style.background = 'linear-gradient(135deg,#1a0a2e,#0d1a3a)';
+    if (flowDefault) flowDefault.style.display = 'block';
+    return;
+  }
+
+  if (bgKey === 'black' || bgKey === '#050505') {
+    cwbg.style.background = '#050505';
+    if (flowDefault) flowDefault.style.display = 'none';
+    return;
+  }
+
+  if (flowDefault) flowDefault.style.display = 'none';
+  cwbg.style.background = '#05060b';
+
+  var container = document.createElement('div');
+  container.className = 'ugz-custom-bg-container';
+
+  var html = '';
+  if (bgKey === 'uni-aurora' || bgKey === 'Aurora' || bgKey === 'uni-2') {
+    html = getAuroraBgHtml(c1, c2);
+  } else if (bgKey === 'uni-nebula' || bgKey === 'Nebula' || bgKey === 'uni-9') {
+    html = getNebulaBgHtml(c1, c2);
+  } else if (bgKey === 'uni-topographic' || bgKey === 'Topographic') {
+    html = getTopographicBgHtml(c1, c2);
+  } else if (bgKey === 'uni-geometric-pulse' || bgKey === 'Geometric Pulse' || bgKey === 'uni-4') {
+    html = getGeometricPulseBgHtml(c1, c2);
+  } else if (bgKey === 'uni-energy-lines' || bgKey === 'Energy Lines') {
+    html = getEnergyLinesBgHtml(c1, c2);
+  } else if (bgKey === 'uni-floating-orbs' || bgKey === 'Floating Orbs' || bgKey === 'uni-3') {
+    html = getFloatingOrbsBgHtml(c1, c2);
+  } else if (bgKey === 'uni-liquid-flow' || bgKey === 'Liquid Flow' || bgKey === 'uni-1' || bgKey === 'uni-6') {
+    html = getLiquidFlowBgHtml(c1, c2);
+  } else {
+    cwbg.style.background = bgKey;
+    return;
+  }
+
+  container.innerHTML = html;
+  cwbg.appendChild(container);
+}
+
+function getMiniaturePreviewHtml(id, c1, c2) {
+  if (id === 'uni-aurora') {
+    return '<div style="position:absolute;inset:0;background:#030408;overflow:hidden;">' +
+      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 130% 60% at 10% 20%, ' + hexToRgba(c1, 0.35) + ' 0%, transparent 70%);"></div>' +
+      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 110% 70% at 90% 75%, ' + hexToRgba(c2, 0.30) + ' 0%, transparent 70%);"></div>' +
+      '<svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 100 150">' +
+        '<path d="M -15,140 C 10,100 35,60 22,10" stroke="' + c1 + '" stroke-width="12" fill="none" opacity="0.65"/>' +
+        '<path d="M 115,20 C 85,50 95,90 115,130" stroke="' + c2 + '" stroke-width="10" fill="none" opacity="0.55"/>' +
+      '</svg>' +
+      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%, transparent 35%, rgba(3,4,8,0.75) 100%);"></div>' +
+    '</div>';
+  } else if (id === 'uni-nebula') {
+    return '<div style="position:absolute;inset:0;background:radial-gradient(circle at 30% 30%, ' + hexToRgba(c1, 0.4) + ' 0%, transparent 60%), radial-gradient(circle at 70% 70%, ' + hexToRgba(c2, 0.35) + ' 0%, transparent 60%), #04050a;"></div>';
+  } else if (id === 'uni-topographic') {
+    return '<div style="position:absolute;inset:0;background:#06070c;"><svg style="width:100%;height:100%;"><path d="M -10,30 Q 35,10 80,40 M -10,60 Q 35,40 80,70" stroke="' + c1 + '" stroke-width="1.2" fill="none" opacity="0.6"/><path d="M -10,80 Q 35,60 80,90" stroke="' + c2 + '" stroke-width="1.2" fill="none" opacity="0.5"/></svg></div>';
+  } else if (id === 'uni-geometric-pulse') {
+    return '<div style="position:absolute;inset:0;background:#05060b;"><svg style="width:100%;height:100%;"><circle cx="20" cy="20" r="30" stroke="' + c1 + '" stroke-width="1" fill="none" opacity="0.6" stroke-dasharray="4 3"/><line x1="10" y1="90" x2="60" y2="90" stroke="' + c2 + '" stroke-width="1" opacity="0.5"/></svg></div>';
+  } else if (id === 'uni-energy-lines') {
+    return '<div style="position:absolute;inset:0;background:#06070d;"><svg style="width:100%;height:100%;"><path d="M -10,25 Q 40,45 85,20" stroke="' + c1 + '" stroke-width="1.8" fill="none" opacity="0.8"/><path d="M -10,65 Q 40,85 85,60" stroke="' + c2 + '" stroke-width="1.6" fill="none" opacity="0.75"/><circle cx="35" cy="35" r="2" fill="' + c1 + '"/></svg></div>';
+  } else if (id === 'uni-floating-orbs') {
+    return '<div style="position:absolute;inset:0;background:#05060a;"><div style="position:absolute;width:24px;height:24px;border-radius:50%;background:' + c1 + ';top:15%;left:15%;filter:blur(6px);opacity:0.6;"></div><div style="position:absolute;width:28px;height:28px;border-radius:50%;background:' + c2 + ';bottom:25%;right:15%;filter:blur(7px);opacity:0.55;"></div></div>';
+  } else if (id === 'uni-liquid-flow') {
+    return '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%, ' + hexToRgba(c1, 0.4) + ' 0%, ' + hexToRgba(c2, 0.3) + ' 60%, transparent 100%), #040509;"></div>';
+  }
+  return '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + c1 + ',' + c2 + ');"></div>';
+}
+
+function getUniColorDesigns() {
   return [
-    {
-      id: 'uni-1',
-      name: 'Liquid Mesh',
-      style: 'radial-gradient(circle at 20% 30%, ' + c1 + ' 0%, transparent 65%), radial-gradient(circle at 80% 70%, ' + c2 + ' 0%, transparent 65%), #0c0617'
-    },
-    {
-      id: 'uni-2',
-      name: 'Aurora Waves',
-      style: 'linear-gradient(135deg, ' + c1 + ' 0%, transparent 55%), linear-gradient(225deg, ' + c2 + ' 0%, transparent 55%), linear-gradient(45deg, #160a2e 0%, #05020a 100%)'
-    },
-    {
-      id: 'uni-3',
-      name: 'Glass Spheres',
-      style: 'radial-gradient(circle at 50% 0%, ' + c1 + ' 0%, transparent 50%), radial-gradient(circle at 50% 100%, ' + c2 + ' 0%, transparent 50%), #07030e'
-    },
-    {
-      id: 'uni-4',
-      name: 'Neon Swirl',
-      style: 'radial-gradient(circle at 10% 20%, ' + c1 + ' 0%, transparent 45%), radial-gradient(circle at 90% 80%, ' + c2 + ' 0%, transparent 45%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 50%), #110526'
-    },
-    {
-      id: 'uni-5',
-      name: 'Sunset Silk',
-      style: 'linear-gradient(160deg, ' + c1 + ' 0%, rgba(255,255,255,0.08) 50%, ' + c2 + ' 100%), #090214'
-    },
-    {
-      id: 'uni-6',
-      name: 'Velvet Flow',
-      style: 'linear-gradient(45deg, ' + c1 + ' 0%, transparent 70%), linear-gradient(135deg, ' + c2 + ' 0%, #0d0614 100%)'
-    },
-    {
-      id: 'uni-7',
-      name: 'Soft Bloom',
-      style: 'radial-gradient(circle at 50% 50%, ' + c1 + ' 0%, transparent 60%), radial-gradient(circle at 30% 70%, ' + c2 + ' 0%, transparent 50%), #05020a'
-    },
-    {
-      id: 'uni-8',
-      name: 'Digital Silk',
-      style: 'linear-gradient(30deg, ' + c1 + ' 10%, transparent 60%), linear-gradient(210deg, ' + c2 + ' 10%, #0b0518 90%)'
-    },
-    {
-      id: 'uni-9',
-      name: 'Midnight Cosmic',
-      style: 'radial-gradient(circle at 80% 20%, ' + c1 + ' 0%, transparent 50%), radial-gradient(circle at 20% 80%, ' + c2 + ' 0%, transparent 50%), #040108'
-    },
-    {
-      id: 'uni-10',
-      name: 'Cyber Glow',
-      style: 'linear-gradient(125deg, ' + c1 + ' 0%, #11052c 50%, ' + c2 + ' 100%)'
-    }
+    { id: 'uni-aurora', name: 'Aurora', type: 'static' },
+    { id: 'uni-nebula', name: 'Nebula', type: 'static' },
+    { id: 'uni-topographic', name: 'Topographic', type: 'static' },
+    { id: 'uni-geometric-pulse', name: 'Geometric Pulse', type: 'static' },
+    { id: 'uni-energy-lines', name: 'Energy Lines', type: 'animated' },
+    { id: 'uni-floating-orbs', name: 'Floating Orbs', type: 'animated' },
+    { id: 'uni-liquid-flow', name: 'Liquid Flow', type: 'animated' }
   ];
 }
 
-function applyChatBgStyle(style) {
-  var bg = document.getElementById('cwbg');
-  if (bg) {
-    bg.style.background = style;
+function applyChatBgStyle(styleId) {
+  renderChatBackground(styleId);
+  if (typeof updateChatWindowBubbleColors === 'function') {
+    updateChatWindowBubbleColors(styleId);
   }
   
-  updateChatWindowBubbleColors(style);
-  
-  if (curChatId) {
+  if (curChatId && typeof userPro !== 'undefined' && userPro) {
     userPro.customization = userPro.customization || {};
     userPro.customization.chatBackgrounds = userPro.customization.chatBackgrounds || {};
-    userPro.customization.chatBackgrounds[curChatId] = style;
+    userPro.customization.chatBackgrounds[curChatId] = styleId;
     
     userPro.chatBackgrounds = userPro.chatBackgrounds || {};
-    userPro.chatBackgrounds[curChatId] = style;
+    userPro.chatBackgrounds[curChatId] = styleId;
     
     if (typeof saveProfile === 'function') {
       try { saveProfile(); } catch(e) {}
@@ -11755,6 +12523,9 @@ function renderUniDesigns() {
   list.innerHTML = '';
   
   var designs = getUniColorDesigns();
+  var colors = getUniColors();
+  var c1 = colors.c1;
+  var c2 = colors.c2;
   
   var currentStyle = '';
   if (curChatId && userPro && userPro.customization && userPro.customization.chatBackgrounds) {
@@ -11763,7 +12534,7 @@ function renderUniDesigns() {
   
   var selectedIndex = 0;
   designs.forEach(function(d, idx) {
-    if (d.style === currentStyle) {
+    if (d.id === currentStyle || d.name === currentStyle) {
       selectedIndex = idx;
     }
   });
@@ -11771,21 +12542,23 @@ function renderUniDesigns() {
   designs.forEach(function(d, idx) {
     var btn = document.createElement('div');
     btn.className = 'uni-design-btn' + (idx === selectedIndex ? ' active' : '');
-    btn.style.background = d.style;
     btn.title = d.name;
+    btn.setAttribute('data-id', d.id);
+    
+    var miniHtml = getMiniaturePreviewHtml(d.id, c1, c2);
+    btn.innerHTML = miniHtml +
+      '<div class="uni-design-label">' + d.name + '</div>' +
+      (d.type === 'animated' ? '<div class="uni-design-anim-badge">⚡</div>' : '');
+    
     btn.onclick = function() {
       document.querySelectorAll('.uni-design-btn').forEach(function(b) {
         b.classList.remove('active');
       });
       btn.classList.add('active');
-      applyChatBgStyle(d.style);
+      applyChatBgStyle(d.id);
     };
     list.appendChild(btn);
   });
-  
-  if (!currentStyle || !designs.some(function(d) { return d.style === currentStyle; })) {
-    applyChatBgStyle(designs[selectedIndex].style);
-  }
 }
 
 function selectMainBg(type) {
@@ -11800,43 +12573,29 @@ function selectMainBg(type) {
   
   if (type === 'default') {
     if (subSec) subSec.style.display = 'none';
-    applyChatBgStyle('linear-gradient(135deg,#1a0a2e,#0d1a3a)');
+    applyChatBgStyle('default');
   } else if (type === 'black') {
     if (subSec) subSec.style.display = 'none';
-    applyChatBgStyle('#050505');
+    applyChatBgStyle('black');
   } else if (type === 'uni') {
     if (subSec) subSec.style.display = 'block';
     renderUniDesigns();
+    var currentStyle = '';
+    if (curChatId && userPro && userPro.customization && userPro.customization.chatBackgrounds) {
+      currentStyle = userPro.customization.chatBackgrounds[curChatId] || '';
+    }
+    if (!currentStyle || currentStyle === 'default' || currentStyle === 'black' || currentStyle === '#050505' || currentStyle === 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
+      applyChatBgStyle('uni-aurora');
+    }
   }
 }
 
 function initBgSheetUI() {
   _injectBgStyles();
   
-  var c1 = '#01A986';
-  var c2 = '#B28A44';
-  if (typeof uni !== 'undefined' && uni) {
-    var rawUni = null;
-    if (typeof UNI !== 'undefined') {
-      if (uni.domain && UNI[uni.domain]) {
-        rawUni = UNI[uni.domain];
-      } else {
-        for (var d in UNI) {
-          if (UNI[d] && UNI[d].name === uni.name) {
-            rawUni = UNI[d];
-            break;
-          }
-        }
-      }
-    }
-    if (rawUni) {
-      c1 = rawUni.p || c1;
-      c2 = rawUni.p2 || c2;
-    } else {
-      c1 = uni._schoolP || uni.p || c1;
-      c2 = uni._schoolP2 || uni.p2 || c2;
-    }
-  }
+  var colors = getUniColors();
+  var c1 = colors.c1;
+  var c2 = colors.c2;
   
   var uniCircle = document.getElementById('bg-preview-circle-uni');
   if (uniCircle) uniCircle.style.background = 'linear-gradient(135deg,' + c1 + ',' + c2 + ')';
@@ -11847,9 +12606,9 @@ function initBgSheetUI() {
   }
   
   var type = 'default';
-  if (currentStyle === '#050505') {
+  if (currentStyle === 'black' || currentStyle === '#050505') {
     type = 'black';
-  } else if (currentStyle && currentStyle !== 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
+  } else if (currentStyle && currentStyle !== 'default' && currentStyle !== 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
     type = 'uni';
   }
   
@@ -12389,9 +13148,9 @@ function _sharedTOT(p){
 // ── LOVE LANGUAGE / WORKOUT / DIET / ANTHEM / FREE-WEEKEND ──
 var LOVE_LANGS=['💬 Words of affirmation','⏰ Quality time','🎁 Gifts','🤝 Acts of service','🤗 Physical touch'];
 var WORKOUTS=['🏋️ Gym rat','🏃 Runner','⚽ Sports','🙏 Yoga/Pilates','🚶 Casual mover','🛋️ Not my thing'];
-var POLITICS_OPTS=['Liberal','Conservative','Moderate','Progressive','Libertarian','Apolitical'];
-var DRINK_OPTS=['🚫 Never','🥂 Socially','🍻 Often','🍺 Heavily'];
-var SMOKE_OPTS=['🚭 Never','🚬 Socially','💨 Often','💨 Vape'];
+var POLITICS_OPTS=['Liberal','Moderate','Conservative','Apolitical'];
+var DRINK_OPTS=['Non-drinker','Social drinker','Regular drinker'];
+var SMOKE_OPTS=['Non-smoker','Socially','Regularly','Vaper/Juul'];
 function _profileWorkoutDisplay(p,isSelf){var w=isSelf?p.workout:_profileWorkout(p);if(Array.isArray(w))return w.join(', ');return w;}
 var DIETS=['🍽️ Anything','🥗 Vegetarian','🌱 Vegan','☪️ Halal','✡️ Kosher','🌾 Gluten-free'];
 // small stand-in catalog for the "anthem" picker (real app: Spotify Search API)
@@ -14086,6 +14845,15 @@ async function fetchAndRenderChats() {
     var dmContainer = document.getElementById('chat-dm-container');
     if (dmContainer) dmContainer.innerHTML = '';
 
+    var chatList = document.getElementById('chat-list');
+    if (chatList) {
+      chatList.querySelectorAll('.citem[id^="dm-match-"], .citem[id^="uc-match-"]').forEach(function(el) {
+        if (el.parentElement !== dmContainer) {
+          el.remove();
+        }
+      });
+    }
+
     if (list.length === 0) {
       // #chat-empty-section (driven by filterChatBySection) covers the empty case
       if (typeof filterChatBySection === 'function') filterChatBySection();
@@ -14135,6 +14903,9 @@ async function fetchAndRenderChats() {
       }
 
       if (dmContainer) {
+        var existingItem = document.getElementById('dm-match-' + matchId);
+        if (existingItem) existingItem.remove();
+
         var item = document.createElement('div');
         item.className = 'citem';
         item.id = 'dm-match-' + matchId;
@@ -15522,8 +16293,98 @@ function openChatSettings(){
   var currentName=document.getElementById('cwnm')?document.getElementById('cwnm').textContent.replace(/[^\x20-\x7E].*$/,'').trim():'Chat';
   if(!currentName)currentName='Chat';
   var first=currentName.split(' ')[0];
-  var isGroup=/^(grp_|club_|class_|evgrp_)/.test(curChatId||'');
+  var isGroup=/^(grp_|club_|class_|evgrp_)/.test(curChatId||'') || (typeof _curChatUser !== 'undefined' && _curChatUser && _curChatUser.isGrp);
   var h=_strHash((curChatId||currentName));
+
+  if (isGroup) {
+    var meta = _getGroupMeta(curChatId);
+    var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+    var isUserAdmin = (meta.adminHandle === myHandle || (meta.members.some(function(m) { return m.handle === myHandle && m.isAdmin; })));
+
+    function row(icBg,ic,title,sub,right,onclick,extra){return '<div class="cps-row"'+(onclick?' onclick="'+onclick+'" style="cursor:pointer;'+(extra||'')+'"':(extra?' style="'+extra+'"':''))+'><div class="cps-ic" style="background:'+icBg+';">'+ic+'</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-md);font-weight:600;color:#fff;">'+title+'</div><div class="t-sub">'+sub+'</div></div>'+(right||'')+'</div>';}
+
+    var membersHtml = meta.members.map(function(m) {
+      var isMe = (m.handle === myHandle);
+      var photo = m.photo || ('https://randomuser.me/api/portraits/' + (m.name.length % 2 === 0 ? 'women' : 'men') + '/' + (_strHash(m.name) % 70) + '.jpg');
+      var badge = m.isAdmin ? '<span class="tag gold" style="font-size:var(--fs-2xs);padding:2px 6px;">👑 Admin</span>' : '<span style="font-size:var(--fs-2xs);color:var(--fg3);">Integrante</span>';
+
+      var actionBtns = '';
+      if (isUserAdmin && !isMe) {
+        actionBtns = '<div style="display:flex;gap:6px;">' +
+          (!m.isAdmin ? '<button class="jbtn" style="padding:4px 9px;font-size:var(--fs-2xs);background:rgba(255,255,255,0.08)!important;border:none!important;" onclick="groupPromoteAdmin(\'' + curChatId + '\',\'' + m.handle + '\')">👑 Hacer Admin</button>' : '') +
+          '<button class="jbtn" style="padding:4px 9px;font-size:var(--fs-2xs);background:rgba(244,63,94,0.15)!important;color:#f43f5e!important;border:none!important;" onclick="groupRemoveMember(\'' + curChatId + '\',\'' + m.handle + '\')">❌ Desinvitar</button>' +
+        '</div>';
+      }
+
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:var(--rad-md);margin-bottom:6px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<img src="' + photo + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"/>' +
+          '<div>' +
+            '<div style="font-weight:600;color:#fff;font-size:var(--fs-base);display:flex;align-items:center;gap:6px;">' + m.name + ' ' + badge + '</div>' +
+            '<div style="font-size:var(--fs-xs);color:var(--fg2);">@' + m.handle + '</div>' +
+          '</div>' +
+        '</div>' +
+        actionBtns +
+      '</div>';
+    }).join('');
+
+    modal = document.createElement('div');
+    modal.id = 'chat-settings-modal';
+    modal.className = 'mov open';
+
+    modal.innerHTML = '<div class="msheet" style="max-height:92vh;overflow-y:auto;">' +
+      '<div class="mhnd"></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+        '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Ajustes de Grupo</div>' +
+        '<div onclick="document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div>' +
+      '</div>' +
+
+      // Group Avatar & Title Header
+      '<div style="text-align:center;padding:14px;background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-lg);margin-bottom:16px;">' +
+        '<div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px;box-shadow:0 0 16px rgba(43,95,217,0.4);overflow:hidden;">' +
+          (meta.bannerUrl ? '<img src="' + meta.bannerUrl + '" style="width:100%;height:100%;object-fit:cover;"/>' : '👥') +
+        '</div>' +
+        '<div style="font-size:var(--fs-lg);font-weight:800;color:#fff;">' + meta.name + '</div>' +
+        '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:6px;">' +
+          '<span>👑 Admin: <b>@' + meta.adminHandle + '</b></span> · ' +
+          '<span>👥 ' + meta.members.length + ' Integrantes</span>' +
+        '</div>' +
+      '</div>' +
+
+      // Admin Actions
+      (isUserAdmin ? (
+        '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">ACCIONES DE ADMINISTRADOR</div>' +
+        '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">' +
+          '<button class="gbtn" style="background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);color:#fff;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:space-between;" onclick="groupChangeBanner(\'' + curChatId + '\')">' +
+            '<span>🖼️ Cambiar Banner Superior del Chat</span><span style="color:var(--fg3);">›</span>' +
+          '</button>' +
+          '<button class="gbtn" style="background:rgba(43,95,217,0.15);border:1px solid rgba(43,95,217,0.4);color:#fff;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:space-between;" onclick="groupInviteMembers(\'' + curChatId + '\')">' +
+            '<span>➕ Invitar Integrantes al Grupo</span><span style="color:var(--fg3);">›</span>' +
+          '</button>' +
+          '<button class="gbtn" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.4);color:#f43f5e;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:space-between;" onclick="groupDeleteChatCompletely(\'' + curChatId + '\')">' +
+            '<span>🗑️ Borrar Chat por Completo</span><span style="color:#f43f5e;">›</span>' +
+          '</button>' +
+        '</div>'
+      ) : (
+        '<div style="margin-bottom:16px;">' +
+          '<button class="gbtn" style="background:rgba(244,63,94,0.12);border:1px solid rgba(244,63,94,0.4);color:#f43f5e;font-weight:600;padding:10px 14px;border-radius:var(--rad-md);width:100%;" onclick="groupExitGroup(\'' + curChatId + '\')">' +
+            '🚪 Salir del Grupo' +
+          '</button>' +
+        '</div>'
+      )) +
+
+      // Members List
+      '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">INTEGRANTES DEL GRUPO (' + meta.members.length + ')</div>' +
+      '<div style="max-height:220px;overflow-y:auto;margin-bottom:16px;">' + membersHtml + '</div>' +
+
+      // Customization
+      '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin-bottom:8px;">PERSONALIZACIÓN</div>' +
+      row('linear-gradient(135deg,#3d7bff,#2b5fd9)', '🎨', 'Fondo del Chat', 'Cambia el fondo de esta conversación', '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>', "toggleBgSheet();document.getElementById('chat-settings-modal').remove();") +
+    '</div>';
+
+    document.body.appendChild(modal);
+    return;
+  }
 
   var conv = (typeof _chatPartnerCache !== 'undefined') ? _chatPartnerCache[curChatId] : null;
   var partner = conv ? conv.partner : null;
@@ -17293,7 +18154,6 @@ function panicAlert(){
   alert('🚨 Alert sent!\n\n'+safetyContacts.join(', ')+' got your live location and a "Check on me now" message.\n\nIn an emergency, call 911.');
 }
 
-// ── FIX GROUP CHAT CREATION ──
 createGroup=function(){
   var nm=document.getElementById('grp-nm')&&document.getElementById('grp-nm').value.trim();if(!nm){alert('Give your group a name');return;}
   var invited=_grpSelCount();
@@ -17304,13 +18164,19 @@ createGroup=function(){
   var color=sec==='study'?'#3b82f6':sec==='dorm'?'#10b981':sec==='sports'?'#f59e0b':sec==='exclusive'?'#e04155':'#3d7bff';
   var m=document.getElementById('grp-modal');if(m)m.classList.remove('open');
   var total=invited+1;
+  var chatId = 'grp_' + _strHash(nm);
+  var meta = _getGroupMeta(chatId);
+  meta.name = nm;
+  meta.adminHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
+  meta.adminName = (userPro && userPro.name) || 'Admin';
+
   var chatList=document.getElementById('chat-list');
-  if(chatList){var item=document.createElement('div');item.className='citem';item.setAttribute('data-csec',sec);
-    item.onclick=function(){openChat('grp_'+nm,nm,color,emoji,true,['Group "'+nm+'" created!','Welcome everyone!'],false);};
+  if(chatList){var item=document.createElement('div');item.className='citem';item.setAttribute('data-csec',sec);item.id='chatrow_'+chatId;
+    item.onclick=function(){openChat(chatId,nm,color,emoji,true,['Group "'+nm+'" created!','Welcome everyone!'],false);};
     item.innerHTML='<div class="cav grp" style="background:'+color+';"><span>'+emoji+'</span></div><div class="cmeta"><div class="cnm">'+nm+'</div><div class="cpre">'+total+' members · just now</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div><div class="cunrd" style="background:var(--p);">1</div></div>';
     chatList.insertBefore(item,chatList.firstChild);}
   if(typeof filterChatBySection==='function')filterChatBySection();
-  openChat('grp_'+nm,nm,color,emoji,true,['Group "'+nm+'" created!','Welcome everyone!'],false);
+  openChat(chatId,nm,color,emoji,true,['Group "'+nm+'" created!','Welcome everyone!'],false);
 };
 
 // ── PHONE OTP VERIFICATION ──
@@ -17742,7 +18608,7 @@ function applyCrushFilters(){
 
   // Read Drinking
   var drinkFilter=null;
-  var drinkMap={'🚫 Never':'never','🥂 Socially':'occasionally','🍺 Often':'often','🍻 Heavily':'heavily'};
+  var drinkMap={'🚫 Never':'never','🥂 Socially':'occasionally','🍺 Often':'often','🍻 Heavily':'heavily','Non-drinker':'never','Social drinker':'occasionally','Regular drinker':'often'};
   if(panel){
     panel.querySelectorAll('.love-filter-section').forEach(function(sec){
       var title=sec.querySelector('.love-filter-title');

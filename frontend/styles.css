@@ -1293,8 +1293,8 @@ textarea.gi {
   background: var(--p);
   color: #fff;
 }
-/* When the user has A+ Student, hide the lock icons/badges on premium filters */
-.aplus-on .filter-lock-ic {
+/* Hide all lock icons on filters (A+ Student badge already marks premium filters) */
+.filter-lock-ic {
   display: none !important;
 }
 .aplus-on .filter-lock-badge {
@@ -6615,7 +6615,10 @@ body::after {
 .crush-reply,
 .sbtn,
 .comment-send,
-.gbtn-ghost {
+#ev-publish-btn,
+button.gbtn,
+button.jbtn {
+  border: none !important;
   box-shadow: none !important;
 }
 .gbtn:active,

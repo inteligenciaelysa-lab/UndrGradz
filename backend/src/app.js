@@ -12,8 +12,10 @@ const friendRoutes = require('./routes/friend.routes');
 const chatRoutes = require('./routes/chat.routes');
 const billingRoutes = require('./routes/billing.routes');
 const eventRoutes = require('./routes/event.routes');
+const adminRoutes = require('./routes/admin.routes');
 const rateLimit = require('express-rate-limit');
 const AppError = require('./errors/appError');
+const { recordSystemError } = require('./services/systemHealth.service');
 const path = require('path');
 
 // 1. Global Rate Limiter (100 requests per 15 mins)
@@ -72,11 +74,6 @@ app.use(cookieParser());
 app.use(morgan('dev'));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
-// Apply Rate Limiters (Disabled for mobile testing)
-// app.use('/api', globalLimiter);
-// app.use('/api/v1/auth/login', authLimiter);
-// app.use('/api/v1/auth/register', authLimiter);
-
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
@@ -85,6 +82,9 @@ app.use('/api/v1/network', friendRoutes);
 app.use('/api/v1/chats', chatRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/events', eventRoutes);
+
+// Admin Routes
+app.use('/api/v1/admin', adminRoutes);
 
 // Fallback Route (Express 5 compatible catch-all)
 app.all('*splat', (req, res, next) => {
@@ -95,6 +95,10 @@ app.all('*splat', (req, res, next) => {
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   const status = err.status || 'error';
+
+  if (statusCode >= 500) {
+    recordSystemError(err, { url: req.originalUrl, method: req.method });
+  }
 
   res.status(statusCode).json({
     status,

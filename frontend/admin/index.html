@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UndrGradz | Panel de Administración</title>
+  <meta name="description" content="Panel de Administración oficial para UndrGradz - Gestión de usuarios, moderación, eventos, universidades y auditoría.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon" href="../logo.ico">
+  <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Modal Overlay -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal-container" class="modal-card">
+      <button id="modal-close" class="modal-close-btn">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Confirm Dialog Overlay -->
+  <div id="confirm-overlay" class="modal-overlay hidden">
+    <div class="confirm-card">
+      <div class="confirm-icon" id="confirm-icon">⚠️</div>
+      <h3 id="confirm-title" class="confirm-title">Confirmar Acción</h3>
+      <p id="confirm-message" class="confirm-message">¿Estás seguro de realizar esta acción?</p>
+      <div class="confirm-actions">
+        <button id="confirm-cancel-btn" class="btn btn-secondary">Cancelar</button>
+        <button id="confirm-submit-btn" class="btn btn-danger">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN VIEW -->
+  <div id="view-login" class="login-screen">
+    <div class="login-card glass-panel">
+      <div class="login-header">
+        <div class="brand-logo">
+          <span class="logo-accent">Undr</span>Gradz <span class="badge-admin">ADMIN</span>
+        </div>
+        <h2>Acceso Administrativo</h2>
+        <p>Inicia sesión con tus credenciales de administrador</p>
+      </div>
+      <form id="admin-login-form" class="login-form">
+        <div class="form-group">
+          <label for="login-email">Correo Electrónico o Usuario</label>
+          <input type="text" id="login-email" class="form-input" placeholder="admin@undrgradz.com" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="login-password">Contraseña</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block">
+          <span>Ingresar al Panel</span>
+          <div id="login-spinner" class="spinner hidden"></div>
+        </button>
+      </form>
+      <div class="login-footer">
+        <p class="security-note">🔒 Sistema protegido con rate limiting y registro de auditoría</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN ADMIN APP LAYOUT -->
+  <div id="app-layout" class="app-layout hidden">
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <span class="logo-accent">Undr</span>Gradz
+          <span class="badge-admin" id="sidebar-role-badge">ADMIN</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#dashboard" class="nav-item active" data-view="dashboard">
+              <span class="nav-icon">📊</span>
+              <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#users" class="nav-item" data-view="users">
+              <span class="nav-icon">👥</span>
+              <span class="nav-label">Usuarios</span>
+            </a>
+          </li>
+          <li>
+            <a href="#moderation" class="nav-item" data-view="moderation">
+              <span class="nav-icon">🛡️</span>
+              <span class="nav-label">Moderación</span>
+              <span id="badge-pending-reports" class="nav-badge hidden">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="#universities" class="nav-item" data-view="universities">
+              <span class="nav-icon">🎓</span>
+              <span class="nav-label">Universidades</span>
+            </a>
+          </li>
+          <li>
+            <a href="#events" class="nav-item" data-view="events">
+              <span class="nav-icon">🔥</span>
+              <span class="nav-label">Eventos / Hangouts</span>
+            </a>
+          </li>
+          <li>
+            <a href="#administrators" class="nav-item role-restricted super-admin-only" data-view="administrators">
+              <span class="nav-icon">🔑</span>
+              <span class="nav-label">Administradores</span>
+            </a>
+          </li>
+          <li>
+            <a href="#audit-logs" class="nav-item" data-view="audit-logs">
+              <span class="nav-icon">📜</span>
+              <span class="nav-label">Logs de Auditoría</span>
+            </a>
+          </li>
+          <li>
+            <a href="#notifications" class="nav-item" data-view="notifications">
+              <span class="nav-icon">📢</span>
+              <span class="nav-label">Notificaciones</span>
+            </a>
+          </li>
+          <li>
+            <a href="#settings" class="nav-item" data-view="settings">
+              <span class="nav-icon">⚙️</span>
+              <span class="nav-label">Configuración</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-profile-pill">
+          <div class="admin-avatar" id="header-avatar">A</div>
+          <div class="admin-info">
+            <span class="admin-name" id="header-admin-name">Cargando...</span>
+            <span class="admin-email" id="header-admin-email">admin@undrgradz.com</span>
+          </div>
+        </div>
+        <button id="btn-logout" class="btn btn-logout" title="Cerrar Sesión">🚪</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      <!-- TOP HEADER -->
+      <header class="top-header">
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="global-search-input" class="search-input" placeholder="Búsqueda global (Usuarios, Universidades, Eventos, Reportes)..." autocomplete="off">
+          <div id="search-results-dropdown" class="search-results-dropdown hidden"></div>
+        </div>
+
+        <div class="header-right">
+          <!-- System Health Pill -->
+          <div id="health-pill" class="health-pill" title="System Health Metrics">
+            <span class="health-dot status-green"></span>
+            <span class="health-text">Backend: Online</span>
+          </div>
+
+          <div class="header-user-menu">
+            <span class="user-role-tag" id="top-user-role">SUPER ADMIN</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- DYNAMIC VIEWS CONTAINER -->
+      <div class="views-wrapper">
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view-panel active">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Dashboard General</h1>
+              <p class="view-subtitle">Métricas en tiempo real, estadísticas de uso y estado del sistema UndrGradz.</p>
+            </div>
+            <button id="btn-refresh-dashboard" class="btn btn-secondary btn-sm">🔄 Actualizar</button>
+          </div>
+
+          <!-- Stats Cards Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon icon-purple">👥</div>
+              <div class="stat-details">
+                <span class="stat-label">Usuarios Totales</span>
+                <span class="stat-value" id="stat-total-users">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-emerald">⚡</div>
+              <div class="stat-details">
+                <span class="stat-label">Usuarios Activos</span>
+                <span class="stat-value" id="stat-active-users">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-cyan">✨</div>
+              <div class="stat-details">
+                <span class="stat-label">Nuevos (Esta Semana)</span>
+                <span class="stat-value" id="stat-new-users">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-pink">🔥</div>
+              <div class="stat-details">
+                <span class="stat-label">Eventos Activos</span>
+                <span class="stat-value" id="stat-active-events">0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-amber">💖</div>
+              <div class="stat-details">
+                <span class="stat-label">Matches & Likes</span>
+                <span class="stat-value" id="stat-matches-likes">0 / 0</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-red">🛡️</div>
+              <div class="stat-details">
+                <span class="stat-label">Reportes Pendientes</span>
+                <span class="stat-value" id="stat-pending-reports">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts & Health Grid -->
+          <div class="dashboard-grid">
+            <!-- University Distribution Chart Card -->
+            <div class="dashboard-card glass-panel">
+              <div class="card-header">
+                <h3>Estudiantes por Universidad</h3>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-universities" height="220"></canvas>
+              </div>
+            </div>
+
+            <!-- System Health Widget -->
+            <div class="dashboard-card glass-panel">
+              <div class="card-header">
+                <h3>🖥️ Estado del Sistema (System Health)</h3>
+              </div>
+              <div class="health-details-grid" id="system-health-body">
+                <div class="health-item">
+                  <span class="health-label">Backend Uptime</span>
+                  <span class="health-val" id="health-backend-uptime">--</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Latencia Base de Datos</span>
+                  <span class="health-val" id="health-db-latency">--</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Conexiones Socket.io</span>
+                  <span class="health-val" id="health-socket-clients">--</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Uso de Memoria (RAM)</span>
+                  <span class="health-val" id="health-memory">--</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Carga CPU</span>
+                  <span class="health-val" id="health-cpu">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity Feed -->
+          <div class="dashboard-card glass-panel mt-4">
+            <div class="card-header">
+              <h3>Actividad Reciente del Sistema</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Administrador / Usuario</th>
+                    <th>Acción / Evento</th>
+                    <th>Detalles</th>
+                    <th>Fecha y Hora</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-activity-tbody">
+                  <tr><td colspan="4" class="text-center py-4">Cargando actividad reciente...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. USERS MANAGEMENT VIEW -->
+        <section id="view-users" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Gestión de Usuarios</h1>
+              <p class="view-subtitle">Filtra, busca, revisa perfiles completos y administra el estado de los estudiantes.</p>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="filter-bar glass-panel">
+            <div class="filter-group">
+              <input type="text" id="users-search-input" class="form-input" placeholder="Buscar por nombre, @handle o email...">
+            </div>
+            <div class="filter-group">
+              <select id="users-status-select" class="form-select">
+                <option value="">Todos los Estados</option>
+                <option value="ACTIVE">Activo</option>
+                <option value="SUSPENDED">Suspendido</option>
+                <option value="BANNED">Baneado</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <select id="users-role-select" class="form-select">
+                <option value="">Todos los Roles</option>
+                <option value="STUDENT">Estudiante</option>
+                <option value="SUPPORT">Support</option>
+                <option value="MODERATOR">Moderator</option>
+                <option value="ADMIN">Admin</option>
+                <option value="SUPER_ADMIN">Super Admin</option>
+              </select>
+            </div>
+            <button id="btn-filter-users" class="btn btn-primary">Filtrar</button>
+          </div>
+
+          <!-- Users Data Table -->
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Universidad</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Plan</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="users-tbody">
+                  <tr><td colspan="7" class="text-center py-4">Cargando usuarios...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="pagination-bar">
+              <span id="users-pagination-info" class="pagination-info">Mostrando 0-0 de 0</span>
+              <div class="pagination-buttons">
+                <button id="btn-users-prev" class="btn btn-secondary btn-sm" disabled>Anterior</button>
+                <button id="btn-users-next" class="btn btn-secondary btn-sm" disabled>Siguiente</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. MODERATION VIEW -->
+        <section id="view-moderation" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Centro de Moderación</h1>
+              <p class="view-subtitle">Revisa reportes de usuarios, eventos y contenido generado. Toma acciones inmediatas.</p>
+            </div>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="filter-bar glass-panel">
+            <div class="filter-group">
+              <select id="mod-status-select" class="form-select">
+                <option value="PENDING">Pendientes</option>
+                <option value="UNDER_REVIEW">En Revisión</option>
+                <option value="RESOLVED">Resueltos</option>
+                <option value="DISMISSED">Rechazados</option>
+                <option value="">Todos los Estados</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <select id="mod-type-select" class="form-select">
+                <option value="">Todos los Tipos</option>
+                <option value="USER">Perfiles / Usuarios</option>
+                <option value="EVENT">Eventos / Hangouts</option>
+                <option value="PHOTO">Imágenes / Fotos</option>
+              </select>
+            </div>
+            <button id="btn-filter-reports" class="btn btn-primary">Actualizar Lista</button>
+          </div>
+
+          <!-- Moderation Reports Table -->
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Reportado Por</th>
+                    <th>Tipo</th>
+                    <th>Motivo</th>
+                    <th>Detalles</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="reports-tbody">
+                  <tr><td colspan="7" class="text-center py-4">Cargando reportes de moderación...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. UNIVERSITIES MANAGEMENT VIEW -->
+        <section id="view-universities" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Gestión de Universidades</h1>
+              <p class="view-subtitle">Administra el catálogo de +17,600 instituciones educativas, colores, fotos de portada y estado de integración.</p>
+            </div>
+            <button id="btn-add-university" class="btn btn-primary role-restricted admin-only">+ Nueva Universidad</button>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="filter-bar glass-panel" style="flex-wrap: wrap; gap: 12px;">
+            <div class="filter-group" style="flex: 2; min-width: 250px;">
+              <input type="text" id="uni-search-input" class="form-input" placeholder="Buscar por nombre, acrónimo, dominio, ciudad, estado o país...">
+            </div>
+            <div class="filter-group" style="min-width: 140px;">
+              <select id="uni-type-select" class="form-select">
+                <option value="">Todos los Tipos</option>
+                <option value="public">Pública</option>
+                <option value="private">Privada</option>
+              </select>
+            </div>
+            <div class="filter-group" style="min-width: 170px;">
+              <select id="uni-status-select" class="form-select">
+                <option value="">Todos los Estados</option>
+                <option value="AVAILABLE">AVAILABLE (Disponible)</option>
+                <option value="INTEGRATED">INTEGRATED (Integrada)</option>
+                <option value="PENDING">PENDING (Pendiente)</option>
+                <option value="SUSPENDED">SUSPENDED (Suspendida)</option>
+              </select>
+            </div>
+            <div class="filter-group" style="min-width: 150px;">
+              <select id="uni-official-select" class="form-select">
+                <option value="">Todas (Oficial & Estándar)</option>
+                <option value="true">Verificada Oficial</option>
+                <option value="false">Estándar</option>
+              </select>
+            </div>
+            <div class="filter-group" style="min-width: 150px;">
+              <input type="text" id="uni-location-input" class="form-input" placeholder="Filtrar Ubicación / País...">
+            </div>
+            <div class="filter-group" style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="uni-deleted-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
+              <label for="uni-deleted-checkbox" style="font-size: var(--fs-xs); cursor: pointer; color: var(--text-muted);">Eliminadas</label>
+            </div>
+            <button id="btn-filter-universities" class="btn btn-secondary">Buscar</button>
+          </div>
+
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Universidad & Dominio</th>
+                    <th>Acrónimo</th>
+                    <th>Tipo</th>
+                    <th>Ubicación (Ciudad, Estado, País)</th>
+                    <th>Colores</th>
+                    <th>Sitio Web</th>
+                    <th>Estudiantes</th>
+                    <th>Oficial</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="universities-tbody">
+                  <tr><td colspan="10" class="text-center py-4">Cargando catálogo de universidades...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div class="pagination-bar" id="uni-pagination-bar">
+              <span id="uni-pagination-info" class="pagination-info">Mostrando 0 de 0 universidades</span>
+              <div class="pagination-controls">
+                <button id="uni-prev-page" class="btn btn-sm btn-secondary" disabled>&laquo; Anterior</button>
+                <span id="uni-current-page-badge" class="badge badge-neutral">Página 1</span>
+                <button id="uni-next-page" class="btn btn-sm btn-secondary" disabled>Siguiente &raquo;</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. EVENTS / HANGOUTS MANAGEMENT VIEW -->
+        <section id="view-events" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Gestión de Eventos & Hangouts</h1>
+              <p class="view-subtitle">Supervisa actividades creadas por estudiantes, aprueba o elimina contenido inapropiado.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Evento</th>
+                    <th>Categoría</th>
+                    <th>Creador</th>
+                    <th>Ubicación & Hora</th>
+                    <th>Asistentes</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="events-tbody">
+                  <tr><td colspan="7" class="text-center py-4">Cargando eventos...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. ADMINISTRATORS VIEW (SUPER ADMIN ONLY) -->
+        <section id="view-administrators" class="view-panel role-restricted super-admin-only">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Gestión de Administradores</h1>
+              <p class="view-subtitle">Asigna roles, revoca accesos y administra la seguridad del equipo directivo.</p>
+            </div>
+            <button id="btn-add-admin" class="btn btn-primary">+ Crear Administrador</button>
+          </div>
+
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Último Acceso</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="admins-tbody">
+                  <tr><td colspan="6" class="text-center py-4">Cargando cuentas administrativas...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. AUDIT LOGS VIEW -->
+        <section id="view-audit-logs" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Registro de Auditoría (Audit Logs)</h1>
+              <p class="view-subtitle">Historial inmutable de todas las acciones administrativas ejecutadas en la plataforma.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Administrador</th>
+                    <th>Acción</th>
+                    <th>Entidad Afectada</th>
+                    <th>Dirección IP</th>
+                    <th>Fecha y Hora</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-logs-tbody">
+                  <tr><td colspan="5" class="text-center py-4">Cargando historial de auditoría...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. NOTIFICATIONS VIEW -->
+        <section id="view-notifications" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Notificaciones Administrativas</h1>
+              <p class="view-subtitle">Envía comunicados dirigidos a usuarios individuales, universidades o transmisiones masivas.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel p-4 max-w-2xl">
+            <form id="form-send-notification">
+              <div class="form-group">
+                <label for="notif-target-type">Destinatario</label>
+                <select id="notif-target-type" class="form-select" required>
+                  <option value="ALL">Todos los Usuarios Activos (Broadcast)</option>
+                  <option value="UNIVERSITY">Estudiantes de una Universidad Específica</option>
+                  <option value="USER">Usuario Específico (ID)</option>
+                </select>
+              </div>
+
+              <div id="notif-uni-group" class="form-group hidden">
+                <label for="notif-university">Seleccionar Universidad</label>
+                <input type="text" id="notif-university" class="form-input" placeholder="Ej: UANE - Universidad Autónoma del Noreste">
+              </div>
+
+              <div id="notif-user-group" class="form-group hidden">
+                <label for="notif-user-id">ID de Usuario</label>
+                <input type="text" id="notif-user-id" class="form-input" placeholder="ID de Prisma CUID del usuario">
+              </div>
+
+              <div class="form-group">
+                <label for="notif-title">Título del Mensaje</label>
+                <input type="text" id="notif-title" class="form-input" placeholder="Ej: Mantenimiento Programado / Actualización importante" required>
+              </div>
+
+              <div class="form-group">
+                <label for="notif-message">Contenido de la Notificación</label>
+                <textarea id="notif-message" class="form-input" rows="4" placeholder="Escribe el cuerpo del mensaje..." required></textarea>
+              </div>
+
+              <button type="submit" id="btn-submit-notif" class="btn btn-primary">
+                📢 Enviar Notificación
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- 9. SETTINGS VIEW -->
+        <section id="view-settings" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">Configuración de Plataforma</h1>
+              <p class="view-subtitle">Ajusta los parámetros globales de la aplicación UndrGradz.</p>
+            </div>
+          </div>
+
+          <div class="glass-panel p-4 max-w-2xl" id="settings-container">
+            <p>Cargando configuraciones globales...</p>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- External Script Loaders -->
+  <script src="admin-api.js"></script>
+  <script src="admin-app.js"></script>
+</body>
+</html>
