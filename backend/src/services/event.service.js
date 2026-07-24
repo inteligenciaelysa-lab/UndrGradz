@@ -5,6 +5,15 @@ class EventService {
   async createEvent(creatorId, data) {
     const { name, emoji, section, address, time, hostHandle, capacity, description, filters } = data;
 
+    let derivedHostHandle = hostHandle;
+    if (!derivedHostHandle) {
+      const creator = await prisma.user.findUnique({
+        where: { id: creatorId },
+        select: { handle: true, firstName: true }
+      });
+      derivedHostHandle = creator?.handle || `@${creator?.firstName || 'host'}`;
+    }
+
     // Create event and automatically add the creator as the first attendee
     const event = await prisma.event.create({
       data: {
@@ -13,7 +22,7 @@ class EventService {
         section,
         address,
         time,
-        hostHandle,
+        hostHandle: derivedHostHandle,
         capacity,
         description,
         filters: filters || {},

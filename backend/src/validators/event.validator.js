@@ -8,7 +8,7 @@ const createEventSchema = z.object({
   }),
   address: z.string().min(1, 'Address is required'),
   time: z.string().min(1, 'Time is required'),
-  hostHandle: z.string().min(1, 'Host handle is required'),
+  hostHandle: z.string().optional(),
   capacity: z.number().int().min(1, 'Capacity must be at least 1'),
   description: z.string().optional().nullable(),
   filters: z.record(z.any()).optional().nullable(),

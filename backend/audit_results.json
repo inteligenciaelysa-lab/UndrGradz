@@ -1,0 +1,144 @@
+{
+  "passed": [
+    {
+      "testName": "Auth: User A Registration",
+      "detail": "User ID: cmrz305190001uxi0adyo27dn"
+    },
+    {
+      "testName": "Auth: Duplicate Email Validation",
+      "detail": "Correctly rejected duplicate registration (400)"
+    },
+    {
+      "testName": "Auth: User B Registration",
+      "detail": "User ID: cmrz305330003uxi0m1w90rsl"
+    },
+    {
+      "testName": "Auth: User ID Uniqueness",
+      "detail": "User A and User B have distinct userIds"
+    },
+    {
+      "testName": "Auth: Login & Tokens",
+      "detail": "Received accessToken & refreshToken"
+    },
+    {
+      "testName": "Auth: Refresh Token Flow",
+      "detail": "New access token obtained via refresh route"
+    },
+    {
+      "testName": "Auth: Protected Route Security",
+      "detail": "Rejected request without token (401)"
+    },
+    {
+      "testName": "Auth: Invalid Token Guard",
+      "detail": "Rejected fake token (401)"
+    },
+    {
+      "testName": "Profile: PUT /users/me Update",
+      "detail": "Profile fields updated successfully"
+    },
+    {
+      "testName": "Profile: API Re-hydration (GET /users/me)",
+      "detail": "All fields returned accurately by API"
+    },
+    {
+      "testName": "Database: Direct Prisma Persistence Check",
+      "detail": "All profile fields persisted directly into PostgreSQL tables"
+    },
+    {
+      "testName": "Photos: 6 Photos Uploaded",
+      "detail": "Successfully registered and stored 6 photos for User A"
+    },
+    {
+      "testName": "Photos: 6 Photo Limit Guard",
+      "detail": "Correctly rejected 7th photo attempt (400)"
+    },
+    {
+      "testName": "Photos: Retrieval in GET /users/me",
+      "detail": "Returned all 6 photos ordered correctly"
+    },
+    {
+      "testName": "Storage: Physical File Verification",
+      "detail": "File exists on disk at C:\\Users\\IA ELYSA\\Downloads\\UndrGradz\\backend\\public\\mock-uploads\\users\\cmrz305190001uxi0adyo27dn\\b0a7c6d8-c983-4529-aedb-f8609488245e.jpeg"
+    },
+    {
+      "testName": "Photos: Delete & Re-indexing",
+      "detail": "Photo deleted and remaining 5 photos re-indexed seamlessly (0..4)"
+    },
+    {
+      "testName": "Dating: Crush Feed API",
+      "detail": "Fetched undefined profiles for Crush Feed"
+    },
+    {
+      "testName": "Dating: User A Swipe LIKE on User B",
+      "detail": "Swipe recorded. Match created: false"
+    },
+    {
+      "testName": "Dating: Mutual Swipe MATCH Trigger",
+      "detail": "Match successfully generated upon mutual LIKE"
+    },
+    {
+      "testName": "Database: Match Record Persistence",
+      "detail": "Match persisted in PostgreSQL (ID: cmrz305cw000nuxi0gts5w5o6)"
+    },
+    {
+      "testName": "Events: Create Event",
+      "detail": "Event created with ID: cmrz305ew000puxi0izoiu5p5"
+    },
+    {
+      "testName": "Events: Join Event",
+      "detail": "User B successfully joined event"
+    },
+    {
+      "testName": "Events: Host Creator Sync",
+      "detail": "Creator handle: auditor_new_094621, Photo URL: http://localhost:3000/public/mock-uploads/users/cmrz305190001uxi0adyo27dn/3796fba3-14ee-4c5b-b8b7-63788fdca105.jpeg"
+    },
+    {
+      "testName": "Events: Leave Event",
+      "detail": "User B successfully left event"
+    },
+    {
+      "testName": "Events: Delete Event",
+      "detail": "Event deleted successfully"
+    },
+    {
+      "testName": "Chat: Conversation Listing",
+      "detail": "Found active match conversation with User B (Match ID: cmrz305cw000nuxi0gts5w5o6)"
+    },
+    {
+      "testName": "Chat: Send Message",
+      "detail": "Message created in DB (ID: cmrz305g50001uxjki9nrouib)"
+    },
+    {
+      "testName": "Chat: Fetch Messages API",
+      "detail": "Retrieved sent message accurately from API"
+    },
+    {
+      "testName": "Sync: Single Source of Truth",
+      "detail": "User A name update reflected immediately in User B's conversation partner profile!"
+    },
+    {
+      "testName": "Security: User Data Isolation",
+      "detail": "User B token exclusively returns User B profile"
+    },
+    {
+      "testName": "Database Integrity: Foreign Key Constraints",
+      "detail": "Zero orphan photos or orphan profiles found in database"
+    }
+  ],
+  "failed": [],
+  "bugsFound": [],
+  "dbVerification": [
+    {
+      "table": "User & UserProfile",
+      "recordId": "cmrz305190001uxi0adyo27dn"
+    }
+  ],
+  "storageVerification": [
+    {
+      "path": "C:\\Users\\IA ELYSA\\Downloads\\UndrGradz\\backend\\public\\mock-uploads\\users\\cmrz305190001uxi0adyo27dn\\b0a7c6d8-c983-4529-aedb-f8609488245e.jpeg",
+      "status": "EXISTS"
+    }
+  ],
+  "apiVerification": [],
+  "security": []
+}
