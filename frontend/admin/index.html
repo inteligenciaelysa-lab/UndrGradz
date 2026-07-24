@@ -703,14 +703,34 @@
             </div>
           </div>
 
-          <!-- Charts Grid (Chart.js Containers) -->
+          <!-- Multi-Size Analytics Dashboard Grid -->
+
+          <!-- 1. FULL WIDTH HERO CHART (100% Width) -->
+          <div class="glass-panel p-5 mt-6">
+            <div class="panel-header mb-4 flex items-center justify-between">
+              <div>
+                <h3 class="panel-title text-base font-bold text-white flex items-center gap-2">
+                  <span>📊</span> Tendencia de Actividad & Engagement de la Plataforma
+                </h3>
+                <p class="text-xs text-gray-400">Métrica combinada de usuarios activos, mensajes enviados e interacciones semanales.</p>
+              </div>
+              <span class="badge badge-primary text-xs">Últimos 30 días</span>
+            </div>
+            <div style="position: relative; height: 320px; width: 100%;">
+              <canvas id="chart-activity-trend"></canvas>
+            </div>
+          </div>
+
+          <!-- 2. TWO-COLUMN MEDIUM CHARTS (50% / 50% Width) -->
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <!-- Chart 1: User Growth -->
             <div class="glass-panel p-4">
               <div class="panel-header mb-4">
-                <h3 class="panel-title">📈 Crecimiento de Usuarios Registrados</h3>
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>📈</span> Crecimiento de Usuarios Registrados
+                </h3>
               </div>
-              <div style="position: relative; height: 280px; width: 100%;">
+              <div style="position: relative; height: 260px; width: 100%;">
                 <canvas id="chart-user-growth"></canvas>
               </div>
             </div>
@@ -718,74 +738,269 @@
             <!-- Chart 2: University Breakdown -->
             <div class="glass-panel p-4">
               <div class="panel-header mb-4">
-                <h3 class="panel-title">🎓 Estudiantes por Universidad (Top 6)</h3>
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>🎓</span> Estudiantes por Universidad Principal
+                </h3>
               </div>
-              <div style="position: relative; height: 280px; width: 100%;">
+              <div style="position: relative; height: 260px; width: 100%;">
                 <canvas id="chart-uni-breakdown"></canvas>
               </div>
             </div>
+          </div>
 
-            <!-- Chart 3: Verification Status -->
+          <!-- 3. THREE-COLUMN COMPACT CHARTS (33.3% / 33.3% / 33.3% Width) -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <!-- Chart 3: Verification Status Doughnut -->
             <div class="glass-panel p-4">
               <div class="panel-header mb-4">
-                <h3 class="panel-title">✅ Estado de Verificación y Insignias</h3>
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>✅</span> Estado de Verificaciones
+                </h3>
               </div>
-              <div style="position: relative; height: 260px; width: 100%;">
+              <div style="position: relative; height: 230px; width: 100%;">
                 <canvas id="chart-verification-status"></canvas>
               </div>
             </div>
 
-            <!-- Chart 4: Events Categories -->
+            <!-- Chart 4: Events Categories Polar Area -->
             <div class="glass-panel p-4">
               <div class="panel-header mb-4">
-                <h3 class="panel-title">🔥 Eventos y Hangouts por Categoría</h3>
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>🔥</span> Categorías de Hangouts
+                </h3>
               </div>
-              <div style="position: relative; height: 260px; width: 100%;">
+              <div style="position: relative; height: 230px; width: 100%;">
                 <canvas id="chart-event-categories"></canvas>
               </div>
+            </div>
+
+            <!-- Chart 5: Matches & Connection Frequency -->
+            <div class="glass-panel p-4">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>💬</span> Conexiones & Coincidencias
+                </h3>
+              </div>
+              <div style="position: relative; height: 230px; width: 100%;">
+                <canvas id="chart-match-activity"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. ASYMMETRIC GRID (60% Radar / 40% Doughnut) -->
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
+            <!-- Chart 6: Academic Area Radar Chart (3 Cols on LG) -->
+            <div class="glass-panel p-4 lg:col-span-3">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>🎯</span> Distribución por Áreas Académicas y Facultades
+                </h3>
+              </div>
+              <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="chart-career-radar"></canvas>
+              </div>
+            </div>
+
+            <!-- Chart 7: Device & Platform Distribution (2 Cols on LG) -->
+            <div class="glass-panel p-4 lg:col-span-2">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                  <span>📱</span> Dispositivos y Plataformas
+                </h3>
+              </div>
+              <div style="position: relative; height: 260px; width: 100%;">
+                <canvas id="chart-device-os"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. FULL WIDTH HOURLY ACTIVITY TIMELINE CHART (100% Width) -->
+          <div class="glass-panel p-5 mt-6">
+            <div class="panel-header mb-3 flex items-center justify-between">
+              <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
+                <span>🕒</span> Picos de Tráfico por Horario Universitario (00:00 - 23:00 hs)
+              </h3>
+              <span class="text-xs text-gray-400 font-semibold">Hora Local</span>
+            </div>
+            <div style="position: relative; height: 200px; width: 100%;">
+              <canvas id="chart-hourly-activity"></canvas>
             </div>
           </div>
         </section>
 
-        <!-- 8.6 VERIFICATIONS & CREATOR BADGES VIEW -->
+        <!-- 8.6 VERIFICATIONS & CREATOR BADGES VIEW (SaaS Redesign) -->
         <section id="view-verifications" class="view-panel">
-          <div class="view-header">
+          <!-- Premium View Header & Stats Cards -->
+          <div class="view-header flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 class="view-title">✅ Portal de Verificación & Badges de Creadores</h1>
-              <p class="view-subtitle">Revisa credenciales de estudiantes para otorgar la palomita 🎓 y perfiles de creadores de contenido para distintivos ✨.</p>
+              <h1 class="view-title">Verificaciones</h1>
+              <p class="view-subtitle">Revisa y administra las solicitudes de verificación de los estudiantes.</p>
+            </div>
+
+            <!-- Mini Stats Scorecards -->
+            <div class="verif-stats-grid">
+              <div class="verif-stat-card">
+                <span class="verif-stat-num" id="verif-stat-total">0</span>
+                <span class="verif-stat-label">Total Solicitudes</span>
+              </div>
+              <div class="verif-stat-card" style="border-color: rgba(245, 158, 11, 0.3);">
+                <span class="verif-stat-num" style="color: #fbbf24;" id="verif-stat-pending">0</span>
+                <span class="verif-stat-label">Pendientes ⏳</span>
+              </div>
+              <div class="verif-stat-card" style="border-color: rgba(34, 197, 94, 0.3);">
+                <span class="verif-stat-num" style="color: #4ade80;" id="verif-stat-approved">0</span>
+                <span class="verif-stat-label">Aprobadas ✅</span>
+              </div>
+              <div class="verif-stat-card" style="border-color: rgba(239, 68, 68, 0.3);">
+                <span class="verif-stat-num" style="color: #f87171;" id="verif-stat-rejected">0</span>
+                <span class="verif-stat-label">Rechazadas ❌</span>
+              </div>
             </div>
           </div>
 
-          <!-- Sub-Nav Tabs & Filter Bar -->
-          <div class="filter-bar glass-panel p-3 mb-6">
-            <div class="flex flex-wrap gap-2 items-center justify-between">
-              <div class="tab-group flex gap-2">
-                <button class="btn btn-sm btn-primary verif-tab-btn active" data-tab="ALL">
-                  📋 Todas (<span id="verif-count-all">0</span>)
-                </button>
-                <button class="btn btn-sm btn-secondary verif-tab-btn" data-tab="STUDENT_ID">
-                  🎓 Estudiantes (Credenciales)
-                </button>
-                <button class="btn btn-sm btn-secondary verif-tab-btn" data-tab="CREATOR_BADGE">
-                  ✨ Creadores de Contenido
-                </button>
+          <!-- Tab Navigation Bar -->
+          <div class="verif-tabs-wrapper">
+            <div class="verif-tabs-scroll">
+              <button class="verif-nav-tab active" data-tab="ALL">
+                Todas <span class="verif-tab-count" id="tab-count-all">0</span>
+              </button>
+              <button class="verif-nav-tab" data-tab="STUDENT_ID">
+                🎓 Credenciales Estudiantiles <span class="verif-tab-count" id="tab-count-student">0</span>
+              </button>
+              <button class="verif-nav-tab" data-tab="CREATOR_BADGE">
+                ✨ Creadores de Contenido <span class="verif-tab-count" id="tab-count-creator">0</span>
+              </button>
+              <button class="verif-nav-tab" data-tab="ATHLETE">
+                🏅 Atletas Universitarios <span class="verif-tab-count" id="tab-count-athlete">0</span>
+              </button>
+              <button class="verif-nav-tab" data-tab="STUDENT_GOVT">
+                🏛️ Gobierno Estudiantil <span class="verif-tab-count" id="tab-count-govt">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Advanced Search & Filter Toolbar -->
+          <div class="verif-toolbar glass-panel p-3 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <!-- Search Bar with Debounce -->
+              <div class="search-input-wrapper flex-1 min-w-[260px]">
+                <span class="search-input-icon">🔍</span>
+                <input type="text" id="verif-search-input" class="verif-search-field" placeholder="Buscar por nombre, @usuario, email o carrera...">
               </div>
 
-              <div class="flex gap-2 items-center">
-                <select id="verif-status-filter" class="form-select text-sm py-1">
+              <!-- Filter Drawer & Controls -->
+              <div class="flex items-center gap-2">
+                <button id="btn-toggle-filters-drawer" class="btn btn-secondary btn-sm">
+                  ⚙️ Filtros <span id="verif-filter-badge" class="filter-count-badge hidden">0</span>
+                </button>
+
+                <select id="verif-sort-select" class="form-select text-sm py-1.5" style="width: auto;">
+                  <option value="NEWEST" selected>Más recientes primero</option>
+                  <option value="OLDEST">Más antiguas primero</option>
+                  <option value="NAME_ASC">Nombre A-Z</option>
+                  <option value="NAME_DESC">Nombre Z-A</option>
+                </select>
+
+                <div class="view-mode-toggle flex border border-gray-700 rounded-lg overflow-hidden" style="background: rgba(0,0,0,0.3);">
+                  <button id="btn-view-grid" class="view-toggle-btn active" title="Vista Grid ▦">▦</button>
+                  <button id="btn-view-list" class="view-toggle-btn" title="Vista Lista ☰">☰</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Chips Container -->
+            <div id="verif-active-chips-bar" class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-gray-800 hidden">
+              <span class="text-xs text-gray-400 font-semibold">Filtros activos:</span>
+              <div id="verif-chips-container" class="flex flex-wrap gap-1.5"></div>
+              <button id="btn-clear-all-chips" class="text-xs text-indigo-400 hover:underline font-semibold ml-2">Limpiar todos</button>
+            </div>
+          </div>
+
+          <!-- Advanced Filters Drawer Panel -->
+          <div id="verif-filters-drawer" class="filters-drawer glass-panel p-4 mb-5 hidden">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-800">
+              <h3 class="font-bold text-sm text-white flex items-center gap-2">⚙️ Panel de Filtros Avanzados</h3>
+              <button id="btn-close-drawer" class="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <!-- Estado -->
+              <div class="form-group mb-0">
+                <label class="text-xs font-bold text-gray-400 mb-1 block">Estado</label>
+                <select id="drawer-filter-status" class="form-select text-sm py-1.5">
                   <option value="ALL">Todos los Estados</option>
                   <option value="PENDING" selected>⏳ Pendientes</option>
                   <option value="APPROVED">✅ Aprobados</option>
                   <option value="REJECTED">❌ Rechazados</option>
                 </select>
-                <input type="text" id="verif-search-input" class="form-input text-sm py-1" placeholder="Buscar por nombre o handle...">
               </div>
+
+              <!-- Tipo -->
+              <div class="form-group mb-0">
+                <label class="text-xs font-bold text-gray-400 mb-1 block">Tipo de Verificación</label>
+                <select id="drawer-filter-type" class="form-select text-sm py-1.5">
+                  <option value="ALL">Todos los tipos</option>
+                  <option value="STUDENT_ID">🎓 Credenciales Estudiantiles</option>
+                  <option value="CREATOR_BADGE">✨ Creadores de Contenido</option>
+                  <option value="ATHLETE">🏅 Atletas Universitarios</option>
+                  <option value="STUDENT_GOVT">🏛️ Gobierno Estudiantil</option>
+                </select>
+              </div>
+
+              <!-- Universidad -->
+              <div class="form-group mb-0">
+                <label class="text-xs font-bold text-gray-400 mb-1 block">Universidad</label>
+                <select id="drawer-filter-uni" class="form-select text-sm py-1.5">
+                  <option value="ALL">Todas las universidades</option>
+                </select>
+              </div>
+
+              <!-- Carrera -->
+              <div class="form-group mb-0">
+                <label class="text-xs font-bold text-gray-400 mb-1 block">Carrera / Licenciatura</label>
+                <select id="drawer-filter-major" class="form-select text-sm py-1.5">
+                  <option value="ALL">Todas las carreras</option>
+                </select>
+              </div>
+
+              <!-- Fecha -->
+              <div class="form-group mb-0">
+                <label class="text-xs font-bold text-gray-400 mb-1 block">Fecha de Solicitud</label>
+                <select id="drawer-filter-date" class="form-select text-sm py-1.5">
+                  <option value="ALL">Cualquier fecha</option>
+                  <option value="TODAY">Hoy</option>
+                  <option value="7DAYS">Últimos 7 días</option>
+                  <option value="30DAYS">Últimos 30 días</option>
+                </select>
+              </div>
+
+              <!-- Documento / Información -->
+              <div class="form-group mb-0">
+                <label class="text-xs font-bold text-gray-400 mb-1 block">Adjuntos e Información</label>
+                <select id="drawer-filter-doc" class="form-select text-sm py-1.5">
+                  <option value="ALL">Todos los registros</option>
+                  <option value="WITH_DOC">Con documento adjunto</option>
+                  <option value="WITHOUT_DOC">Sin documento adjunto</option>
+                  <option value="COMPLETE">Con información completa</option>
+                  <option value="INCOMPLETE">Con información incompleta</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-gray-800">
+              <button id="btn-reset-drawer-filters" class="btn btn-secondary btn-sm">Limpiar Filtros</button>
+              <button id="btn-apply-drawer-filters" class="btn btn-primary btn-sm">Aplicar Filtros</button>
             </div>
           </div>
 
-          <!-- Verifications Cards Grid -->
-          <div id="verifications-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div class="glass-panel p-6 text-center col-span-full">Cargando solicitudes de verificación...</div>
+          <!-- Results Counter -->
+          <div class="flex items-center justify-between mb-4 px-1">
+            <span class="text-xs font-bold text-gray-400" id="verif-results-count">Cargando resultados...</span>
+          </div>
+
+          <!-- Cards Gallery Grid (Strict 3 Cards per Row on Desktop) -->
+          <div id="verifications-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Rendered by JavaScript -->
           </div>
         </section>
 

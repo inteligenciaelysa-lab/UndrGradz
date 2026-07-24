@@ -1424,7 +1424,7 @@ class AdminService {
     // Seed synthetic dynamic verification queue if DB is empty
     if (dbRequests.length === 0) {
       const sampleUsers = await prisma.user.findMany({
-        take: 10,
+        take: 12,
         where: { isDeleted: false },
         include: {
           profile: true,
@@ -1432,22 +1432,87 @@ class AdminService {
         }
       });
 
+      const typesList = ['STUDENT_ID', 'CREATOR_BADGE', 'ATHLETE', 'STUDENT_GOVT'];
+
       const synthetic = sampleUsers.map((u, idx) => {
-        const isCreator = idx % 2 === 1;
-        return {
-          id: `req_${u.id}_${idx}`,
-          userId: u.id,
-          type: isCreator ? 'CREATOR_BADGE' : 'STUDENT_ID',
-          status: u.isVerified || u.isCreatorVerified ? 'APPROVED' : (idx > 6 ? 'REJECTED' : 'PENDING'),
-          credentialUrl: u.photos && u.photos[0] ? u.photos[0].url : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600',
-          socialLinks: isCreator ? {
+        const vType = typesList[idx % 4];
+        let socialLinks = null;
+        let creatorCategory = null;
+        let notes = '';
+        let credentialUrl = u.photos && u.photos[0] ? u.photos[0].url : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600';
+
+        // Additional Category-Specific Fields matching Reference Mockup
+        let studentId = null;
+        let docType = null;
+        let docName = 'Documento de Verificación';
+        let docSize = 'PDF · 1.5 MB';
+
+        let sport = null;
+        let team = null;
+        let athletePosition = null;
+        let athleteCategory = null;
+
+        let organization = null;
+        let govtPosition = null;
+        let faculty = null;
+        let period = null;
+
+        if (vType === 'STUDENT_ID') {
+          studentId = `A0${1234567 + idx * 89}`;
+          docType = idx % 2 === 0 ? 'Credencial Estudiantil' : 'Credencial ITESM';
+          docName = 'Credencial estudiantil';
+          docSize = 'PDF · 1.2 MB';
+          notes = 'Adjunto fotografía vigente de mi credencial universitaria física.';
+        } else if (vType === 'CREATOR_BADGE') {
+          socialLinks = {
             instagram: `@${u.handle || u.firstName.toLowerCase()}`,
             tiktok: `@${u.handle || u.firstName.toLowerCase()}_campus`,
             youtube: `${u.firstName} Vlogs`,
             followers: `${Math.floor(Math.random() * 40) + 5}k seguidores`
-          } : null,
-          creatorCategory: isCreator ? ['Campus Vlogger 🎥', 'Gaming & Esports 🎮', 'Lifestyle & Fashion ✨', 'Study & Tech 📚'][idx % 4] : null,
-          notes: isCreator ? 'Publico contenido semanal sobre vida universitaria y consejos de estudio.' : 'Adjunto mi credencial física vigente de la universidad.',
+          };
+          creatorCategory = ['Campus Vlogger 🎥', 'Gaming & Esports 🎮', 'Lifestyle & Fashion ✨', 'Study & Tech 📚'][idx % 4];
+          notes = 'Publico contenido semanal sobre vida universitaria, eventos y consejos de estudio.';
+        } else if (vType === 'ATHLETE') {
+          sport = ['Voleibol 🏐', 'Básquetbol 🏀', 'Fútbol ⚽', 'Natación 🏊‍♂️', 'Atletismo 🏃'][idx % 5];
+          team = ['UAdC Volleyball', 'ITESM Basketball', 'Lobos UAdC', 'Tigres UANL'][idx % 4];
+          athletePosition = ['Titular', 'Ala-Pívot', 'Capitán', 'Libero'][idx % 4];
+          athleteCategory = 'Universitaria';
+          docName = 'Constancia deportiva';
+          docSize = 'PDF · 2.4 MB';
+          notes = 'Adjunto constancia oficial del equipo representativo universitario y kárdex deportivo.';
+          credentialUrl = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600';
+        } else if (vType === 'STUDENT_GOVT') {
+          organization = 'Consejo Estudiantil';
+          govtPosition = ['Representante de Facultad', 'Presidente de Consejo', 'Vicepresidente', 'Tesorero'][idx % 4];
+          faculty = ['Facultad de Derecho', 'Facultad de Medicina', 'Facultad de Ingeniería', 'Facultad de Comunicación'][idx % 4];
+          period = '2026 - 2027';
+          docName = 'Nombramiento oficial';
+          docSize = 'PDF · 1.8 MB';
+          notes = 'Adjunto nombramiento oficial emitido por la dirección de asuntos estudiantiles.';
+          credentialUrl = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600';
+        }
+
+        return {
+          id: `req_${u.id}_${idx}`,
+          userId: u.id,
+          type: vType,
+          status: u.isVerified || u.isCreatorVerified || u.isAthleteVerified || u.isGovtVerified ? 'APPROVED' : (idx > 7 ? 'REJECTED' : 'PENDING'),
+          credentialUrl,
+          socialLinks,
+          creatorCategory,
+          notes,
+          studentId,
+          docType,
+          docName,
+          docSize,
+          sport,
+          team,
+          athletePosition,
+          athleteCategory,
+          organization,
+          govtPosition,
+          faculty,
+          period,
           createdAt: u.createdAt,
           user: {
             id: u.id,
@@ -1457,9 +1522,11 @@ class AdminService {
             handle: u.handle || `@${u.firstName.toLowerCase()}`,
             isVerified: u.isVerified,
             isCreatorVerified: u.isCreatorVerified,
+            isAthleteVerified: u.isAthleteVerified,
+            isGovtVerified: u.isGovtVerified,
             profile: u.profile ? {
-              university: u.profile.university || 'UANE Saltillo',
-              major: u.profile.major || 'Lic. en Administración'
+              university: u.profile.university || 'Universidad Autónoma de Coahuila',
+              major: u.profile.major || 'Ingeniería Mecatrónica'
             } : null,
             photos: u.photos
           }
@@ -1473,16 +1540,34 @@ class AdminService {
       });
     }
 
+    const totalCount = dbRequests.length;
     const pendingCount = dbRequests.filter(r => r.status === 'PENDING').length;
+    const approvedCount = dbRequests.filter(r => r.status === 'APPROVED').length;
+    const rejectedCount = dbRequests.filter(r => r.status === 'REJECTED').length;
+
+    const studentIdCount = dbRequests.filter(r => r.type === 'STUDENT_ID').length;
+    const creatorCount = dbRequests.filter(r => r.type === 'CREATOR_BADGE').length;
+    const athleteCount = dbRequests.filter(r => r.type === 'ATHLETE').length;
+    const govtCount = dbRequests.filter(r => r.type === 'STUDENT_GOVT').length;
 
     return {
       requests: dbRequests,
+      stats: {
+        totalCount,
+        pendingCount,
+        approvedCount,
+        rejectedCount,
+        studentIdCount,
+        creatorCount,
+        athleteCount,
+        govtCount
+      },
       pendingCount
     };
   }
 
   /**
-   * Approve Verification Request (Student ID Checkmark or Content Creator Badge)
+   * Approve Verification Request (Student ID, Creator, Athlete, Student Govt)
    */
   async approveVerification(adminId, requestId, adminNotes, ipAddress) {
     let targetUserId = null;
@@ -1509,7 +1594,10 @@ class AdminService {
     if (!targetUserId && requestId.startsWith('req_')) {
       const parts = requestId.split('_');
       targetUserId = parts[1];
-      reqType = requestId.includes('CREATOR') ? 'CREATOR_BADGE' : 'STUDENT_ID';
+      if (requestId.includes('CREATOR')) reqType = 'CREATOR_BADGE';
+      else if (requestId.includes('ATHLETE')) reqType = 'ATHLETE';
+      else if (requestId.includes('GOVT')) reqType = 'STUDENT_GOVT';
+      else reqType = 'STUDENT_ID';
     }
 
     if (!targetUserId) {
@@ -1518,9 +1606,27 @@ class AdminService {
     }
 
     if (targetUserId) {
-      const updateData = reqType === 'CREATOR_BADGE' 
-        ? { isCreatorVerified: true } 
-        : { isVerified: true };
+      const updateData = {};
+      let notifTitle = '';
+      let notifMsg = '';
+
+      if (reqType === 'CREATOR_BADGE') {
+        updateData.isCreatorVerified = true;
+        notifTitle = '✨ Badge de Creador Aprobado!';
+        notifMsg = '¡Felicidades! Tu perfil ha sido otorgado con el distintivo oficial de Creador de Contenido Verificado ✨';
+      } else if (reqType === 'ATHLETE') {
+        updateData.isAthleteVerified = true;
+        notifTitle = '🏅 Badge de Atleta Universitario Aprobado!';
+        notifMsg = '¡Felicidades! Se ha verificado tu constancia deportiva. Ahora luces el distintivo oficial de Atleta Universitario 🏅';
+      } else if (reqType === 'STUDENT_GOVT') {
+        updateData.isGovtVerified = true;
+        notifTitle = '🏛️ Badge de Gobierno Estudiantil Aprobado!';
+        notifMsg = '¡Felicidades! Se ha validado tu cargo representativo. Tu perfil cuenta con el distintivo de Gobierno Estudiantil 🏛️';
+      } else {
+        updateData.isVerified = true;
+        notifTitle = '🎓 Verificación de Estudiante Aprobada!';
+        notifMsg = 'Tu credencial universitaria ha sido revisada con éxito. Ya cuentas con la palomita oficial de estudiante verificado 🎓';
+      }
 
       const updatedUser = await prisma.user.update({
         where: { id: targetUserId },
@@ -1532,17 +1638,15 @@ class AdminService {
         data: {
           recipientId: targetUserId,
           senderId: adminId,
-          title: reqType === 'CREATOR_BADGE' ? '✨ Badge de Creador Aprobado!' : '🎓 Verificación de Estudiante Aprobada!',
-          message: reqType === 'CREATOR_BADGE' 
-            ? '¡Felicidades! Tu perfil ha sido otorgado con el distintivo oficial de Creador de Contenido Verificado ✨' 
-            : 'Tu credencial universitaria ha sido revisada con éxito. Ya cuentas con la palomita oficial de estudiante verificado 🎓',
+          title: notifTitle,
+          message: notifMsg,
           type: 'SYSTEM'
         }
       }).catch(() => {});
 
       await this.createAuditLog({
         adminId,
-        action: reqType === 'CREATOR_BADGE' ? 'CREATOR_BADGE_GRANTED' : 'STUDENT_VERIFICATION_APPROVED',
+        action: `VERIFICATION_APPROVED_${reqType}`,
         targetType: 'USER',
         targetId: targetUserId,
         details: { requestId, reqType, adminNotes },

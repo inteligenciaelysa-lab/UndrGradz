@@ -33,6 +33,8 @@ model User {
   isPhoneVerified   Boolean  @default(false)
   isVerified        Boolean  @default(false) // Student ID verification badge 🎓 / ✅
   isCreatorVerified Boolean  @default(false) // Content Creator verification badge ✨
+  isAthleteVerified Boolean  @default(false) // Campus Athlete verification badge 🏅
+  isGovtVerified    Boolean  @default(false) // Student Government verification badge 🏛️
 
   // Administrative & Security fields
   role              String   @default("STUDENT") // 'STUDENT', 'SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'

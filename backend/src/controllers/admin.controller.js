@@ -394,6 +394,11 @@ class AdminController {
     }
   }
 
+  async updateSetting(req, res, next) {
+    try {
+      const { key, value, description } = req.body;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+
       const setting = await adminService.updateSetting(req.user.id, key, value, description, ipAddress);
       res.status(200).json({
         status: 'success',
