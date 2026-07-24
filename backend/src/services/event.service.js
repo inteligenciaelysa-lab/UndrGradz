@@ -28,11 +28,13 @@ class EventService {
             id: true,
             firstName: true,
             lastName: true,
+            handle: true,
             profile: {
               select: {
                 university: true
               }
-            }
+            },
+            photos: { orderBy: { order: 'asc' }, take: 1 }
           }
         },
         attendees: {
@@ -77,11 +79,13 @@ class EventService {
             id: true,
             firstName: true,
             lastName: true,
+            handle: true,
             profile: {
               select: {
                 university: true
               }
-            }
+            },
+            photos: { orderBy: { order: 'asc' }, take: 1 }
           }
         },
         attendees: {

@@ -68,16 +68,47 @@ class UserService {
   }
 
   async updateProfile(userId, profileData) {
+    const { firstName, lastName, handle, ...profileFields } = profileData;
+
+    // Update User table if firstName, lastName, or handle are provided
+    if (firstName !== undefined || lastName !== undefined || handle !== undefined) {
+      const userUpdateData = {};
+      if (firstName !== undefined) userUpdateData.firstName = firstName.trim();
+      if (lastName !== undefined) userUpdateData.lastName = lastName.trim();
+      if (handle !== undefined) {
+        const cleanHandle = handle.trim().replace(/^@/, '');
+        if (cleanHandle) {
+          const existingUserWithHandle = await prisma.user.findFirst({
+            where: {
+              handle: cleanHandle,
+              id: { not: userId }
+            }
+          });
+          if (existingUserWithHandle) {
+            throw new AppError('Username already taken', 400);
+          }
+          userUpdateData.handle = cleanHandle;
+        }
+      }
+
+      if (Object.keys(userUpdateData).length > 0) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: userUpdateData,
+        });
+      }
+    }
+
     // Upsert UserProfile (create if not exists, update if exists)
     const profile = await prisma.userProfile.upsert({
       where: { userId },
       update: {
-        ...profileData,
+        ...profileFields,
         lastActive: new Date(),
       },
       create: {
         userId,
-        ...profileData,
+        ...profileFields,
         lastActive: new Date(),
       },
     });

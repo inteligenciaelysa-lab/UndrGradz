@@ -1192,6 +1192,32 @@ var FLAGS = [
   {f:'🇨🇳',l:'Mandarin'},{f:'🇰🇷',l:'Korean'},{f:'🇮🇳',l:'Hindi'},
   {f:'🇸🇦',l:'Arabic'},{f:'🇮🇹',l:'Italian'}
 ];
+function _getLangFlag(l) {
+  if (!l) return '🗣️';
+  var str = String(l).toLowerCase();
+  if (str.includes('us') || str.includes('american') || str.includes('english (us)')) return '🇺🇸';
+  if (str.includes('uk') || str.includes('british') || str.includes('english (uk)')) return '🇬🇧';
+  if (str.includes('mexico') || str.includes('méxico') || str.includes('spanish (mexico)') || str.includes('español (méxico)')) return '🇲🇽';
+  if (str.includes('spain') || str.includes('españa') || str.includes('spanish (spain)')) return '🇪🇸';
+  if (str.includes('argentina')) return '🇦🇷';
+  if (str.includes('colombia')) return '🇨🇴';
+  if (str.includes('english')) return '🇺🇸';
+  if (str.includes('spanish') || str.includes('español')) return '🇲🇽';
+  if (str.includes('french') || str.includes('francés')) return '🇫🇷';
+  if (str.includes('german') || str.includes('alemán')) return '🇩🇪';
+  if (str.includes('italian') || str.includes('italiano')) return '🇮🇹';
+  if (str.includes('portuguese') || str.includes('português')) return str.includes('brazil') ? '🇧🇷' : '🇵🇹';
+  if (str.includes('chinese') || str.includes('mandarin') || str.includes('chino')) return '🇨🇳';
+  if (str.includes('japanese') || str.includes('japonés')) return '🇯🇵';
+  if (str.includes('korean') || str.includes('coreano')) return '🇰🇷';
+  if (str.includes('arabic') || str.includes('árabe')) return '🇸🇦';
+  if (str.includes('russian') || str.includes('ruso')) return '🇷🇺';
+  if (str.includes('hindi')) return '🇮🇳';
+  if (str.includes('dutch') || str.includes('holandés')) return '🇳🇱';
+  if (str.includes('swedish') || str.includes('sueco')) return '🇸🇪';
+  var f = (typeof FLAGS !== 'undefined' ? FLAGS : []).find(function(x){ return x.l === l; });
+  return f ? f.f : '🗣️';
+}
 var LANGUAGES = ['English','Spanish','French','Portuguese','German','Italian','Dutch','Swedish','Norwegian','Danish','Polish','Greek','Russian','Ukrainian','Turkish','Japanese','Korean','Mandarin','Cantonese','Vietnamese','Thai','Indonesian','Tagalog','Hindi','Urdu','Bengali','Arabic','Hebrew','Persian','ASL'];
 // Shared major + Greek lists — used by Student Registration AND the Hangouts / Crush filters so they stay in sync
 var MAJORS = ["Accounting", "Acoustical Engineering", "Acoustics", "Actuarial Science", "Adult Education", "Advertising", "Aeronautics", "Aerospace Engineering", "African American Studies", "African Languages", "African Studies", "Agribusiness", "Agricultural & Biological Engineering", "Agricultural Communications", "Agricultural Economics", "Agricultural Education", "Agricultural Engineering", "Agricultural Engineering Technology", "Agricultural Sciences", "Agronomy", "Air Traffic Management", "American Sign Language", "American Studies", "Analytics", "Animal Behavior", "Animal Science", "Animation", "Anthropology", "Apparel Design", "Applied Mathematics", "Applied Music", "Applied Physics", "Applied Statistics", "Aquaculture", "Aquatic Biology", "Arabic", "Archaeology", "Architectural Engineering", "Architecture", "Art Education", "Art History", "Art Therapy", "Artificial Intelligence", "Arts Administration", "Asian Studies", "Assyriology", "Astronomy", "Astrophysics", "Athletic Training", "Atmospheric Chemistry", "Atmospheric Science", "Audio Engineering", "Audiology", "Automation Engineering", "Automotive Engineering", "Automotive Technology", "Aviation", "Aviation Maintenance", "Aviation Management", "Ballet", "Behavioral Economics", "Behavioral Neuroscience", "Behavioral Science", "Biblical Languages", "Bilingual Education", "Biochemical Engineering", "Biochemistry", "Bioinformatics", "Biological Engineering", "Biological Sciences", "Biology", "Biomanufacturing", "Biomedical Engineering", "Biomedical Sciences", "Biophysics", "Biostatistics", "Biotechnology", "Border Security", "Botany", "Brewing Science", "Broadcast Journalism", "Building Construction", "Business Administration", "Business Analytics", "Business Economics", "Business Management", "Cardiopulmonary Science", "Cardiovascular Technology", "Cartography", "Cell Biology", "Ceramic Engineering", "Ceramics", "Chemical Biology", "Chemical Engineering", "Chemical Physics", "Chemistry", "Child Development", "Chinese", "Chiropractic", "Christian Ministry", "Cinema Studies", "Cinematography", "City Planning", "Civil & Environmental Engineering", "Civil Engineering", "Classical Studies", "Classics", "Climate & Sustainability", "Climate Science", "Clinical Laboratory Science", "Clinical Psychology", "Cloud & Systems", "Cloud Computing", "Cognitive Neuroscience", "Cognitive Science", "Commerce", "Communication Studies", "Communications", "Community Development", "Community Health", "Comparative Literature", "Comparative Politics", "Composition", "Computational Biology", "Computational Finance", "Computational Linguistics", "Computational Physics", "Computational Science", "Computer & Electrical Engineering", "Computer Engineering", "Computer Information Systems", "Computer Science", "Conducting", "Conservation Biology", "Construction Engineering", "Construction Engineering Technology", "Construction Management", "Consumer Economics", "Corporate Communication", "Corrections", "Costume Design", "Court Reporting", "Creative Writing", "Criminal Justice", "Criminal Psychology", "Criminology", "Culinary Arts", "Culinary Management", "Cultural Anthropology", "Cultural Studies", "Curriculum & Instruction", "Cybercrime", "Cybersecurity", "Dairy Science", "Dance", "Data Analytics", "Data Engineering", "Data Science", "Database Administration", "Demography", "Dental Assisting", "Dental Hygiene", "Dentistry / Pre-Dental", "Design & Technology", "Development Studies", "Developmental Biology", "Diagnostic Imaging", "Dietetics", "Digital Arts", "Digital Forensics", "Digital Humanities", "Digital Media", "Diplomacy", "Disability Studies", "Drama", "Drawing", "E-Commerce", "Early Childhood Education", "Earth & Space Science", "East Asian Studies", "Ecology", "Econometrics", "Economics", "Ecotourism", "Education", "Educational Leadership", "Educational Psychology", "Educational Technology", "Electrical Engineering", "Electrical Engineering Technology", "Electromechanical Technology", "Electronic Media", "Electronics Engineering", "Elementary Education", "Elementary Statistics", "Emergency Management", "Emergency Medical Services", "Energy Engineering", "Energy Management", "Engineering Management", "Engineering Physics", "Engineering Science", "Engineering Technology", "English", "English Education", "English Literature", "English as a Second Language", "Entomology", "Entrepreneurship", "Environmental Chemistry", "Environmental Engineering", "Environmental Health", "Environmental Law", "Environmental Management", "Environmental Policy", "Environmental Science", "Environmental Studies", "Environmental Systems Engineering", "Epidemiology", "Equine Science", "Esports Management", "Ethnic Studies", "European Studies", "Event Management", "Evolutionary Biology", "Exercise Physiology", "Exercise Science", "Experimental Psychology", "Facilities Management", "Family Studies", "Fashion Business", "Fashion Design", "Fashion Marketing", "Fashion Merchandising", "Fermentation Science", "Film & Media Studies", "Film Production", "Film Scoring", "Finance", "Financial Economics", "Financial Engineering", "Financial Mathematics", "Financial Planning", "Fine Arts", "Fire Protection Engineering", "Fire Science", "Fisheries & Wildlife", "Fisheries Science", "Floral Design", "Fluid Dynamics", "Folklore", "Food & Nutrition", "Food Engineering", "Food Science", "Food Service Management", "Foreign Affairs", "Foreign Languages", "Forensic Accounting", "Forensic Chemistry", "Forensic Nursing", "Forensic Psychology", "Forensic Science", "Forestry", "French", "Game Art", "Game Design", "Game Development", "Gender Studies", "Genetic Counseling", "Genetics", "Geochemistry", "Geography", "Geological Engineering", "Geology", "Geomatics Engineering", "Geophysics", "Geospatial Science", "Geotechnical Engineering", "German", "Gerontology", "Global Health Studies", "Global Studies", "Golf Management", "Graphic Design", "Greek", "Health Administration", "Health Communication", "Health Education", "Health Informatics", "Health Information Management", "Health Policy", "Health Sciences", "Healthcare Administration", "Hebrew", "Higher Education", "Hindi", "Historic Preservation", "History", "Homeland Security", "Horticultural Science", "Horticulture", "Hospitality & Tourism", "Hospitality Management", "Hotel Management", "Human Biology", "Human Development", "Human Factors", "Human Nutrition", "Human Resource Development", "Human Resources Management", "Human Services", "Human-Computer Interaction", "Humanities", "Hydrology", "IT Management", "Illustration", "Immunology", "Indigenous Studies", "Industrial Design", "Industrial Design Technology", "Industrial Distribution", "Industrial Engineering", "Industrial Hygiene", "Industrial Management", "Industrial Technology", "Information Assurance", "Information Science", "Information Systems", "Information Technology", "Instructional Design", "Insurance & Risk Management", "Integrated Marketing", "Intelligence Studies", "Interactive Media", "Interdisciplinary Arts", "Interdisciplinary Studies", "Interior Architecture", "Interior Design", "International Business", "International Development", "International Economics", "International Finance", "International Relations", "International Studies", "Investment Management", "Islamic Studies", "Italian", "Japanese", "Jazz Studies", "Jewelry Design", "Journalism", "Kinesiology", "Korean", "Labor Relations", "Landscape Architecture", "Landscape Design", "Landscape Management", "Language Studies", "Latin", "Latin American Studies", "Law / Pre-Law", "Law Enforcement", "Leadership Studies", "Learning Sciences", "Legal Studies", "Liberal Arts", "Liberal Studies", "Library Science", "Life Sciences", "Linguistics", "Logistics", "Machine Learning", "Management", "Management Information Systems", "Manufacturing Engineering", "Marine Affairs", "Marine Biology", "Marine Engineering", "Marine Science", "Marine Systems Engineering", "Marketing", "Marketing Analytics", "Mass Communication", "Materials Engineering", "Materials Science", "Math Education", "Mathematical Sciences", "Mathematics", "Mechanical Engineering", "Mechanical Engineering Technology", "Mechatronics", "Media Arts", "Media Production", "Media Studies", "Medical Anthropology", "Medical Illustration", "Medical Laboratory Science", "Medical Sociology", "Medical Technology", "Medicine / Pre-Med", "Medieval Studies", "Merchandising", "Metallurgical Engineering", "Meteorology", "Microbiology", "Middle Eastern Studies", "Midwifery", "Military Science (ROTC)", "Mining Engineering", "Molecular Biology", "Molecular Genetics", "Motion Picture Arts", "Multidisciplinary Studies", "Multimedia Design", "Museum Studies", "Music", "Music Business", "Music Composition", "Music Education", "Music Performance", "Music Production", "Music Technology", "Music Therapy", "Musical Theater", "Musicology", "Mycology", "Nanoengineering", "Nanoscience", "Nanotechnology", "Natural Resource Management", "Natural Sciences", "Naval Architecture", "Network Administration", "Neuroscience", "Nonprofit Management", "Nuclear Engineering", "Nuclear Engineering Technology", "Nursing", "Nursing Science", "Nutrition", "Occupational Health", "Occupational Safety", "Occupational Therapy", "Ocean Engineering", "Oceanography", "Operations Management", "Operations Research", "Optical Engineering", "Optometry / Pre-Opt", "Organizational Communication", "Organizational Leadership", "Ornithology", "Packaging Science", "Painting", "Painting & Drawing", "Paleontology", "Paralegal Studies", "Paramedic Science", "Parks & Recreation", "Peace & Conflict Studies", "Performance Studies", "Petroleum Engineering", "Pharmaceutical Sciences", "Pharmacology", "Pharmacy / Pre-Pharm", "Philosophy", "Photography", "Photonics", "Physical Education", "Physical Sciences", "Physical Therapy", "Physical Therapy Assistant", "Physician Assistant Studies", "Physics", "Physiology", "Piano Performance", "Planetary Science", "Plant Biology", "Plant Pathology", "Plant Science", "Plastics Engineering", "Playwriting", "Podiatry", "Poetry", "Political Communication", "Political Economy", "Political Science", "Portuguese", "Poultry Science", "Power Engineering", "Pre-Dentistry", "Pre-Nursing", "Pre-Optometry", "Pre-Pharmacy", "Pre-Physical Therapy", "Precision Agriculture", "Printmaking", "Product Design", "Professional Writing", "Project Management", "Psychology", "Public Administration", "Public Health", "Public Policy", "Public Relations", "Public Safety", "Quantitative Economics", "Quantum Computing", "Radio & Television", "Radiologic Technology", "Railroad Engineering", "Range Management", "Real Estate", "Recording Arts", "Recreation Management", "Recreation Therapy", "Rehabilitation Sciences", "Religious Studies", "Renewable Energy", "Respiratory Therapy", "Restaurant Management", "Retail Management", "Rhetoric", "Robotics Engineering", "Russian", "STEM Education", "Sales", "Science Education", "Screenwriting", "Sculpture", "Secondary Education", "Security Studies", "Set Design", "Sign Language Studies", "Small Business Management", "Social Innovation", "Social Psychology", "Social Work", "Sociology", "Software Development", "Software Engineering", "Software Systems Engineering", "Soil Science", "Sound Design", "Space Science", "Spanish", "Special Education", "Speech Communication", "Speech-Language Pathology", "Sport Business", "Sport Management", "Sports Analytics", "Sports Communication", "Sports Journalism", "Sports Management", "Sports Medicine", "Sports Nutrition", "Stagecraft", "Statistics", "Strategic Communication", "Strategic Management", "Structural Engineering", "Studio Art", "Studio Recording", "Substance Abuse Counseling", "Supply Chain Management", "Surveying", "Sustainability", "Sustainable Agriculture", "Sustainable Design", "Sustainable Engineering", "Systems Administration", "Systems Biology", "Systems Engineering", "TESOL / ESL", "Taxation", "Teaching English", "Technical Communication", "Telecommunications Engineering", "Textile Design", "Textile Engineering", "Textiles", "Theatre", "Theatre Arts", "Theatre Design", "Theatre Education", "Theology", "Theoretical Physics", "Therapeutic Recreation", "Tourism Management", "Toxicology", "Translation & Interpretation", "Transportation Engineering", "Turfgrass Science", "UX/UI Design", "Urban Design", "Urban Education", "Urban Planning", "Urban Studies", "User Experience Design", "Veterinary Science / Pre-Vet", "Virology", "Visual Arts", "Viticulture", "Vocational Education", "Voice Performance", "Water Resources", "Web Design", "Web Development", "Welding Engineering", "Wildlife Biology", "Wildlife Ecology", "Wildlife Management", "Wine & Beverage Management", "Women's & Gender Studies", "World Religions", "Writing", "Youth Ministry", "Zoology", "Undecided"];
@@ -1820,6 +1846,14 @@ async function doLoginAuth(){
     if (profile.lifestyle) Object.assign(userPro, profile.lifestyle);
     if (profile.academic) Object.assign(userPro, profile.academic);
     if (profile.background) Object.assign(userPro, profile.background);
+
+    // Explicitly sync language properties on userPro
+    const loadedLangs = (profile.background && (profile.background.languages || profile.background.langs)) || profile.languages || profile.langs || userPro.languages || userPro.langs || ['English (US)'];
+    userPro.languages = loadedLangs;
+    userPro.langs = loadedLangs;
+    userPro.flags = loadedLangs;
+    selectedFlags = loadedLangs.slice();
+
     if (profile.customization) {
       userPro.customization = profile.customization;
       Object.assign(userPro, profile.customization);
@@ -1837,6 +1871,8 @@ async function doLoginAuth(){
       
       const dbPhotos = dbProfile.photos || [];
       dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
+      userPro.photos = dbPhotos.map(p => p.url);
+      window.userDatingPhotos = dbPhotos.map(p => p.url);
       
       dbPhotos.forEach(p => {
         if (typeof crushPhotoCell === 'function') {
@@ -2572,8 +2608,8 @@ function _ob4RenderPhotoGridP4(){
   var isEs = window.currentLang === 'es';
   var title = isEs ? 'Añade tus fotos 📷' : 'Add Your Photos 📷';
   var sub = isEs ? 
-    'Sube de 3 a 6 fotos. Arrastra para reordenar · toca para subir o cambiar.<br/><span style="color:rgba(255,255,255,0.45);">Tu primera foto es tu portada — es lo que verán en solicitudes y chats.</span>' :
-    'Upload 3–6 photos. Drag to reorder · tap to upload or replace.<br/><span style="color:rgba(255,255,255,0.45);">Your first photo is your cover — it\'s what people see in friend requests and group chats.</span>';
+    'Sube de 2 a 6 fotos. Arrastra para reordenar · toca para subir o cambiar.<br/><span style="color:rgba(255,255,255,0.45);">Tu primera foto es tu portada — es lo que verán en solicitudes y chats.</span>' :
+    'Upload 2–6 photos. Drag to reorder · tap to upload or replace.<br/><span style="color:rgba(255,255,255,0.45);">Your first photo is your cover — it\'s what people see in friend requests and group chats.</span>';
   
   var slotsHtml = '';
   var photos = window.userDatingPhotos || [];
@@ -2934,11 +2970,27 @@ function _ob4AUCity(val){
   _ob4State.fromCity = val;
 }
 function _ob4ValidateAll4(){
-  // About You is fully optional — always enabled
-  var btn=document.getElementById('ob4-continue-btn-p4');
-  if(btn){btn.removeAttribute('disabled');btn.style.opacity='1';}
+  var photosCount = (window.userDatingPhotos || []).filter(Boolean).length;
+  var isValid = photosCount >= 2;
+  var btn = document.getElementById('ob4-continue-btn-p4');
+  if (btn) {
+    if (isValid) {
+      btn.removeAttribute('disabled');
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.setAttribute('disabled', 'true');
+      btn.style.opacity = '0.45';
+      btn.style.cursor = 'not-allowed';
+    }
+  }
 }
 function _ob4Next4(){
+  var photosCount = (window.userDatingPhotos || []).filter(Boolean).length;
+  if (photosCount < 2) {
+    alert(window.currentLang === 'es' ? 'Por favor sube al menos 2 fotos para continuar.' : 'Please upload at least 2 photos to continue.');
+    return;
+  }
   // Save lifestyle etc to userPro
   if(_ob4State.ethnicity)userPro.ethnicity=_ob4State.ethnicity;
   if(_ob4State.religion)userPro.religion=_ob4State.religion;
@@ -2996,6 +3048,11 @@ function _ob4CardPhotoClick(ev, totalPhotos){
     window._ob4PreviewPhotoIdx = (window._ob4PreviewPhotoIdx + 1) % totalPhotos;
   }
   _ob4Go(5);
+}
+
+function _ob4Bio(v){
+  _ob4State.bio = v;
+  userPro.bio = v;
 }
 
 function _ob4P5(){
@@ -3136,22 +3193,24 @@ function _ob4RenderLangs(){
   var cnt=document.getElementById('ob4-langcount');if(cnt)cnt.textContent=sel.length;
 }
 function _ob4ValidateAll5(){
-  var bioVal=(_ob4State.bio||'').trim();
-  var bioValid=bioVal.length>0;
-  var photosCount=(window.userDatingPhotos||[]).filter(Boolean).length;
-  var photosValid=photosCount>=3;
-  var langValid=(_ob4State.languages||[]).length>=1;
-  var lookingValid=(_ob4State.looking||[]).length>=1;
-  
-  var isValid=bioValid&&photosValid&&langValid&&lookingValid;
-  var btn=document.getElementById('ob4-finish-btn');
-  if(btn){
-    if(isValid){
+  if (!_ob4State.languages || !_ob4State.languages.length) {
+    _ob4State.languages = ['English (US)'];
+  }
+  if (!_ob4State.looking || !_ob4State.looking.length) {
+    _ob4State.looking = ['Friends'];
+  }
+  var photosCount = (window.userDatingPhotos || []).filter(Boolean).length;
+  var isValid = photosCount >= 2;
+  var btn = document.getElementById('ob4-finish-btn');
+  if (btn) {
+    if (isValid) {
       btn.removeAttribute('disabled');
-      btn.style.opacity='1';
-    }else{
-      btn.setAttribute('disabled','true');
-      btn.style.opacity='0.45';
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.setAttribute('disabled', 'true');
+      btn.style.opacity = '0.45';
+      btn.style.cursor = 'not-allowed';
     }
   }
 }
@@ -3161,14 +3220,21 @@ function _ob4DeletePhoto(idx, ev){
   if(window.userDatingPhotos){
     window.userDatingPhotos[idx] = null;
   }
+  if(window._datingPhotoFiles){
+    window._datingPhotoFiles[idx] = null;
+  }
   if(_ob4Phase === 4) _ob4Go(4);
   if(_ob4Phase === 5) _ob4Go(5);
   _ob4Strength();
 }
 function _ob4PhotoChange(inp){
   if(!inp.files[0])return;
-  var url=URL.createObjectURL(inp.files[0]);
+  var rawFile = inp.files[0];
+  var url=URL.createObjectURL(rawFile);
   var idx=_ob4PhotoIdx;
+  window._datingPhotoFiles = window._datingPhotoFiles || [];
+  window._datingPhotoFiles[idx] = rawFile;
+  if (idx === 0) window._profilePicFile = rawFile;
   if(typeof openImagePositioner==='function'){
     openImagePositioner(url,idx===0?'profile':'rect',function(u,pos){
       window.userDatingPhotos=window.userDatingPhotos||[];
@@ -3189,6 +3255,12 @@ function _ob4PhotoChange(inp){
 }
 function _ob4Finish(){
   var st=_ob4State;
+  window.userDatingPhotos = window.userDatingPhotos || [];
+  if (window.userDatingPhotos.filter(Boolean).length === 0 && typeof _profilePicUrl !== 'undefined' && _profilePicUrl) {
+    window.userDatingPhotos.push(_profilePicUrl);
+  }
+  if (!st.languages || !st.languages.length) st.languages = ['English (US)'];
+  if (!st.looking || !st.looking.length) st.looking = ['Friends'];
   if(st.handle)userPro.handle=st.handle.charAt(0)==='@'?st.handle:'@'+st.handle;
   if(st.email)userPro.email=st.email;
   if(st.phone)userPro.phone=(st.code||'')+' '+st.phone;
@@ -3212,6 +3284,7 @@ function _ob4Finish(){
   if(typeof st.bio==='string'&&st.bio.trim())userPro.bio=st.bio.trim();
   if(!uni){uni={name:'My University',p:'#2b5fd9',p2:'#c9243b',acronym:'MU'};}
   if(typeof finishOnboardingFromPhotos==='function')finishOnboardingFromPhotos();
+  else launch();
 }
 
 
@@ -3550,18 +3623,33 @@ async function launch(){
     // 2. Call Login Route to set Access Token
     await apiClient.login(emailVal, passwordVal);
 
-    // Collect all unique file objects to upload
+    // Collect all photo objects/blobs slot-by-slot (slots 0 to 5) to guarantee exact order & count
     const filesToUpload = [];
-    if (window._profilePicFile) {
-      filesToUpload.push(window._profilePicFile);
-    }
+    const datingPhotos = window.userDatingPhotos || [];
     const datingFiles = window._datingPhotoFiles || [];
-    datingFiles.forEach(file => {
-      if (file && !filesToUpload.includes(file)) {
-        filesToUpload.push(file);
-      }
-    });
 
+    for (let i = 0; i < 6; i++) {
+      const photoItem = datingPhotos[i];
+      const rawFile = datingFiles[i];
+
+      if (photoItem && typeof photoItem === 'string' && (photoItem.startsWith('data:') || photoItem.startsWith('blob:'))) {
+        try {
+          const res = await fetch(photoItem);
+          const blob = await res.blob();
+          const mimeType = blob.type || 'image/jpeg';
+          const ext = mimeType.includes('png') ? 'png' : 'jpg';
+          const fileObj = new File([blob], `onboarding_photo_${i + 1}.${ext}`, { type: mimeType });
+          filesToUpload.push(fileObj);
+        } catch(e) {
+          console.error(`Error converting cropped photo at slot ${i} to file:`, e);
+          if (rawFile && rawFile instanceof File) filesToUpload.push(rawFile);
+        }
+      } else if (rawFile && rawFile instanceof File) {
+        filesToUpload.push(rawFile);
+      }
+    }
+
+    console.log(`Uploading ${filesToUpload.length} onboarding photos to storage...`);
     for (let i = 0; i < filesToUpload.length; i++) {
       try {
         console.log(`Uploading onboarding photo ${i + 1}/${filesToUpload.length}...`);
@@ -3579,44 +3667,61 @@ async function launch(){
 
     // 3. Save profile metadata
     const apiProfileData = {
-      bio: userPro.bio || '',
+      bio: userPro.bio || (_ob4State && _ob4State.bio) || '',
       gender: userPro.gender === 'female' ? 'WOMAN' : userPro.gender === 'male' ? 'MAN' : 'NON_BINARY',
       interestedIn: apiInterestedIn,
       university: uni ? uni.name : '',
-      major: userPro.major || '',
-      grad: userPro.grad || '',
+      major: userPro.major || (_ob4State && _ob4State.major) || '',
+      grad: userPro.grad || (_ob4State && _ob4State.gradyr ? String(_ob4State.gradyr) : '') || '',
       crossover: userPro.crossover || false,
-      interests: userPro.interests || [],
-      prompts: userPro.prompts || [],
+      interests: userPro.interests || selectedHobbies || [],
+      prompts: userPro.prompts || selectedPrompts || [],
       bucketList: userPro.bucketList || [],
+      lookingForTags: userPro.lookingForTags || (_ob4State && _ob4State.looking) || [],
       lifestyle: {
-        drinking: userPro.drinking || '',
-        smoking: userPro.smoking || '',
-        sports: userPro.sports || [],
-        workout: userPro.workout || '',
+        drinking: userPro.drinking || (_ob4State && _ob4State.drinking) || '',
+        smoking: userPro.smoking || (_ob4State && _ob4State.smoking) || '',
+        sports: userPro.sports || window._ob4Sports || [],
+        workout: userPro.workout || (_ob4State && _ob4State.workout) || '',
+        diet: userPro.diet || (_ob4State && _ob4State.diet) || '',
         loveLanguage: userPro.loveLanguage || '',
-        zodiac: userPro.zodiac || '',
+        zodiac: userPro.zodiac || (_ob4State && _ob4State.zodiac) || '',
         zodiacEmoji: userPro.zodiacEmoji || '',
-        zodiacShow: userPro.zodiacShow || false
+        zodiacShow: userPro.zodiacShow !== false,
+        height: userPro.height || (_ob4State && _ob4State.height) || '',
+        heightCm: userPro.heightCm || (_ob4State && _ob4State.heightCm) || null
       },
       academic: {
         campus: userPro.campus || (typeof suData !== 'undefined' && suData.campus) || '',
-        minor: userPro.minor || '',
+        minor: userPro.minor || (_ob4State && _ob4State.minor) || '',
         degree: userPro.degree || '',
         advDegrees: userPro.advDegrees || [],
         backOnCampus: userPro.backOnCampus || false,
         transferFrom: userPro.transferFrom || '',
         helpClasses: userPro.helpClasses || [],
-        clubs: userPro.clubs || [],
-        involved: userPro.involved || [],
+        clubs: userPro.clubs || selectedClubs || [],
+        involved: userPro.involved || _ob4Involved || [],
+        living: userPro.living || (_ob4State && _ob4State.living) || '',
+        greekHouse: userPro.greekHouse || window._ob4Greek || '',
+        greekType: userPro.greekType || '',
+        org: userPro.org || window._ob4Greek || '',
+        greekStatus: userPro.greekStatus || '',
         company: userPro.company || ''
       },
       background: {
-        religion: userPro.religion || '',
-        politics: userPro.politics || '',
-        ethnicity: userPro.ethnicity || '',
+        religion: userPro.religion || (_ob4State && _ob4State.religion) || '',
+        politics: userPro.politics || (_ob4State && _ob4State.politics) || '',
+        ethnicity: userPro.ethnicity || (_ob4State && _ob4State.ethnicity) || '',
         faith: userPro.faith || '',
-        pronouns: userPro.pronouns || [],
+        pronouns: userPro.pronouns || (_ob4State && _ob4State.pronouns) || [],
+        orientation: userPro.orientation || (_ob4State && _ob4State.orientation) || '',
+        languages: userPro.languages || userPro.langs || (_ob4State && _ob4State.languages) || ['English (US)'],
+        hometown: userPro.hometown || '',
+        state: userPro.state || '',
+        city: userPro.city || '',
+        fromCountry: userPro.fromCountry || (_ob4State && _ob4State.fromCountry) || '',
+        fromState: userPro.fromState || (_ob4State && _ob4State.fromState) || '',
+        fromCity: userPro.fromCity || (_ob4State && _ob4State.fromCity) || '',
         relationshipStatus: userPro.relationshipStatus || ''
       },
       customization: {
@@ -3625,7 +3730,7 @@ async function launch(){
         badgeColor: userPro.badgeColor || '',
         cardStyle: userPro.cardStyle || '',
         uniNameColor: userPro.uniNameColor || '',
-        uniNameStyle: userPro.uniNameStyle || '',
+        uniNameStyle: userPro.uniNameStyle || (_ob4State && _ob4State.uniNameStyle) || 'full',
         uniOutline: userPro.uniOutline || '',
         yearStyle: userPro.yearStyle || '',
         activityLog: userPro.activityLog || []
@@ -3653,6 +3758,8 @@ async function launch(){
         
         const dbPhotos = dbProfile.photos || [];
         dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
+        userPro.photos = dbPhotos.map(p => p.url);
+        window.userDatingPhotos = dbPhotos.map(p => p.url);
         
         dbPhotos.forEach(p => {
           if (typeof crushPhotoCell === 'function') {
@@ -4129,10 +4236,10 @@ function updateProfileUI(){
   var flr=document.getElementById('prof-flags-row');
   if(flr){
     var pieces=[];
-    if(userPro.langs&&userPro.langs.length){
-      pieces=pieces.concat(userPro.langs.slice(0,8).map(function(l){var f=FLAGS.find(function(x){return x.l===l;});return f?'<div class="cpill">'+f.f+' '+f.l+'</div>':'<div class="cpill">🗣️ '+l+'</div>';}));
+    var userLangs = (userPro && (userPro.languages || userPro.langs || userPro.flags || (userPro.background && userPro.background.languages))) || [];
+    if(userLangs && userLangs.length){
+      pieces=pieces.concat(userLangs.slice(0,8).map(function(l){var flagIco = _getLangFlag(l); return '<div class="cpill">'+flagIco+' '+l+'</div>';}));
     }
-    // Clubs are NOT shown here — they live in the "Organization & Clubs" section instead.
     flr.innerHTML=pieces.join('');
   }
   var orgNm=document.getElementById('prof-org-nm');var orgTp=document.getElementById('prof-org-tp');
@@ -4287,7 +4394,7 @@ function setYearStyleEd(s){
   if(typeof renderCrushPreview==='function'&&document.getElementById('crush-profile-preview'))renderCrushPreview();
   if(typeof saveProfile==='function')saveProfile();
 }
-function saveEdit(){var get=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};userPro.bio=get('ed-bio');var _ig=document.getElementById('ed-ig');if(_ig)userPro.ig=_ig.value.trim();var mode=obMode||userMode||'student';if(mode==='business'){userPro.bizCat=get('ed-biz-cat');userPro.website=get('ed-website');userPro.otherlink=get('ed-otherlink');var catEl=document.getElementById('biz-prof-cat');if(catEl&&userPro.bizCat)catEl.textContent=userPro.bizCat;var webEl=document.getElementById('biz-web-link');if(webEl&&userPro.website)webEl.innerHTML='<a href="'+userPro.website+'" target="_blank" style="color:var(--fg);font-size:var(--fs-base);text-decoration:none;">'+userPro.website.replace('https://','')+'</a>';}else{userPro.major=get('ed-major');userPro.minor=get('ed-minor');}var m=document.getElementById('edit-modal');if(m)m.classList.remove('open');updateProfileUI();}
+function saveEdit(){var get=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};var nameInp=document.getElementById('ed-name');if(nameInp&&nameInp.value.trim())userPro.name=nameInp.value.trim();var handleInp=document.getElementById('ed-handle');if(handleInp&&handleInp.value.trim()){var h=handleInp.value.trim();userPro.handle=h.startsWith('@')?h:'@'+h;}userPro.bio=get('ed-bio');var _ig=document.getElementById('ed-ig');if(_ig)userPro.ig=_ig.value.trim();var mode=obMode||userMode||'student';if(mode==='business'){userPro.bizCat=get('ed-biz-cat');userPro.website=get('ed-website');userPro.otherlink=get('ed-otherlink');var catEl=document.getElementById('biz-prof-cat');if(catEl&&userPro.bizCat)catEl.textContent=userPro.bizCat;var webEl=document.getElementById('biz-web-link');if(webEl&&userPro.website)webEl.innerHTML='<a href="'+userPro.website+'" target="_blank" style="color:var(--fg);font-size:var(--fs-base);text-decoration:none;">'+userPro.website.replace('https://','')+'</a>';}else{userPro.major=get('ed-major');userPro.minor=get('ed-minor');}var m=document.getElementById('edit-modal');if(m)m.classList.remove('open');if(typeof saveProfile==='function')saveProfile();updateProfileUI();}
 // ── IMAGE POSITION PICKER ──
 var _bannerUrl='',_profilePicUrl='';
 var _ipX=0,_ipY=0,_ipDW=0,_ipDH=0,_ipFW=0,_ipFH=0,_ipBaseScale=1,_ipZoom=1;
@@ -5953,6 +6060,24 @@ function openHangoutDetailModal(evtId) {
           '</div>' +
         '</div>' +
       '</div>' +
+
+      // Host info section
+      (function(){
+        var hostPhoto = e.creator && e.creator.photos && e.creator.photos[0] ? e.creator.photos[0].url : '';
+        var hostName = e.creator ? (e.creator.firstName + ' ' + (e.creator.lastName || '')).trim() : (e.host || 'Organizer');
+        var hostHandle = (e.creator && e.creator.handle) ? ('@' + e.creator.handle.replace(/^@/, '')) : (e.host || '@organizer');
+        var hostAvHtml = hostPhoto ?
+          '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid var(--p);flex-shrink:0;"></div>' :
+          '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+(hostName.charAt(0).toUpperCase())+'</div>';
+
+        return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:var(--rad-lg);">' +
+          hostAvHtml +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;">HOSTED BY</div>' +
+            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+hostName+' <span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);font-weight:400;">'+hostHandle+'</span></div>' +
+          '</div>' +
+        '</div>';
+      })() +
 
       // Description section
       '<div style="margin-bottom:20px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:var(--rad-lg);">' +
@@ -8534,7 +8659,8 @@ function buildHingeStackHtml(p,opts){
     bFromGreek='<div style="padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);">'+chips.join('')+'</div>';
   }
   // Likes / Speaks (split into separate sections so they can be ordered independently)
-  if(p.flags&&p.flags.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.flags.map(function(f){return '<div style="font-size:var(--fs-sm);padding:6px 14px;background:rgba(59,130,246,0.12);border:1.5px solid rgba(59,130,246,0.4);border-radius:var(--rad-lg);color:#93c5fd;font-weight:600;">'+f+'</div>';}).join('')+'</div></div></div>';
+  var speaksList = isSelf ? (userPro.languages || userPro.langs || userPro.flags || []) : (p.flags || (p.background && p.background.languages) || p.languages || []);
+  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div style="font-size:var(--fs-sm);padding:6px 14px;background:rgba(59,130,246,0.12);border:1.5px solid rgba(59,130,246,0.4);border-radius:var(--rad-lg);color:#93c5fd;font-weight:600;">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
   if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#e04155;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div style="font-size:var(--fs-sm);padding:6px 13px;background:rgba(240,62,90,0.12);border:1.5px solid rgba(240,62,90,0.4);border-radius:var(--rad-lg);color:#e04155;font-weight:600;">'+i+'</div>';}).join('')+'</div></div></div>';
   // Ethnicity
   if(p.ethnicity)bEthnicity='<div class="crush-info-block">'+'<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;">🌎 <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Ethnicity</b>'+p.ethnicity+'</span></div></div>';
@@ -9165,7 +9291,7 @@ function mapDbProfileToCrush(dbUser) {
     bio: profile.bio || '',
     ints: interests,
     org: (profile.academic && profile.academic.clubs && profile.academic.clubs.join(', ')) || '',
-    flags: profile.langs || ['English'],
+    flags: profile.langs || (profile.background && profile.background.languages) || (profile.background && profile.background.langs) || ['English (US)'],
     verified: profile.isVerified || false,
     religion: (profile.background && profile.background.religion) || '',
     gender: profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other',
@@ -9214,7 +9340,7 @@ async function loadCrushFeed() {
     const pref = (typeof crushGenderPref !== 'undefined') ? crushGenderPref : 'female';
     crushData = crushDataAll.filter(function(p) {
       var matchGender = pref === 'any' ? true : (p.gender === pref);
-      var isSameUni = p.uni && p.uni.name === (uni && uni.name);
+      var isSameUni = !p.uni || !uni || (p.uni.name && uni.name && (p.uni.name.toLowerCase() === uni.name.toLowerCase() || p.uni.name.toLowerCase().includes(uni.name.toLowerCase()) || uni.name.toLowerCase().includes(p.uni.name.toLowerCase())));
       return matchGender && (curPlan === 'aplus' || isSameUni);
     });
     
@@ -12289,7 +12415,22 @@ function _profileActive(p){
 // 📏 Height (inches) + 🏠 Living situation
 var LIVING=['🏠 Dorm','🏢 Off-campus apt','👨‍👩‍👧 With family','🏛️ Greek house','🚗 Commuter'];
 function _profileHeight(p){if(p.height)return p.height;if(p._ht)return p._ht;p._ht=60+(_strHash((p.name||'')+'ht')%17);return p._ht;}
-function _fmtHeight(inch){if(!inch)return '';return Math.floor(inch/12)+"'"+(inch%12)+'"';}
+function _fmtHeight(val){
+  if(!val) return '';
+  if (typeof val === 'string') {
+    if (val.indexOf("'") > -1) return val;
+    var num = parseInt(val, 10);
+    if (isNaN(num)) return val;
+    val = num;
+  }
+  if (val > 100) {
+    val = Math.round(val / 2.54);
+  }
+  var ft = Math.floor(val / 12);
+  var inch = Math.round(val % 12);
+  if (isNaN(ft) || isNaN(inch)) return String(val);
+  return ft + "'" + inch + '"';
+}
 function _profileLiving(p){if(p.living)return p.living;if(p._lv)return p._lv;p._lv=LIVING[_strHash((p.name||'')+'lv')%LIVING.length];return p._lv;}
 // 🙏 Faith importance — softer than the binary religion filter
 var FAITH_LEVELS=['🕊️ Not important','🙏 Somewhat important','✝️ Very important'];
@@ -13449,8 +13590,17 @@ function openUserPopup(user){
   
   var avEl=document.getElementById('popup-av');
   if(avEl){
-    avEl.textContent=(user.name||'U').charAt(0);
-    avEl.style.background=pCol;
+    var uPhoto = (user.photos && user.photos[0] && (user.photos[0].url || user.photos[0])) || user.photo || user.avatarUrl || (foundUser && foundUser.photos && foundUser.photos[0]);
+    if(uPhoto) {
+      avEl.textContent='';
+      avEl.style.backgroundImage='url('+uPhoto+')';
+      avEl.style.backgroundSize='cover';
+      avEl.style.backgroundPosition='center';
+    } else {
+      avEl.textContent=(user.name||'U').charAt(0);
+      avEl.style.backgroundImage='';
+      avEl.style.background=pCol;
+    }
   }
   var bBg=document.getElementById('popup-banner-bg');
   if(bBg) {
@@ -15042,6 +15192,9 @@ function saveProfile(){
     else if (prefLower === 'male') apiInterestedIn = 'MAN';
 
     const apiProfileData = {
+      firstName: (userPro.name || '').trim().split(' ')[0] || undefined,
+      lastName: (userPro.name || '').trim().split(' ').slice(1).join(' ') || undefined,
+      handle: userPro.handle ? userPro.handle.replace(/^@/, '') : undefined,
       bio: userPro.bio || '',
       gender: userPro.gender === 'female' ? 'WOMAN' : userPro.gender === 'male' ? 'MAN' : 'NON_BINARY',
       interestedIn: apiInterestedIn,
@@ -15075,6 +15228,7 @@ function saveProfile(){
         company: userPro.company || ''
       },
       background: {
+        languages: userPro.languages || userPro.langs || userPro.flags || (userPro.background && userPro.background.languages) || ['English (US)'],
         religion: userPro.religion || '',
         politics: userPro.politics || '',
         ethnicity: userPro.ethnicity || '',
@@ -15104,7 +15258,11 @@ function saveProfile(){
     };
 
     apiClient.updateProfile(apiProfileData)
-      .then(p => console.log("Profile successfully synchronized with backend database"))
+      .then(p => {
+        console.log("Profile successfully synchronized with backend database", p);
+        if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
+        if (typeof renderCrushPreview === 'function') try { renderCrushPreview(); } catch(e){}
+      })
       .catch(err => console.error("Failed to sync profile with database:", err.message));
   }
 }
@@ -15654,7 +15812,7 @@ function buildDatingStep(){
   var panel=document.getElementById('dating-step-panel');if(!panel)return;
   var existingBio=(userPro&&userPro.bio)||'';
   panel.innerHTML='<div class="ob-title">Add Your Photos '+icon('camera',16)+'</div>'+
-    '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.55;margin-bottom:12px;">Upload 3–6 photos. Drag to reorder · tap to upload or replace. <b style="color:var(--p);">Your first photo is your cover</b> — it\'s what people see in friend requests and group chats.</div>'+
+    '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.55;margin-bottom:12px;">Upload 2–6 photos. Drag to reorder · tap to upload or replace. <b style="color:var(--p);">Your first photo is your cover</b> — it\'s what people see in friend requests and group chats.</div>'+
     '<div id="dating-photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;max-width:380px;margin-left:auto;margin-right:auto;"></div>'+
     '<input type="file" id="dating-photo-file" accept="image/*" style="display:none;" onchange="handleDatingPhoto(this)"/>'+
     '<div id="photo-count-msg" style="font-size:var(--fs-sm);color:var(--fg3);text-align:center;margin-bottom:18px;">'+userDatingPhotos.filter(Boolean).length+'/6 photos · (optional)</div>'+

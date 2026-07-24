@@ -58,7 +58,7 @@ class AuthService {
         passwordHash,
         firstName,
         lastName,
-        birthDate,
+        birthDate: new Date(birthDate),
         referralCode: userReferralCode,
         referredById,
       },

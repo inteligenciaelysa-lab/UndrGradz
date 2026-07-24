@@ -1,6 +1,9 @@
 const { z } = require('zod');
 
 const updateProfileSchema = z.object({
+  firstName: z.string().min(1).max(50).optional(),
+  lastName: z.string().min(1).max(50).optional(),
+  handle: z.string().min(2).max(30).optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional().nullable(),
   gender: z.enum(['MAN', 'WOMAN', 'NON_BINARY']).optional(),
   interestedIn: z.enum(['MAN', 'WOMAN', 'EVERYONE']).optional(),
