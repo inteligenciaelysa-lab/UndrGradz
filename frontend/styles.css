@@ -4701,11 +4701,11 @@ svg {
 .chatsec-chip[data-sec="all"],        .evsec-chip[data-sec="all"]        { --chip: #34d399; } /* emerald */
 .chatsec-chip[data-sec="nightlife"],  .evsec-chip[data-sec="nightlife"]  { --chip: var(--wine); } /* wine */
 .chatsec-chip[data-sec="study"],      .evsec-chip[data-sec="study"]      { --chip: #60a5fa; } /* blue    */
-.chatsec-chip[data-sec="sports"],     .evsec-chip[data-sec="sports"]     { --chip: #fb923c; } /* orange  */
-.chatsec-chip[data-sec="dorm"],       .evsec-chip[data-sec="dorm"]       { --chip: #6b9bff; } /* purple  */
+.chatsec-chip[data-sec="sports"],     .evsec-chip[data-sec="sports"]     { --chip: #a3e635; } /* lime — same green as campus, by request */
+.chatsec-chip[data-sec="dorm"],       .evsec-chip[data-sec="dorm"]       { --chip: #c084fc; } /* purple — was #6b9bff, which was actually blue despite this comment */
 .chatsec-chip[data-sec="greek"],      .evsec-chip[data-sec="greek"]      { --chip: #fbbf24; } /* amber   */
-.chatsec-chip[data-sec="abroad"],     .evsec-chip[data-sec="abroad"]     { --chip: #22d3ee; } /* cyan    */
-.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: #a3e635; } /* lime — distinct from the wine now on nightlife */
+.chatsec-chip[data-sec="abroad"],     .evsec-chip[data-sec="abroad"]     { --chip: #2dd4bf; } /* turquoise */
+.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: #d946ef; } /* magenta — lime moved to sports, so this stays unique */
 .chatsec-chip[data-sec="gaming"],     .evsec-chip[data-sec="gaming"]     { --chip: #3d7bff; } /* violet  */
 .chatsec-chip[data-sec="networking"], .evsec-chip[data-sec="networking"] { --chip: #818cf8; } /* indigo  */
 .chatsec-chip[data-sec="clubs"],      .evsec-chip.evsec-clubs            { --chip: #2dd4bf; } /* teal    */

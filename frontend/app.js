@@ -5937,7 +5937,9 @@ function _shareSingleSex(){var nm=(uni&&uni.name)||'my campus';var ci=_consortiu
 function _hxGrad(sec){var G={nightlife:'linear-gradient(150deg,#3d7bff,#12275c)',study:'linear-gradient(150deg,#3b82f6,#1e3a8a)',sports:'linear-gradient(150deg,#f97316,#7c2d12)',dorm:'linear-gradient(150deg,#10b981,#064e3b)',greek:'linear-gradient(150deg,#800614,#5c1220)',abroad:'linear-gradient(150deg,#06b6d4,#164e63)',campus:'linear-gradient(150deg,#4d84ff,#12275c)',networking:'linear-gradient(150deg,#3d7bff,#12275c)'};return G[sec]||'linear-gradient(150deg,#2b5fd9,#12275c)';}
 // Solid per-category hue — matches the chip colours so a card's accent tells you
 // its category at a glance. Colour is information here, not decoration.
-function _secColor(sec){var C={all:'#34d399',nightlife:'#e04155',study:'#60a5fa',sports:'#fb923c',dorm:'#c084fc',greek:'#fbbf24',abroad:'#22d3ee',campus:'#f472b6',gaming:'#4d84ff',networking:'#818cf8'};return C[sec]||'#3d7bff';}
+// Kept in sync with the --chip values in styles.css (~4701-4712) on purpose: the
+// cards sit directly under the chip row, so a mismatch reads as a bug.
+function _secColor(sec){var C={all:'#34d399',nightlife:'#e04155',study:'#60a5fa',sports:'#a3e635',dorm:'#c084fc',greek:'#fbbf24',abroad:'#2dd4bf',campus:'#d946ef',gaming:'#4d84ff',networking:'#818cf8'};return C[sec]||'#3d7bff';}
 function _hxPrice(e){return (e.section==='greek'||e.section==='exclusive')?'$5':'Free';}
 function _hxAge(e){return (e.section==='nightlife'||e.section==='greek')?'21+':'All ages';}
 function _hxTags(e){var P={nightlife:['Party','Drinks','Music'],study:['Study','Focus','Chill'],sports:['Sports','Active','Prizes'],dorm:['Chill','Social','Games'],greek:['Greek Life','DJ','Party'],abroad:['Travel','Culture','Meetup'],campus:['Campus','Social','Free'],networking:['Networking','Career','Alumni']};var t=(P[e.section]||['Social','Fun']).slice(0,3);if(e.langs&&e.langs.length&&t.indexOf(e.langs[0])===-1)t.push(e.langs[0]);return t.slice(0,4).map(function(x){return '<span class="evtag">'+x+'</span>';}).join('');}
@@ -17439,17 +17441,24 @@ var CHEATS=[
     opts:[['5','$2.99',''],['15','$6.99','BEST VALUE']]
   },
   {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e04155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rose-icon lucide-rose"><path d="M17 10h-1a4 4 0 1 1 4-4v.534"/><path d="M17 6h1a4 4 0 0 1 1.42 7.74l-2.29.87a6 6 0 0 1-5.339-10.68l2.069-1.31"/><path d="M4.5 17c2.8-.5 4.4 0 5.5.8s1.8 2.2 2.3 3.7c-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2"/><path d="M9.77 12C4 15 2 22 2 22"/><circle cx="17" cy="8" r="2"/></svg>',
+    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b0243a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rose-icon lucide-rose"><path d="M17 10h-1a4 4 0 1 1 4-4v.534"/><path d="M17 6h1a4 4 0 0 1 1.42 7.74l-2.29.87a6 6 0 0 1-5.339-10.68l2.069-1.31"/><path d="M4.5 17c2.8-.5 4.4 0 5.5.8s1.8 2.2 2.3 3.7c-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2"/><path d="M9.77 12C4 15 2 22 2 22"/><circle cx="17" cy="8" r="2"/></svg>',
     n:'Roses',
     d:'A rare like that always gets noticed.',
-    c:'#e04155',
+    c:'#b0243a',
     opts:[['3','$3.99',''],['10','$9.99','BEST VALUE']]
   },
   {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e04155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>',
+    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-spotlight-icon lucide-spotlight"><path d="M15.295 19.562 16 22"/><path d="m17 16 3.758 2.098"/><path d="m19 12.5 3.026-.598"/><path d="M7.61 6.3a3 3 0 0 0-3.92 1.3l-1.38 2.79a3 3 0 0 0 1.3 3.91l6.89 3.597a1 1 0 0 0 1.342-.447l3.106-6.211a1 1 0 0 0-.447-1.341z"/><path d="M8 9V2"/></svg>',
+    n:'Campus Spotlight',
+    d:'Be the star on campus for 24 hours.',
+    c:'#fbbf24',
+    opts:[['1 Day','$9.99',''],['3 Days','$24.99','SAVE 20%']]
+  },
+  {
+    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>',
     n:'Profile Boost',
     d:'Appear 10x more often in others\u2019 Crush for 30 min.',
-    c:'#e04155',
+    c:'#a3e635',
     opts:[['1','$3.99',''],['5','$14.99','POPULAR']]
   },
   {
@@ -17466,13 +17475,6 @@ var CHEATS=[
     c:'#3d7bff',
     single:true,
     opts:[['Unlock','$6.99','']]
-  },
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-spotlight-icon lucide-spotlight"><path d="M15.295 19.562 16 22"/><path d="m17 16 3.758 2.098"/><path d="m19 12.5 3.026-.598"/><path d="M7.61 6.3a3 3 0 0 0-3.92 1.3l-1.38 2.79a3 3 0 0 0 1.3 3.91l6.89 3.597a1 1 0 0 0 1.342-.447l3.106-6.211a1 1 0 0 0-.447-1.341z"/><path d="M8 9V2"/></svg>',
-    n:'Campus Spotlight',
-    d:'Be the star on campus for 24 hours.',
-    c:'#fbbf24',
-    opts:[['1 Day','$9.99',''],['3 Days','$24.99','SAVE 20%']]
   }
 ];
 function buyCheat(name,price){if(typeof openPayment==='function')openPayment('cheat',price,name);}
@@ -17497,16 +17499,17 @@ function _cheatCardHtml(c){
     var badge = o[2] ? '<div style="' + badgeStyle + '">' + o[2] + '</div>' : '';
     
     var neonColor = c.c;
-    var neonGlow = neonColor.replace(')', ',0.35)').replace('rgb(', 'rgba(').replace('#', 'rgba(') || 'rgba(255,255,255,0.15)';
-    // Build a proper rgba glow from hex
-    var glowStr = '0 0 8px ' + neonColor + '55';
-    var btnStyle = 'position:relative;background:rgba(255,255,255,0.03);border:1.5px solid ' + neonColor + ';box-shadow:' + glowStr + ';border-radius:var(--rad-sm);padding:8px 9px;min-width:50px;text-align:center;cursor:pointer;transition:all var(--dur) ease;font-family:var(--font);';
+    // Black fill so the coloured border and halo are the only light in the
+    // control — that contrast is what makes the neon read.
+    var glowStr = '0 0 10px ' + neonColor + '66, inset 0 0 8px ' + neonColor + '1f';
+    var btnStyle = 'position:relative;background:#000;border:1.5px solid ' + neonColor + ';box-shadow:' + glowStr + ';border-radius:var(--rad-sm);padding:8px 9px;min-width:50px;text-align:center;cursor:pointer;transition:all var(--dur) ease;font-family:var(--font);';
     if (c.single) {
-      btnStyle += 'background:rgba(240,62,90,0.1);min-width:86px;padding:10px;';
+      btnStyle += 'min-width:86px;padding:10px;';
     }
 
-    var hoverEnter = "this.style.boxShadow='0 0 16px " + neonColor + "88, inset 0 0 8px " + neonColor + "22';this.style.background='rgba(255,255,255,0.08)';this.style.transform='translateY(-1px) scale(1.04)';";
-    var hoverLeave = "this.style.boxShadow='" + glowStr + "';this.style.background=" + (c.single ? "'rgba(240,62,90,0.1)'" : "'rgba(255,255,255,0.03)'" ) + ";this.style.transform='';";
+    // Hover brightens the halo only; the fill stays black.
+    var hoverEnter = "this.style.boxShadow='0 0 18px " + neonColor + "aa, inset 0 0 10px " + neonColor + "33';this.style.transform='translateY(-1px) scale(1.04)';";
+    var hoverLeave = "this.style.boxShadow='" + glowStr + "';this.style.transform='';";
 
     var countColor = neonColor;
 
@@ -17517,8 +17520,14 @@ function _cheatCardHtml(c){
     '</button>';
   }).join('');
 
-  var rowStyle = 'display:flex;align-items:center;gap:12px;background:linear-gradient(165deg, rgba(255, 255, 255, 0.05), rgba(10, 5, 24, 0.2));border:1px solid rgba(255,255,255,0.08);border-radius:var(--rad-lg);padding:12px 14px;margin-bottom:12px;transition:all var(--dur) ease;box-shadow:var(--el-2);width:calc(100% - 32px);margin-left:16px;margin-right:16px;box-sizing:border-box;';
-  var iconStyle = 'width:46px;height:46px;border-radius:var(--rad-md);background:rgba(0,0,0,0.45);border:2.5px solid ' + c.c + ';' + c.c + '88, inset 0 0 8px ' + c.c + '44;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);flex-shrink:0;text-shadow:0 0 6px ' + c.c + ';transition:transform 0.2s;';
+  // The row carries the item's own colour as a neon outline (it used to be a flat
+  // grey border), so the whole card reads as one coloured unit with its icon,
+  // buttons and badge instead of a grey box holding coloured bits.
+  var rowStyle = 'display:flex;align-items:center;gap:12px;background:#000;border:1.5px solid ' + c.c + ';box-shadow:0 0 12px ' + c.c + '55, inset 0 0 12px ' + c.c + '14;border-radius:var(--rad-lg);padding:12px 14px;margin-bottom:12px;transition:all var(--dur) ease;width:calc(100% - 32px);margin-left:16px;margin-right:16px;box-sizing:border-box;';
+  // The glow here used to be dropped on the floor: the value was concatenated
+  // without the `box-shadow:` property name, so the browser discarded it and the
+  // icon tiles rendered with no halo at all.
+  var iconStyle = 'width:46px;height:46px;border-radius:var(--rad-md);background:#000;border:2.5px solid ' + c.c + ';box-shadow:0 0 12px ' + c.c + '88, inset 0 0 8px ' + c.c + '44;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);flex-shrink:0;text-shadow:0 0 6px ' + c.c + ';transition:transform 0.2s;';
 
   var nameColor = '#fff';
 
@@ -17758,10 +17767,11 @@ function showPlansForGender(){
       ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e04155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>', 'Profile boost & top slot', 'Stand out on campus', '#e04155']
     ];
     var featsHtml = feats.map(function(f) {
-      // Each feature carries its icon colour (f[3]) — tinted border + soft glow so
-      // the colour tells you which perk it is, without competing with the CTA.
+      // Each feature carries its icon colour (f[3]). Black fill instead of a
+      // tint: with nothing else lit inside the card, the coloured border and
+      // halo read as actual neon.
       var c = f[3] || '#e04155';
-      return '<div class="ap-feat" style="display:flex;gap:9px;align-items:center;background:color-mix(in srgb,'+c+' 8%,transparent);border:1px solid color-mix(in srgb,'+c+' 55%,transparent);border-radius:var(--rad-md);padding:10px 11px;box-shadow:0 0 10px color-mix(in srgb,'+c+' 22%,transparent);">' +
+      return '<div class="ap-feat" style="display:flex;gap:9px;align-items:center;background:#000;border:1.5px solid '+c+';border-radius:var(--rad-md);padding:10px 11px;box-shadow:0 0 12px color-mix(in srgb,'+c+' 42%,transparent), inset 0 0 10px color-mix(in srgb,'+c+' 10%,transparent);">' +
         '<div class="ap-feat-ic" style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;">' + f[0] + '</div>' +
         '<div style="min-width:0;flex:1;text-align:left;">' +
           '<div style="font-size:var(--fs-sm);font-weight:600;color:#fff;line-height:1.3;word-break:break-word;">' + f[1] + '</div>' +
@@ -17779,12 +17789,16 @@ function showPlansForGender(){
     var plansHtml = plans.map(function(p) {
       var isSelected = (_aplusBillSel === p.id);
       var borderStyle = isSelected ? ('2.5px solid ' + p.border) : ('1.5px solid ' + p.border);
-      var shadowStyle = isSelected 
-        ? ('' + p.glow + ', inset 0 0 12px ' + p.glowSubtle + ';') 
-        : ('' + p.glowSubtle + ';');
-      var bgStyle = isSelected 
-        ? ('background: linear-gradient(160deg, rgba(255,255,255,0.09), rgba(255,255,255,0.04));') 
-        : 'background: rgba(255, 255, 255, 0.025);';
+      // These were emitted WITHOUT the `box-shadow:` property name, so the browser
+      // threw them away — the plan cards had no glow at all despite p.glow /
+      // p.glowSubtle being defined. Also needs the 0 0 Npx offsets, which the
+      // array values don't carry.
+      var shadowStyle = isSelected
+        ? ('box-shadow: 0 0 18px ' + p.glow + ', inset 0 0 14px ' + p.glowSubtle + ';')
+        : ('box-shadow: 0 0 10px ' + p.glowSubtle + ';');
+      // Both states are black; selection reads through the thicker border, the
+      // stronger halo and the lift below.
+      var bgStyle = 'background: #000;';
       var transformStyle = isSelected ? 'transform: translateY(-4px) scale(1.03);' : 'transform: translateY(0) scale(1);';
       
       var badgeHtml = '<div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;background:' + p.badgeBg + ';color:#000;padding:3px 9px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.4px;box-shadow:' + (isSelected ? ('0 0 12px ' + p.border) : '0 2px 6px rgba(0,0,0,0.4)') + ';z-index:2;">' + p.badge + '</div>';
@@ -17815,7 +17829,9 @@ function showPlansForGender(){
     ];
     var loveHtml = loveFeats.map(function(f){
       return '<div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">' +
-        '<div style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);border:1.5px solid ' + f[3] + ';' + f[3] + '66;flex-shrink:0;">' + f[0] + '</div>' +
+        // Same dropped-glow bug as the icon tiles: the value was concatenated
+        // without `box-shadow:`, so these circles had no halo.
+        '<div style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#000;border:1.5px solid ' + f[3] + ';box-shadow:0 0 10px ' + f[3] + '66;flex-shrink:0;">' + f[0] + '</div>' +
         '<div style="text-align:left;">' +
           '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;line-height:1.2;">' + f[1] + '</div>' +
           '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;">' + f[2] + '</div>' +
@@ -17826,7 +17842,7 @@ function showPlansForGender(){
     sec.innerHTML=tabs
       +'<img class="ap-banner" src="images/banner_cheats.png" style="width:calc(100% - 32px);height:auto;border-radius:var(--rad-lg);margin: 0 16px 16px 16px;display:block;box-sizing:border-box;" />'
       +CHEATS.map(_cheatCardHtml).join('')
-      +'<div class="pu-foot" style="background:rgba(255, 255, 255, 0.03);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:16px 18px;margin:12px 16px 20px 16px;width:calc(100% - 32px);box-sizing:border-box;">'
+      +'<div class="pu-foot" style="background:#000;border:1.5px solid #fb923c;box-shadow:0 0 14px rgba(251,146,60,0.45), inset 0 0 14px rgba(251,146,60,0.07);border-radius:var(--rad-lg);padding:16px 18px;margin:12px 16px 20px 16px;width:calc(100% - 32px);box-sizing:border-box;">'
         +'<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:14px;text-align:left;">Why students love it</div>'
         +loveHtml
       +'</div>';
