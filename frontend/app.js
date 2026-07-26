@@ -1504,8 +1504,9 @@ var crushPhotoIdx = 0;
 
 var GREEK_ORGS=["Sigma Chi", "Sigma Alpha Epsilon", "Pi Kappa Alpha", "Kappa Sigma", "Sigma Nu", "Phi Delta Theta", "Lambda Chi Alpha", "Tau Kappa Epsilon", "Beta Theta Pi", "Phi Gamma Delta (FIJI)", "Delta Tau Delta", "Alpha Tau Omega", "Sigma Phi Epsilon", "Theta Chi", "Phi Kappa Psi", "Delta Sigma Phi", "Pi Kappa Phi", "Chi Phi", "Alpha Epsilon Pi", "Kappa Alpha Order", "Delta Chi", "Sigma Pi", "Phi Kappa Tau", "Alpha Sigma Phi", "Kappa Alpha Psi", "Alpha Phi Alpha", "Omega Psi Phi", "Phi Beta Sigma", "Iota Phi Theta", "Lambda Theta Phi", "Sigma Lambda Beta", "Chi Omega", "Delta Delta Delta", "Kappa Kappa Gamma", "Kappa Alpha Theta", "Pi Beta Phi", "Alpha Chi Omega", "Delta Gamma", "Alpha Phi", "Gamma Phi Beta", "Alpha Delta Pi", "Zeta Tau Alpha", "Delta Zeta", "Kappa Delta", "Sigma Kappa", "Alpha Omicron Pi", "Phi Mu", "Alpha Gamma Delta", "Sigma Sigma Sigma", "Alpha Kappa Alpha", "Delta Sigma Theta", "Zeta Phi Beta", "Sigma Gamma Rho", "Lambda Theta Alpha", "Kappa Delta Chi", "Other"];
 function _greekDatalist(){return '<datalist id="greek-orgs-dl">'+GREEK_ORGS.map(function(o){return '<option value="'+o+'"></option>';}).join('')+'</datalist>';}
-var NAV_STUDENT  = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'unicrush',icon:icon('heart',24),lbl:'Crush'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
-var NAV_ALUMNI   = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'alumnihub',icon:icon('grad',24),lbl:'Network'},{id:'unicrush',icon:icon('heart',24),lbl:'Crush'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
+// Crush is a tab inside Campus now, so it no longer gets its own nav slot.
+var NAV_STUDENT  = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
+var NAV_ALUMNI   = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'alumnihub',icon:icon('grad',24),lbl:'Network'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
 var NAV_INST     = [];
 var NAV_BUSINESS = [];
 
@@ -2254,7 +2255,7 @@ function _ob4Ring(pct){
   var col1='var(--uni-p, #e04155)';
   var col2='var(--uni-p2, #4d84ff)';
   var r=19,c=2*Math.PI*r,off=c*(1-pct/100);
-  box.innerHTML='<div style="background:linear-gradient(135deg, rgba(22,14,42,0.92), rgba(12,8,26,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-lg);padding:8px 13px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(10px);">'+
+  box.innerHTML='<div style="background:linear-gradient(135deg, rgba(13,13,17,0.92), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-lg);padding:8px 13px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(10px);">'+
     '<div><div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.4px;text-transform:uppercase;">Profile strength</div><div style="font-size:var(--fs-lg);font-weight:1000;color:#fff;text-shadow:0 0 10px var(--uni-p, rgba(240,62,90,0.8));">'+pct+'% '+(full?'<span style="font-size:var(--fs-2xs);padding:2px 5px;background:rgba(240,62,90,0.25);border:1px solid var(--uni-p, #e04155);border-radius:var(--rad-xs);color:#fff;vertical-align:middle;">⚡ MAX</span>':'')+'</div></div>'+
     '<svg width="44" height="44" viewBox="0 0 44 44"><defs><linearGradient id="ob4RingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="'+col1+'"/><stop offset="100%" stop-color="'+col2+'"/></linearGradient></defs><circle cx="22" cy="22" r="'+r+'" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/><circle cx="22" cy="22" r="'+r+'" fill="none" stroke="url(#ob4RingGrad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 22 22)" style=""/></svg></div>';
 }
@@ -2376,7 +2377,7 @@ function _ob4P1(){
        '<img id="selected-flag-img" src="https://flagcdn.com/w40/'+(_ob4State.phoneCode==='+52'?'mx':_ob4State.phoneCode==='+1'&&_ob4State.country==='ca'?'ca':'us')+'.png" style="width:22px;height:15px;object-fit:cover;border-radius:2px;"/>'+
        '<span style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.5);">▼</span>'+
      '</div>'+
-     '<div id="ob-phone-flag-dropdown" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#18122c;border:1px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);width:180px;box-shadow:var(--el-3);margin-top:6px;max-height:200px;overflow-y:auto;">'+
+     '<div id="ob-phone-flag-dropdown" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#0d0d11;border:1px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);width:180px;box-shadow:var(--el-3);margin-top:6px;max-height:200px;overflow-y:auto;">'+
        '<div onclick="selectPhoneCountry(\'us\', \'+1\')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:var(--fs-base);color:#fff;font-weight:500;border-bottom:1px solid rgba(255,255,255,0.05);" onmouseenter="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseleave="this.style.background=\'\'">'+
          '<img src="https://flagcdn.com/w40/us.png" style="width:20px;height:14px;object-fit:cover;border-radius:2px;"/>'+
          '<span>'+titleUs+'</span>'+
@@ -2671,7 +2672,7 @@ function _ob4P3(){
     '<input id="ob4-intq" oninput="_ob4Query=this.value;_ob4RenderInt()" placeholder="'+placeholderSearch+'" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin:6px 0 4px;"/>'+
     '<div id="ob4-intgrid"></div>'+
     '<div style="height: 110px;"></div>'+
-    '<div style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 380px; max-width: 100%; box-sizing: border-box; padding: 24px 16px 16px; background: linear-gradient(180deg, rgba(8,4,15,0) 0%, rgba(8,4,15,0.98) 35%, #08040f 100%); z-index: 10000; pointer-events: auto;">'+
+    '<div style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 380px; max-width: 100%; box-sizing: border-box; padding: 24px 16px 16px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.98) 35%, #000000 100%); z-index: 10000; pointer-events: auto;">'+
       '<button class="ob4-cta" id="ob4-continue-btn-p3" onclick="_ob4Next3()" disabled style="opacity:0.45; margin: 0; width: 100%;">'+btnContinue+'</button>'+
       '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:8px;">'+changeAnytimeText+'</div>'+
     '</div>';
@@ -2736,7 +2737,7 @@ function _ob4RenderPhotoGridP4(){
     
     if (ph) {
       slotsHtml += '<div onclick="_ob4PickPhoto(' + i + ')" style="width:100%;aspect-ratio:3/4;border-radius:var(--rad-md);position:relative;border:2px solid ' + (isCover ? 'var(--uni-p, #e04155)' : 'rgba(240,62,90,0.7)') + ';background-image:url(\'' + ph + '\');background-size:cover;background-position:center;cursor:pointer;box-shadow:var(--el-2);overflow:hidden;transition:all 0.2s ease;">' +
-        '<span style="position:absolute;top:6px;left:6px;font-size:var(--fs-2xs);font-weight:700;color:#fff;background:rgba(10,5,24,0.85);border-radius:var(--rad-xs);padding:2px 6px;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.2);z-index:2;">' + (isCover ? '⭐ Cover' : '#' + (i + 1)) + '</span>' +
+        '<span style="position:absolute;top:6px;left:6px;font-size:var(--fs-2xs);font-weight:700;color:#fff;background:rgba(0,0,0,0.85);border-radius:var(--rad-xs);padding:2px 6px;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.2);z-index:2;">' + (isCover ? '⭐ Cover' : '#' + (i + 1)) + '</span>' +
         '<div onclick="_ob4DeletePhoto(' + i + ', event)" title="Delete" style="position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;background:rgba(239,68,68,0.9);color:#fff;font-size:var(--fs-sm);font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;box-shadow:var(--el-1);">×</div>' +
       '</div>';
     } else {
@@ -2757,7 +2758,7 @@ function _ob4RenderPhotoGridP4(){
   var count = photos.filter(Boolean).length;
   var footerText = count + '/6 ' + (isEs ? 'fotos · mín 2 requeridas' : 'photos · min 2 required');
 
-  return '<div style="background:linear-gradient(145deg, rgba(22,14,42,0.88), rgba(12,8,26,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.45));border-radius:var(--rad-lg);padding:16px;margin-bottom:20px;box-shadow:var(--el-3);">' +
+  return '<div style="background:linear-gradient(145deg, rgba(13,13,17,0.88), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.45));border-radius:var(--rad-lg);padding:16px;margin-bottom:20px;box-shadow:var(--el-3);">' +
     '<div style="font-size:var(--fs-lg);font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">' + title + '</div>' +
     '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.65);margin:6px 0 14px;line-height:1.4;">' + sub + '</div>' +
     '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;">' + slotsHtml + '</div>' +
@@ -3037,7 +3038,7 @@ function _ob4P4(){
     )+
     '<div style="height:110px;"></div>'+
     '</div>'+
-    '<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:380px;max-width:100%;box-sizing:border-box;padding:24px 16px 16px;background:linear-gradient(180deg,rgba(8,4,15,0) 0%,rgba(8,4,15,0.98) 35%,#08040f 100%);z-index:10000;pointer-events:auto;">'+
+    '<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:380px;max-width:100%;box-sizing:border-box;padding:24px 16px 16px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.98) 35%,#000000 100%);z-index:10000;pointer-events:auto;">'+
       '<button class="ob4-cta" id="ob4-continue-btn-p4" onclick="_ob4Next4()" style="margin:0;width:100%;">'+btnContinue+'</button>'+
       '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:8px;">'+noteText+'</div>'+
     '</div>';
@@ -3206,7 +3207,7 @@ function _ob4P5(){
 
   var coverStyle = activePhotoUrl ?
     ('background-image:url(\'' + activePhotoUrl + '\');background-size:cover;background-position:center;') :
-    ('background:linear-gradient(160deg,' + ((uni && uni.p) || '#2b5fd9') + ',rgba(10,5,24,0.85));');
+    ('background:linear-gradient(160deg,' + ((uni && uni.p) || '#2b5fd9') + ',rgba(0,0,0,0.85));');
 
   var storyBars = '';
   if (photos.length > 1) {
@@ -3220,7 +3221,7 @@ function _ob4P5(){
 
   var cardPhotoHtml = '<div style="width:100%;aspect-ratio:3/4;border-radius:var(--rad-lg);' + coverStyle + 'position:relative;cursor:pointer;border:2px solid var(--uni-p, #e04155);margin-bottom:14px;overflow:hidden;user-select:none;" onclick="_ob4CardPhotoClick(event, ' + (photos.length) + ')">' +
     storyBars +
-    '<span style="position:absolute;bottom:10px;right:10px;font-size:var(--fs-xs);font-weight:700;color:#fff;background:rgba(10,5,24,0.85);border:1px solid rgba(255,255,255,0.25);border-radius:var(--rad-sm);padding:3px 10px;backdrop-filter:blur(6px);z-index:4;">' +
+    '<span style="position:absolute;bottom:10px;right:10px;font-size:var(--fs-xs);font-weight:700;color:#fff;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.25);border-radius:var(--rad-sm);padding:3px 10px;backdrop-filter:blur(6px);z-index:4;">' +
       (photos.length > 0 ? (photoIdx + 1) + '/' + photos.length : '1/1') +
     '</span>' +
   '</div>';
@@ -3247,7 +3248,7 @@ function _ob4P5(){
   var btnFinish = window.currentLang==='es'?'¡Empecemos!':'Let\'s go!';
   var btnBack = window.currentLang==='es'?'← Volver a editar':'← Back to edit';
 
-  return '<div style="background:linear-gradient(145deg, rgba(22,14,42,0.92), rgba(12,8,26,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-xl);padding:16px;box-sizing:border-box;max-width:100%;">'+
+  return '<div style="background:linear-gradient(145deg, rgba(13,13,17,0.92), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-xl);padding:16px;box-sizing:border-box;max-width:100%;">'+
     cardPhotoHtml+
     '<div style="border-bottom:1px solid var(--gbdl);padding-bottom:14px;margin-bottom:14px;">'+
       '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">'+nm+(age?(', '+age):'')+' <span style="color:#3b82f6;font-size:var(--fs-md);">✓</span></div>'+
@@ -4138,7 +4139,7 @@ function renderThemePicker(){
   var html='';
   if(schoolPal)html+=swatch('🎓 My school',schoolPal.p,schoolPal.p2,'applySchoolTheme()');
   (userPro.customPalettes||[]).forEach(function(pal,i){
-    html+=swatch('Palette '+(i+1),pal.p,pal.p2,'applyTheme(\''+pal.p+'\',\''+pal.p2+'\')','<span onclick="event.stopPropagation();_paletteRemove('+i+')" style="position:absolute;top:-6px;right:-6px;background:#0a0518;border:1px solid var(--gbdl);border-radius:50%;width:18px;height:18px;font-size:var(--fs-2xs);display:flex;align-items:center;justify-content:center;color:var(--fg2);">✕</span>');
+    html+=swatch('Palette '+(i+1),pal.p,pal.p2,'applyTheme(\''+pal.p+'\',\''+pal.p2+'\')','<span onclick="event.stopPropagation();_paletteRemove('+i+')" style="position:absolute;top:-6px;right:-6px;background:#000000;border:1px solid var(--gbdl);border-radius:50%;width:18px;height:18px;font-size:var(--fs-2xs);display:flex;align-items:center;justify-content:center;color:var(--fg2);">✕</span>');
   });
   if((userPro.customPalettes||[]).length<2)html+='<div onclick="_paletteCreate()" style="cursor:pointer;flex-shrink:0;width:72px;text-align:center;"><div style="height:52px;border-radius:var(--rad-sm);border:1.5px dashed var(--gbdl);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);color:var(--fg2);">＋</div><div style="font-size:var(--fs-2xs);font-weight:500;color:var(--fg2);margin-top:5px;">Create</div></div>';
   box.innerHTML='<div style="padding:13px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rs);">'+
@@ -4176,7 +4177,7 @@ function buildNav(){
     _ll=sessionStorage.getItem('ugz_last_label') || localStorage.getItem('ugz_last_label');
   }catch(e){}
 
-  var defIdx=-1;for(var _di=0;_di<items.length;_di++){if(items[_di].id==='unicrush'){defIdx=_di;break;}}
+  var defIdx=-1;for(var _di=0;_di<items.length;_di++){if(items[_di].id==='discover'){defIdx=_di;break;}}
   if(defIdx<0)defIdx=Math.floor(items.length/2);
   var targetId = (_ls && _ls !== 'premium') ? _ls : items[defIdx].id;
 
@@ -4255,7 +4256,35 @@ document.addEventListener('DOMContentLoaded',function(){
   try{_syncFabs(sessionStorage.getItem('ugz_last_screen')||'hangouts');}catch(e){_syncFabs('hangouts');}
 });
 
+
+// Deck bootstrap. These used to hang off sw('unicrush'); now Crush is a tab,
+// so they run when that tab is opened instead. Guarded so repeated tab
+// switches do not re-run the one-shot skeleton.
+function _initCrushDeck(){
+  if(!window._ucSkelShown){window._ucSkelShown=true;var _cc=document.getElementById('crush-card');if(_cc&&typeof _swipeSkelHtml==='function'){_cc.innerHTML=_swipeSkelHtml();setTimeout(function(){if(typeof renderCrush==='function')renderCrush();},520);}}
+  if(typeof renderMoments==='function')renderMoments();
+  if(typeof renderSeniorSendoff==='function')renderSeniorSendoff();
+  if(typeof renderSpotlight==='function')renderSpotlight();
+  if(true){var _ssb=document.getElementById('single-sex-banner');if(_ssb)_ssb.innerHTML=(typeof _singleSexBanner==='function')?_singleSexBanner():'';}
+  if(typeof renderCrushCategories==='function')renderCrushCategories();
+  if(typeof renderMatchOfDay==='function')renderMatchOfDay();
+  if(typeof renderDailyPicks==='function')renderDailyPicks();
+  if(typeof _roseLoad==='function')_roseLoad();
+}
+
 function sw(id,label){
+  // Crush merged into Campus as a tab. Anything still asking for the old
+  // section — saved ugz_last_screen from a previous version, hardcoded buttons,
+  // deep links — lands on Campus with the Crush tab selected. Without this a
+  // returning user boots to a blank app, because #sec-unicrush no longer exists
+  // as a section and sw() fails silently when it can't find one.
+  if(id==='unicrush'){
+    id='discover'; label='Campus';
+    try{
+      sessionStorage.setItem('ugz_last_crush_tab','swipe');
+      localStorage.setItem('ugz_last_crush_tab','swipe');
+    }catch(e){}
+  }
   _detachFabs();
   _syncFabs(id);
   try{
@@ -4277,6 +4306,7 @@ function sw(id,label){
   // Hide group chat button for business
   var grpBtn=document.querySelector('#sec-chats button[onclick="openGrpModal()"]');if(grpBtn)grpBtn.style.display=(obMode==='business'||userMode==='business')?'none':'block';
   if(id==='premium')showPremiumForMode();
+  if(id==='alumnihub'&&typeof _alumniHubList==='function')_alumniHubList();
   if((id==='uchats'||id==='chats')&&typeof fetchAndRenderChats==='function')fetchAndRenderChats();
   if(id==='hangouts'&&typeof fetchAndRenderHangouts==='function')fetchAndRenderHangouts();
   if(id==='wellness'&&typeof renderWellness==='function')renderWellness();
@@ -4294,16 +4324,6 @@ function sw(id,label){
     }
   }
   if(id==='profile'&&typeof renderReferralCard==='function')renderReferralCard();
-  if(id==='unicrush'&&!window._ucSkelShown){window._ucSkelShown=true;var _cc=document.getElementById('crush-card');if(_cc&&typeof _swipeSkelHtml==='function'){_cc.innerHTML=_swipeSkelHtml();setTimeout(function(){if(typeof renderCrush==='function')renderCrush();},520);}}
-  if(id==='unicrush'&&typeof renderMoments==='function')renderMoments();
-  if(id==='unicrush'&&typeof renderSeniorSendoff==='function')renderSeniorSendoff();
-  if(id==='unicrush'&&typeof renderSpotlight==='function')renderSpotlight();
-  if(id==='unicrush'){var _ssb=document.getElementById('single-sex-banner');if(_ssb)_ssb.innerHTML=(typeof _singleSexBanner==='function')?_singleSexBanner():'';}
-  if(id==='alumnihub'&&typeof _alumniHubList==='function')_alumniHubList();
-  if(id==='unicrush'&&typeof renderCrushCategories==='function')renderCrushCategories();
-  if(id==='unicrush'&&typeof renderMatchOfDay==='function')renderMatchOfDay();
-  if(id==='unicrush'&&typeof renderDailyPicks==='function')renderDailyPicks();
-  if(id==='unicrush'&&typeof _roseLoad==='function')_roseLoad();
   if(typeof _applyPlanLocks==='function')_applyPlanLocks();
   if(id==='profile'){setTimeout(function(){if(typeof renderCrushPreview==='function')renderCrushPreview();if(typeof onUcMilesChange==='function')onUcMilesChange(typeof _crushMiles!=='undefined'?_crushMiles:10);_updateAddCellVis();if(typeof _initFilterAccordion==='function')_initFilterAccordion();},50);}
 }
@@ -4335,7 +4355,7 @@ function _renderCompleteness(){
       '<span style="flex:1;min-width:0;text-align:center;font-size:var(--fs-sm);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.18);border:1.5px solid rgba(245,158,11,0.5);padding:7px 12px;border-radius:var(--rad-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🔥 3.5x more Likes</span>'+
     '</div>'+
     '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.72);margin-bottom:9px;font-weight:500;">'+tip+' to climb your university Top Rank</div>'+
-    '<div style="height:8px;border-radius:var(--rad-xs);background:rgba(10,5,24,0.8);overflow:hidden;border:1px solid rgba(255,255,255,0.1);">'+
+    '<div style="height:8px;border-radius:var(--rad-xs);background:rgba(0,0,0,0.8);overflow:hidden;border:1px solid rgba(255,255,255,0.1);">'+
       '<div style="height:100%;width:'+c.pct+'%;background:linear-gradient(90deg,color-mix(in srgb,'+A+' 45%,#06b6d4),'+A+');border-radius:var(--rad-xs);'+A+' 80%,transparent);"></div>'+
     '</div>'+
   '</div>';
@@ -4402,7 +4422,7 @@ function updateProfileUI(){
         coverUrl = currentUni.coverPhotos[0];
       }
     }
-    coverEl.style.backgroundImage = 'linear-gradient(rgba(10,5,24,0.55),rgba(10,5,24,0.75)), url("' + coverUrl + '")';
+    coverEl.style.backgroundImage = 'linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.75)), url("' + coverUrl + '")';
   }
   var statFriends = document.getElementById('prof-stat-friends');
   var statMatches = document.getElementById('prof-stat-matches');
@@ -5471,7 +5491,13 @@ function _openChatCreateMenu(){
 
   m.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Create Chat</div>'+
     '<div style="font-size:var(--fs-xs);color:var(--fg2);margin:-6px 0 12px;">Pick 1 to '+CREATE_CHAT_MAX+' friends.</div>'+
-    '<input id="ccf-search" oninput="_filterCreateChatFriends(this.value)" placeholder="🔍 Search friends" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin-bottom:10px;"/>'+
+    // Group identity — only meaningful with 2+ picks, so it stays hidden until
+    // then (toggled by _syncCreateChatFooter).
+    '<div id="ccf-group-meta" style="display:none;align-items:center;gap:12px;margin-bottom:12px;">'+
+      '<div id="ccf-photo" onclick="_ccfPickPhoto()" title="Chat photo" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;cursor:pointer;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background-size:cover;background-position:center;">📷</div>'+
+      '<input id="ccf-title" maxlength="40" placeholder="Chat name (optional)" style="flex:1;min-width:0;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;"/>'+
+    '</div>'+
+    '<input id="ccf-search" oninput="_filterCreateChatFriends(this.value)" placeholder="Search friends" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin-bottom:10px;"/>'+
     '<div id="ccf-rows" style="max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>'+
     '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 10px;font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">'+
       '<span><span id="ccf-count" style="color:#fff;">0</span> of '+CREATE_CHAT_MAX+' selected</span>'+
@@ -5509,10 +5535,31 @@ function _toggleCreateChatFriend(el){
   _syncCreateChatFooter();
 }
 
+// Chat photo chosen in the picker. Local blob URL — see _ccfPickPhoto.
+window._ccfPhoto = '';
+function _ccfPickPhoto(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=function(){
+    if(!inp.files||!inp.files[0])return;
+    var url=URL.createObjectURL(inp.files[0]);
+    var apply=function(u){
+      window._ccfPhoto=u;
+      var box=document.getElementById('ccf-photo');
+      if(box){box.style.backgroundImage='url('+u+')';box.textContent='';box.style.border='1.5px solid var(--p)';}
+    };
+    // Reuse the app's existing cropper when available, same as pickPic/cgChangePic.
+    if(typeof openImagePositioner==='function'){openImagePositioner(url,'profile',function(u){apply(u);});}
+    else apply(url);
+  };
+  inp.click();
+}
+
 function _syncCreateChatFooter(){
   var n=_createChatSelected().length;
   var c=document.getElementById('ccf-count');if(c)c.textContent=n;
   var bar=document.getElementById('ccf-bar');if(bar)bar.style.width=Math.round(n/CREATE_CHAT_MAX*100)+'%';
+  // Name + photo only apply to a group; a single pick is a DM with that person.
+  var gm=document.getElementById('ccf-group-meta');if(gm)gm.style.display=(n>1?'flex':'none');
   var btn=document.getElementById('ccf-create');
   if(btn){btn.disabled=(n===0);btn.style.opacity=n?'1':'0.45';btn.style.cursor=n?'pointer':'default';
     btn.textContent=(n>1?('💬 Create Group ('+n+')'):'💬 Create Chat');}
@@ -5535,14 +5582,35 @@ function _createChatFromPicker(){
 
   var isGroup=picked.length>1;
   var first=picked[0];
-  var name=isGroup
+  // A typed name wins over the auto "Ana, Miguel +2" one.
+  var titleEl=document.getElementById('ccf-title');
+  var typedTitle=(isGroup&&titleEl)?String(titleEl.value||'').trim():'';
+  var chatPhoto=isGroup?(window._ccfPhoto||''):'';
+  var name=typedTitle || (isGroup
     ? picked.slice(0,3).map(function(f){return f.name.split(' ')[0];}).join(', ')+(picked.length>3?(' +'+(picked.length-3)):'')
-    : first.name;
+    : first.name);
   var color=isGroup?(uni?uni.p:'#2b5fd9'):first.color;
   var init=isGroup?'👥':first.init;
   var chatId=(isGroup?'grp_':'dm_')+Date.now();
 
   var menu=document.getElementById('chat-create-menu');if(menu)menu.remove();
+
+  // Seed the group meta up front so the settings sheet and the chat header read
+  // the chosen name/photo instead of deriving a name from the DOM later.
+  if(isGroup){
+    window.groupChatMeta=window.groupChatMeta||{};
+    var myH=(userPro&&userPro.handle)?userPro.handle.replace('@',''):'me';
+    window.groupChatMeta[chatId]={
+      name:name, adminHandle:myH, adminName:(userPro&&userPro.name)||'Admin',
+      bannerUrl:'', avatarUrl:chatPhoto, isEvent:false, nicknames:{},
+      members:[{id:(userPro&&userPro.id)||'me',name:(userPro&&userPro.name)||'You',handle:myH,photo:(userPro&&userPro.photos&&userPro.photos[0])||'',isAdmin:true}]
+        .concat(picked.map(function(f,i){
+          return {id:'f_'+i, name:f.name, handle:String(f.name).toLowerCase().replace(/\s+/g,''), photo:f.photo||'', isAdmin:false};
+        }))
+    };
+    if(typeof _saveGroupMeta==='function')try{_saveGroupMeta();}catch(e){}
+  }
+  window._ccfPhoto='';
 
   var container=document.getElementById('chat-dm-container')||document.getElementById('chat-list');
   if(container){
@@ -5553,7 +5621,9 @@ function _createChatFromPicker(){
     item.setAttribute('data-csec','individuals');
     item.onclick=function(){openChat(chatId,name,color,init,isGroup,[],false);};
     item.innerHTML=(isGroup
-        ? '<div class="cav grp" style="background:'+color+';"><span>👥</span></div>'
+        ? (chatPhoto
+            ? '<div class="cav grp" id="cav-'+chatId+'" style="background:url(\''+chatPhoto+'\') center/cover;"></div>'
+            : '<div class="cav grp" id="cav-'+chatId+'" style="background:'+color+';"><span>👥</span></div>')
         : (first.photo
             ? '<div class="cav" style="background:'+color+';"><img src="'+first.photo+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/></div>'
             : '<div class="cav" style="background:'+color+';"><span>'+init+'</span></div>'))+
@@ -5687,16 +5757,16 @@ function _evFriendsGoingHtml(e){
     });
     var avs = realGoing.slice(0, 3).map(function(f, i) {
       if (f.avatar) {
-        return '<div style="width:24px;height:24px;border-radius:50%;background:url(\''+f.avatar+'\') center/cover;border:2px solid #0e0a1e;margin-left:'+(i?-8:0)+'px;"></div>';
+        return '<div style="width:24px;height:24px;border-radius:50%;background:url(\''+f.avatar+'\') center/cover;border:2px solid #0b0b0e;margin-left:'+(i?-8:0)+'px;"></div>';
       } else {
-        return '<div style="width:24px;height:24px;border-radius:50%;background:#7aa5ff;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;border:2px solid #0e0a1e;margin-left:'+(i?-8:0)+'px;">'+f.i+'</div>';
+        return '<div style="width:24px;height:24px;border-radius:50%;background:#7aa5ff;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;border:2px solid #0b0b0e;margin-left:'+(i?-8:0)+'px;">'+f.i+'</div>';
       }
     }).join('');
     var label = realGoing[0].n + (realGoing.length > 1 ? ' + ' + (realGoing.length - 1) + ' ' + (realGoing.length - 1 === 1 ? 'person' : 'people') : '') + ' going';
     return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">'+avs+'<span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;">🔥 '+label+'</span></div>';
   }
   var fg=_evFriendsGoing(e);if(!fg.length)return '';
-  var avs=fg.slice(0,3).map(function(f,i){return '<div style="width:24px;height:24px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;border:2px solid #0e0a1e;margin-left:'+(i?-8:0)+'px;">'+f.i+'</div>';}).join('');
+  var avs=fg.slice(0,3).map(function(f,i){return '<div style="width:24px;height:24px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;border:2px solid #0b0b0e;margin-left:'+(i?-8:0)+'px;">'+f.i+'</div>';}).join('');
   var label=fg[0].n+(fg.length>1?' + '+(fg.length-1)+' '+(fg.length-1===1?'friend':'friends'):'')+' going';
   return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">'+avs+'<span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;">🔥 '+label+'</span></div>';
 }
@@ -5820,7 +5890,7 @@ function toggleEventDropdown(e) {
   if (!menu) {
     menu = document.createElement('div');
     menu.id = 'event-action-dropdown';
-    menu.style.cssText = 'position:absolute;z-index:99999;background:rgba(18,10,35,0.96);border:1.5px solid rgba(61,123,255,0.35);box-shadow:var(--el-3);border-radius:var(--rad-md);padding:6px;width:165px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;font-family:var(--font);box-sizing:border-box;';
+    menu.style.cssText = 'position:absolute;z-index:99999;background:rgba(13,13,17,0.96);border:1.5px solid rgba(61,123,255,0.35);box-shadow:var(--el-3);border-radius:var(--rad-md);padding:6px;width:165px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;font-family:var(--font);box-sizing:border-box;';
     
     var createSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3d7bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-fading-plus-icon lucide-circle-fading-plus" style="color:#3d7bff;"><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 8v8"/><path d="M16 12H8"/><path d="M2.5 8.875a10 10 0 0 0-.5 3"/><path d="M2.83 16a10 10 0 0 0 2.43 3.4"/><path d="M4.636 5.235a10 10 0 0 1 .891-.857"/><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"/></svg>';
     var myEventsSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-sparkles-icon lucide-pencil-sparkles" style="color:#e04155;"><path d="M10 3H8"/><path d="m15.007 5.008 3.987 3.986"/><path d="M20 15v4"/><path d="M21.174 6.813a2.82 2.82 0 0 0-3.986-3.987L3.842 16.175a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="M22 17h-4"/><path d="M4 5v4"/><path d="M6 7H2"/><path d="M9 2v2"/></svg>';
@@ -5891,17 +5961,22 @@ function _uniScopeBannerHtml(){
   var landSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark-icon lucide-landmark"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>';
   var lockSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-icon lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
-  var mineBtn = '<button onclick="_setHangoutUniScope(\'mine\')" style="flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--rad-sm);border:1.5px solid '+(mineOn?'var(--p)':'rgba(255,255,255,0.08)')+';background:'+(mineOn?'transparent':'rgba(255,255,255,0.03)')+';box-shadow:'+(mineOn?'var(--glow-selected)':'none')+';color:'+(mineOn?'#fff':'var(--fg2)')+';cursor:pointer;text-align:left;transition:all var(--dur) ease;font-family:var(--font);">'+
-    '<div style="display:flex;align-items:center;justify-content:center;color:'+(mineOn?'var(--p)':'var(--fg3)')+';flex-shrink:0;">'+capSvg+'</div>'+
+  // Both buttons use the shared .neon-card recipe (black fill + coloured edge +
+  // halo). My University takes --p, which applyColors() sets to the user's own
+  // university colour, so the button is themed per school for free.
+  var mineBtn = '<button class="neon-card' + (mineOn ? ' grad on' : '') + '" onclick="_setHangoutUniScope(\'mine\')" style="--neon:var(--p);flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;gap:10px;padding:8px 12px;color:'+(mineOn?'#fff':'var(--fg2)')+';cursor:pointer;text-align:left;transition:all var(--dur) ease;font-family:var(--font);">'+
+    '<div style="display:flex;align-items:center;justify-content:center;color:var(--p);flex-shrink:0;">'+capSvg+'</div>'+
     '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
       '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My University</span>'+
       '<span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+((typeof uni !== 'undefined' && uni) ? uni.name : 'University')+' '+acr+'</span>'+
     '</div>'+
   '</button>';
 
-  var pickBtn = '<button onclick="_setHangoutUniScope(\'pick\')" style="flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:var(--rad-sm);border:1.5px solid '+(pickOn?'var(--p)':'rgba(255,255,255,0.08)')+';background:'+(pickOn?'transparent':'rgba(255,255,255,0.03)')+';box-shadow:'+(pickOn?'var(--glow-selected)':'none')+';color:'+(pickOn?'#fff':'var(--fg2)')+';cursor:pointer;text-align:left;transition:all var(--dur) ease;position:relative;font-family:var(--font);">'+
+  // Other Universities takes the blue already used by its "Unlock with A+" line
+  // and its padlock, so the card reads as one colour.
+  var pickBtn = '<button class="neon-card' + (pickOn ? ' grad on' : '') + '" onclick="_setHangoutUniScope(\'pick\')" style="--neon:#3d7bff;flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;color:'+(pickOn?'#fff':'var(--fg2)')+';cursor:pointer;text-align:left;transition:all var(--dur) ease;position:relative;font-family:var(--font);">'+
     '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden;">'+
-      '<div style="display:flex;align-items:center;justify-content:center;color:'+(pickOn?'var(--p)':'var(--fg3)')+';flex-shrink:0;">'+landSvg+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:center;color:#3d7bff;flex-shrink:0;">'+landSvg+'</div>'+
       '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
         '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Other Universities</span>'+
         '<span style="font-size:var(--fs-xs);color:'+(isA?'#34d399':'#3d7bff')+';margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(isA?'Unlocked':'Unlock with A+')+'</span>'+
@@ -6035,21 +6110,21 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       var photo = (att.photos && att.photos[0]) ? att.photos[0].url : '';
       var init = att.firstName ? att.firstName.charAt(0).toUpperCase() : 'U';
       if (photo) {
-        avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid #0d0722;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;"></div>');
+        avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid #0b0b0e;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;"></div>');
       } else {
-        avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:#4d84ff;display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:600;color:#fff;border:2px solid #0d0722;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;">'+init+'</div>');
+        avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:#4d84ff;display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:600;color:#fff;border:2px solid #0b0b0e;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;">'+init+'</div>');
       }
     });
   } else {
     var friendPool = (typeof _FRIEND_POOL !== 'undefined') ? _FRIEND_POOL : [{i:'A',c:'#e91e63'},{i:'M',c:'#3b82f6'},{i:'S',c:'#3d7bff'}];
     var list = fg.length ? fg : friendPool.slice(0, 3);
     list.slice(0, 3).forEach(function(f, i) {
-      avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:600;color:#fff;border:2px solid #0d0722;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;">'+(f.i||'U')+'</div>');
+      avatarItems.push('<div style="width:30px;height:30px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:600;color:#fff;border:2px solid #0b0b0e;margin-left:'+(i ? -10 : 0)+'px;flex-shrink:0;">'+(f.i||'U')+'</div>');
     });
   }
 
   var extraCount = totalGoing > 3 ? (totalGoing - 3) : 0;
-  var extraPill = extraCount > 0 ? '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:700;color:#fff;border:2px solid #0d0722;margin-left:-10px;flex-shrink:0;">+'+extraCount+'</div>' : '';
+  var extraPill = extraCount > 0 ? '<div style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:700;color:#fff;border:2px solid #0b0b0e;margin-left:-10px;flex-shrink:0;">+'+extraCount+'</div>' : '';
 
   var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
 
@@ -6086,11 +6161,11 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
 
   // Full-bleed poster: the whole card IS the photo, everything sits on a bottom scrim.
   var secCol = _secColor(e.section);
-  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0d0722;border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
+  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
     // Category accent — a hairline of the section colour along the top edge
     '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+secCol+';z-index:3;box-shadow:0 0 12px '+secCol+';"></div>' +
     // Scrim: clear at the top so the photo reads, deep at the bottom so the text does
-    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.42) 0%,rgba(13,7,34,0) 28%,rgba(9,4,23,0.72) 58%,rgba(9,4,23,0.96) 100%);pointer-events:none;"></div>' +
+    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.42) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0.72) 58%,rgba(0,0,0,0.96) 100%);pointer-events:none;"></div>' +
 
     // Badges row (top)
     '<div style="position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:8px;min-height:1px;">' +
@@ -6172,6 +6247,17 @@ function openHangoutDetailModal(evtId) {
   var fg = (typeof _evFriendsGoing === 'function') ? _evFriendsGoing(e) : [];
   var totalGoing = e.spots || (attendees.length > 0 ? attendees.length : (fg.length ? fg.length + 2 : 4));
 
+  // Attendee bubbles carry the event's own category hue as a neon outline, so
+  // the roster reads as part of this event rather than a generic grey list.
+  var _attHue = (typeof _secColor === 'function') ? _secColor(e.section) : '#3d7bff';
+  var _attRow = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:#000;' +
+    'border:1.5px solid ' + _attHue + ';border-radius:var(--rad-lg);' +
+    'box-shadow:0 0 10px ' + _attHue + '4d, inset 0 0 10px ' + _attHue + '14;';
+
+  // Info cards share the same neon recipe as the attendee bubbles.
+  var _cardNeon = 'background:#000;border:1.5px solid ' + _attHue + ';border-radius:var(--rad-lg);' +
+    'box-shadow:0 0 12px ' + _attHue + '45, inset 0 0 12px ' + _attHue + '12;';
+
   var attendeesListHtml = '';
   if (attendees.length > 0) {
     attendeesListHtml = attendees.map(function(att) {
@@ -6179,10 +6265,10 @@ function openHangoutDetailModal(evtId) {
       var name = att.firstName || (att.name ? att.name.split(' ')[0] : 'Estudiante');
       var major = (att.profile && att.profile.major) || att.major || 'Student';
       var photoHtml = photo ?
-        '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid #3d7bff;flex-shrink:0;"></div>' :
+        '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
         '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
-      
-      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--rad-lg);">' +
+
+      return '<div style="'+_attRow+'">' +
         photoHtml +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+name+'</div>' +
@@ -6199,7 +6285,7 @@ function openHangoutDetailModal(evtId) {
     ];
     var list = fg.length ? fg : friendPool;
     attendeesListHtml = list.slice(0, 4).map(function(f) {
-      return '<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--rad-lg);">' +
+      return '<div style="'+_attRow+'">' +
         '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+(f.i||'U')+'</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+(f.n || 'Estudiante')+'</div>' +
@@ -6215,22 +6301,38 @@ function openHangoutDetailModal(evtId) {
   // Already joined? Chat / Leave live on the Joined Events card — no need to repeat them here.
   var actionButtonsHtml = isJoined ? '' :
     '<div style="margin-top:14px;width:100%;">' +
-      '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:15px;border-radius:var(--rad-md);background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;color:#fff;font-family:var(--font);font-size:var(--fs-md);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--glow-primary);letter-spacing:0.4px;">🔥 Join Event</button>' +
+      '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:15px;border-radius:var(--rad-md);background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;color:#fff;font-family:var(--font);font-size:var(--fs-md);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.4px;">Join Event</button>' +
     '</div>';
+
+  // Invite only makes sense while there are seats left — same _cap/_going the
+  // stat block above uses, so the button and the "9% filled" figure agree.
+  var _capNow = e.cap || 10;
+  var _seatsLeft = Math.max(0, _capNow - totalGoing);
+  // Same gradient shape as Join Event (hue → darker hue), but in the event's own
+  // section colour, so the whole modal reads as one category.
+  var _inviteGrad = 'linear-gradient(135deg,' + _attHue + ' 0%, color-mix(in srgb,' + _attHue + ' 42%, #000) 100%)';
+  var inviteBtnHtml = (_seatsLeft > 0) ?
+    '<div style="margin-top:10px;width:100%;">' +
+      '<button onclick="openEventInviteFriends(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\')" style="width:100%;padding:13px;border-radius:var(--rad-md);background:'+_inviteGrad+';border:none;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.3px;">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>' +
+        '<span>Invite Friends</span>' +
+        '<span style="font-weight:600;opacity:0.75;">· '+_seatsLeft+' left</span>' +
+      '</button>' +
+    '</div>' : '';
 
   var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
 
-  body.style.cssText = 'background:linear-gradient(180deg,#110926 0%,#090417 100%);border-radius:var(--rad-xl);overflow:hidden;border:1.5px solid rgba(255,255,255,0.12);box-shadow:var(--el-3);';
+  body.style.cssText = 'background:linear-gradient(180deg,#110926 0%,#000000 100%);border-radius:var(--rad-xl);overflow:hidden;border:1.5px solid rgba(255,255,255,0.12);box-shadow:var(--el-3);';
 
   body.innerHTML = 
     // Header image
     '<div style="height:230px;background:'+coverStyle+';position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:16px;box-sizing:border-box;">' +
-      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(10,5,24,0.3) 50%,#090417 100%);pointer-events:none;"></div>' +
+      '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.3) 50%,#000000 100%);pointer-events:none;"></div>' +
       
       // Top bar with close button & badges
       '<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;">' +
         '<div style="display:flex;align-items:center;gap:8px;">' + badgeHtml + capFlagHtml + '</div>' +
-        '<button onclick="closeHangoutDetailModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(10,5,24,0.75);backdrop-filter:blur(10px);border:1.5px solid rgba(240,62,90,0.5);color:#fff;font-size:var(--fs-md);font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>' +
+        '<button onclick="closeHangoutDetailModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);border:1.5px solid rgba(240,62,90,0.5);color:#fff;font-size:var(--fs-md);font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>' +
       '</div>' +
 
       // Title over cover
@@ -6242,7 +6344,7 @@ function openHangoutDetailModal(evtId) {
     // Content container
     '<div style="padding:0 20px 24px;">' +
       // Date, Time & Location section with Neon frame
-      '<div style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--rad-lg);padding:14px 16px;margin-bottom:18px;">' +
+      '<div style="'+_cardNeon+'padding:14px 16px;margin-bottom:18px;">' +
         '<div style="display:flex;align-items:center;gap:12px;font-size:var(--fs-base);font-weight:600;color:#fff;margin-bottom:12px;">' +
           '<div style="width:34px;height:34px;border-radius:var(--rad-sm);background:rgba(59,130,246,0.2);border:1.5px solid rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;color:#60a5fa;flex-shrink:0;">'+icon('calendar',16)+'</div>' +
           '<div>' +
@@ -6265,21 +6367,46 @@ function openHangoutDetailModal(evtId) {
         var hostPhoto = e.creator && e.creator.photos && e.creator.photos[0] ? e.creator.photos[0].url : '';
         var hostName = e.creator ? (e.creator.firstName + ' ' + (e.creator.lastName || '')).trim() : (e.host || 'Organizer');
         var hostHandle = (e.creator && e.creator.handle) ? ('@' + e.creator.handle.replace(/^@/, '')) : (e.host || '@organizer');
+
+        // Events seeded without a `creator` fall back to `e.host` for BOTH the
+        // name and the handle, which printed the same @user twice. Look the host
+        // up in the profile pool to recover a real name and photo; if we still
+        // only have the handle, show it once.
+        if (!hostPhoto || hostName === hostHandle) {
+          var hKey = String(hostHandle).replace(/^@/, '').toLowerCase();
+          var pool = (typeof crushDataAll !== 'undefined' && crushDataAll) ? crushDataAll : [];
+          for (var hi = 0; hi < pool.length; hi++) {
+            var cand = pool[hi];
+            var candH = String(cand.handle || cand.name || '').replace(/^@/, '').toLowerCase();
+            var candN = String(cand.name || '').toLowerCase();
+            if (candH === hKey || candN === hKey || candN.replace(/[^a-z]/g, '') === hKey.replace(/[^a-z]/g, '')) {
+              if (!hostPhoto) hostPhoto = (cand.photos && cand.photos[0]) || cand.photo || '';
+              if (hostName === hostHandle && cand.name) hostName = cand.name;
+              break;
+            }
+          }
+        }
+        var hostSame = (hostName === hostHandle) || !hostName;
+        var hostInit = String(hostName || hostHandle || 'U').replace(/^@/, '').charAt(0).toUpperCase();
+
         var hostAvHtml = hostPhoto ?
           '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid var(--p);flex-shrink:0;"></div>' :
-          '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+(hostName.charAt(0).toUpperCase())+'</div>';
+          '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+hostInit+'</div>';
 
-        return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:var(--rad-lg);">' +
+        return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;'+_cardNeon+'">' +
           hostAvHtml +
           '<div style="flex:1;min-width:0;">' +
             '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;">HOSTED BY</div>' +
-            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+hostName+' <span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);font-weight:400;">'+hostHandle+'</span></div>' +
+            // One identifier only, in white. The dim grey second copy is gone.
+            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+              (hostSame ? hostHandle : (hostName + ' <span style="font-size:var(--fs-xs);color:#fff;opacity:0.75;font-weight:500;">' + hostHandle + '</span>')) +
+            '</div>' +
           '</div>' +
         '</div>';
       })() +
 
       // Description section
-      '<div style="margin-bottom:20px;padding:12px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:var(--rad-lg);">' +
+      '<div style="margin-bottom:20px;padding:12px 14px;'+_cardNeon+'">' +
         '<div style="font-size:var(--fs-xs);font-weight:700;color:#7aa5ff;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">✨ ABOUT THIS EVENT</div>' +
         '<div style="font-size:var(--fs-base);color:rgba(255,255,255,0.9);line-height:1.55;white-space:pre-line;">'+desc+'</div>' +
       '</div>' +
@@ -6288,7 +6415,7 @@ function openHangoutDetailModal(evtId) {
       (function(){
         var _cap=e.cap||10, _going=totalGoing, _filled=Math.round((e.spots||_going)/_cap*100);
         var _pad=function(n){return n<10?('0'+n):(''+n);};
-        return '<div style="margin-bottom:20px;padding:14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--rad-xl);">' +
+        return '<div style="margin-bottom:20px;padding:14px;'+_cardNeon+'">' +
           '<div class="v-head" style="margin:0 0 12px;">Who\'s going</div>' +
           '<div class="v-stats" style="padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:14px;">' +
             '<div class="v-stat"><div class="v-stat-num">'+_pad(_going)+'</div><div class="v-stat-lbl">Going</div></div>' +
@@ -6301,6 +6428,7 @@ function openHangoutDetailModal(evtId) {
 
       // Primary action (Join Event) — absent once you've joined
       actionButtonsHtml +
+      inviteBtnHtml +
     '</div>';
 
   modal.classList.add('open');
@@ -6309,6 +6437,74 @@ function openHangoutDetailModal(evtId) {
 function closeHangoutDetailModal() {
   var modal = document.getElementById('hangout-detail-modal');
   if (modal) modal.classList.remove('open');
+}
+
+// ── Invite friends to an event ────────────────────────────────────────────
+// Reuses _friendsForPicker() (the same source the group-chat invite sheet uses)
+// so there is one definition of "my friends" in the app.
+// NOTE: event invites have no backend endpoint yet, so this records the invite
+// locally and gives feedback. Swap _eventInvites for an apiClient call when the
+// endpoint exists — nothing else here needs to change.
+window._eventInvites = window._eventInvites || {};
+
+function openEventInviteFriends(section, evName) {
+  var key = section + '|' + evName;
+  _eventInvites[key] = _eventInvites[key] || {};
+  var friends = (typeof _friendsForPicker === 'function') ? _friendsForPicker() : [];
+
+  var old = document.getElementById('event-invite-modal');
+  if (old) old.remove();
+
+  var hue = (typeof _secColor === 'function') ? _secColor(section) : '#3d7bff';
+
+  var rows = friends.length ? friends.map(function(f, i) {
+    var invited = !!_eventInvites[key][f.name];
+    var av = f.photo
+      ? '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+f.photo+'\') center/cover;flex-shrink:0;border:1.5px solid '+hue+';"></div>'
+      : '<div style="width:40px;height:40px;border-radius:50%;background:'+(f.color||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;">'+(f.init||'U')+'</div>';
+    return '<div style="display:flex;align-items:center;gap:11px;padding:9px 11px;background:#000;border:1.5px solid ' + hue + ';box-shadow:0 0 9px ' + hue + '3d;border-radius:var(--rad-lg);margin-bottom:8px;">' +
+      av +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _e(f.name) + '</div>' +
+        (f.sub ? '<div style="font-size:var(--fs-xs);color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _e(f.sub) + '</div>' : '') +
+      '</div>' +
+      // Same cool gradient family as the Invite Friends button that opened this
+      // sheet, so the action reads as one flow.
+      '<button id="evinv-' + i + '" onclick="_inviteFriendToEvent(\'' + _e(section) + '\',\'' + _e(String(evName).replace(/'/g, "\\'")) + '\',\'' + _e(String(f.name).replace(/'/g, "\\'")) + '\',' + i + ')" ' +
+        'style="flex-shrink:0;padding:8px 16px;border-radius:var(--rad-sm);border:none;background:linear-gradient(135deg,#22d3ee 0%,#3d7bff 55%,#8b5cf6 100%);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;"' +
+        (invited ? ' disabled' : '') + '>' + (invited ? '✓ Invitado' : 'Invitar') + '</button>' +
+    '</div>';
+  }).join('') :
+    '<div style="text-align:center;color:var(--fg2);font-size:var(--fs-base);padding:26px 10px;">Aún no tienes amigos para invitar.</div>';
+
+  var modal = document.createElement('div');
+  modal.id = 'event-invite-modal';
+  modal.className = 'mov open';
+  modal.style.zIndex = '10010';
+  modal.innerHTML = '<div class="msheet" style="max-height:80vh;overflow-y:auto;">' +
+    '<div class="mhnd"></div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">' +
+      '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Invitar amigos</div>' +
+      '<div onclick="document.getElementById(\'event-invite-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;">✕</div>' +
+    '</div>' +
+    '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:14px;">' + _e(evName) + '</div>' +
+    rows +
+  '</div>';
+  document.body.appendChild(modal);
+}
+
+function _inviteFriendToEvent(section, evName, friendName, idx) {
+  var key = section + '|' + evName;
+  _eventInvites[key] = _eventInvites[key] || {};
+  _eventInvites[key][friendName] = true;
+  var btn = document.getElementById('evinv-' + idx);
+  if (btn) {
+    btn.textContent = '✓ Invitado';
+    btn.disabled = true;
+    // Drop the gradient once used so invited rows read as done, not actionable.
+    btn.style.background = 'rgba(255,255,255,0.10)';
+    btn.style.color = 'var(--fg2)';
+  }
 }
 
 function renderMyHangouts() {
@@ -6777,6 +6973,11 @@ function renderHangouts(){
   var ht=document.getElementById('happening-tonight');if(ht)ht.innerHTML=_happeningTonightHtml();
   var tr=document.getElementById('trending-events');if(tr)tr.innerHTML='';// trending row removed — use the Trending filter instead
   var sel=document.getElementById('ev-filter-sel');var filter=sel?sel.value:'compat';
+  // The bubble takes the hue of the chosen sort (Top trending → orange, etc).
+  // Set as a data attribute so the colours live in CSS next to the rest of the
+  // hue systems; done here rather than in onchange so programmatic re-renders
+  // (language switch, section chips) stay in sync too.
+  if(sel)sel.setAttribute('data-sort',filter);
   var crossUni=_iAmSingleSex()||(_hangoutUniScope!=='mine'&&curPlan==='aplus');
   var evs;
   if(crossUni){
@@ -7653,7 +7854,7 @@ function renderActivityLog() {
   log.slice().reverse().forEach(function(item) {
     var d = document.createElement('div');
     d.className = 'gc';
-    d.style.cssText = 'margin:0 0 12px;background:rgba(22,14,42,0.75);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-lg);backdrop-filter:blur(10px);';
+    d.style.cssText = 'margin:0 0 12px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-lg);backdrop-filter:blur(10px);';
     d.innerHTML = '<div style="padding:14px;"><div style="font-size:var(--fs-base);font-weight:700;color:#a9c4ff;margin-bottom:4px;display:flex;align-items:center;gap:6px;"><span>⚡</span><span>' + (item.handle || (userPro && userPro.handle) || '@you') + '</span></div><div style="font-size:var(--fs-base);color:#ffffff;font-weight:500;line-height:1.4;">' + item.txt + '</div><div style="font-size:var(--fs-2xs);color:#7aa5ff;margin-top:6px;font-weight:600;">' + item.timeStr + '</div></div>';
     if (notice) panel.insertBefore(d, notice);
     else panel.appendChild(d);
@@ -8064,7 +8265,7 @@ function renderCampusEventsList() {
   }
   return window._campusEvents.map(function(evt) {
     return '<div class="stubhub-event-card" onclick="openTicketDetailModal(\'' + evt.id + '\')">' +
-      '<div style="height:150px;position:relative;background:linear-gradient(180deg,rgba(0,0,0,0.2) 0%,rgba(10,5,26,0.92) 100%),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div style="height:150px;position:relative;background:linear-gradient(180deg,rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.92) 100%),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:space-between;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
           '<span class="stubhub-badge">' + evt.badge + '</span>' +
           '<span style="font-size:var(--fs-base);font-weight:700;color:#fff;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);padding:4px 10px;border-radius:var(--rad-sm);border:1px solid rgba(255,255,255,0.2);">' + evt.seller.ticketsCount + ' Boletos</span>' +
@@ -8141,7 +8342,7 @@ function openTicketDetailModal(id) {
   if (!body) return;
 
   body.innerHTML = '<div style="position:relative;margin-bottom:14px;">' +
-    '<div style="height:140px;border-radius:var(--rad-lg);background:linear-gradient(180deg,transparent,rgba(10,5,26,0.95)),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;">' +
+    '<div style="height:140px;border-radius:var(--rad-lg);background:linear-gradient(180deg,transparent,rgba(0,0,0,0.95)),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;">' +
       '<div style="font-size:var(--fs-lg);font-weight:900;color:#fff;text-shadow:0 2px 8px #000;">' + evt.title + '</div>' +
       '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.85);margin-top:2px;">'+icon('calendar',16)+' ' + evt.date + '</div>' +
     '</div>' +
@@ -8349,7 +8550,7 @@ function renderCampusEventsList() {
   }
   return window._campusEvents.map(function(evt) {
     return '<div class="stubhub-event-card" onclick="openTicketDetailModal(\'' + evt.id + '\')">' +
-      '<div style="height:150px;position:relative;background:linear-gradient(180deg,rgba(0,0,0,0.2) 0%,rgba(10,5,26,0.92) 100%),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:space-between;">' +
+      '<div style="height:150px;position:relative;background:linear-gradient(180deg,rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.92) 100%),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:space-between;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;">' +
           '<span class="stubhub-badge">' + evt.badge + '</span>' +
           '<span style="font-size:var(--fs-base);font-weight:700;color:#fff;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);padding:4px 10px;border-radius:var(--rad-sm);border:1px solid rgba(255,255,255,0.2);">' + evt.seller.ticketsCount + ' Boletos</span>' +
@@ -8426,7 +8627,7 @@ function openTicketDetailModal(id) {
   if (!body) return;
 
   body.innerHTML = '<div style="position:relative;margin-bottom:14px;">' +
-    '<div style="height:140px;border-radius:var(--rad-lg);background:linear-gradient(180deg,transparent,rgba(10,5,26,0.95)),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;">' +
+    '<div style="height:140px;border-radius:var(--rad-lg);background:linear-gradient(180deg,transparent,rgba(0,0,0,0.95)),url(\'' + evt.img + '\');background-size:cover;background-position:center;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;">' +
       '<div style="font-size:var(--fs-lg);font-weight:900;color:#fff;text-shadow:0 2px 8px #000;">' + evt.title + '</div>' +
       '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.85);margin-top:2px;">'+icon('calendar',16)+' ' + evt.date + '</div>' +
     '</div>' +
@@ -8564,7 +8765,7 @@ function switchCrushTab(tab){
     localStorage.setItem('ugz_last_crush_tab', tab);
     sessionStorage.setItem('ugz_last_crush_tab', tab);
   } catch(e) {}
-  ['swipe','foryou','liked','search','sent','uni','uchats'].forEach(function(t){var btn=document.getElementById('ctab-'+t);var panel=document.getElementById('cpanel-'+t);if(btn){btn.classList.toggle('active',t===tab);btn.style.background=t===tab?'var(--p)':'transparent';btn.style.color=t===tab?'#fff':'rgba(255,255,255,0.5)';}if(panel)panel.classList.toggle('active',t===tab);});if(tab==='uchats'){var b=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(b)b.style.display='none';if(typeof fetchAndRenderChats==='function')fetchAndRenderChats();}if(tab==='liked'&&typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');if(tab==='sent'&&typeof _renderSentTab==='function')_renderSentTab();if(tab==='uni'&&typeof _renderUniTab==='function')_renderUniTab();if(tab==='search'&&typeof handleCrushSearch==='function')handleCrushSearch('');
+  ['swipe','foryou','liked','search','sent','uni','uchats'].forEach(function(t){var btn=document.getElementById('ctab-'+t);var panel=document.getElementById('cpanel-'+t);if(btn){btn.classList.toggle('active',t===tab);btn.style.background=t===tab?'var(--p)':'transparent';btn.style.color=t===tab?'#fff':'rgba(255,255,255,0.5)';}if(panel)panel.classList.toggle('active',t===tab);});if(tab==='uchats'){var b=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(b)b.style.display='none';if(typeof fetchAndRenderChats==='function')fetchAndRenderChats();}if(tab==='liked'&&typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');if(tab==='sent'&&typeof _renderSentTab==='function')_renderSentTab();if(tab==='uni'&&typeof _renderUniTab==='function')_renderUniTab();if(tab==='search'&&typeof handleCrushSearch==='function')handleCrushSearch('');if(tab==='swipe'&&typeof _initCrushDeck==='function')_initCrushDeck();
   if(tab==='foryou'){['renderSeasonBanner','renderSpotlight'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(e){}});}}
 function selectSingleChip(el){var parent=el.parentElement;if(!parent)return;parent.querySelectorAll('.yr-chip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
 
@@ -8764,7 +8965,7 @@ function buildHingeStackHtml(p,opts){
     '<button onclick="crushGalleryNav(this,-1)" aria-label="Previous photo" style="position:absolute;top:0;left:0;width:30%;height:72%;background:transparent;border:none;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:flex-start;padding-left:8px;"><span style="background:rgba(0,0,0,0.42);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:800;">‹</span></button>'+
     '<button onclick="crushGalleryNav(this,1)" aria-label="Next photo" style="position:absolute;top:0;right:0;width:30%;height:72%;background:transparent;border:none;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;"><span style="background:rgba(0,0,0,0.42);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:800;">›</span></button>'
   ):'';
-  slides+='<div class="crush-gallery" data-idx="0" style="position:relative;width:100%;'+(_galH?'height:'+_galH+';':'')+_galAR+'overflow:hidden;background:#0a0518;'+_frameCss+'">'+
+  slides+='<div class="crush-gallery" data-idx="0" style="position:relative;width:100%;'+(_galH?'height:'+_galH+';':'')+_galAR+'overflow:hidden;background:#000000;'+_frameCss+'">'+
     '<div class="crush-gallery-track" style="display:flex;height:100%;transition:transform 0.3s ease;">'+_galSlides+'</div>'+
     _galDots+_galArrows+_stickerHtml+uniBadgeHtml+coverInfo+'</div>';
   if(opts.onlyCover) return slides;
@@ -8806,13 +9007,13 @@ function buildHingeStackHtml(p,opts){
     var zc=myZ?_zodiacCompat(myZ,theirZ.s):null;
     if(zc!=null&&zc>=0.8)moChips.push((theirZ.e||'♌')+' '+myZ+' × '+theirZ.s);
     if(moChips.length){
-      sharedBlock='<div style="margin-top:10px;padding:12px 14px;background:rgba(61,123,255,0.1);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-md);"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">💞 YOU MATCHED ON</div><div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;">'+moChips.map(function(i){return '<div style="font-size:var(--fs-sm);padding:5px 12px;background:rgba(61,123,255,0.22);border:1px solid rgba(61,123,255,0.55);border-radius:var(--rad-md);color:#d6e4ff;font-weight:600;">'+i+'</div>';}).join('')+'</div></div>';
+      sharedBlock='<div style="margin-top:10px;padding:12px 14px;background:#000;border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-md);"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">💞 YOU MATCHED ON</div><div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;">'+moChips.map(function(i){return '<div style="font-size:var(--fs-sm);padding:5px 12px;background:#000;border:1px solid rgba(61,123,255,0.55);border-radius:var(--rad-md);color:#d6e4ff;font-weight:600;">'+i+'</div>';}).join('')+'</div></div>';
     }
   }
   if(mutualRow||sharedBlock)bMatched='<div class="crush-info-block">'+(mutualRow||'')+sharedBlock+'</div>';
   // 🟢 Green flags + ⚔️ This-or-that
   var gf=isSelf?(p.greenFlags||[]):_profileGreenFlags(p);
-  if(gf&&gf.length)bGreen='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:#86efac;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🟢 Green flags</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+gf.map(function(f){return '<div style="font-size:var(--fs-xs);padding:4px 9px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);border-radius:var(--rad-md);color:#86efac;font-weight:500;">'+f+'</div>';}).join('')+'</div></div>';
+  if(gf&&gf.length)bGreen='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:#86efac;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🟢 Green flags</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+gf.map(function(f){return '<div style="font-size:var(--fs-xs);padding:4px 9px;background:#000;border:1px solid rgba(74,222,128,0.3);border-radius:var(--rad-md);color:#86efac;font-weight:500;">'+f+'</div>';}).join('')+'</div></div>';
   var totMap=isSelf?(p.tot||{}):_profileTOT(p);var totPolls=_totPolls();
   if(totPolls.length){
     var mine2=_myTOT();
@@ -8862,8 +9063,8 @@ function buildHingeStackHtml(p,opts){
   }
   // Likes / Speaks (split into separate sections so they can be ordered independently)
   var speaksList = isSelf ? (userPro.languages || userPro.langs || userPro.flags || []) : (p.flags || (p.background && p.background.languages) || p.languages || []);
-  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div style="font-size:var(--fs-sm);padding:6px 14px;background:rgba(59,130,246,0.12);border:1.5px solid rgba(59,130,246,0.4);border-radius:var(--rad-lg);color:#93c5fd;font-weight:600;">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
-  if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#e04155;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div style="font-size:var(--fs-sm);padding:6px 13px;background:rgba(240,62,90,0.12);border:1.5px solid rgba(240,62,90,0.4);border-radius:var(--rad-lg);color:#e04155;font-weight:600;">'+i+'</div>';}).join('')+'</div></div></div>';
+  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div style="font-size:var(--fs-sm);padding:6px 14px;background:#000;border:1.5px solid rgba(59,130,246,0.4);border-radius:var(--rad-lg);color:#93c5fd;font-weight:600;">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
+  if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#e04155;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div style="font-size:var(--fs-sm);padding:6px 13px;background:#000;border:1.5px solid rgba(240,62,90,0.4);border-radius:var(--rad-lg);color:#e04155;font-weight:600;">'+i+'</div>';}).join('')+'</div></div></div>';
   // Ethnicity
   if(p.ethnicity)bEthnicity='<div class="crush-info-block">'+'<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;">🌎 <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Ethnicity</b>'+p.ethnicity+'</span></div></div>';
   // Religion + Politics — FIRST (before Clubs)
@@ -8962,7 +9163,7 @@ var SwipeEngineV2 = (function() {
       bottomCard.style.opacity = '0.6';
       bottomCard.style.filter = '';
       bottomCard.style.transition = '';
-      bottomCard.style.setProperty('background', '#06030e', 'important');
+      bottomCard.style.setProperty('background', '#000000', 'important');
 
       var symLike = bottomCard.querySelector('.neon-badge-like');
       var symReject = bottomCard.querySelector('.neon-badge-reject');
@@ -9110,7 +9311,7 @@ var SwipeEngineV2 = (function() {
     // Apply dynamic glow overlay background
     var innerCard = topCard;
     if (glowColor) {
-      innerCard.style.backgroundColor = 'color-mix(in srgb, #0b0818, ' + glowColor + ')';
+      innerCard.style.backgroundColor = 'color-mix(in srgb, #0b0b0e, ' + glowColor + ')';
     } else {
       innerCard.style.backgroundColor = '';
     }
@@ -9134,18 +9335,18 @@ var SwipeEngineV2 = (function() {
       if (symMaybe) { symMaybe.style.opacity = '0'; symMaybe.style.transform = 'scale(0.5)'; }
 
       // Dynamic background gradient of the bottom card
-      var targetBg = '#06030e';
+      var targetBg = '#000000';
       
       if (dx > 10) {
         var progress = Math.min(dx / 120, 1);
-        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #22c55e ' + (progress * 70) + '%) 0%, #06030e 100%)';
+        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #22c55e ' + (progress * 70) + '%) 0%, #000000 100%)';
         if (symLike) {
           symLike.style.opacity = progress;
           symLike.style.transform = 'scale(' + (0.5 + progress * 0.6) + ')';
         }
       } else if (dx < -10) {
         var progress = Math.min(-dx / 120, 1);
-        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #ef4444 ' + (progress * 70) + '%) 0%, #06030e 100%)';
+        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #ef4444 ' + (progress * 70) + '%) 0%, #000000 100%)';
         if (symReject) {
           symReject.style.opacity = progress;
           symReject.style.transform = 'scale(' + (0.5 + progress * 0.6) + ')';
@@ -9264,18 +9465,18 @@ var SwipeEngineV2 = (function() {
       var symReject = bottomCard.querySelector('.neon-badge-reject');
       var symMaybe = bottomCard.querySelector('.neon-badge-maybe');
       
-      var targetBg = '#06030e';
+      var targetBg = '#000000';
       if (dir === 'like') {
-        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #22c55e 75%) 0%, #06030e 100%)';
+        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #22c55e 75%) 0%, #000000 100%)';
         if (symLike) { symLike.style.opacity = '1'; symLike.style.transform = 'scale(1.1)'; }
       } else if (dir === 'nope') {
-        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #ef4444 75%) 0%, #06030e 100%)';
+        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #ef4444 75%) 0%, #000000 100%)';
         if (symReject) {
           symReject.style.opacity = '1';
           symReject.style.transform = 'scale(1.1)';
         }
       } else if (dir === 'maybe') {
-        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #38bdf8 75%) 0%, #06030e 100%)';
+        targetBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #38bdf8 75%) 0%, #000000 100%)';
         if (symMaybe) { symMaybe.style.opacity = '1'; symMaybe.style.transform = 'scale(1.1)'; }
       }
       bottomCard.style.setProperty('background', targetBg, 'important');
@@ -9325,7 +9526,7 @@ var SwipeEngineV2 = (function() {
           bottomCard.style.transform = 'translate3d(0, 16px, 0) scale(0.92)';
           bottomCard.style.opacity = '0.6';
           bottomCard.style.filter = '';
-          bottomCard.style.setProperty('background', '#06030e', 'important');
+          bottomCard.style.setProperty('background', '#000000', 'important');
 
           var symLike = bottomCard.querySelector('.neon-badge-like');
           var symReject = bottomCard.querySelector('.neon-badge-reject');
@@ -9367,9 +9568,9 @@ var SwipeEngineV2 = (function() {
 
       var op = Math.max(0, Math.min(Math.abs(x) / 150, 0.45)) * expFactor;
       if (x > 0) {
-        topCard.style.backgroundColor = 'color-mix(in srgb, #0b0818, rgba(34, 197, 94, ' + op + '))';
+        topCard.style.backgroundColor = 'color-mix(in srgb, #0b0b0e, rgba(34, 197, 94, ' + op + '))';
       } else {
-        topCard.style.backgroundColor = 'color-mix(in srgb, #0b0818, rgba(239, 68, 68, ' + op + '))';
+        topCard.style.backgroundColor = 'color-mix(in srgb, #0b0b0e, rgba(239, 68, 68, ' + op + '))';
       }
 
       var overlayLike = document.getElementById('swipe-overlay-like');
@@ -9398,11 +9599,11 @@ var SwipeEngineV2 = (function() {
         if (symReject) { symReject.style.opacity = (x < 0 ? symOp : 0); symReject.style.transform = 'scale(' + (x < 0 ? symScale : 0.5) + ')'; }
 
         // Springback background gradient interpolation
-        var springBg = '#06030e';
+        var springBg = '#000000';
         if (x > 0) {
-          springBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #22c55e ' + (symOp * 70) + '%) 0%, #06030e 100%)';
+          springBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #22c55e ' + (symOp * 70) + '%) 0%, #000000 100%)';
         } else if (x < 0) {
-          springBg = 'radial-gradient(circle at center, color-mix(in srgb, #06030e, #ef4444 ' + (symOp * 70) + '%) 0%, #06030e 100%)';
+          springBg = 'radial-gradient(circle at center, color-mix(in srgb, #000000, #ef4444 ' + (symOp * 70) + '%) 0%, #000000 100%)';
         }
         bottomCard.style.setProperty('background', springBg, 'important');
       }
@@ -9568,7 +9769,7 @@ function renderCrush(){
   var card=document.getElementById('crush-card');
   var wrap=document.getElementById('crush-card-wrap');
   var empty=document.getElementById('crush-empty');
-  var ca=document.querySelector('.crush-actions');
+  var ca=document.getElementById('deck-action-bar')||document.querySelector('.crush-actions');
   if(!card)return;
 
   if (crushDoubleDateMode && crushDoubleDatePartner) {
@@ -9711,7 +9912,7 @@ function renderCrushDoubleDate() {
   var card=document.getElementById('crush-card');
   var wrap=document.getElementById('crush-card-wrap');
   var empty=document.getElementById('crush-empty');
-  var ca=document.querySelector('.crush-actions');
+  var ca=document.getElementById('deck-action-bar')||document.querySelector('.crush-actions');
   if(!card)return;
 
   if(crushIdx>=crushData.length-1){
@@ -9838,7 +10039,7 @@ function openSentLikeProfile(likeId){
   var slides=buildHingeStackHtml(p,{isSelf:false});
   var modal=document.createElement('div');
   modal.className='mov open';modal.style.zIndex='9999';
-  modal.innerHTML='<div class="msheet" style="max-width:380px;padding:0;background:#0a0518;overflow:hidden;border-radius:var(--rad-xl);">'+
+  modal.innerHTML='<div class="msheet" style="max-width:380px;padding:0;background:#000000;overflow:hidden;border-radius:var(--rad-xl);">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.4);border-bottom:1px solid var(--gbdl);">'+
       '<div class="t-body-strong">Profile · '+p.name+'</div>'+
       '<button onclick="this.closest(\'.mov\').remove()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:var(--fs-base);cursor:pointer;">✕</button>'+
@@ -10622,9 +10823,9 @@ function _getSentLikesHtml(pool){
     var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#38bdf8')+',rgba(0,0,0,0.55));';
     var safe = (p.name||'').replace(/'/g,"");
     var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
-    return '<div style="border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(56,189,248,0.6);background:#0e0a1e;position:relative;">'+
+    return '<div style="border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(56,189,248,0.6);background:#0b0b0e;position:relative;">'+
       '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="height:190px;'+cover+'position:relative;cursor:pointer;">'+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, transparent 100%);"><div class="t-body-black">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, transparent 100%);"><div class="t-body-black">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
   }).join('');
 
   return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
@@ -10651,6 +10852,7 @@ function _setLikedSub(v){
 }
 function _likedSubRow(){
   var t=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'likes';
+  if(t==='liked'||t==='admirers')t='saw'; // Admirers merged into Secret Admirers
   window._likedSubTab = t;
   var heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>';
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
@@ -10663,7 +10865,6 @@ function _likedSubRow(){
 
   return '<div style="display:flex;gap:6px;padding:10px var(--s) 12px;margin-bottom:4px;">' +
     b('likes', 'Likes', sendSvg) +
-    b('liked', 'Admirers', heartSvg) +
     b('saw', 'Secret Admirers', hatGlassesSvg) +
     '</div>';
 }
@@ -10710,6 +10911,38 @@ async function loadSentLikes() {
   }
 }
 
+// Admirers (people who liked you) + Secret Admirers (people who viewed your
+// profile) are two different tables, so neither is a superset of the other.
+// Concatenate and dedupe by user id, tagging where each person came from.
+// NOTE: profileView rows carry no `gender`, so the crushGenderPref filter that
+// the likes list uses can't be applied evenly here — it is deliberately not
+// applied to the merged pool rather than inventing a value the backend never
+// sent.
+function _mergedAdmirersPool(){
+  var likes = window._admirersData || [];
+  var views = window._profileViewsData || [];
+  var byId = {}, out = [];
+  var push = function(p, src){
+    if(!p) return;
+    var k = String(p.id || p.handle || p.name || '').toLowerCase();
+    if(!k) return;
+    if(byId[k]){ byId[k]._src = 'both'; return; }
+    var copy = {}; for(var f in p){ if(p.hasOwnProperty(f)) copy[f] = p[f]; }
+    copy._src = src;
+    byId[k] = copy; out.push(copy);
+  };
+  likes.forEach(function(p){ push(p, 'like'); });
+  views.forEach(function(p){ push(p, 'view'); });
+  return out;
+}
+
+// Small badge telling you why this person is on the list.
+function _admirerSrcTag(src){
+  if(src === 'both') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde047;">♥ + 👁</span>';
+  if(src === 'like') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#ec4899;">♥ te dio like</span>';
+  return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fb923c;">👁 vio tu perfil</span>';
+}
+
 function _likedSawHtml(pool,unlimited){
   var n = pool.length;
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
@@ -10725,28 +10958,37 @@ function _likedSawHtml(pool,unlimited){
 
   if(!pool.length)return banner+'<div style="text-align:center;padding:35px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">Sin admiradores secretos aún 🕵️<br><span style="font-size:var(--fs-xs);color:#7aa5ff;">¡Mantén actualizado tu perfil para recibir más visitas!</span></div>';
 
+  // Merged tab keeps the more generous of the two unlock rules: Admirers used to
+  // give one free reveal while Secret Admirers locked everything, so free users
+  // don't lose the reveal they already had.
+  var freeReveals = unlimited ? pool.length : 1;
+
   var cards=pool.map(function(p, idx){
+    var unlocked = idx < freeReveals;
     var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
     var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#4d84ff')+',rgba(0,0,0,0.55));';
     var safe=p.name.replace(/'/g,"");
     var timeText = p.timeAgo || 'hace 5m';
     var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
 
-    if(unlimited){
+    if(unlocked){
       return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.5);position:relative;height:190px;'+cover+';">'+
-        '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(10,5,24,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
-        '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, transparent 100%);font-size:var(--fs-base);font-weight:700;color:#fff;">'+p.name+'</div>'+
+        '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, transparent 100%);">'+
+          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;">'+p.name+'</div>'+
+          '<div style="margin-top:2px;">'+_admirerSrcTag(p._src)+'</div>'+
+        '</div>'+
       '</div>';
     }
 
-    return '<div onclick="if(typeof revealWhoViewed===\'function\')revealWhoViewed()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.75);background:#0e0a1e;position:relative;height:190px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
-      '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(10,5,24,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
+    return '<div onclick="if(typeof revealWhoViewed===\'function\')revealWhoViewed()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.75);background:#0b0b0e;position:relative;height:190px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
+      '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
       '<div style="height:100%;'+cover+'filter:blur(18px) saturate(180%);transform:scale(1.15);"></div>'+
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(61,123,255,0.25) 0%, rgba(10,5,24,0.8) 100%);z-index:2;">'+
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(61,123,255,0.25) 0%, rgba(0,0,0,0.8) 100%);z-index:2;">'+
         '<div style="width:48px;height:48px;border-radius:50%;background:#800614;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">🕵️</div>'+
         '<div style="font-size:var(--fs-2xs);font-weight:700;color:#a9c4ff;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #4d84ff;">QUIÉN TE VIO</div>'+
       '</div>'+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 70%, transparent 100%);z-index:3;">'+
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
         '<div style="font-size:var(--fs-xs);font-weight:700;color:#ffffff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.8);">Un estudiante te observó 👁️</div>'+
         '<div style="margin-top:6px;background:linear-gradient(135deg,rgba(61,123,255,0.4),rgba(240,62,90,0.4));border:1px solid #3d7bff;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">'+icon('search',16)+' DESCUBRIR AHORA</div>'+
       '</div>'+
@@ -10941,7 +11183,7 @@ function _getAdmirersRanksHtml(subTab) {
     '</div>';
 
   var statsBar = 
-    '<div style="background:rgba(22,14,42,0.85);border:1.5px solid ' + glowBorder + ';border-radius:var(--rad-lg);padding:13px 10px;margin:0 var(--s) 14px;display:flex;align-items:center;justify-content:space-around;backdrop-filter:blur(12px);">' +
+    '<div style="background:rgba(13,13,17,0.85);border:1.5px solid ' + glowBorder + ';border-radius:var(--rad-lg);padding:13px 10px;margin:0 var(--s) 14px;display:flex;align-items:center;justify-content:space-around;backdrop-filter:blur(12px);">' +
       '<div style="text-align:center;">' +
         '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px;text-shadow:0 0 10px rgba(255,255,255,0.4);"><span>' + stat1Icon + '</span><span>' + stat1Val + '</span></div>' +
         '<div style="font-size:var(--fs-2xs);color:#a9c4ff;font-weight:600;margin-top:2px;">' + stat1Lbl + '</div>' +
@@ -10968,6 +11210,7 @@ function _renderLikedYouReveal(unlimited){
   }
   var panel=document.getElementById('cpanel-liked');if(!panel)return;
   var subTab=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'likes';
+  if(subTab==='liked'||subTab==='admirers')subTab='saw'; // merged
   window._likedSubTab = subTab;
   var subRow=_likedSubRow();
   var ranks=_getAdmirersRanksHtml(subTab);
@@ -10983,12 +11226,18 @@ function _renderLikedYouReveal(unlimited){
   }
 
   if(subTab==='saw'){
+    // Merged tab: people who liked you (swipe table) AND people who opened your
+    // profile (profileView table). Two different endpoints, so both are loaded
+    // and the results are concatenated + deduped by user id.
     if (typeof apiClient !== 'undefined' && (!window._profileViewsData || Date.now() - (window._lastViewsFetch || 0) > 5000)) {
       window._lastViewsFetch = Date.now();
       loadProfileViews();
     }
-    var viewsPool = window._profileViewsData || [];
-    panel.innerHTML = subRow + ranks + _likedSawHtml(viewsPool, unlimited);
+    if (typeof apiClient !== 'undefined' && (!window._admirersData || Date.now() - (window._lastAdmirersFetch || 0) > 5000)) {
+      window._lastAdmirersFetch = Date.now();
+      loadAdmirers();
+    }
+    panel.innerHTML = subRow + ranks + _likedSawHtml(_mergedAdmirersPool(), unlimited);
     return;
   }
 
@@ -11023,17 +11272,17 @@ function _renderLikedYouReveal(unlimited){
     var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
     
     if(unlocked){
-      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.6);background:#0e0a1e;position:relative;">'+
-        '<div style="height:190px;'+cover+'position:relative;"><div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.96) 0%, transparent 100%);"><div class="t-body-black">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
+      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.6);background:#0b0b0e;position:relative;">'+
+        '<div style="height:190px;'+cover+'position:relative;"><div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, transparent 100%);"><div class="t-body-black">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
     }
 
-    return '<div onclick="revealLikedYou()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(240,62,90,0.75);background:#0e0a1e;position:relative;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
+    return '<div onclick="revealLikedYou()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(240,62,90,0.75);background:#0b0b0e;position:relative;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
       '<div style="height:190px;'+cover+'filter:blur(18px) saturate(180%);transform:scale(1.15);"></div>'+
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(240,62,90,0.2) 0%, rgba(10,5,24,0.75) 100%);z-index:2;">'+
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(240,62,90,0.2) 0%, rgba(0,0,0,0.75) 100%);z-index:2;">'+
         '<div style="width:48px;height:48px;border-radius:50%;background:#800614;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',16)+'</div>'+
         '<div style="font-size:var(--fs-2xs);font-weight:700;color:#e04155;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #e04155;">TAP TO REVEAL</div>'+
       '</div>'+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 70%, transparent 100%);z-index:3;">'+
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
         '<div style="font-size:var(--fs-xs);color:#d6e4ff;font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">'+(p.major?p.major+' · ':'')+un+'</div>'+
         '<div style="margin-top:6px;background:linear-gradient(135deg,rgba(240,62,90,0.35),rgba(61,123,255,0.35));border:1px solid #e04155;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">🔓 REVELAR PERFIL</div>'+
       '</div>'+
@@ -11508,9 +11757,9 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
       // keep the existing partner-university tint fallback.
       renderChatBackground('default');
       if (partnerUni) {
-        bgContainer.style.background = 'linear-gradient(135deg, ' + partnerUni.p + '33, ' + (partnerUni.p2 || partnerUni.p) + '18, var(--bg, #0a0518))';
+        bgContainer.style.background = 'linear-gradient(135deg, ' + partnerUni.p + '33, ' + (partnerUni.p2 || partnerUni.p) + '18, var(--bg, #000000))';
       } else {
-        bgContainer.style.background = 'var(--bg, #0a0518)';
+        bgContainer.style.background = 'var(--bg, #000000)';
       }
     }
   }
@@ -11599,6 +11848,7 @@ function _getGroupMeta(chatId) {
     var cached = window.groupChatMeta[chatId];
     // Older saved entries predate these fields.
     if (!cached.nicknames) cached.nicknames = {};
+    if (typeof cached.avatarUrl === 'undefined') cached.avatarUrl = '';
     if (typeof cached.isEvent === 'undefined') {
       cached.isEvent = /^evgrp_/.test(chatId || '');
     }
@@ -11658,7 +11908,9 @@ function _getGroupMeta(chatId) {
     // lookup above (via _hangoutChatIds / the evgrp_ prefix) is the only
     // reliable "came from an event" signal in the codebase.
     isEvent: !!ev || /^evgrp_/.test(chatId || ''),
-    nicknames: {}
+    nicknames: {},
+    // Chat profile photo, distinct from bannerUrl (the wide cover strip).
+    avatarUrl: ''
   };
 
   window.groupChatMeta[chatId] = meta;
@@ -11672,6 +11924,45 @@ function _gsDisplayName(meta, m) {
   return nick ? nick : m.name;
 }
 
+function _cwApplyGroupAvatar(meta){
+  var av=document.getElementById('cwav');
+  if(!av)return;
+  var txt=document.getElementById('cwav-txt');
+  if(meta&&meta.avatarUrl){
+    av.style.backgroundImage='url('+meta.avatarUrl+')';
+    av.style.backgroundSize='cover';
+    av.style.backgroundPosition='center';
+    if(txt)txt.style.display='none';
+  }else{
+    av.style.backgroundImage='';
+    if(txt)txt.style.display='';
+  }
+}
+
+// Admin-only: replace the group's profile photo. Local blob URL, same approach
+// as cgChangePic — there is no upload endpoint for group avatars yet.
+function groupChangePhoto(chatId){
+  var meta=_getGroupMeta(chatId);
+  var inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=function(){
+    if(!inp.files||!inp.files[0])return;
+    var url=URL.createObjectURL(inp.files[0]);
+    var apply=function(u){
+      meta.avatarUrl=u;
+      if(typeof _saveGroupMeta==='function')try{_saveGroupMeta();}catch(e){}
+      _cwApplyGroupAvatar(meta);
+      // Chat-list row too, so the change is visible without reopening.
+      var row=document.getElementById('cav-'+chatId)||document.querySelector('#chatrow_'+chatId+' .cav');
+      if(row){row.style.background='url('+u+') center/cover';row.innerHTML='';}
+      var img=document.getElementById('gsx-avatar');
+      if(img){img.style.backgroundImage='url('+u+')';img.textContent='';}
+    };
+    if(typeof openImagePositioner==='function')openImagePositioner(url,'profile',function(u){apply(u);});
+    else apply(url);
+  };
+  inp.click();
+}
+
 function _cwApplyChatHead(id,nm,color,isGrp){
   var head=document.getElementById('cw-eventhead');var sub=document.getElementById('cwsub');
   if(!isGrp){if(head)head.style.display='none';return;}
@@ -11680,6 +11971,10 @@ function _cwApplyChatHead(id,nm,color,isGrp){
   var members = meta.members || [];
   var memberCount = members.length || 8;
   if(sub)sub.textContent=memberCount+' participants';
+
+  // Group photo in the chat header. openChat() treats its `av` argument as text
+  // (it writes textContent), so a group avatar has to be applied here instead.
+  _cwApplyGroupAvatar(meta);
 
   if(head){
     head.style.display='block';
@@ -11697,7 +11992,7 @@ function _cwApplyChatHead(id,nm,color,isGrp){
       var overflowCount = Math.max(0, members.length - 5);
       var avsHtml = displayAvatars.map(function(m, i) {
         var photo = m.photo || ('https://randomuser.me/api/portraits/' + (i % 2 === 0 ? 'women' : 'men') + '/' + (i * 11 + 10) + '.jpg');
-        return '<img src="' + photo + '" title="' + m.name + (m.isAdmin ? ' (Admin)' : '') + '" style="width:30px;height:30px;border-radius:50%;border:2px solid #12091f;margin-left:' + (i ? '-9px' : '0') + ';object-fit:cover;"/>';
+        return '<img src="' + photo + '" title="' + m.name + (m.isAdmin ? ' (Admin)' : '') + '" style="width:30px;height:30px;border-radius:50%;border:2px solid #0b0b0e;margin-left:' + (i ? '-9px' : '0') + ';object-fit:cover;"/>';
       }).join('');
       if (overflowCount > 0) {
         avsHtml += '<span style="margin-left:8px;font-size:var(--fs-sm);font-weight:600;color:#fff;background:rgba(0,0,0,0.55);border-radius:var(--rad-sm);padding:3px 9px;">+' + overflowCount + '</span>';
@@ -13454,7 +13749,7 @@ function openWhoViewed(revealed){
   m=document.createElement('div');m.id='who-viewed-modal';m.className='mov open';m.style.zIndex='9998';
   if(!isA){
     // Locked reveal screen — same gating as "who liked you"
-    m.innerHTML='<div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% 0%,#1a0f2e,#0a0518 70%);">'+
+    m.innerHTML='<div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% 0%,#1a0f2e,#000000 70%);">'+
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:8px var(--s) 4px;">'+
         '<div><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;letter-spacing:.3px;">👀 SAW YOUR PROFILE</div>'+
         '<div style="font-size:var(--fs-base);color:var(--fg2);margin-top:2px;">Personas que vieron tu perfil.</div></div>'+
@@ -13852,7 +14147,7 @@ function renderMatchOfDay(){
     var reason=c.shared.length?'You both like '+c.shared.slice(0,2).join(' & '):(p.major?'Same major energy':'Top match');
     var safeName=p.name.replace(/'/g,"");
     var cover=(p.photos&&p.photos[0])?'background-image:url('+p.photos[0]+');background-size:cover;background-position:center;':'background:linear-gradient(160deg,'+p.bg+',rgba(0,0,0,0.6));';
-    return '<div data-mod="'+safeName+'" style="flex:0 0 220px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid rgba(240,62,90,0.35);background:#0e0a1e;box-shadow:var(--el-3);">'+
+    return '<div data-mod="'+safeName+'" style="flex:0 0 220px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid rgba(240,62,90,0.35);background:#0b0b0e;box-shadow:var(--el-3);">'+
       '<div style="height:280px;'+cover+'position:relative;cursor:pointer;" onclick="viewUserUnicrush(null,\''+safeName+'\',\''+p.bg+'\')">'+
         '<div style="position:absolute;top:10px;left:10px;background:rgba(240,62,90,0.92);color:#fff;font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:var(--rad-lg);">'+medals[i]+' '+c.pct+'%</div>'+
         '<div style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.55);color:#fff;font-size:var(--fs-2xs);font-weight:600;padding:4px 8px;border-radius:var(--rad-lg);">'+icon('hourglass',16)+' '+hrs+'h</div>'+
@@ -13863,7 +14158,7 @@ function renderMatchOfDay(){
           '<div style="font-size:var(--fs-xs);color:#e04155;font-weight:600;margin-top:3px;">💞 '+reason+'</div>'+
         '</div>'+
       '</div>'+
-      '<div style="display:flex;gap:0;background:#0e0a1e;border-top:1px solid var(--gbdl);">'+
+      '<div style="display:flex;gap:0;background:#0b0b0e;border-top:1px solid var(--gbdl);">'+
         '<button onclick="_modPass(this)" style="flex:1;background:transparent;border:none;border-right:1px solid var(--gbdl);padding:11px;color:var(--fg2);font-size:var(--fs-md);font-weight:700;cursor:pointer;" title="Pass">✕</button>'+
         '<button onclick="quickLikeProfile(\''+safeName+'\',\''+p.bg+'\',null);_modPass(this)" style="flex:1;background:transparent;border:none;padding:11px;color:#e04155;font-size:var(--fs-md);font-weight:700;cursor:pointer;" title="Like">❤️</button>'+
       '</div>'+
@@ -13970,7 +14265,7 @@ function _spotlightCard(r,i,opts){
   var rankIco = opts.other ? '🌎' : (i === 0 ? '👑' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : '🌟')));
   
   // High Contrast Solid Dark Glass Heart Pill
-  var likeBadgeHtml = '<div style="position:absolute;top:10px;right:10px;background:rgba(10,5,24,0.92);border:1.5px solid #e04155;color:#ffffff;font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:var(--rad-lg);display:flex;align-items:center;gap:4px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:2;"><span style="color:#e04155;">❤️</span> <span style="color:#ffffff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.9);">' + _fmtLikes(r.likes) + '</span></div>';
+  var likeBadgeHtml = '<div style="position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.92);border:1.5px solid #e04155;color:#ffffff;font-size:var(--fs-xs);font-weight:700;padding:4px 10px;border-radius:var(--rad-lg);display:flex;align-items:center;gap:4px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:2;"><span style="color:#e04155;">❤️</span> <span style="color:#ffffff;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,0.9);">' + _fmtLikes(r.likes) + '</span></div>';
 
   // University Acronym & Grade Pills side by side
   var uniObj = (opts.other && r.uni) ? r.uni : (p.uni || (typeof uni !== 'undefined' && uni) || null);
@@ -13987,11 +14282,11 @@ function _spotlightCard(r,i,opts){
     ? "premAlert('🔒 Viewing profiles from other universities requires an A+ Student subscription. Upgrade to unlock!')"
     : "viewUserUnicrush(null,'" + safe + "','" + p.bg + "','" + ((opts.other && r.uni) ? String(r.uni.name).replace(/'/g, "") : "") + "')";
 
-  return '<div class="spotlight-rank-card" style="flex:0 0 205px;scroll-snap-align:start;border-radius:var(--rad-xl);overflow:hidden;border:1.5px solid '+brd+';'+glow+'background:#0e0a1e;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
+  return '<div class="spotlight-rank-card" style="flex:0 0 205px;scroll-snap-align:start;border-radius:var(--rad-xl);overflow:hidden;border:1.5px solid '+brd+';'+glow+'background:#0b0b0e;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
     '<div style="height:315px;'+cover+'position:relative;cursor:pointer;" onclick="'+clickHandler+'">'+
       '<div style="position:absolute;top:10px;left:10px;'+rankBg+'font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:var(--rad-lg);display:flex;align-items:center;gap:4px;z-index:2;">'+rankIco+' #'+(i+1)+'</div>'+
       likeBadgeHtml+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:50px 12px 14px;background:linear-gradient(to top, rgba(10,5,24,0.98) 0%, rgba(10,5,24,0.7) 65%, transparent 100%);">'+
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:50px 12px 14px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 65%, transparent 100%);">'+
         '<div style="font-size:var(--fs-lg);font-weight:900;color:#ffffff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);">'+p.name+' '+(p.age||'')+(p.verified?_verBadge(15):'')+'</div>'+
         pillsHtml+
         (!opts.sport && p.major ? '<div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.major+'</div>' : '')+
@@ -14121,7 +14416,7 @@ function _seniorBucket(){
   _bucketLoad();
   var m=document.getElementById('bucket-modal');if(m)m.remove();
   m=document.createElement('div');m.id='bucket-modal';m.className='mov open';m.style.zIndex='10002';
-  var items=userPro.bucketList.map(function(it,i){var t=_bucketText(it),done=_bucketDone(it);return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;margin-bottom:7px;"><span onclick="_bucketToggle('+i+')" title="Mark done" style="cursor:pointer;width:22px;height:22px;border-radius:var(--rad-xs);border:2px solid '+(done?'#4ade80':'var(--gbdl)')+';background:'+(done?'#4ade80':'transparent')+';display:flex;align-items:center;justify-content:center;color:#0a0518;font-weight:700;font-size:var(--fs-base);flex-shrink:0;">'+(done?'✓':'')+'</span><span style="flex:1;font-size:var(--fs-base);color:#fff;'+(done?'text-decoration:line-through;opacity:0.55;':'')+'">'+t+'</span><span onclick="_bucketRemove('+i+')" style="cursor:pointer;color:var(--fg3);flex-shrink:0;">✕</span></div>';}).join('')||'<div style="font-size:var(--fs-sm);color:var(--fg3);text-align:center;padding:10px;">No items yet — add your first below.</div>';
+  var items=userPro.bucketList.map(function(it,i){var t=_bucketText(it),done=_bucketDone(it);return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;margin-bottom:7px;"><span onclick="_bucketToggle('+i+')" title="Mark done" style="cursor:pointer;width:22px;height:22px;border-radius:var(--rad-xs);border:2px solid '+(done?'#4ade80':'var(--gbdl)')+';background:'+(done?'#4ade80':'transparent')+';display:flex;align-items:center;justify-content:center;color:#000000;font-weight:700;font-size:var(--fs-base);flex-shrink:0;">'+(done?'✓':'')+'</span><span style="flex:1;font-size:var(--fs-base);color:#fff;'+(done?'text-decoration:line-through;opacity:0.55;':'')+'">'+t+'</span><span onclick="_bucketRemove('+i+')" style="cursor:pointer;color:var(--fg3);flex-shrink:0;">✕</span></div>';}).join('')||'<div style="font-size:var(--fs-sm);color:var(--fg3);text-align:center;padding:10px;">No items yet — add your first below.</div>';
   var sugg=(userPro.bucketList.length>=5)?'':BUCKET_SUGGESTIONS.filter(function(s){return !userPro.bucketList.some(function(it){return _bucketText(it)===s;});}).slice(0,4).map(function(s){return '<div onclick="_bucketAdd(\''+s.replace(/'/g,"\\'")+'\')" style="cursor:pointer;font-size:var(--fs-xs);padding:6px 10px;border-radius:var(--rad-md);border:1px dashed var(--gbdl);color:var(--fg2);">＋ '+s+'</div>';}).join('');
   m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">✅</div><div class="t-title">My Senior Bucket List</div><div class="t-sub">Shows on your Crush card so fellow seniors can join you.</div></div>'+
     items+
@@ -14154,13 +14449,13 @@ function renderMoments(){
   var posters=_momentPosters();
   var mine='<div onclick="myMoment?openMoments(-1):addMyMoment()" style="flex:0 0 auto;text-align:center;cursor:pointer;width:64px;">'+
     '<div style="width:58px;height:58px;border-radius:50%;padding:2px;background:'+(myMoment?'linear-gradient(135deg,var(--accent),var(--accent-deep))':'var(--gbdl)')+';margin:0 auto;position:relative;">'+
-    '<div style="width:100%;height:100%;border-radius:50%;background:'+((myMoment&&myMoment.photo)?'url('+myMoment.photo+') center/cover':'#1a1130')+';display:flex;align-items:center;justify-content:center;border:2px solid #0e0a1e;color:#fff;font-size:var(--fs-xl);">'+(myMoment?'':'＋')+'</div>'+
-    (myMoment?'':'<div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:var(--p);border:2px solid #0e0a1e;color:#fff;font-size:var(--fs-sm);display:flex;align-items:center;justify-content:center;font-weight:700;">+</div>')+
+    '<div style="width:100%;height:100%;border-radius:50%;background:'+((myMoment&&myMoment.photo)?'url('+myMoment.photo+') center/cover':'#1a1130')+';display:flex;align-items:center;justify-content:center;border:2px solid #0b0b0e;color:#fff;font-size:var(--fs-xl);">'+(myMoment?'':'＋')+'</div>'+
+    (myMoment?'':'<div style="position:absolute;bottom:-2px;right:-2px;width:20px;height:20px;border-radius:50%;background:var(--p);border:2px solid #0b0b0e;color:#fff;font-size:var(--fs-sm);display:flex;align-items:center;justify-content:center;font-weight:700;">+</div>')+
     '</div><div style="font-size:var(--fs-2xs);color:var(--fg2);margin-top:4px;font-weight:500;">Your moment</div></div>';
   var others=posters.map(function(p,i){var seen=_momentsViewed[p.name];var safe=p.name.replace(/'/g,"");var mom=_profileMoment(p);
     return '<div onclick="openMoments('+i+')" style="flex:0 0 auto;text-align:center;cursor:pointer;width:64px;">'+
       '<div style="width:58px;height:58px;border-radius:50%;padding:2px;background:'+(seen?'var(--gbdl)':'linear-gradient(135deg,#800614,#f59e0b)')+';margin:0 auto;">'+
-      '<div style="width:100%;height:100%;border-radius:50%;background:'+(mom.photo?'url('+mom.photo+') center/cover':'linear-gradient(160deg,'+p.bg+',rgba(0,0,0,0.5))')+';border:2px solid #0e0a1e;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-xl);font-weight:900;">'+(mom.photo?'':p.init)+'</div>'+
+      '<div style="width:100%;height:100%;border-radius:50%;background:'+(mom.photo?'url('+mom.photo+') center/cover':'linear-gradient(160deg,'+p.bg+',rgba(0,0,0,0.5))')+';border:2px solid #0b0b0e;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-xl);font-weight:900;">'+(mom.photo?'':p.init)+'</div>'+
       '</div><div style="font-size:var(--fs-2xs);color:#fff;margin-top:4px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p.name.split(' ')[0]+'</div></div>';
   }).join('');
   box.innerHTML='<div style="display:flex;gap:10px;overflow-x:auto;padding:10px var(--s) 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;">'+mine+others+'</div>';
@@ -14416,7 +14711,7 @@ function renderCrushCategories(){
     var cover=(p.photos&&p.photos[0])?'<div style="height:120px;background-image:url('+p.photos[0]+');background-size:cover;background-position:center;"></div>':'<div style="height:120px;background:linear-gradient(160deg,'+p.bg+'55,'+p.bg+'22);display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:900;color:#fff;">'+p.init+'</div>';
     var yr=_profileYearLabel(p);
     var yrChip=yr?'<span style="display:inline-block;font-size:var(--fs-2xs);font-weight:600;color:#a9c4ff;background:rgba(43,95,217,0.18);border-radius:var(--rad-xs);padding:1px 6px;margin-top:3px;">🎓 '+yr+'</span>':'';
-    return '<div data-pick="1" onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\''+((opts.other&&r.uni)?String(r.uni.name).replace(/'/g,""):'')+'\')" style="flex:0 0 144px;scroll-snap-align:start;border-radius:var(--rad-md);overflow:hidden;border:1px solid var(--gbdl);background:#0e0a1e;cursor:pointer;">'+cover+
+    return '<div data-pick="1" onclick="viewUserUnicrush(null,\''+safe+'\',\''+p.bg+'\',\''+((opts.other&&r.uni)?String(r.uni.name).replace(/'/g,""):'')+'\')" style="flex:0 0 144px;scroll-snap-align:start;border-radius:var(--rad-md);overflow:hidden;border:1px solid var(--gbdl);background:#0b0b0e;cursor:pointer;">'+cover+
         '<div style="padding:8px 9px 10px;"><div class="t-sub-strong">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(p.major||'')+'</div>'+yrChip+'<div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:5px;">Tap to view & like →</div></div>'+
     '</div>';
   }).join('');
@@ -14846,13 +15141,171 @@ async function msgPopup() {
   }
 }
 var _curChatUser=null;
+// ── Relationship actions on someone else's profile ────────────────────────
+// Which bar shows depends on WHERE the profile was opened from:
+//   'deck' (default) → the swipe bar (pass / super like / like), unchanged
+//   'search' | 'chat' → relationship actions, because you looked this person up
+//                       on purpose; judging them like a candidate makes no sense.
+// The origin travels on window._ucViewUser.origin.
+
+function _ensureFriendsCache() {
+  if (window._myFriendsCache || window._friendsCacheLoading) return;
+  if (typeof apiClient === 'undefined' || !apiClient.getAccessToken()) return;
+  window._friendsCacheLoading = true;
+  apiClient.getFriends().then(function (fr) {
+    window._myFriendsCache = fr;
+    window._friendsCacheLoading = false;
+    // The bar may already be on screen — repaint it now that we know.
+    if (document.getElementById('uc-relation-bar')) _applyUcActionBar();
+  }).catch(function () { window._friendsCacheLoading = false; });
+}
+
+// The friends cache ships in two different shapes depending on which endpoint
+// filled it ({...} vs {friend:{...}}), so unwrap defensively.
+function _isFriend(name) {
+  if (!name) return false;
+  var c = window._myFriendsCache;
+  if (!c || !c.length) return false;
+  var target = String(name).trim().toLowerCase().replace('@', '');
+  for (var i = 0; i < c.length; i++) {
+    var o = (c[i] && c[i].friend) ? c[i].friend : c[i];
+    if (!o) continue;
+    var full = ((o.firstName || '') + ' ' + (o.lastName || '')).trim().toLowerCase();
+    var h = String(o.handle || '').replace('@', '').toLowerCase();
+    var nm = String(o.name || '').trim().toLowerCase();
+    if ((full && full === target) || (h && h === target) || (nm && nm === target)) return true;
+  }
+  return false;
+}
+
+// All three buttons share one recipe: a gradient of their own hue plus a solid
+// border of that hue, so the set reads as siblings rather than one filled
+// button next to two hollow ones.
+function _relBtn(label, hue, onclick) {
+  return '<button onclick="' + onclick + '" style="flex:1;min-width:0;padding:11px 8px;border-radius:var(--rad-md);' +
+    'background:linear-gradient(135deg,' + hue + ' 0%, color-mix(in srgb,' + hue + ' 42%, #000) 100%);' +
+    'border:1.5px solid ' + hue + ';color:#fff;' +
+    'font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap;">' + label + '</button>';
+}
+
+// Blocked people are remembered by name so the button can show the inverse
+// action. No backend endpoint exists for blocking yet, so this is device-local.
+window._blockedProfiles = window._blockedProfiles || {};
+function _isBlockedProfile(name) {
+  return !!(name && window._blockedProfiles[String(name).trim().toLowerCase()]);
+}
+
+function _relationBarHtml(name) {
+  _ensureFriendsCache();
+  var safe = String(name || '').replace(/'/g, "\\'");
+  var friend = _isFriend(name);
+  var blocked = _isBlockedProfile(name);
+  return '<div id="uc-relation-bar" style="display:flex;gap:8px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000;flex-shrink:0;">' +
+    (friend
+      ? _relBtn('Unfriend', 'var(--wine)', "_unfriendProfile('" + safe + "')", false)
+      : _relBtn('Add Friend +', '#22c55e', "_addFriendProfile('" + safe + "')", true)) +
+    _relBtn('Report', '#fbbf24', "_reportProfile('" + safe + "')", false) +
+    // Royal blue, not green: Unblock used to share Add Friend's exact green,
+    // so two opposite actions read as the same thing.
+    (blocked
+      ? _relBtn('Unblock', '#3d7bff', "_toggleBlockProfile('" + safe + "')")
+      : _relBtn('Block', 'var(--wine)', "_toggleBlockProfile('" + safe + "')")) +
+  '</div>';
+}
+
+// Block/unblock toggle. Blocking still runs the existing _blockProfile() side
+// effects (dropping them from the decks); unblocking only clears the flag,
+// since those decks refill on their own.
+function _toggleBlockProfile(name) {
+  var k = String(name || '').trim().toLowerCase();
+  if (_isBlockedProfile(name)) {
+    delete window._blockedProfiles[k];
+    if (typeof ugzAlert === 'function') ugzAlert(name + ' ya no está bloqueado.');
+  } else {
+    window._blockedProfiles[k] = true;
+    if (typeof _blockProfile === 'function') { try { _blockProfile(name); } catch (e) {} }
+  }
+  _refreshRelationBars(name);
+}
+
+// Both places the bar can live: the full-screen card and the details sheet.
+function _refreshRelationBars(name) {
+  if (document.getElementById('uc-action-bar')) _applyUcActionBar();
+  var det = document.getElementById('crush-details-relbar');
+  if (det) det.innerHTML = _relationBarHtml(name);
+}
+
+// Swaps the swipe bar for the relationship bar inside #user-crush-modal.
+function _applyUcActionBar() {
+  var bar = document.getElementById('uc-action-bar');
+  if (!bar) return;
+  var prev = document.getElementById('uc-relation-bar');
+  if (prev) prev.remove();
+  var u = window._ucViewUser || {};
+  if (u.origin === 'search' || u.origin === 'chat') {
+    // .crush-actions carries display:flex !important, so a plain style.display
+    // assignment loses the cascade.
+    bar.style.setProperty('display', 'none', 'important');
+    bar.insertAdjacentHTML('afterend', _relationBarHtml(u.name));
+  } else {
+    bar.style.removeProperty('display');
+  }
+}
+
+function _addFriendProfile(name) {
+  var u = window._ucViewUser || {};
+  var id = (u.p && u.p.id) ? u.p.id : null;
+  if (id && typeof apiClient !== 'undefined' && apiClient.getAccessToken() && typeof apiClient.sendFriendRequest === 'function') {
+    apiClient.sendFriendRequest(id).then(function () {
+      if (typeof ugzAlert === 'function') ugzAlert('🤝 Solicitud enviada a ' + name);
+    }).catch(function (err) {
+      if (typeof ugzAlert === 'function') ugzAlert('No se pudo enviar la solicitud: ' + (err && err.message ? err.message : 'error'));
+    });
+  } else if (typeof ugzAlert === 'function') {
+    // No resolvable user id (demo/seeded profile) — nothing to send to.
+    ugzAlert('🤝 Solicitud enviada a ' + name);
+  }
+  var bar = document.getElementById('uc-relation-bar');
+  if (bar) {
+    var b = bar.querySelector('button');
+    if (b) { b.textContent = '✅ Enviada'; b.disabled = true; b.style.background = 'rgba(255,255,255,0.10)'; b.style.color = 'var(--fg2)'; }
+  }
+}
+
+function _unfriendProfile(name) {
+  ugzConfirm({
+    type: 'warning',
+    title: 'Eliminar amigo',
+    message: '¿Eliminar a ' + name + ' de tus amigos?',
+    confirmText: 'Eliminar',
+    cancelText: 'Cancelar',
+    onConfirm: function () {
+      // Local only: there is no unfriend endpoint on the backend yet, so this
+      // drops them from the cached list and repaints. Add the apiClient call
+      // here when the endpoint lands.
+      var c = window._myFriendsCache;
+      if (c && c.length) {
+        var t = String(name).trim().toLowerCase();
+        window._myFriendsCache = c.filter(function (x) {
+          var o = (x && x.friend) ? x.friend : x;
+          if (!o) return true;
+          var full = ((o.firstName || '') + ' ' + (o.lastName || '')).trim().toLowerCase();
+          return full !== t && String(o.name || '').trim().toLowerCase() !== t;
+        });
+      }
+      _refreshRelationBars(name);
+      if (typeof ugzAlert === 'function') ugzAlert(name + ' ya no está en tus amigos.');
+    }
+  });
+}
+
 // Open the current 1:1 chat partner's Crush card from the chat header
 function openCurChatUnicrush(){
   if(!_curChatUser||_curChatUser.isGrp)return;// groups don't have a Crush card
-  viewUserUnicrush(null,_curChatUser.name,_curChatUser.color);
+  viewUserUnicrush(null,_curChatUser.name,_curChatUser.color,'','chat');
 }
 // View another user's Crush card (from search results, profile popup, or a chat)
-function viewUserUnicrush(handle,name,bg,uniName){
+function viewUserUnicrush(handle,name,bg,uniName,origin){
   // Respect the other user's privacy setting if present (demo users are public)
   var found=(typeof crushDataAll!=='undefined'&&crushDataAll)?crushDataAll.filter(function(x){return x.name===name;})[0]:null;
   if(found&&found.unicrushPublic===false){alert(name+' keeps their Crush profile private.');return;}
@@ -14880,7 +15333,7 @@ function viewUserUnicrush(handle,name,bg,uniName){
     modal.style.setProperty('--p2', uCol2);
   }
   
-  window._ucViewUser={p:p,handle:handle,name:name,bg:bg,crossLocked:_crossLocked};
+  window._ucViewUser={p:p,handle:handle,name:name,bg:bg,crossLocked:_crossLocked,origin:origin||'deck'};
   if (typeof apiClient !== 'undefined') {
     var targetId = (p && p.id) ? p.id : (handle || name);
     if (targetId) {
@@ -14892,6 +15345,7 @@ function viewUserUnicrush(handle,name,bg,uniName){
   switchUserCrushTab('crush');
   var pop=document.getElementById('user-profile-modal');if(pop)pop.classList.remove('open');
   modal=document.getElementById('user-crush-modal');if(modal)modal.classList.add('open');
+  if(typeof _applyUcActionBar==='function')_applyUcActionBar();
 }
 // Mark a profile as acted-on so Today's Picks drops it and refreshes with new faces
 function _markPickActed(name){if(!name)return;window._pickActed=window._pickActed||{};window._pickActed[name]=1;if(typeof renderDailyPicks==='function')try{renderDailyPicks();}catch(e){}}
@@ -15459,7 +15913,7 @@ function initSettingsAccordion() {
       } else {
         if (card.style.maxHeight !== '0px') {
           chevron.style.transform = 'rotate(-180deg)';
-          chevron.style.color = '#e04155';
+          chevron.style.color = 'var(--wine)';
         }
       }
     }
@@ -15489,7 +15943,7 @@ function initSettingsAccordion() {
           card.style.border = '';
           if (chev) {
             chev.style.transform = 'rotate(-180deg)';
-            chev.style.color = '#e04155';
+            chev.style.color = 'var(--wine)';
           }
         } else {
           card.style.maxHeight = '0px';
@@ -15506,8 +15960,25 @@ function initSettingsAccordion() {
   });
 }
 
+// Each settings card gets its own neon edge. Done in JS rather than CSS because
+// the .set-h section headers are <div> too, so a :nth-of-type() selector counts
+// them as cards and the hues drift out of step after the fourth section.
+var _SETTINGS_NEON = ['#fb923c', '#3d7bff', '#b0243a', '#c084fc', '#a3e635',
+                      '#22d3ee', '#ec4899', '#fde047', '#2dd4bf', '#818cf8'];
+function _paintSettingsNeon() {
+  var cards = document.querySelectorAll('#settings-modal .set-card');
+  var i = 0;
+  for (var k = 0; k < cards.length; k++) {
+    // The Log Out card keeps the wine treatment set in styles.css.
+    if (cards[k].querySelector('#set-logout-title')) continue;
+    cards[k].style.setProperty('--sec-neon', _SETTINGS_NEON[i % _SETTINGS_NEON.length]);
+    i++;
+  }
+}
+
 function openSettings(){
   if(typeof renderSeasonPicker==='function')try{renderSeasonPicker();}catch(e){}
+  try{ _paintSettingsNeon(); }catch(e){}
   var h=document.getElementById('settings-handle');if(h)h.textContent=userPro.handle||'@user';var _hs=document.getElementById('settings-handle-sub');if(_hs)_hs.textContent=userPro.handle||'@user';var _nm=document.getElementById('settings-name');if(_nm)_nm.textContent=userPro.name||'Your Name';var _ai=document.getElementById('settings-avatar-inner');if(_ai)_ai.textContent=(userPro.name||'A').charAt(0).toUpperCase();var _mj=document.getElementById('settings-major');if(_mj&&userPro.major)_mj.textContent=userPro.major;var _em=document.getElementById('settings-email');if(_em&&userPro.email)_em.textContent=userPro.email;var _ph=document.getElementById('settings-phone');if(_ph&&userPro.phone)_ph.textContent=userPro.phone;var _cy=document.getElementById('settings-classyear');if(_cy&&userPro.grad)_cy.textContent=(userPro.year?userPro.year+' ':'')+'('+String(userPro.grad).replace(/[^0-9]/g,'')+')';
   var su=document.getElementById('settings-uni');if(su)su.textContent=(uni&&uni.name)||'Not set';
   var sp=document.getElementById('settings-passport');if(sp)sp.textContent=userPro.passport?('✈️ Active at '+userPro.passport.uni):'Drop into another campus — study abroad or visiting';
@@ -15916,7 +16387,7 @@ function _submitCaptcha(expected){
     var modal=document.querySelector('.mov');if(modal)modal.remove();
     var btn=document.getElementById('ob-captcha-btn');var box=document.getElementById('ob-captcha-box');var st=document.getElementById('ob-captcha-status');
     if(btn){btn.style.background='rgba(74,222,128,0.1)';btn.style.borderColor='#4ade80';}
-    if(box){box.style.background='#4ade80';box.style.borderColor='#4ade80';box.innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" style="display:block;margin:1px auto 0;" fill="none" stroke="#0a0518" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';}
+    if(box){box.style.background='#4ade80';box.style.borderColor='#4ade80';box.innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" style="display:block;margin:1px auto 0;" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';}
     if(st){st.textContent='✓ Verified — you\'re human!';st.style.color='#4ade80';}
   }else{
     if(msg)msg.textContent='✗ Wrong answer · try again';
@@ -16268,7 +16739,7 @@ updateProfileUI=function(){_origUpdateProfile();var mode=obMode||userMode||'stud
 // ── RELATIONSHIP STATUS ──
 function setRelStatus(status,el){alumniRelStatus=status;['single','married','divorced'].forEach(function(s){var c=document.getElementById('rs-'+s);if(c)c.classList.toggle('on',s===status);});
   // If married, hide Crush from nav
-  if(status==='married'){var navItems=NAV_ALUMNI.filter(function(n){return n.id!=='unicrush';});NAV_ALUMNI.splice(0,NAV_ALUMNI.length);navItems.forEach(function(n){NAV_ALUMNI.push(n);});}else{if(!NAV_ALUMNI.find(function(n){return n.id==='unicrush';}))NAV_ALUMNI.push({id:'unicrush',icon:'💘',lbl:'Crush'});}}
+  var _ct=document.getElementById('ctab-swipe');if(_ct)_ct.style.display=(status==='married')?'none':'';}
 
 // ── BUSINESS EMAIL VERIFICATION ──
 function verifyBizEmail(){var email=prompt('Enter your business email to verify:');if(!email)return;alert('✅ Verification code sent to '+email+'!\nCheck your inbox.');setTimeout(function(){var code=prompt('Enter the 6-digit code sent to '+email+':');if(code&&code.length>=4){alert('✅ Business email verified!');var el=document.getElementById('biz-verify-status');if(el){el.textContent='✅ Verified';el.style.color='#4ade80';}}else{alert('Invalid code. Try again.');}},500);}
@@ -16570,7 +17041,7 @@ function liveSearch(q){
     if(!q){drop.style.display='none';drop.innerHTML='';return;}
     var results=SEARCH_USERS.filter(function(u){return u.handle.includes(q)||u.name.toLowerCase().includes(q);});
     if(results.length===0){drop.style.display='block';drop.innerHTML='<div style="padding:14px;text-align:center;font-size:var(--fs-sm);color:var(--fg3);">No users found</div>';}
-    else{drop.style.display='block';drop.innerHTML=results.map(function(u){return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);" onclick="openUserPopup({handle:\''+u.handle+'\',name:\''+u.name+'\',major:\'\',grad:\'\',bio:\'\',interests:[]})"><div style="width:32px;height:32px;border-radius:50%;background:'+u.bg+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-base);">'+u.name.charAt(0)+'</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:500;color:#fff;">'+u.name+'</div><div class="t-meta">'+u.handle+'</div></div><button title="View Crush" onclick="event.stopPropagation();viewUserUnicrush(\''+u.handle+'\',\''+u.name+'\',\''+u.bg+'\')" style="padding:5px 10px;border-radius:var(--rad-md);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">💘</button><button onclick="event.stopPropagation();this.textContent=\'✅\';this.disabled=true;alert(\'Friend request sent!\');" style="padding:5px 12px;border-radius:var(--rad-md);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:600;cursor:pointer;flex-shrink:0;">Add +</button></div>';}).join('');}
+    else{drop.style.display='block';drop.innerHTML=results.map(function(u){return '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);" onclick="openUserPopup({handle:\''+u.handle+'\',name:\''+u.name+'\',major:\'\',grad:\'\',bio:\'\',interests:[]})"><div style="width:32px;height:32px;border-radius:50%;background:'+u.bg+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-base);">'+u.name.charAt(0)+'</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:500;color:#fff;">'+u.name+'</div><div class="t-meta">'+u.handle+'</div></div><button title="View Crush" onclick="event.stopPropagation();viewUserUnicrush(\''+u.handle+'\',\''+u.name+'\',\''+u.bg+'\',\'\',\'search\')" style="padding:5px 10px;border-radius:var(--rad-md);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">💘</button><button onclick="event.stopPropagation();this.textContent=\'✅\';this.disabled=true;alert(\'Friend request sent!\');" style="padding:5px 12px;border-radius:var(--rad-md);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:600;cursor:pointer;flex-shrink:0;">Add +</button></div>';}).join('');}
   });
 }
 
@@ -16687,12 +17158,13 @@ function openPartnerProfileCard(matchId) {
       uni: { name: profile.university || '' }
     };
     
-    window._ucViewUser = { p: p, handle: partner.handle, name: p.name, bg: p.bg, crossLocked: false };
+    window._ucViewUser = { p: p, handle: partner.handle, name: p.name, bg: p.bg, crossLocked: false, origin: 'chat' };
     var title = document.getElementById('user-crush-title'); if (title) title.textContent = p.name;
     var fbtn = document.getElementById('uc-addfriend'); if (fbtn) { fbtn.textContent = '➕ Add'; fbtn.disabled = false; fbtn.style.background = 'var(--p)'; }
     switchUserCrushTab('crush');
     var pop = document.getElementById('user-profile-modal'); if (pop) pop.classList.remove('open');
     var crushModal = document.getElementById('user-crush-modal'); if (crushModal) crushModal.classList.add('open');
+    if (typeof _applyUcActionBar === 'function') _applyUcActionBar();
   } else {
     var name = document.getElementById('cwnm') ? document.getElementById('cwnm').textContent.replace(/[^\x20-\x7E].*$/,'').trim() : 'Chat';
     var first = name.split(' ')[0];
@@ -16848,6 +17320,28 @@ function _gsBuildGroupSheet(chatId) {
     '<div id="gsx-members" style="margin-bottom:16px;"></div>' +
 
     label('PERSONALIZACIÓN') +
+    // Admin-only, and never on event groups: an event's identity belongs to the
+    // event, same rule the title pencil follows.
+    ((isUserAdmin && !meta.isEvent)
+      ? '<div class="cps-row" onclick="groupChangePhoto(\'' + chatId + '\')" style="cursor:pointer;">' +
+          '<div class="cps-ic" id="gsx-avatar" style="background:' + (meta.avatarUrl ? 'url(' + meta.avatarUrl + ') center/cover' : 'linear-gradient(135deg,var(--accent),var(--accent-deep))') + ';">' + (meta.avatarUrl ? '' : '📷') + '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:var(--fs-md);font-weight:600;color:#fff;">Foto del Chat</div>' +
+            '<div class="t-sub">Cambia la foto de perfil del grupo</div>' +
+          '</div>' +
+          '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>' +
+        '</div>'
+      : '') +
+    ((isUserAdmin && !meta.isEvent)
+      ? '<div class="cps-row" onclick="groupChangeTitle(\'' + chatId + '\')" style="cursor:pointer;">' +
+          '<div class="cps-ic" style="background:linear-gradient(135deg,#c084fc,#7c3aed);">✏️</div>' +
+          '<div style="flex:1;min-width:0;">' +
+            '<div style="font-size:var(--fs-md);font-weight:600;color:#fff;">Nombre del Chat</div>' +
+            '<div class="t-sub">' + _e(meta.name || 'Grupo') + '</div>' +
+          '</div>' +
+          '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>' +
+        '</div>'
+      : '') +
     '<div class="cps-row" onclick="toggleBgSheet();document.getElementById(\'chat-settings-modal\').remove();" style="cursor:pointer;">' +
       '<div class="cps-ic" style="background:linear-gradient(135deg,#3d7bff,#2b5fd9);">🎨</div>' +
       '<div style="flex:1;min-width:0;">' +
@@ -16930,7 +17424,7 @@ function openChatSettings(){
     ? '<div style="width:118px;height:118px;border-radius:50%;background:linear-gradient(150deg,#2b5fd9,#12275c);display:flex;align-items:center;justify-content:center;font-size:46px;">👥</div>'
     : '<div style="width:118px;height:118px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));"><img src="'+portrait+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/></div>';
   
-  var heartBadge = isGroup ? '' : (isCrushMatch ? '<div style="position:absolute;right:4px;bottom:4px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#800614,#c9243b);border:3px solid var(--card,#12091f);display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);">❤️</div>' : '');
+  var heartBadge = isGroup ? '' : (isCrushMatch ? '<div style="position:absolute;right:4px;bottom:4px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#800614,#c9243b);border:3px solid var(--card,#0b0b0e);display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);">❤️</div>' : '');
   
   function statCard(ic,col,n,l){return '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px 14px;display:flex;align-items:center;gap:11px;min-width:130px;"><div style="font-size:var(--fs-xl);color:'+col+';">'+ic+'</div><div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;line-height:1;">'+n+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;">'+l+'</div></div></div>';}
   function row(icBg,ic,title,sub,right,onclick,extra){return '<div class="cps-row"'+(onclick?' onclick="'+onclick+'" style="cursor:pointer;'+(extra||'')+'"':(extra?' style="'+extra+'"':''))+'><div class="cps-ic" style="background:'+icBg+';">'+ic+'</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-md);font-weight:600;color:#fff;">'+title+'</div><div class="t-sub">'+sub+'</div></div>'+(right||'')+'</div>';}
@@ -17490,7 +17984,10 @@ function _planCardHtml(k){
     '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;text-align:center;margin-bottom:6px;margin-top:2px;">'+title+'</div>'+
     '<div style="text-align:center;font-size:var(--fs-2xl);font-weight:900;color:#fff;">'+b.price+'<span style="font-size:var(--fs-sm);font-weight:400;color:rgba(255,255,255,0.7);">'+b.unit+'</span></div>'+
     '<div style="text-align:center;font-size:var(--fs-2xs);color:rgba(255,255,255,0.78);margin-bottom:12px;min-height:14px;">'+b.sub+'</div>'+
-    '<button class="gbtn" style="background:'+color+';color:#000;font-size:var(--fs-md);font-weight:700;box-shadow:var(--glow-primary)'+glow+';" onclick="openPayment(\'aplus\',\''+b.pay+'\',\''+b.name+'\')">A+</button>'+
+    // The box-shadow here was malformed (`var(--glow-primary)` concatenated to
+    // `glow` with no comma), so the browser dropped the whole declaration. No
+    // halo wanted anyway — removed rather than repaired.
+    '<button class="gbtn" style="background:'+color+';color:#000;font-size:var(--fs-md);font-weight:700;" onclick="openPayment(\'aplus\',\''+b.pay+'\',\''+b.name+'\')">A+</button>'+
   '</div>';
 }
 function _cheatCardHtml(c){
@@ -17639,7 +18136,7 @@ function renderInviteEarn(){
     {lv:3, req:10, ic:'💎', n:'Invite 10 friends', r:'10% OFF A+'},
     {lv:4, req:20, ic:'🎁', n:'Invite 20 friends', r:'Mystery Reward'}
   ];
-  var _qrSvg = '<div style="width:84px;height:84px;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);display:flex;align-items:center;justify-content:center;box-sizing:border-box;color:#e04155;box-shadow:var(--el-2);"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code-icon lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg></div>';
+  var _qrSvg = '<div style="width:84px;height:84px;background:rgba(255,255,255,0.05);border:1.5px solid #ec4899;box-shadow:0 0 12px #ec489945, inset 0 0 12px #ec489912;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:center;box-sizing:border-box;color:#e04155;box-shadow:var(--el-2);"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code-icon lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg></div>';
   var _waSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:20px;height:20px;fill:currentColor;"><path d="M476.9 161.1C435 119.1 379.2 96 319.9 96C197.5 96 97.9 195.6 97.9 318C97.9 357.1 108.1 395.3 127.5 429L96 544L213.7 513.1C246.1 530.8 282.6 540.1 319.8 540.1L319.9 540.1C442.2 540.1 544 440.5 544 318.1C544 258.8 518.8 203.1 476.9 161.1zM319.9 502.7C286.7 502.7 254.2 493.8 225.9 477L219.2 473L149.4 491.3L168 423.2L163.6 416.2C145.1 386.8 135.4 352.9 135.4 318C135.4 216.3 218.2 133.5 320 133.5C369.3 133.5 415.6 152.7 450.4 187.6C485.2 222.5 506.6 268.8 506.5 318.1C506.5 419.9 421.6 502.7 319.9 502.7zM421.1 364.5C415.6 361.7 388.3 348.3 383.2 346.5C378.1 344.6 374.4 343.7 370.7 349.3C367 354.9 356.4 367.3 353.1 371.1C349.9 374.8 346.6 375.3 341.1 372.5C308.5 356.2 287.1 343.4 265.6 306.5C259.9 296.7 271.3 297.4 281.9 276.2C283.7 272.5 282.8 269.3 281.4 266.5C280 263.7 268.9 236.4 264.3 225.3C259.8 214.5 255.2 216 251.8 215.8C248.6 215.6 244.9 215.6 241.2 215.6C237.5 215.6 231.5 217 226.4 222.5C221.3 228.1 207 241.5 207 268.8C207 296.1 226.9 322.5 229.6 326.2C232.4 329.9 268.7 385.9 324.4 410C359.6 425.2 373.4 426.5 391 423.9C401.7 422.3 423.8 410.5 428.4 397.5C433 384.5 433 373.4 431.6 371.1C430.3 368.6 426.6 367.2 421.1 364.5z"/></svg>';
   var _igSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:20px;height:20px;fill:currentColor;"><path d="M320.3 205C256.8 204.8 205.2 256.2 205 319.7C204.8 383.2 256.2 434.8 319.7 435C383.2 435.2 383.8 383.8 435 320.3C435.2 256.8 383.8 205.2 320.3 205zM319.7 245.4C360.9 245.2 394.4 278.5 394.6 319.7C394.8 360.9 361.5 394.4 320.3 394.6C279.1 394.8 245.6 361.5 245.4 320.3C245.2 279.1 278.5 245.6 319.7 245.4zM413.1 200.3C413.1 185.5 425.1 173.5 439.9 173.5C454.7 173.5 466.7 185.5 466.7 200.3C466.7 215.1 454.7 227.1 439.9 227.1C425.1 227.1 413.1 215.1 413.1 200.3zM542.8 227.5C541.1 191.6 532.9 159.8 506.6 133.6C480.4 107.4 448.6 99.2 412.7 97.4C375.7 95.3 264.8 95.3 227.8 97.4C192 99.1 160.2 107.3 133.9 133.5C107.6 159.7 99.5 191.5 97.7 227.4C95.6 264.4 95.6 375.3 97.7 412.3C99.4 448.2 107.6 480 133.9 506.2C160.2 532.4 191.9 540.6 227.8 542.4C264.8 544.5 375.7 544.5 412.7 542.4C448.6 540.7 480.4 532.5 506.6 506.2C532.8 480 541 448.2 542.8 412.3C544.9 375.3 544.9 264.5 542.8 227.5zM495 452C487.2 471.6 472.1 486.7 452.4 494.6C422.9 506.3 352.9 503.6 320.3 503.6C287.7 503.6 217.6 506.2 188.2 494.6C168.6 486.8 153.5 471.7 145.6 452C133.9 422.5 136.6 352.5 136.6 319.9C136.6 287.3 134 217.2 145.6 187.8C153.4 168.2 168.5 153.1 188.2 145.2C217.7 133.5 287.7 136.2 320.3 136.2C352.9 136.2 423 133.6 452.4 145.2C472 153 487.1 168.1 495 187.8C506.7 217.3 504 287.3 504 319.9C504 352.5 506.7 422.6 495 452z"/></svg>';
   var _msgSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:20px;height:20px;fill:currentColor;"><path d="M267.7 576.9C267.7 576.9 267.7 576.9 267.7 576.9L229.9 603.6C222.6 608.8 213 609.4 205 605.3C197 601.2 192 593 192 584L192 512L160 512C107 512 64 469 64 416L64 192C64 139 107 96 160 96L480 96C533 96 576 139 576 192L576 416C576 469 533 512 480 512L359.6 512L267.7 576.9zM332 472.8C340.1 467.1 349.8 464 359.7 464L480 464C506.5 464 528 442.5 528 416L528 192C528 165.5 506.5 144 480 144L160 144C133.5 144 112 165.5 112 192L112 416C112 442.5 133.5 464 160 464L216 464C226.4 464 235.3 470.6 238.6 479.9C239.5 482.4 240 485.1 240 488L240 537.7C272.7 514.6 303.3 493 331.9 472.8z"/></svg>';
@@ -17706,13 +18203,13 @@ function renderInviteEarn(){
   return ''+
   '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
   '<img class="ap-banner" src="images/banner_invite.png" style="width:calc(100% - 32px);height:auto;border-radius:30px;margin: 0 16px 16px 16px;display:block;box-sizing:border-box;" />'+
-  '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:15px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">🛡️ '+LN[lvl]+'</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:600;color:#000;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:#800614;width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#e04155;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#e04155;">'+toNext+' more friends</b> to unlock <b style="color:#e04155;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
+  '<div style="background:rgba(255,255,255,0.03);border:1.5px solid #c084fc;box-shadow:0 0 12px #c084fc45, inset 0 0 12px #c084fc12;border-radius:var(--rad-lg);padding:15px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">🛡️ '+LN[lvl]+'</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:600;color:#000;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:#800614;width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#e04155;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#e04155;">'+toNext+' more friends</b> to unlock <b style="color:#e04155;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
   '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.6px;margin:0 16px 10px 16px;text-align:left;">Rewards path</div><div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 16px 6px 16px;margin-bottom:14px;width:100%;box-sizing:border-box;">'+PATH.map(function(x){return _iePath(x,c,nextT);}).join('')+'</div>'+
-  '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin:0 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:left;">Your invite code</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed rgba(240,62,90,0.5);background:rgba(240,62,90,0.04);border-radius:var(--rad-sm);padding:12px 14px;margin-bottom:14px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#e04155;letter-spacing:1px;">'+code+'</div><div onclick="_inviteCopy(\''+code+'\')" style="cursor:pointer;font-size:var(--fs-md);color:#fff;">📋</div></div>'+
+  '<div style="background:rgba(255,255,255,0.03);border:1.5px solid #fb923c;box-shadow:0 0 12px #fb923c45, inset 0 0 12px #fb923c12;border-radius:var(--rad-md);padding:14px;margin:0 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:left;">Your invite code</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed rgba(240,62,90,0.5);background:rgba(240,62,90,0.04);border-radius:var(--rad-sm);padding:12px 14px;margin-bottom:14px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#e04155;letter-spacing:1px;">'+code+'</div><div onclick="_inviteCopy(\''+code+'\')" style="cursor:pointer;font-size:var(--fs-md);color:#fff;">📋</div></div>'+
   '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:left;">Share your link</div><div style="display:flex;gap:6px;margin-bottom:14px;">'+shareBtn(_waSvg,'WhatsApp','whatsapp','#25D366')+shareBtn(_igSvg,'Instagram','instagram','linear-gradient(135deg,#f58529,#dd2a7b,#8134af)')+shareBtn(_msgSvg,'Messages','sms','#22c55e')+shareBtn(_moreSvg,'More','more','rgba(255,255,255,0.1)')+'</div>'+
   '<div style="display:flex;gap:12px;align-items:center;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;"><span style="font-size:var(--fs-sm);color:var(--fg2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">'+icon('link',16)+' undrgradz.app/i/'+code+'</span><span onclick="_inviteCopy(\'https://undrgradz.app/i/'+code+'\')" style="font-size:var(--fs-sm);font-weight:600;color:#3d7bff;cursor:pointer;">Copy</span></div></div>'+_qrSvg+'</div></div>'+
-  '<div style="display:flex;gap:10px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;flex-wrap:wrap;"><div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
-  '<div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
+  '<div style="display:flex;gap:10px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;flex-wrap:wrap;"><div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1.5px solid #22d3ee;box-shadow:0 0 12px #22d3ee45, inset 0 0 12px #22d3ee12;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
+  '<div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1.5px solid #a3e635;box-shadow:0 0 12px #a3e63545, inset 0 0 12px #a3e63512;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
   '<div style="background:linear-gradient(120deg,rgba(43,95,217,0.15),rgba(240,62,90,0.12));border:1px solid rgba(43,95,217,0.35);border-radius:var(--rad-md);padding:14px;margin: 0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;display:flex;align-items:center;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-sm);font-weight:700;color:#fff;letter-spacing:0.3px;">BONUS CHALLENGE 🚀</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;">Invite 3 more friends this week and get a <b style="color:#fbbf24;">Mega Boost!</b></div></div><div style="font-size:var(--fs-xs);font-weight:600;color:#fff;white-space:nowrap;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:var(--rad-sm);">'+bonusText+'</div></div>'+
   '<button class="gbtn" style="background:linear-gradient(90deg,#c9243b,#800614 55%,#fb923c);font-size:var(--fs-md);font-weight:700;margin:0 16px 16px 16px;width:calc(100% - 32px);box-sizing:border-box;border:none;color:#fff;padding:14px;border-radius:var(--rad-md);cursor:pointer;box-shadow:var(--el-2);" onclick="_inviteShare(\'more\')">Invite Friends Now ›</button>'+
   '<div style="height:8px;"></div>';
@@ -17729,31 +18226,49 @@ function showPlansForGender(){
   var _cardIconNav = '<i class="fa-regular fa-credit-card" style="display:inline-block;vertical-align:middle;margin-right:4px;font-size:var(--fs-base);"></i>';
   var _giftSvgNav = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gift-icon lucide-gift" style="display:inline-block;vertical-align:middle;margin-right:4px;"><path d="M12 7v14"/><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"/><rect x="3" y="7" width="18" height="4" rx="1"/></svg>';
 
-  var tab = function(t, iconSvg, lbl, color) {
+  // `grad` is optional: a tab whose fill can't be derived from a single hue
+  // (Invite's pink→orange) passes its own gradient; `color` still drives the
+  // border, glow and idle state.
+  var tab = function(t, iconSvg, lbl, color, grad) {
     var on = (_plansTab === t);
     var style = 'flex:1;text-align:center;padding:10px 8px;border-radius:var(--rad-md);font-size:var(--fs-base);font-weight:800;cursor:pointer;transition:all var(--dur) ease;display:flex;align-items:center;justify-content:center;gap:6px;';
-    
-    var iconHtml = '<span style="color:' + color + ';display:inline-flex;align-items:center;">' + iconSvg + '</span>';
+
+    // No colour of its own: the icon inherits currentColor from the tab, which
+    // is #fff when active and the hue when idle. It used to be hard-pinned to
+    // `color`, so on the active tab the icon was the same colour as its own
+    // background and effectively disappeared.
+    var iconHtml = '<span style="display:inline-flex;align-items:center;">' + iconSvg + '</span>';
 
     if (on) {
-      style += 'background:linear-gradient(135deg, ' + color + '22, ' + color + '45);'
-        + 'border:1.5px solid ' + color + ';'
+      var fill = grad || ('linear-gradient(135deg, ' + color + ' 0%, color-mix(in srgb, ' + color + ' 40%, #000) 100%)');
+      // Gradient edge on the selected tab only. Rounded corners rule out
+      // border-image, so the fill goes on the padding box and the edge gradient
+      // on the border box — both in one `background`, which is why this can't
+      // be a class here (the inline fill would win over it).
+      style += 'border:1.5px solid transparent;'
+        + 'background:' + fill + ' padding-box,'
+        + ' linear-gradient(135deg, ' + color + ', color-mix(in srgb, ' + color + ' 35%, #fff)) border-box;'
         + 'color:#fff;'
-        + '' + color + '66, inset 0 0 8px ' + color + '33;'
-        + 'text-shadow:0 0 8px #fff, 0 0 12px ' + color + ';';
+        // This box-shadow used to be emitted without its property name, so the
+        // browser dropped the whole declaration and the active tab had no glow.
+        + 'box-shadow:0 0 12px ' + color + '66;'
+        + 'text-shadow:0 0 8px ' + color + ';';
     } else {
-      style += 'background:rgba(255,255,255,0.02);'
-        + 'border:1px solid rgba(255,255,255,0.08);'
-        + 'color:' + color + ';'
-        + 'text-shadow:0 0 8px ' + color + 'b3;';
+      // Idle tabs get the same gradient, just dark enough to read as inactive.
+      style += 'background:linear-gradient(135deg, color-mix(in srgb, ' + color + ' 22%, #000) 0%, #000 100%);'
+        + 'border:1px solid color-mix(in srgb, ' + color + ' 40%, transparent);'
+        + 'color:' + color + ';';
     }
     return '<div onclick="_plansTabSet(\'' + t + '\')" style="' + style + '">' + iconHtml + '<span>' + lbl + '</span></div>';
   };
 
-  var tabs = '<div style="display:flex;gap:8px;background:transparent;border:none;box-shadow:none;padding:0;margin: 0 16px 16px 16px;">' 
-    + tab('plans', _gradCapSvgNav, 'A+', '#6b9bff') 
-    + tab('cheats', _cardIconNav, 'Cheats', '#38bdf8') 
-    + tab('invite', _giftSvgNav, 'Invite', '#34d399') 
+  // The app's existing pink→orange CTA gradient (same one used by the invite
+  // banner's "Invite Friends Now" button).
+  var _inviteGradTab = 'linear-gradient(90deg,#c9243b,#800614 55%,#fb923c)';
+  var tabs = '<div style="display:flex;gap:8px;background:transparent;border:none;box-shadow:none;padding:0;margin: 0 16px 16px 16px;">'
+    + tab('plans', _gradCapSvgNav, 'A+', '#fb923c')
+    + tab('cheats', _cardIconNav, 'Cheats', '#38bdf8')
+    + tab('invite', _giftSvgNav, 'Invite', '#fb923c', _inviteGradTab)
     + '</div>';
   if(_plansTab==='invite'){sec.innerHTML=tabs+renderInviteEarn();return;}
   if(_plansTab==='plans'){
@@ -17767,11 +18282,9 @@ function showPlansForGender(){
       ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e04155" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>', 'Profile boost & top slot', 'Stand out on campus', '#e04155']
     ];
     var featsHtml = feats.map(function(f) {
-      // Each feature carries its icon colour (f[3]). Black fill instead of a
-      // tint: with nothing else lit inside the card, the coloured border and
-      // halo read as actual neon.
+      // Uses the shared .neon-card recipe; only the hue varies per feature.
       var c = f[3] || '#e04155';
-      return '<div class="ap-feat" style="display:flex;gap:9px;align-items:center;background:#000;border:1.5px solid '+c+';border-radius:var(--rad-md);padding:10px 11px;box-shadow:0 0 12px color-mix(in srgb,'+c+' 42%,transparent), inset 0 0 10px color-mix(in srgb,'+c+' 10%,transparent);">' +
+      return '<div class="ap-feat neon-card grad" style="--neon:'+c+';display:flex;gap:9px;align-items:center;padding:10px 11px;">' +
         '<div class="ap-feat-ic" style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;">' + f[0] + '</div>' +
         '<div style="min-width:0;flex:1;text-align:left;">' +
           '<div style="font-size:var(--fs-sm);font-weight:600;color:#fff;line-height:1.3;word-break:break-word;">' + f[1] + '</div>' +
@@ -17862,11 +18375,11 @@ sw=function(id,label){
   }
   if(id==='hangouts'&&typeof switchEvTab==='function')switchEvTab('nearby');
   if(id==='premium')showPlansForGender();
-  if(id==='unicrush'&&typeof switchCrushTab==='function')switchCrushTab('swipe');
+  
   if(id==='discover'&&typeof renderDiscover==='function')renderDiscover('foryou');
 };
-function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['foryou','liked','search','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});}
-function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var defaultTab='foryou';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
+function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['swipe','foryou','liked','search','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});var aw=document.getElementById('unicrush-age-wall');if(aw&&aw.parentElement!==pn.parentElement)pn.parentElement.appendChild(aw);}
+function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var _saved='';try{_saved=sessionStorage.getItem('ugz_last_crush_tab')||localStorage.getItem('ugz_last_crush_tab')||'';}catch(e){}var _valid={swipe:1,foryou:1,liked:1,search:1};var defaultTab=_valid[_saved]?_saved:'foryou';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
 document.addEventListener('DOMContentLoaded',function(){setTimeout(_moveDiscover,60);setTimeout(function(){var uc=document.getElementById('cpanel-uchats'),sc=document.getElementById('sec-chats');if(uc&&sc&&uc.parentElement!==sc){uc.classList.remove('crush-tab-panel');uc.style.display='none';sc.appendChild(uc);}},90);setTimeout(function(){var mf=document.getElementById('match-filters-wrap'),fp=document.getElementById('ptab-panel-filters');if(mf&&fp&&mf.parentElement!==fp)fp.appendChild(mf);},80);});
 
 // Show plans when navigating to premium (Interested In filter now lives statically in the Match Filters markup)
@@ -18466,7 +18979,7 @@ function _renderClubs(){
   // Trending: top 4 by members
   var trend=_allClubs().sort(function(a,b){return b.members-a.members;}).slice(0,5).map(function(cl,i){
     var mt=_clubMeta(cl.cat);var st=_clubStats(cl);var nm=cl.name.replace(/'/g,"\\'");
-    return '<div onclick="_toggleClub(\''+nm+'\',this)" style="flex-shrink:0;width:170px;border-radius:var(--rad-md);overflow:hidden;border:1px solid var(--gbdl);background:#0e0a1e;cursor:pointer;"><div style="height:110px;background:linear-gradient(150deg,'+mt[0]+',rgba(10,5,24,0.85));position:relative;">'+(i===0?'<div style="position:absolute;top:8px;left:8px;font-size:var(--fs-md);">👑</div>':'')+'<div style="position:absolute;left:10px;bottom:10px;width:38px;height:38px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);">'+mt[1]+'</div></div><div style="padding:9px 11px 11px;"><div class="t-body-black">'+cl.name+'</div><div style="font-size:var(--fs-2xs);font-weight:500;color:'+mt[0]+';margin:1px 0 4px;">'+cl.cat+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);">'+cl.members+' members</div><div style="display:flex;gap:10px;margin-top:3px;font-size:var(--fs-2xs);"><span style="color:#4ade80;">● '+st.online+' online</span><span style="color:#fbbf24;">★ '+st.rating+'</span></div></div></div>';
+    return '<div onclick="_toggleClub(\''+nm+'\',this)" style="flex-shrink:0;width:170px;border-radius:var(--rad-md);overflow:hidden;border:1px solid var(--gbdl);background:#0b0b0e;cursor:pointer;"><div style="height:110px;background:linear-gradient(150deg,'+mt[0]+',rgba(0,0,0,0.85));position:relative;">'+(i===0?'<div style="position:absolute;top:8px;left:8px;font-size:var(--fs-md);">👑</div>':'')+'<div style="position:absolute;left:10px;bottom:10px;width:38px;height:38px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);">'+mt[1]+'</div></div><div style="padding:9px 11px 11px;"><div class="t-body-black">'+cl.name+'</div><div style="font-size:var(--fs-2xs);font-weight:500;color:'+mt[0]+';margin:1px 0 4px;">'+cl.cat+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);">'+cl.members+' members</div><div style="display:flex;gap:10px;margin-top:3px;font-size:var(--fs-2xs);"><span style="color:#4ade80;">● '+st.online+' online</span><span style="color:#fbbf24;">★ '+st.rating+'</span></div></div></div>';
   }).join('');
   var sh='<div class="msheet" style="max-width:440px;max-height:92vh;overflow-y:auto;padding-top:10px;"><div class="mhnd"></div>'+
     // header
@@ -18586,7 +19099,7 @@ function renderSafetyPanel(){
   var friendChips=friends.map(function(f){
     var on=safetyContacts.indexOf(f.n)>-1;
     var borderStyle=on?'1.5px solid #22c55e':'1px solid rgba(61,123,255,0.3)';
-    var bgStyle=on?'linear-gradient(135deg,rgba(34,197,94,0.2),rgba(16,185,129,0.1))':'rgba(22,14,42,0.6)';
+    var bgStyle=on?'linear-gradient(135deg,rgba(34,197,94,0.2),rgba(16,185,129,0.1))':'rgba(13,13,17,0.6)';
     var shadowStyle=on?';':'';
     return '<div onclick="_safetyPanelToggleFriend(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rad-md);border:'+borderStyle+';background:'+bgStyle+';margin-bottom:8px;'+shadowStyle+'transition:all 0.2s ease;">'+
       '<div style="width:34px;height:34px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:700;color:#fff;flex-shrink:0;">'+f.i+'</div>'+
@@ -18596,7 +19109,7 @@ function renderSafetyPanel(){
   }).join('');
 
   var emerg=emergencyContacts.map(function(c,i){
-    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(22,14,42,0.7);border:1.5px solid rgba(239,68,68,0.4);border-radius:var(--rad-md);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div class="t-body-black">'+(c.name||c.phone)+'</div>'+(c.name?'<div style="font-size:var(--fs-xs);color:#fca5a5;font-weight:500;">'+c.phone+'</div>':'')+'</div><span onclick="removeEmergencyContact('+i+')" style="cursor:pointer;color:#e04155;font-weight:700;flex-shrink:0;">✕</span></div>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(13,13,17,0.7);border:1.5px solid rgba(239,68,68,0.4);border-radius:var(--rad-md);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div class="t-body-black">'+(c.name||c.phone)+'</div>'+(c.name?'<div style="font-size:var(--fs-xs);color:#fca5a5;font-weight:500;">'+c.phone+'</div>':'')+'</div><span onclick="removeEmergencyContact('+i+')" style="cursor:pointer;color:#e04155;font-weight:700;flex-shrink:0;">✕</span></div>';
   }).join('')||'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:6px 0;font-weight:500;">Sin contactos de emergencia aún.</div>';
 
   box.innerHTML=
@@ -18604,7 +19117,7 @@ function renderSafetyPanel(){
       '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);color:#fff;flex-shrink:0;">🛡️</div>'+
       '<div style="flex:1;"><div class="t-body-black">Nivel de Seguridad del Perfil: ALTO (98%)</div><div style="font-size:var(--fs-xs);color:#a7f3d0;font-weight:500;margin-top:2px;">Tus amigos seleccionados reciben alertas en tiempo real al salir a un Hangout.</div></div>'+
     '</div>'+
-    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(22,14,42,0.75);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
+    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
       '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">'+icon('mapPin',16)+' Live location</div>'+
       '<div style="font-size:var(--fs-xs);color:#d6e4ff;margin-bottom:12px;line-height:1.4;font-weight:500;">Selecciona hasta 3 amigos que puedan ver tu ubicación en tiempo real cuando salgas a un evento o cita.</div>'+
       friendChips+
@@ -18613,7 +19126,7 @@ function renderSafetyPanel(){
         ? '<div style="margin-top:12px;display:flex;align-items:center;gap:9px;background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;border-radius:var(--rad-md);padding:12px;"><div style="font-size:var(--fs-sm);font-weight:700;color:#4ade80;flex:1;min-width:0;">'+icon('mapPin',16)+' Ubicación en vivo ACTIVADA · compartiendo con '+_locShareActive+'</div><button onclick="_safetyPanelStopLoc()" style="background:rgba(255,255,255,0.15);border:none;border-radius:var(--rad-sm);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;">Detener</button></div>'
         : '<button onclick="_safetyPanelShareLoc()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--rad-md);border:none;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;box-shadow:var(--glow-primary);">'+icon('mapPin',16)+' Compartir mi ubicación en vivo</button>')+
     '</div>'+
-    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(22,14,42,0.75);border:1.5px solid rgba(239,68,68,0.45);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
+    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(239,68,68,0.45);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
       '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">🚨 Contactos de emergencia</div>'+
       '<div style="font-size:var(--fs-xs);color:#fca5a5;margin-bottom:12px;line-height:1.4;font-weight:500;">Hasta 2 contactos a los que alertaremos automáticamente en caso de emergencia.</div>'+
       emerg+
@@ -18872,7 +19385,7 @@ async function openNotifications(){
   sh+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div class="t-title">'+icon('bell',16)+' Notifications'+(unread.length?' <span style="font-size:var(--fs-xs);background:var(--p);color:#fff;border-radius:var(--rad-sm);padding:1px 8px;vertical-align:middle;">'+unread.length+'</span>':'')+'</div>';
   if(unread.length>0)sh+='<button onclick="markAllNotifsRead()" style="background:none;border:none;color:var(--p);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">Mark all read</button>';
   sh+='</div>';
-  sh+='<div class="nfchips">'+chips.map(function(c,i){return '<div class="nfchip'+(i===0?' on':'')+'" onclick="_setNotifFilter(\''+c[0]+'\',this)">'+c[1]+'</div>';}).join('')+'</div>';
+  sh+='<div class="nfchips">'+chips.map(function(c,i){return '<div class="nfchip'+(i===0?' on':'')+'" data-nf="'+c[0]+'" onclick="_setNotifFilter(\''+c[0]+'\',this)">'+c[1]+'</div>';}).join('')+'</div>';
   sh+='<div id="notif-body"></div>';
   sh+='<button class="gbtn-ghost" onclick="document.getElementById(\'notif-modal\').remove()" style="margin-top:12px;">Close</button>';
   sh+='</div>';
@@ -19384,7 +19897,7 @@ function _autoOrient(imgId){
     if(!img.naturalWidth)return;
     // Never crop — always show the whole photo, with a dark letterbox behind it
     img.style.objectFit='contain';
-    img.style.background='#0a0518';
+    img.style.background='#000000';
   };
   if(img.complete)apply();else img.onload=apply;
 }
@@ -19782,7 +20295,7 @@ function renderWellness(){
     if(!active.length)return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div><div style="padding:0 var(--s) 12px;font-size:var(--fs-sm);color:#4ade80;font-weight:500;">🎉 All done in '+c.cat+' — check back tomorrow!</div></div>';
     var cards=active.map(function(it){
       var tier=WL_TIERS[it.tier]||WL_TIERS.easy;
-      return '<div style="flex:0 0 200px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid var(--gbdl);background:#0e0a1e;">'+
+      return '<div style="flex:0 0 200px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid var(--gbdl);background:#0b0b0e;">'+
         '<div style="height:120px;background:linear-gradient(150deg,'+c.grad+');display:flex;align-items:center;justify-content:center;font-size:54px;position:relative;"><span style="position:absolute;top:8px;left:8px;font-size:var(--fs-2xs);font-weight:600;background:rgba(0,0,0,0.45);color:#fff;padding:3px 8px;border-radius:var(--rad-sm);">'+tier.label+'</span>'+it.emoji+'</div>'+
         '<div style="padding:11px;">'+
           '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;line-height:1.3;min-height:34px;">'+it.t+'</div>'+
@@ -20079,21 +20592,38 @@ function _renderSearchStudentCard(p) {
   return '<div class="search-student-card" onclick="openProfileCardByName(\'' + safeName + '\')">' +
     '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));">' +
       '<div style="width:100%;height:100%;border-radius:50%;overflow:hidden;">' + avatarHtml + '</div>' +
-      '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #0a0518;"></div>' +
+      '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #000000;"></div>' +
     '</div>' +
     '<div style="flex:1;min-width:0;">' +
       '<div style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;">' +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + fullName + '</span>' +
         (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;">' + p.age + '</span>' : '') +
       '</div>' +
-      '<div style="font-size:var(--fs-sm);color:#38bdf8;font-weight:500;margin-top:2px;">@' + handle + ' • ' + major + '</div>' +
+      '<div style="font-size:var(--fs-sm);color:#38bdf8;font-weight:500;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + ' • ' + major + '</div>' +
       '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:2px;">🏛️ ' + acronym + '</div>' +
     '</div>' +
-    '<button style="background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;box-shadow:var(--glow-primary);flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
+    '<button style="background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
   '</div>';
 }
 
 function openProfileCardByName(name) {
+  // "Ver Perfil" should show the actual photo card with the relationship
+  // actions underneath, not just the details sheet — so route through the
+  // full-screen viewer with a 'search' origin, which swaps the swipe bar for
+  // Add Friend / Report / Block.
+  var pFull = null;
+  if (typeof crushDataAll !== 'undefined' && crushDataAll) {
+    pFull = crushDataAll.filter(function (x) { return x.name === name; })[0];
+  }
+  if (!pFull && typeof crushData !== 'undefined' && crushData) {
+    pFull = crushData.filter(function (x) { return x.name === name; })[0];
+  }
+  if (pFull && typeof viewUserUnicrush === 'function') {
+    viewUserUnicrush(pFull.handle || null, name, pFull.bg || '#3d7bff', '', 'search');
+    return;
+  }
+
+  // Fallback: no card data for this person — show the details sheet instead.
   if (typeof crushData !== 'undefined' && crushData) {
     var idx = -1;
     for (var i = 0; i < crushData.length; i++) {
@@ -20102,6 +20632,7 @@ function openProfileCardByName(name) {
     if (idx >= 0) {
       crushIdx = idx;
       openCrushDetailsModal();
+      _appendRelationBarToDetails(name);
       return;
     }
   }
@@ -20117,9 +20648,24 @@ function openProfileCardByName(name) {
           content.innerHTML = buildHingeStackHtml(p2, {isSelf: false, onlyDetails: true});
         }
         modal.classList.add('open');
+        _appendRelationBarToDetails(name);
       }
     }
   }
+}
+
+// This sheet is reached by looking someone up, so it gets the relationship
+// actions too — never the swipe buttons.
+function _appendRelationBarToDetails(name) {
+  var content = document.getElementById('crush-details-content');
+  if (!content) return;
+  window._ucViewUser = window._ucViewUser || {};
+  window._ucViewUser.name = name;
+  window._ucViewUser.origin = 'search';
+  var prev = document.getElementById('crush-details-relbar');
+  if (prev) prev.remove();
+  content.insertAdjacentHTML('beforeend',
+    '<div id="crush-details-relbar" style="margin-top:16px;">' + _relationBarHtml(name) + '</div>');
 }
 
 function _getUniversityStudents(limit) {
@@ -20158,8 +20704,11 @@ async function handleCrushSearch(query) {
         '<div style="font-size:var(--fs-sm);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(61,123,255,0.4);">' +
           '⚡ ESTUDIANTES DE ' + myUniAcronym +
         '</div>' +
-        '<button onclick="handleCrushSearch(\'\')" style="background:rgba(61,123,255,0.15);border:1px solid rgba(61,123,255,0.4);border-radius:var(--rad-md);padding:5px 12px;color:#38bdf8;font-size:var(--fs-xs);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;box-shadow:var(--glow-primary);">' +
-          '🔄 Mezclar' +
+        // Neon yellow, black fill. The icon is stroke="currentColor" so it
+        // follows the button colour instead of being a fixed-colour emoji.
+        '<button onclick="handleCrushSearch(\'\')" style="background:#000;border:1.5px solid #fde047;border-radius:var(--rad-md);padding:5px 12px;color:#fde047;font-size:var(--fs-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 0 10px rgba(253,224,71,0.38);">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw-icon lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>' +
+          '<span>Mezclar</span>' +
         '</button>' +
       '</div>';
     
