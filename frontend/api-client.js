@@ -536,6 +536,40 @@ class ApiClient {
     this.socket.on('friendLocationRemoved', (data) => {
       if (this.socketCallbacks.onFriendLocationRemoved) this.socketCallbacks.onFriendLocationRemoved(data);
     });
+
+    this.socket.on('universityCatalogUpdated', (data) => {
+      console.log('🏛️ Received live universityCatalogUpdated notification:', data);
+      if (data && data.domain && typeof UNI !== 'undefined' && UNI) {
+        var existing = UNI[data.domain] || {};
+        UNI[data.domain] = Object.assign({}, existing, {
+          id: data.id || existing.id,
+          domain: data.domain,
+          t: data.type || existing.t || 'public',
+          type: data.type || existing.type || 'public',
+          name: data.name || existing.name,
+          acronym: data.acronym || existing.acronym,
+          p: data.primaryColor || existing.p || existing.primaryColor || '#6366f1',
+          primaryColor: data.primaryColor || existing.primaryColor || existing.p || '#6366f1',
+          p2: data.secondaryColor || existing.p2 || existing.secondaryColor || '#ec4899',
+          secondaryColor: data.secondaryColor || existing.secondaryColor || existing.p2 || '#ec4899',
+          ig: data.website || existing.ig || existing.website || '',
+          website: data.website || existing.website || existing.ig || '',
+          logoUrl: data.logoUrl || existing.logoUrl || '',
+          city: data.city || existing.city || '',
+          state: data.state || existing.state || '',
+          country: data.country || existing.country || 'Mexico',
+          isOfficial: data.isOfficial !== undefined ? data.isOfficial : (existing.isOfficial || false),
+          status: data.status || existing.status || 'AVAILABLE',
+          coverPhotos: (Array.isArray(data.coverPhotos) && data.coverPhotos.length > 0) ? data.coverPhotos : (existing.coverPhotos || [])
+        });
+      }
+      if (typeof _loadUniversities === 'function') {
+        _loadUniversities().then(() => {
+          if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
+          if (typeof renderCrushPreview === 'function') try { renderCrushPreview(); } catch(e){}
+        }).catch(() => {});
+      }
+    });
   }
 
   /**

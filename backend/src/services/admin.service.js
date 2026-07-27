@@ -655,10 +655,23 @@ class AdminService {
       }),
     ]);
 
-    const enrichedUniversities = universities.map(u => ({
-      ...u,
-      studentCount: u.userProfiles ? u.userProfiles.length : 0,
-      userProfiles: undefined,
+    const enrichedUniversities = await Promise.all(universities.map(async u => {
+      const studentCount = await prisma.user.count({
+        where: {
+          isDeleted: false,
+          OR: [
+            { email: { endsWith: `@${u.domain}`, mode: 'insensitive' } },
+            { profile: { universityId: u.id } },
+            { profile: { university: { contains: u.domain, mode: 'insensitive' } } },
+            { profile: { university: { contains: u.name, mode: 'insensitive' } } },
+          ]
+        }
+      });
+      return {
+        ...u,
+        studentCount,
+        userProfiles: undefined,
+      };
     }));
 
     return {
@@ -745,6 +758,11 @@ class AdminService {
       ipAddress,
     });
 
+    try {
+      const { notifyUniversityCatalogUpdated } = require('../socket');
+      notifyUniversityCatalogUpdated(university);
+    } catch (e) {}
+
     return university;
   }
 
@@ -804,6 +822,11 @@ class AdminService {
       details: updateData,
       ipAddress,
     });
+
+    try {
+      const { notifyUniversityCatalogUpdated } = require('../socket');
+      notifyUniversityCatalogUpdated(university);
+    } catch (e) {}
 
     return university;
   }
@@ -874,8 +897,8 @@ class AdminService {
   /**
    * Public Campus API endpoint for Student App autocomplete/selection
    */
-  async getPublicUniversities({ q, limit = 20 }) {
-    const limitNum = Math.min(50, Math.max(1, Number(limit) || 20));
+  async getPublicUniversities({ q, limit = 25000 }) {
+    const limitNum = Math.min(30000, Math.max(1, Number(limit) || 25000));
     const where = { isDeleted: false };
 
     if (q && q.trim()) {
@@ -884,6 +907,8 @@ class AdminService {
         { name: { contains: searchTerm, mode: 'insensitive' } },
         { acronym: { contains: searchTerm, mode: 'insensitive' } },
         { domain: { contains: searchTerm, mode: 'insensitive' } },
+        { city: { contains: searchTerm, mode: 'insensitive' } },
+        { state: { contains: searchTerm, mode: 'insensitive' } },
       ];
     }
 
@@ -901,7 +926,14 @@ class AdminService {
         secondaryColor: true,
         website: true,
         logoUrl: true,
+        city: true,
+        state: true,
+        country: true,
+        coverPhotos: true,
         isOfficial: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
