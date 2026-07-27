@@ -24,7 +24,7 @@ const API_HOST = HOST || 'localhost'; // file:// deja hostname vacío -> localho
 
 // Túnel público (efímero de trycloudflare) — reemplázalo por tu URL vigente si
 // vuelves a exponer el backend hacia afuera.
-const REMOTE_URL = 'https://tucson-seniors-multimedia-key.trycloudflare.com';
+const REMOTE_URL = 'https://ward-gabriel-either-exams.trycloudflare.com';
 
 const BASE_URL = IS_LOCAL
   ? `http://${API_HOST}:3000/api/v1`
@@ -42,9 +42,8 @@ class ApiClient {
     this.socket = null;
   }
 
-  // Retrieve stored tokens
   getAccessToken() {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('ugz_token') || sessionStorage.getItem('accessToken') || sessionStorage.getItem('token');
   }
 
   getRefreshToken() {
@@ -72,6 +71,9 @@ class ApiClient {
     
     // Prepare headers & credentials
     options.headers = options.headers || {};
+    if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+      options.body = JSON.stringify(options.body);
+    }
     options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
     options.credentials = 'include';
     

@@ -194,7 +194,7 @@ class UserController {
 
   async submitVerificationRequest(req, res, next) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.userId || req.user.id;
       const { type, documentUrl, credentialUrl, notes } = req.body;
       const finalUrl = credentialUrl || documentUrl;
       const requestRecord = await userService.submitVerificationRequest(userId, { type, credentialUrl: finalUrl, notes });
@@ -220,7 +220,7 @@ class UserController {
 
   async getVerificationStatus(req, res, next) {
     try {
-      const userId = req.user.userId;
+      const userId = req.user.userId || req.user.id;
       const statusData = await userService.getVerificationStatus(userId);
 
       res.status(200).json({

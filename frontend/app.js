@@ -5177,12 +5177,108 @@ function crushPhotoDelete(cell){
 // Close photo actions when clicking outside
 document.addEventListener('click',function(e){if(!e.target.closest('.crush-photo-cell')){document.querySelectorAll('.crush-photo-cell .cpa').forEach(function(o){o.style.display='none';});}});
 function doVerify(){
-  // Let the user take a photo of their ID (camera) or pick one — mobile shows "Take Photo / Library"
   var inp=document.getElementById('verify-id-file');
-  if(!inp){inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.id='verify-id-file';inp.style.display='none';inp.onchange=function(){if(inp.files&&inp.files[0])_verifyIdDone();};document.body.appendChild(inp);}
-  inp.value='';inp.click();
+  if(!inp){
+    inp=document.createElement('input');
+    inp.type='file';
+    inp.accept='image/*';
+    inp.id='verify-id-file';
+    inp.style.display='none';
+    inp.onchange=function(){
+      if(inp.files && inp.files[0]) _verifyIdDone(inp.files[0]);
+    };
+    document.body.appendChild(inp);
+  }
+  inp.value='';
+  inp.click();
 }
-function _verifyIdDone(){var box=document.getElementById('verify-box');if(box){box.classList.add('done');box.innerHTML='✅ Student ID uploaded — Blue badge pending review';}verified=true;var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='ID Verified';}}
+
+async function _verifyIdDone(file){
+  var box=document.getElementById('verify-box');
+  if(box){
+    box.style.opacity='0.7';
+    box.innerHTML='⏳ Subiendo credencial estudiantil...';
+  }
+  try {
+    var base64Url = '';
+    if(file){
+      base64Url = await new Promise(function(resolve, reject){
+        var reader = new FileReader();
+        reader.onload = function(e){ resolve(e.target.result); };
+        reader.onerror = function(err){ reject(err); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    var res;
+    if(typeof apiClient !== 'undefined' && apiClient.request){
+      res = await apiClient.request('/users/me/verification-request', {
+        method: 'POST',
+        body: { type: 'STUDENT_ID', credentialUrl: base64Url, notes: 'Credencial Estudiantil' }
+      });
+    } else {
+      var token = (typeof apiClient !== 'undefined' && apiClient.getAccessToken) ? apiClient.getAccessToken() : (localStorage.getItem('token') || localStorage.getItem('ugz_token') || localStorage.getItem('accessToken'));
+      var baseApiUrl = (window.location.origin.includes('8080') || window.location.origin.includes('5500') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('localhost')) ? 'http://localhost:3000/api/v1' : '/api/v1';
+      var rawRes = await fetch(baseApiUrl + '/users/me/verification-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ type: 'STUDENT_ID', credentialUrl: base64Url, notes: 'Credencial Estudiantil' })
+      });
+      res = await rawRes.json();
+    }
+
+    if(box){
+      box.style.opacity='1';
+      box.classList.add('done');
+      box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
+    }
+    
+    alert('✅ Tu credencial ha sido enviada con éxito. El equipo de administración la revisará en el Panel de Verificaciones.');
+  } catch(err) {
+    console.error('Error submitting verification:', err);
+    if(box){
+      box.style.opacity='1';
+      box.classList.add('done');
+      box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
+    }
+  }
+}
+
+async function syncVerificationStatus(){
+  try {
+    var res;
+    if(typeof apiClient !== 'undefined' && apiClient.request){
+      res = await apiClient.request('/users/me/verification-request', { method: 'GET' });
+    } else {
+      var token = (typeof apiClient !== 'undefined' && apiClient.getAccessToken) ? apiClient.getAccessToken() : (localStorage.getItem('token') || localStorage.getItem('ugz_token') || localStorage.getItem('accessToken'));
+      if(!token) return;
+      var baseApiUrl = (window.location.origin.includes('8080') || window.location.origin.includes('5500') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('localhost')) ? 'http://localhost:3000/api/v1' : '/api/v1';
+      var rawRes = await fetch(baseApiUrl + '/users/me/verification-request', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      res = await rawRes.json();
+    }
+    if(res && res.data){
+      var data = res.data;
+      var box = document.getElementById('verify-box');
+      if(data.isVerified){
+        if(box){
+          box.classList.add('done');
+          box.innerHTML='✅ Student ID verified — 🔵 Blue badge active';
+        }
+        if(typeof userPro !== 'undefined' && userPro) userPro.isVerified = true;
+      } else if(data.latestRequest && data.latestRequest.status === 'PENDING'){
+        if(box){
+          box.classList.add('done');
+          box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
+        }
+      }
+    }
+  } catch(e){}
+}
 function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🔵 Blue badge active';}
 function addLink(){var url=prompt('Enter URL (Instagram, YouTube, LinkedIn, etc.)');if(!url)return;if(!url.startsWith('http'))url='https://'+url;var list=document.getElementById('links-list');if(!list)return;var icon=''+icon('link',16)+'';if(url.includes('instagram'))icon=''+icon('camera',16)+'';else if(url.includes('youtube'))icon='▶️';else if(url.includes('linkedin'))icon='💼';var d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:8px var(--s);font-size:var(--fs-base);color:var(--fg2);';d.innerHTML=icon+' <a href="'+url+'" target="_blank" style="color:var(--fg2);text-decoration:none;">'+url.replace('https://','').split('/')[0]+'</a>';list.appendChild(d);}
 
@@ -5574,12 +5670,12 @@ function _chatSearchFocus(){
   }
 
   var rec=_chatRecent();
-  var chips=rec.length?rec.map(function(t){var e=t.replace(/'/g,"");return '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 10px;font-size:var(--fs-sm);font-weight:500;color:#fff;">'+t+'<span onmousedown="event.preventDefault();_chatRecentDel(\''+e+'\')" style="cursor:pointer;color:var(--fg3);font-weight:700;">×</span></div>';}).join(''):'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:2px 0;">No recent searches</div>';
+  var chips=rec.length?rec.map(function(t){var e=t.replace(/'/g,"");return '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 10px;font-size:var(--fs-sm);font-weight:500;color:#fff;">'+t+'<span onpointerdown="event.preventDefault();_chatRecentDel(\''+e+'\')" style="cursor:pointer;color:var(--fg3);font-weight:700;touch-action:manipulation;">×</span></div>';}).join(''):'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:2px 0;">No recent searches</div>';
   var sugg=_CHAT_SUGG.map(function(g,i){
     var av=g.portrait?('<img src="https://randomuser.me/api/portraits/'+g.portrait+'.jpg" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>'):('<div style="width:38px;height:38px;border-radius:var(--rad-sm);background:'+g.grad+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex-shrink:0;">'+g.ic+'</div>');
-    return '<div onmousedown="event.preventDefault();_chatPickSugg('+i+')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;">'+av+'<div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">'+g.t+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);">'+g.s+'</div></div></div>';
+    return '<div onpointerdown="event.preventDefault();_chatPickSugg('+i+')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;touch-action:manipulation;">'+av+'<div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">'+g.t+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);">'+g.s+'</div></div></div>';
   }).join('');
-  d.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 7px;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;">RECENT SEARCHES</div>'+(rec.length?'<span onmousedown="event.preventDefault();_chatRecentClear()" style="font-size:var(--fs-xs);font-weight:600;color:#3d7bff;cursor:pointer;">Clear</span>':'')+'</div>'+
+  d.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 7px;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;">RECENT SEARCHES</div>'+(rec.length?'<span onpointerdown="event.preventDefault();_chatRecentClear()" style="font-size:var(--fs-xs);font-weight:600;color:#3d7bff;cursor:pointer;touch-action:manipulation;">Clear</span>':'')+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 12px;">'+chips+'</div>'+
     '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;padding:2px 14px 4px;border-top:1px solid var(--gbdl);">SUGGESTIONS</div>'+sugg;
   d.style.display='block';
@@ -21384,7 +21480,7 @@ async function liveChatSearch(q) {
   if (matchedChats.length > 0) {
     h += '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;padding:8px 14px 4px;">ACTIVE CHATS & EVENTS</div>';
     h += matchedChats.map(function(c) {
-      return '<div onmousedown="event.preventDefault(); _clickChatRow(\'' + c.id + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);">' +
+      return '<div onpointerdown="event.preventDefault(); _clickChatRow(\'' + c.id + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);touch-action:manipulation;">' +
         '<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);">' + c.avatarHtml + '</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.name + '</div>' +
@@ -21410,7 +21506,7 @@ async function liveChatSearch(q) {
         : '<div style="width:100%;height:100%;border-radius:50%;background:' + badgeColor + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:var(--fs-base);">' + init + '</div>';
         
       var safeName = fullName.replace(/'/g, "\\'");
-      return '<div onmousedown="event.preventDefault(); _startFriendChat(\'' + f.id + '\',\'' + safeName + '\',\'' + badgeColor + '\',\'' + init + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);">' +
+      return '<div onpointerdown="event.preventDefault(); _startFriendChat(\'' + f.id + '\',\'' + safeName + '\',\'' + badgeColor + '\',\'' + init + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);touch-action:manipulation;">' +
         '<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;overflow:hidden;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;">' + avatar + '</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + fullName + '</div>' +

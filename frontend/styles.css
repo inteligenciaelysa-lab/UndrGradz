@@ -1031,6 +1031,10 @@ textarea.gi {
   right: 0;
   z-index: 100;
   background: transparent;
+  pointer-events: none;
+}
+.topbar > * {
+  pointer-events: auto;
 }
 .tb-title {
   font-size:var(--fs-lg);
@@ -1044,6 +1048,7 @@ textarea.gi {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  pointer-events: none;
 }
 /* Bare icons — no circle. Width/height stay: #notif-badge is positioned at
    top:-5px;right:-5px against this box, so shrinking it would move the badge. */
@@ -4285,6 +4290,8 @@ svg {
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 13px;
+  cursor: pointer;
+  touch-action: manipulation;
 }
 #evp-create .ehsec .ehnum {
   width: 24px;
@@ -8379,7 +8386,8 @@ input, textarea, [contenteditable="true"] {
   display: none;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   width: 100vw !important;
   max-width: 100% !important;
   margin: 0 !important;
@@ -10941,3 +10949,13 @@ html.brand-default .ob4-cta:not(:disabled) {
   background: #dc2626 !important;
   background-image: none !important;
 }
+
+/* ===== WEBKIT / IOS SAFARI CLICK & TAP RESPONSIVENESS FIXES ===== */
+button, a, input, select, textarea, [role="button"],
+.auth-option-card, .evsec-chip, .chatsec-chip, .ehsec, .tbi, .crush-tab, 
+.yr-chip, .gender-chip, .flag-chip, .b5c, .b5-title, .sw, .es-cta, .gbtn, .gbtn-ghost {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
