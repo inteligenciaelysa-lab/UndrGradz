@@ -4202,30 +4202,61 @@ svg {
   text-align: center;
   padding: 8px 0 16px;
 }
+/* ══ CREATE EVENT — one hue per step ══
+   These eight cards were the last big surface still on the old purple glass
+   (rgba(38,20,68,.65) + blur), which made the whole Create screen look like a
+   different app. Black now, one 1.5px border, no blur and no resting drop
+   shadow — the same recipe as every other card.
+   Each step owns a hue that its number, border and title all share, so a long
+   form becomes something you can scan. --step-hue is set per data-step below;
+   an explicit attribute rather than :nth-of-type, because .eh-head is a sibling
+   <div> too and would shift the whole count by one. */
+/* The box is gone: each step is now a title with a chevron over a coloured
+   underline, the same shape as the Settings sections. Collapsing reuses the
+   .evfilt recipe already used by the filter rows in card 6 — a class plus
+   display:none — and NOT the Settings accordion's max-height + overflow:hidden,
+   which caps at 1000px (card 6 is taller than that) and would clip the date
+   picker popup in card 2. */
 #evp-create .ehcard {
+  --step-hue: #3d7bff;
   position: relative;
   z-index: 1;
-  background: linear-gradient(
-    165deg,
-    rgba(38, 20, 68, 0.65),
-    rgba(14, 8, 28, 0.75)
-  );
-  border: 1.5px solid rgba(240, 62, 90, 0.22);
-  border-radius:var(--rad-lg);
+  background: #000;
+  border: 1.5px solid color-mix(in srgb, var(--step-hue) 45%, transparent);
+  border-radius: var(--rad-lg);
   padding: 16px 15px;
   margin-bottom: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--step-hue) 8%, transparent);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+#evp-create .ehcard[data-step="1"] { --step-hue: #3d7bff; } /* blue   */
+#evp-create .ehcard[data-step="2"] { --step-hue: #22d3ee; } /* cyan   */
+#evp-create .ehcard[data-step="3"] { --step-hue: #e04155; } /* red    */
+#evp-create .ehcard[data-step="4"] { --step-hue: #a3e635; } /* lime   */
+#evp-create .ehcard[data-step="5"] { --step-hue: #ec4899; } /* pink   */
+#evp-create .ehcard[data-step="6"] { --step-hue: #c084fc; } /* purple */
+#evp-create .ehcard[data-step="7"] { --step-hue: #fbbf24; } /* amber  */
+#evp-create .ehcard[data-step="8"] { --step-hue: #22c55e; } /* green  */
+
+/* The step number and the title follow the card. The inline colours these
+   titles used to carry are gone from index.html, or they would win over this. */
+#evp-create .ehsec .ehnum {
+  background: color-mix(in srgb, var(--step-hue) 82%, #000) !important;
+  border: 1.5px solid var(--step-hue);
+  color: #fff;
+}
+#evp-create .ehsec .ehtitle {
+  color: var(--step-hue);
 }
 #evp-create .ehcard:has(#ev-cal-wrap:not([style*="display: none"])),
 #evp-create .ehcard:has(#ev-cal-wrap[style*="display: block"]) {
   z-index: 500 !important;
 }
+/* Focus/hover brightens the step's own edge instead of adding a crimson halo to
+   a card that is not selectable. */
 #evp-create .ehcard:focus-within,
 #evp-create .ehcard:hover {
-  border-color: rgba(240, 62, 90, 0.45);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 0 15px rgba(240, 62, 90, 0.2);
+  border-color: var(--step-hue);
 }
 .ev-stock-choice {
   transition: transform 0.2s var(--ease), border-color 0.2s ease, box-shadow 0.2s ease !important;
@@ -4240,7 +4271,7 @@ svg {
 }
 @keyframes pulse-arrow {
   0%, 100% { transform: translateX(0); opacity: 0.75; }
-  50% { transform: translateX(4px); opacity: 1; ); }
+  50% { transform: translateX(4px); opacity: 1; }
 }
 #evp-create .ehsec {
   display: flex;
@@ -4391,7 +4422,9 @@ svg {
   padding: 0 2px;
 }
 #evp-create #ev-publish-btn {
-  background: linear-gradient(90deg, #c9243b, #f97316) !important;
+  /* Was a hardcoded crimson→orange gradient, which made Publish the one primary
+     button that never took the school colour. */
+  background: linear-gradient(90deg, var(--p), color-mix(in srgb, var(--p) 55%, #000)) !important;
   font-size:var(--fs-md);
   font-weight:700;
   box-shadow:var(--el-3);
@@ -4680,7 +4713,7 @@ svg {
   line-height: 1.05; font-variant-numeric: tabular-nums;
 }
 .v-stat-lbl {
-  font-size: 10px; font-weight: 700; color: var(--fg3);
+  font-size: 10px; font-weight: 700; color: var(--fg2);
   text-transform: uppercase; letter-spacing: 1.4px; margin-top: 3px;
 }
 
@@ -6201,7 +6234,9 @@ html.uni-set .tb-logo-gradz {
     transparent
   );
   transform: skewX(-18deg);
-  animation: btnShimmer 5s ease-in-out infinite;
+  /* Ran `btnShimmer 5s infinite`, so every primary button in the app was
+     permanently animating. Now it only sweeps while the button is pressed. */
+  animation: none;
 }
 .gbtn-ghost::after {
   display: none;
@@ -6260,51 +6295,51 @@ html.light-secondary #ev-publish-btn {
 }
 
 /* Admirers Neon Sub-tab Buttons */
+/* The _gradSkin recipe (see app.js) expressed in CSS, so these two tabs match
+   the A+ / Cheats / Invite bar and the university buttons: idle is a nearly
+   black gradient with the hue on the edge and the label, selected fills with the
+   hue at 72% strength and gains a gradient edge plus a halo.
+   One hue variable per tab collapses what used to be two duplicated .on blocks. */
+.adm-sub-btn[data-sub="likes"] { --sub-hue: #06b6d4; }
+.adm-sub-btn[data-sub="saw"]   { --sub-hue: #fb923c; }
+/* Tab 2 (Admirers) was merged into Secret Admirers; its rules are gone. */
+
 .adm-sub-btn {
+  --sub-hue: #3d7bff;
   flex: 1;
   text-align: center;
   padding: 10px 4px;
-  border-radius:var(--rad-md);
+  border-radius: var(--rad-md);
   cursor: pointer;
-  font-size:var(--fs-xs);
-  font-weight:600;
-  color: var(--fg2);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--gbdl);
+  font-size: var(--fs-xs);
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
   transition: all var(--dur) ease-in-out;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--sub-hue) 22%, #000) 0%, #000 100%);
+  border: 1px solid color-mix(in srgb, var(--sub-hue) 40%, transparent);
+  color: var(--sub-hue);
 }
-
-/* Tab 1: Likes (Neon Cyan) */
-.adm-sub-btn[data-sub="likes"].on {
-  background: transparent !important;
-  border: 1.5px solid #06b6d4 !important;
-  color: #fff !important;
-  box-shadow: 0 0 12px rgba(6, 182, 212, 0.65), inset 0 0 4px rgba(6, 182, 212, 0.35) !important;
-  text-shadow: 0 0 4px rgba(6, 182, 212, 0.5) !important;
+.adm-sub-btn.on {
+  border: 1.5px solid transparent;
+  background: linear-gradient(135deg,
+                color-mix(in srgb, var(--sub-hue) 72%, #000) 0%,
+                color-mix(in srgb, var(--sub-hue) 29%, #000) 100%) padding-box,
+              linear-gradient(135deg, var(--sub-hue),
+                color-mix(in srgb, var(--sub-hue) 35%, #fff)) border-box;
+  color: #fff;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--sub-hue) 40%, transparent);
+  text-shadow: 0 0 8px var(--sub-hue);
 }
-.adm-sub-btn[data-sub="likes"].on svg {
-  color: #06b6d4 !important;
-  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.8));
+/* The icon inherits currentColor in both states. It used to be pinned to the
+   hue, which on the selected tab is the colour of its own fill. */
+.adm-sub-btn svg {
+  color: currentColor;
 }
-
-/* Tab 2 (Admirers) was merged into Secret Admirers; its rules are gone. */
-
-/* Tab 3: Secret Admirers (Neon Orange) */
-.adm-sub-btn[data-sub="saw"].on {
-  background: transparent !important;
-  border: 1.5px solid #fb923c !important;
-  color: #fff !important;
-  box-shadow: 0 0 12px rgba(251, 146, 60, 0.65), inset 0 0 4px rgba(251, 146, 60, 0.35) !important;
-  text-shadow: 0 0 4px rgba(251, 146, 60, 0.5) !important;
-}
-.adm-sub-btn[data-sub="saw"].on svg {
-  color: #fb923c !important;
-  filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.8));
-}
+/* The per-hue `.on svg` override is gone: it painted the icon in the same colour
+   as the selected tab's fill. Icons now inherit currentColor (see above). */
 
 /* Discover tabs sub-tabs SVGs explicitly styled for visibility */
 .crush-tab svg {
@@ -6331,8 +6366,10 @@ html.light-secondary #ev-publish-btn {
   position: relative;
   overflow: hidden;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
-  box-shadow: 0 0 12px -3px var(--p2),
-    0 10px 22px -13px rgba(0, 0, 0, 0.55),
+  /* No resting halo: this is a button, not a selected state — the same rule
+     --glow-primary:none enforces elsewhere. The drop shadow and the top gloss
+     stay, so it still reads as raised without glowing. */
+  box-shadow: 0 10px 22px -13px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
   transition:
     transform var(--dur-fast) ease,
@@ -6358,7 +6395,9 @@ html.light-secondary .jbtn {
     transparent
   );
   transform: skewX(-18deg);
-  animation: btnShimmer 5s ease-in-out infinite;
+  /* Ran `btnShimmer 5s infinite`, so every primary button in the app was
+     permanently animating. Now it only sweeps while the button is pressed. */
+  animation: none;
 }
 .jbtn:active {
   transform: translateY(1px) scale(0.994);
@@ -6418,44 +6457,86 @@ html.light-secondary .jbtn {
   backdrop-filter: blur(10px) !important;
 }
 
-/* Edit-profile controls → black fill + the university's own primary as the
-   outline. --p is reassigned at login to the school colour, so every campus
-   themes these for free. The inline styles in index.html:877-879 are already
-   dead against these !important rules — this block is the single source of
-   truth for how these eight buttons look. */
-#uns-full-pf,
-#uns-acr-pf,
-#ys-full-pf,
-#ys-acr-pf {
-  background: #000 !important;
-  /* Idle still shows the hue, just dimmed, so the pair reads as one control. */
-  border: 1.5px solid color-mix(in srgb, var(--p) 38%, transparent) !important;
+/* ══ EDIT-PROFILE CONTROLS ══
+   Two shapes here. `Full name / Acronym` and `Full (Senior) / Acronym (SR)` are
+   one-of-two choices, so they are segmented controls: one outlined container, no
+   gap, the picked half filled. The four action buttons are separate destinations,
+   so they stay as separate rows — but each gets its own hue instead of all four
+   sharing --p, matching the settings cards and notification chips.
+   --p is reassigned at login to the school colour, so the segmented pairs theme
+   themselves per campus for free. */
+
+/* ── Segmented pairs ── */
+#ptab-panel-crush .seg2 {
+  display: flex;
+  background: #000;
+  border: 1.5px solid color-mix(in srgb, var(--p) 38%, transparent);
+  border-radius: var(--rad-sm);
+  /* Clips the halves' corners to the container's radius. It also clips an outer
+     box-shadow, which is why the picked half glows inward (see below). */
+  overflow: hidden;
+}
+#ptab-panel-crush .seg2 .seg2-half {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   box-shadow: none !important;
+  color: var(--fg2) !important;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+              box-shadow var(--dur) var(--ease);
 }
-/* Selected: _pfStyleBtns() writes background:var(--p) into the inline style
+#ptab-panel-crush .seg2 .seg2-half + .seg2-half {
+  border-left: 1.5px solid color-mix(in srgb, var(--p) 38%, transparent) !important;
+}
+/* Picked: _pfStyleBtns() writes background:var(--p) into the inline style
    attribute, and this substring selector is what detects it. Don't change that
-   contract in app.js:4510 without updating this selector. */
-#uns-full-pf[style*="var(--p)"],
-#uns-acr-pf[style*="var(--p)"],
-#ys-full-pf[style*="var(--p)"],
-#ys-acr-pf[style*="var(--p)"] {
-  background: #000 !important;
-  border: 2px solid var(--p) !important;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--p) 45%, transparent) !important;
+   contract in _pfStyleBtns (app.js) without updating this selector.
+   !important is required — the inline background it writes would otherwise win. */
+#ptab-panel-crush .seg2 .seg2-half[style*="var(--p)"] {
+  background: linear-gradient(135deg,
+                color-mix(in srgb, var(--p) 72%, #000) 0%,
+                color-mix(in srgb, var(--p) 29%, #000) 100%) !important;
   color: #fff !important;
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--p) 45%, transparent) !important;
 }
-/* Matched by onclick substring — renaming any of these handlers silently drops
-   the styling. */
-#ptab-panel-crush button[onclick*="openPromptsEditor"],
-#ptab-panel-crush button[onclick*="openVibeEditor"],
-#ptab-panel-crush button[onclick*="editInterests"],
-#ptab-panel-crush button[onclick*="_seniorBucket"] {
-  border: 1.5px solid var(--p) !important;
+
+/* ── Action rows, one hue each ── */
+#ptab-panel-crush .act-btn {
+  --act: #3d7bff;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px !important;
+  text-align: left;
+  border: 1.5px solid color-mix(in srgb, var(--act) 62%, transparent) !important;
+  border-radius: var(--rad-md) !important;
   background: #000 !important;
-  /* Needed with !important: each of these carries its own inline blue / cyan /
-     amber glow, which otherwise survives and clashes with the --p border. */
-  box-shadow: 0 0 14px color-mix(in srgb, var(--p) 34%, transparent) !important;
+  /* Static destinations, not a selected state: border only, no halo. */
+  box-shadow: none !important;
   color: #fff !important;
+  transition: border-color var(--dur) var(--ease);
+}
+/* Explicit attribute, not an onclick substring: the previous version matched
+   button[onclick*="openPromptsEditor"] and friends, so renaming any handler
+   dropped the styling silently. */
+#ptab-panel-crush .act-btn[data-hue="blue"]   { --act: #3d7bff; }
+#ptab-panel-crush .act-btn[data-hue="violet"] { --act: #c084fc; }
+#ptab-panel-crush .act-btn[data-hue="cyan"]   { --act: #06b6d4; }
+#ptab-panel-crush .act-btn[data-hue="amber"]  { --act: #fbbf24; }
+/* Same tinted-tile idea as the DATE & TIME / LOCATION icons in the event modal:
+   it gives the emoji a home and the row a fixed left edge to scan down. */
+#ptab-panel-crush .act-btn .act-ico {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--rad-sm);
+  background: color-mix(in srgb, var(--act) 20%, #000);
+  border: 1.5px solid color-mix(in srgb, var(--act) 60%, transparent);
+  font-size: var(--fs-base);
+  line-height: 1;
 }
 
 /* middle nav icon (Campus) — match the others' visual size */
@@ -6861,10 +6942,11 @@ button.jbtn {
 .hangout-item-card {
   transition: transform var(--dur) var(--ease), border-color var(--dur) ease, box-shadow var(--dur) ease !important;
 }
+/* Hover used to swap in a purple border and a blue halo — a third hue on a card
+   that now carries its section's colour on the border. It just brightens. */
 .hangout-item-card:hover {
   transform: translateY(-4px) scale(1.008) !important;
-  border-color: rgba(192, 132, 252, 0.85) !important;
-  box-shadow: 0 0 12px rgba(61, 123, 255, 0.5), inset 0 0 14px rgba(61, 123, 255, 0.2) !important;
+  filter: brightness(1.08);
 }
 
 /* ── SIGN UP IDENTITY INPUT UPGRADES ── */
@@ -9524,19 +9606,21 @@ select:-webkit-autofill {
 }
 
 /* ══ .neon-card ══
-   The canonical "black fill + coloured outline + halo" recipe, previously
-   copy-pasted inline in several places. Set the hue per element with
-   style="--neon:<colour>", the same way --chip and --gsx-hue already work. */
+   The canonical "black fill + coloured outline" recipe, previously copy-pasted
+   inline in several places. Set the hue per element with style="--neon:<colour>",
+   the same way --chip and --gsx-hue already work.
+   Idle carries NO outer halo — only the border and a faint inset. The glow is
+   reserved for .on, so a screen full of these reads as a set of frames with one
+   of them lit, instead of a wall of competing light. */
 .neon-card {
   --neon: #3d7bff;
   background: #000;
   border: 1.5px solid var(--neon);
   border-radius: var(--rad-md);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--neon) 42%, transparent),
-              inset 0 0 10px color-mix(in srgb, var(--neon) 10%, transparent);
+  box-shadow: inset 0 0 10px color-mix(in srgb, var(--neon) 10%, transparent);
 }
-/* Selected reads through a thicker edge and a brighter halo — never through the
-   fill, because every fill here is black. */
+/* Selected reads through a thicker edge and the halo — never through the fill,
+   because every fill here is black. */
 .neon-card.on {
   border-width: 2px;
   box-shadow: 0 0 18px color-mix(in srgb, var(--neon) 65%, transparent),
@@ -9558,13 +9642,13 @@ select:-webkit-autofill {
   height: 24px !important;
 }
 
-/* ══ NOTIFICATION FILTER CHIPS — one neon hue each ══
-   Same recipe as the CHIP COLOR SYSTEM used in Chats/Hangouts (tinted fill +
-   hue border + hue label; selected gets a stronger fill and a glow), but this
-   row lives at body level in the notifications sheet, so those #sec-scoped
-   rules never reach it and it needs its own copy.
-   Note: the labels use emoji, which ignore `color` — the hue lands on the
-   border, fill and text only. */
+/* ══ NOTIFICATION FILTER CHIPS AS UNDERLINE TABS ══
+   Each category keeps its own neon hue, but the pill is gone: white label, and
+   the hue arrives as an underline on whichever one is picked — the same
+   language as the section chips, the tab bars and the filter groups.
+   These are single-select (one category at a time), so exactly one line is lit.
+   The row lives at body level in the notifications sheet, so the #sec-scoped
+   copies of this recipe never reach it and it needs its own. */
 .nfchip[data-nf="all"]      { --chip: #22d3ee; } /* cyan    */
 .nfchip[data-nf="social"]   { --chip: #ec4899; } /* pink    */
 .nfchip[data-nf="campus"]   { --chip: #a3e635; } /* lime    */
@@ -9573,17 +9657,43 @@ select:-webkit-autofill {
 .nfchip[data-nf="system"]   { --chip: #fde047; } /* neon yellow, by request */
 
 .nfchip {
-  background: color-mix(in srgb, var(--chip, #3d7bff) 14%, #000);
-  border: 1.5px solid color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
-  color: var(--chip, #3d7bff);
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
-              box-shadow var(--dur) var(--ease);
+  position: relative;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  /* room under the label for the line, which the .nfchips scroller already
+     reserves with its own padding-bottom */
+  padding: 7px 11px 10px;
+  color: rgba(255, 255, 255, 0.72);
+  transition: color var(--dur) var(--ease);
 }
 .nfchip.on {
-  background: color-mix(in srgb, var(--chip, #3d7bff) 30%, #000);
-  border-color: var(--chip, #3d7bff);
+  background: transparent;
+  border: none;
+  box-shadow: none;
   color: #fff;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--chip, #3d7bff) 45%, transparent);
+}
+.nfchip::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  right: 9px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--chip, #3d7bff);
+  box-shadow: 0 0 10px var(--chip, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+.nfchip.on::after {
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 /* ══ SETTINGS — a different neon edge per section ══
@@ -9652,4 +9762,661 @@ select:-webkit-autofill {
 #ev-filter-sel:focus {
   border-color: var(--sort-hue) !important;
   box-shadow: 0 0 16px color-mix(in srgb, var(--sort-hue) 60%, transparent) !important;
+}
+
+/* ══ SECTION CHIPS AS UNDERLINE TABS ══
+   No pill, no fill, no border: white label, the section hue kept on the icon so
+   the colour coding still reads at a glance, and a neon underline in that hue
+   marking the selected one. Appended last and marked !important because the
+   CHIP COLOR SYSTEM block (~4726) sets fill/border/colour with !important. */
+#sec-chats .chatsec-chip,
+#sec-hangouts .evsec-chip,
+#sec-chats .chatsec-chip.on,
+#sec-hangouts .evsec-chip.on,
+#sec-chats .chatsec-chip:hover,
+#sec-hangouts .evsec-chip:hover {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 8px 12px 10px !important;
+  /* Idle labels are white but softened, so the selected one still stands out
+     even before you notice the underline. */
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+#sec-chats .chatsec-chip.on,
+#sec-hangouts .evsec-chip.on {
+  color: #fff !important;
+}
+#sec-chats .chatsec-chip .csl,
+#sec-hangouts .evsec-chip .csl {
+  color: inherit !important;
+  text-shadow: none !important;
+}
+
+/* Icon keeps the section hue in both states — that is what still tells Sports
+   from Dorm when nothing is selected. */
+#sec-chats .chatsec-chip svg,
+#sec-hangouts .evsec-chip svg,
+#sec-chats .chatsec-chip.on svg,
+#sec-hangouts .evsec-chip.on svg {
+  stroke: var(--chip, #3d7bff) !important;
+  color: var(--chip, #3d7bff) !important;
+  opacity: 1 !important;
+}
+
+/* The underline itself. Always present so it can animate, scaled to 0 until
+   the chip is selected. */
+#sec-chats .chatsec-chip::after,
+#sec-hangouts .evsec-chip::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--chip, #3d7bff);
+  box-shadow: 0 0 10px var(--chip, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+#sec-chats .chatsec-chip.on::after,
+#sec-hangouts .evsec-chip.on::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Nightlife/Matches had a wine FILL when selected; with no pill there is
+   nothing to fill, so they follow the same underline rule as everyone else. */
+#sec-hangouts .evsec-chip[data-sec="nightlife"].on,
+#sec-chats .chatsec-chip[data-sec="nightlife"].on,
+#sec-chats .chatsec-chip[data-sec="matches"].on {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ══ UNDERLINE TABS, PART 2 ══
+   Same treatment as the section chips: no pill, white label, neon underline on
+   the selected one. Applied to the Campus tab bar, the Profile tab bar and the
+   Hangouts sort control. Appended last, !important throughout, because each of
+   these already has several competing !important rules earlier in the file. */
+
+/* ── Campus: Search · Crush · Ranks · Secret Admirers ── */
+#discover-tabs {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  gap: 2px;
+}
+#discover-tabs .crush-tab {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 9px 6px 11px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+/* Needs its own background reset: the red-pill rule (~9177) is
+   `#discover-tabs .crush-tab.active`, one class more specific than the block
+   above, so it would keep painting the pill. */
+#discover-tabs .crush-tab.active {
+  color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 9px 6px 11px !important;
+}
+/* Every label shows now — with no pill to mark the selection, icon-only tabs
+   would leave three unlabelled glyphs. */
+#discover-tabs .crush-tab .tab-lbl {
+  display: inline-block !important;
+  font-size: var(--fs-xs) !important;
+}
+#discover-tabs .crush-tab svg {
+  color: inherit !important;
+  stroke: currentColor !important;
+}
+/* Each Campus tab owns a hue, so the underline means something here too. */
+#discover-tabs .crush-tab[id="ctab-search"] { --tab-hue: #22d3ee; }
+#discover-tabs .crush-tab[id="ctab-swipe"]  { --tab-hue: #ec4899; }
+#discover-tabs .crush-tab[id="ctab-liked"]  { --tab-hue: #fb923c; } /* Discover — kept the flame's orange from the old For you tab */
+
+/* ── Profile: My Card · Activity · Safety · Filters ── */
+#prof-tabs {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+#sec-profile #prof-tabs .prof-tab,
+#prof-tabs .prof-tab {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 9px 4px 11px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+#prof-tabs .prof-tab.active {
+  color: #fff !important;
+}
+#prof-tabs .prof-tab:nth-child(1) { --tab-hue: var(--wine); }
+#prof-tabs .prof-tab:nth-child(2) { --tab-hue: #fbbf24; }
+#prof-tabs .prof-tab:nth-child(3) { --tab-hue: #34d399; }
+#prof-tabs .prof-tab:nth-child(4) { --tab-hue: #3d7bff; }
+
+/* ── The shared underline ── */
+#discover-tabs .crush-tab::after,
+#prof-tabs .prof-tab::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--tab-hue, #3d7bff);
+  box-shadow: 0 0 10px var(--tab-hue, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--tab-hue, #3d7bff) 55%, transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+#discover-tabs .crush-tab.active::after,
+#prof-tabs .prof-tab.active::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* ── Hangouts sort control: underline instead of an outlined bubble ── */
+#ev-filter-sel {
+  background-color: transparent !important;
+  border: none !important;
+  border-bottom: 2.5px solid var(--sort-hue) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 3px 10px -4px var(--sort-hue) !important;
+  color: #fff !important;
+  padding: 9px 34px 9px 4px !important;
+}
+#ev-filter-sel:hover,
+#ev-filter-sel:focus {
+  border-bottom-color: var(--sort-hue) !important;
+  box-shadow: 0 4px 14px -4px var(--sort-hue) !important;
+  transform: none !important;
+}
+
+/* ══ FILTER CHIPS AS UNDERLINE TABS ══
+   Same language as the section chips and tab bars: no pill, white label, neon
+   underline on what is picked. Here the hue is per SECTION rather than per chip,
+   so a whole group reads as one family — Interested In red, Workout & Diet
+   green, Living Situation blue, and so on.
+   These are multi-select ("pick any"), so several underlines can be lit at once.
+   Scoped to the filters panel rather than an explicit list of group ids: new
+   groups (and the ones populated from JS, like Workout/Diet/Living) pick this up
+   automatically, and .yr-chip keeps its pill everywhere else in the app. */
+#ptab-panel-filters #crush-int-chips        { --grp-hue: #e04155; } /* red     */
+#ptab-panel-filters #crush-workout-chips,
+#ptab-panel-filters #crush-diet-chips       { --grp-hue: #22c55e; } /* green   */
+#ptab-panel-filters #crush-living-chips     { --grp-hue: #3d7bff; } /* blue    */
+#ptab-panel-filters #crush-year-chips       { --grp-hue: #fbbf24; } /* amber   */
+#ptab-panel-filters #crush-drink-chips      { --grp-hue: #fb923c; } /* orange  */
+#ptab-panel-filters #crush-smoke-chips      { --grp-hue: #94a3b8; } /* slate   */
+#ptab-panel-filters #crush-schooltype-chips { --grp-hue: #22d3ee; } /* cyan    */
+#ptab-panel-filters #crush-degree-chips     { --grp-hue: #a3e635; } /* lime    */
+#ptab-panel-filters #crush-politics-chips   { --grp-hue: #c084fc; } /* purple  */
+#ptab-panel-filters #crush-religion-chips   { --grp-hue: #f472b6; } /* pink    */
+#ptab-panel-filters #crush-ethnicity-chips  { --grp-hue: #2dd4bf; } /* teal    */
+#ptab-panel-filters #crush-lang-chips       { --grp-hue: #818cf8; } /* indigo  */
+#ptab-panel-filters #crush-frat-chips       { --grp-hue: #fde047; } /* yellow  */
+#ptab-panel-filters #crush-uni-chips        { --grp-hue: #ec4899; } /* magenta */
+#ptab-panel-filters #crush-greenflag-chips  { --grp-hue: #4ade80; } /* mint    */
+#ptab-panel-filters #crush-lovelang-chips   { --grp-hue: #f0abfc; } /* orchid  */
+
+#ptab-panel-filters .yr-chip,
+#match-filters-wrap .yr-chip {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 7px 10px 10px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+#ptab-panel-filters .yr-chip.on,
+#match-filters-wrap .yr-chip.on {
+  color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#ptab-panel-filters .yr-chip::after,
+#match-filters-wrap .yr-chip::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--grp-hue, #3d7bff);
+  box-shadow: 0 0 10px var(--grp-hue, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--grp-hue, #3d7bff) 55%, transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+#ptab-panel-filters .yr-chip.on::after,
+#match-filters-wrap .yr-chip.on::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* ══ FILTER SECTION TITLES: A LINE PER SECTION ══
+   The hue now lives on the .love-filter-section instead of the chip container,
+   so the heading and its chips inherit the same --grp-hue and read as one
+   family. The heading's line is a fade-out gradient rather than the chips'
+   solid bar — it marks the section, it is not a selection state, so the two
+   never get confused. */
+#match-filters-wrap .love-filter-section:has(#crush-int-chips)        { --grp-hue: #e04155; } /* red     */
+#match-filters-wrap .love-filter-section:has(#crush-workout-chips),
+#match-filters-wrap .love-filter-section:has(#crush-diet-chips)        { --grp-hue: #22c55e; } /* green   */
+#match-filters-wrap .love-filter-section:has(#crush-living-chips)      { --grp-hue: #3d7bff; } /* blue    */
+#match-filters-wrap .love-filter-section:has(#crush-year-chips)        { --grp-hue: #fbbf24; } /* amber   */
+#match-filters-wrap .love-filter-section:has(#crush-drink-chips)       { --grp-hue: #fb923c; } /* orange  */
+#match-filters-wrap .love-filter-section:has(#crush-smoke-chips)       { --grp-hue: #94a3b8; } /* slate   */
+#match-filters-wrap .love-filter-section:has(#crush-schooltype-chips)  { --grp-hue: #22d3ee; } /* cyan    */
+#match-filters-wrap .love-filter-section:has(#crush-degree-chips)      { --grp-hue: #a3e635; } /* lime    */
+#match-filters-wrap .love-filter-section:has(#crush-politics-chips)    { --grp-hue: #c084fc; } /* purple  */
+#match-filters-wrap .love-filter-section:has(#crush-religion-chips)    { --grp-hue: #f472b6; } /* pink    */
+#match-filters-wrap .love-filter-section:has(#crush-ethnicity-chips)   { --grp-hue: #2dd4bf; } /* teal    */
+#match-filters-wrap .love-filter-section:has(#crush-lang-chips)        { --grp-hue: #818cf8; } /* indigo  */
+#match-filters-wrap .love-filter-section:has(#crush-frat-chips)        { --grp-hue: #fde047; } /* yellow  */
+#match-filters-wrap .love-filter-section:has(#crush-uni-chips)         { --grp-hue: #ec4899; } /* magenta */
+#match-filters-wrap .love-filter-section:has(#uc-mile-sl)              { --grp-hue: #38bdf8; } /* sky     */
+#match-filters-wrap .love-filter-section:has(#crush-age-min)           { --grp-hue: #f97316; } /* tangerine */
+
+#match-filters-wrap .love-filter-title {
+  position: relative;
+  color: #fff;
+  padding-bottom: 9px;
+}
+#match-filters-wrap .love-filter-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+              var(--grp-hue, #3d7bff) 0%,
+              color-mix(in srgb, var(--grp-hue, #3d7bff) 45%, transparent) 45%,
+              transparent 100%);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--grp-hue, #3d7bff) 60%, transparent);
+  pointer-events: none;
+}
+
+/* ══ A+ SECTIONS ARE READ-ONLY WITHOUT A+ ══
+   Any section whose heading carries the gold "A+ Student" tag has its body
+   (chips, selects, sliders — everything but the heading itself) taken out of
+   the hit-testing tree, so a free user can see what they'd get without being
+   able to set a filter that would silently never apply. The heading keeps full
+   contrast so the A+ badge stays legible as the reason. */
+body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-title .tag.gold) > *:not(.love-filter-title) {
+  pointer-events: none !important;
+  opacity: 0.38 !important;
+  filter: grayscale(0.45);
+  user-select: none;
+}
+body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-title .tag.gold) .love-filter-title {
+  cursor: not-allowed;
+}
+
+/* ══ PROFILE-CARD INTEREST CHIPS AS LINES ══
+   Same underline language as the filter chips, but these are read-only facts,
+   not toggles, so the line is lit permanently. Hue comes in per block from
+   --ln-hue (matched-on blue, languages blue, likes red, green flags green). */
+.ln-chip {
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 4px 9px 9px !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+.ln-chip::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 0;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--ln-hue, #3d7bff);
+  box-shadow: 0 0 9px var(--ln-hue, #3d7bff),
+              0 0 16px color-mix(in srgb, var(--ln-hue, #3d7bff) 50%, transparent);
+  pointer-events: none;
+}
+
+/* ══ EVENT FORM: "ALLOWED GENDERS" + "WHO CAN JOIN?" ══
+   The _gradSkin recipe (app.js) as CSS, so the create-event form speaks the same
+   language as the Plans tabs, the university buttons and the admirers sub-tabs:
+   unselected is a nearly black gradient with the hue on the edge and the label,
+   selected fills with the hue at 72% and gains a gradient edge plus a halo.
+   The inline colours these buttons used to carry are gone from index.html and
+   toggleGenderAllow no longer repaints them, because inline always beats a
+   class and would have made this block dead. */
+/* Saturated versions, by request. These must stay in step with _evMeta in
+   app.js, which colours the ratio sliders and the stacked bar for the same three
+   genders — a stylesheet cannot read a JS object, so the pair is kept in sync by
+   hand and each side points at the other. */
+.gallow[data-g="female"] { --g-hue: #ec4899; } /* strong pink   */
+.gallow[data-g="male"]   { --g-hue: #2563eb; } /* strong blue   */
+.gallow[data-g="other"]  { --g-hue: #8b5cf6; } /* strong purple */
+
+.gallow,
+#ev-year-chips .yr-chip {
+  --g-hue: #3d7bff;
+  position: relative;
+  border-radius: var(--rad-pill) !important;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--g-hue) 22%, #000) 0%, #000 100%) !important;
+  border: 1px solid color-mix(in srgb, var(--g-hue) 40%, transparent) !important;
+  color: var(--g-hue) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease),
+              color var(--dur) var(--ease), box-shadow var(--dur) var(--ease) !important;
+}
+.gallow.on,
+#ev-year-chips .yr-chip.on {
+  border: 1.5px solid transparent !important;
+  background: linear-gradient(135deg,
+                color-mix(in srgb, var(--g-hue) 72%, #000) 0%,
+                color-mix(in srgb, var(--g-hue) 29%, #000) 100%) padding-box,
+              linear-gradient(135deg, var(--g-hue),
+                color-mix(in srgb, var(--g-hue) 35%, #fff)) border-box !important;
+  color: #fff !important;
+  /* No halo here, by request: the gradient fill and the lighter edge already
+     mark the selection, and 7 chips glowing at once was too much. */
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* "Who can join?" gets one hue per year rather than a single colour for the
+   group — same shape and states, only the colour changes. */
+#ev-year-chips .yr-chip[data-yt="freshman"]  { --g-hue: #e04155; } /* red    */
+#ev-year-chips .yr-chip[data-yt="sophomore"] { --g-hue: #3d7bff; } /* blue   */
+#ev-year-chips .yr-chip[data-yt="junior"]    { --g-hue: #22c55e; } /* green  */
+#ev-year-chips .yr-chip[data-yt="senior"]    { --g-hue: #fbbf24; } /* yellow */
+#ev-year-chips .yr-chip[data-yt="all"]       { --g-hue: #94a3b8; } /* slate — the hidden "Everyone" chip */
+
+/* ══ HANGOUTS FILTERS (create-event card 6) AS UNDERLINE TABS ══
+   Same language as the Crush filter groups: no pill, white label, a neon
+   underline on what is picked, one hue per group so each section reads as a
+   family. Listed by group id rather than by card, because card 6 also holds
+   #ev-invite-chips — those are friends to invite, not filter values, and they
+   keep their pill.
+   Card 5 (allowed genders / who can join) deliberately stays as coloured pills:
+   it sets who the event is for, it is not a filter over a list. */
+#ev-uni-choose-chips { --hg-hue: #ec4899; } /* magenta — matches the University filter */
+#ev-ethnic-chips     { --hg-hue: #2dd4bf; } /* teal    — matches Ethnicity  */
+#ev-politics-chips   { --hg-hue: #c084fc; } /* purple  — matches Politics   */
+#ev-greek-chips      { --hg-hue: #fde047; } /* yellow  — matches Greek life */
+#ev-lang-chips       { --hg-hue: #818cf8; } /* indigo  — matches Languages  */
+
+#ev-uni-choose-chips .yr-chip,
+#ev-ethnic-chips .yr-chip,
+#ev-politics-chips .yr-chip,
+#ev-greek-chips .yr-chip,
+#ev-lang-chips .yr-chip {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 7px 10px 10px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+#ev-uni-choose-chips .yr-chip.on,
+#ev-ethnic-chips .yr-chip.on,
+#ev-politics-chips .yr-chip.on,
+#ev-greek-chips .yr-chip.on,
+#ev-lang-chips .yr-chip.on {
+  color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#ev-uni-choose-chips .yr-chip::after,
+#ev-ethnic-chips .yr-chip::after,
+#ev-politics-chips .yr-chip::after,
+#ev-greek-chips .yr-chip::after,
+#ev-lang-chips .yr-chip::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--hg-hue, #3d7bff);
+  box-shadow: 0 0 10px var(--hg-hue, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--hg-hue, #3d7bff) 55%, transparent);
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+#ev-uni-choose-chips .yr-chip.on::after,
+#ev-ethnic-chips .yr-chip.on::after,
+#ev-politics-chips .yr-chip.on::after,
+#ev-greek-chips .yr-chip.on::after,
+#ev-lang-chips .yr-chip.on::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* Discover's third sub-tab. 'saw' keeps the neon orange it was given by request
+   and 'likes' its cyan, so For you takes a warm rose — distinct from both of its
+   neighbours in the row while still reading with a flame. */
+.adm-sub-btn[data-sub="foryou"] { --sub-hue: #f43f5e; }
+
+/* ══ PROFILE HEADER STATS ══
+   The three-up strip over the cover photo, now on the shared .v-stats family
+   instead of its own inline copy (the separators come from
+   `.v-stat + .v-stat { border-left }`, so the two 1px spacer divs are gone).
+   Only the container needs styling: it used to be the app's last light frosted
+   element — white at 8% — which read as a leftover from before the black theme.
+   Black-tinted now, with the blur kept because it sits on a photograph. */
+.prof-stats {
+  margin: 14px auto 0;
+  max-width: 340px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid color-mix(in srgb, var(--p) 55%, transparent);
+  border-radius: var(--rad-lg);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+}
+/* .v-stat-lbl tracks at 1.4px, which is fine for GOING / CAPACITY / FILLED but
+   wraps "EVENTS JOINED" onto two lines here and leaves that column taller than
+   its neighbours. Tighter tracking keeps all three on one line. */
+.prof-stats .v-stat-lbl {
+  letter-spacing: 0.6px;
+}
+
+/* Activity > Events created / joined. Reuses .adm-sub-btn (the app's sub-tab
+   recipe) with its own two hues: gold when you are the host, blue when you are
+   an attendee. */
+.adm-sub-btn[data-sub="act-created"] { --sub-hue: #fbbf24; }
+.adm-sub-btn[data-sub="act-joined"]  { --sub-hue: #3d7bff; }
+
+/* The sweep, on press only. */
+.gbtn:active::after,
+.ob4-cta:active::after,
+.sbtn:active::after,
+.abtn:active::after,
+.ahc-res:active::after,
+.jbtn:active::after,
+#ev-publish-btn:active::after {
+  animation: btnShimmer 0.7s ease-out 1;
+}
+
+/* ══ SETTINGS — cabeceras sin caja ══
+   The grey rounded box around each section title was written inline by
+   initSettingsAccordion(), not by CSS, which is why it could not be restyled
+   from here. That JS no longer sets background/border/border-radius, so the
+   spacing lives here now and the header is just its title plus the chevron. */
+#settings-modal .set-h {
+  padding: 12px 2px 10px;
+  margin: 14px 0 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+/* A collapsed card is not a decoration — it is the card itself at zero height,
+   still painting its 1.5px top and bottom borders as a ~3px bar with a halo,
+   because the `border` !important below beats the `border:none` the accordion
+   writes inline. Rather than fight that, make it deliberate: one clean 2px
+   underline in the section's own hue, which is the same language the filter
+   groups and the tab bars already use. Expanding restores the full outline. */
+#settings-modal .set-card[style*="max-height: 0px"] {
+  border: none !important;
+  border-bottom: 2px solid color-mix(in srgb, var(--sec-neon) 70%, transparent) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 2px !important;
+}
+
+/* ══ UNIVERSITY PICKER — cada escuela con sus propios colores ══
+   The chips inside a .uni-chips-box already follow the underline language of the
+   rest of the filters, but the line takes the school's real identity instead of
+   the group hue: a gradient from its primary (--u-p) to its secondary (--u-p2),
+   both written per chip by _uniChipsHtml() from universities.json.
+   Scoped to .uni-chips-box so the other filter groups keep their own hue. */
+.uni-chips-box .yr-chip {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 6px 9px 9px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+.uni-chips-box .yr-chip.on {
+  color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.uni-chips-box .yr-chip::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  right: 7px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  /* !important: the earlier id-scoped layers (#ev-uni-choose-chips …::after and
+     #ptab-panel-filters .yr-chip::after) sit one specificity tier above this
+     two-class selector and would keep painting their flat group hue. */
+  background: linear-gradient(90deg, var(--u-p, #3d7bff), var(--u-p2, #3d7bff)) !important;
+  box-shadow: 0 0 10px var(--u-p, #3d7bff),
+              0 0 16px color-mix(in srgb, var(--u-p2, #3d7bff) 45%, transparent) !important;
+  transform: scaleX(0);
+  transform-origin: center;
+  opacity: 0;
+  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  pointer-events: none;
+}
+.uni-chips-box .yr-chip.on::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
+/* The country headings inside the box are not chips — keep them out of it. */
+.uni-chips-box .uni-grp-head::after { content: none; }
+
+/* ══ CREATE EVENT — los 8 pasos como acordeon ══
+   Overrides the block at ~4214. The card frame goes away; what is left is a
+   header (number · emoji · title · chevron) over a 2px underline in the step's
+   own hue, matching the Settings sections. */
+#evp-create .ehcard {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 6px !important;
+}
+/* The collapse itself: everything but the header is hidden. Same mechanism as
+   .evfilt.collapsed, which already works two levels down inside card 6. */
+#evp-create .ehcard.collapsed > *:not(.ehsec) {
+  display: none !important;
+}
+#evp-create .ehsec {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  gap: 8px;
+  margin: 0 0 12px !important;
+  padding: 13px 2px 11px;
+  border-bottom: 2px solid color-mix(in srgb, var(--step-hue) 70%, transparent);
+}
+#evp-create .ehcard.collapsed .ehsec {
+  margin-bottom: 0 !important;
+}
+/* Chevron via ::after, the way .evfilt-h does it — no JS needed to build or
+   rotate it. */
+#evp-create .ehsec::after {
+  content: "\25BE";
+  margin-left: auto;
+  color: var(--step-hue);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+#evp-create .ehcard.collapsed .ehsec::after {
+  content: "\25B8";
+}
+/* The step number: a small figure ahead of the title instead of a filled
+   circle. An 8-step form is hard to place without it. */
+#evp-create .ehsec .ehnum {
+  width: auto;
+  height: auto;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--step-hue) !important;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  opacity: 0.85;
+}
+/* The body of an open step, now that there is no card padding to sit in. */
+#evp-create .ehcard > *:not(.ehsec) {
+  margin-left: 2px;
+  margin-right: 2px;
 }

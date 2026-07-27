@@ -82,7 +82,7 @@ var I18N = {
     "set-theme-title": "Theme colors",
     "set-accent-title": "Accent text",
     "set-lang-title": "Language",
-    "set-h-activity": "Your Activity",
+    "set-h-activity": "Activity",
     "set-chats-stat": "Chats",
     "set-hangouts-stat": "Hangouts",
     "set-crushes-stat": "Crushes",
@@ -247,7 +247,7 @@ var I18N = {
     "set-theme-title": "Colores del Tema",
     "set-accent-title": "Texto de acento",
     "set-lang-title": "Idioma",
-    "set-h-activity": "Tu Actividad",
+    "set-h-activity": "Actividad",
     "set-chats-stat": "Chats",
     "set-hangouts-stat": "Planes",
     "set-crushes-stat": "Crushes",
@@ -357,12 +357,19 @@ function applyLanguageTranslations(){
     }
   }
   var setHeaders = document.querySelectorAll('#settings-modal .set-h');
+  // One entry per header, in DOM order. This list used to carry 8 while the DOM
+  // has 7 — the Appearance/Language section was deleted from the markup long ago
+  // but its key stayed here — so from the 5th header on every title was written
+  // one slot late: the Notifications card read "Privacy", Personalization read
+  // "Notifications", and "Support & About" never appeared at all.
+  // Slots 2 and 3 are also swapped on purpose: the card under the old
+  // "Preferences" holds activity stats, and the one under "Your Activity" holds
+  // settings toggles.
   var setHTitles = [
     dict['set-h-account'],
     dict['set-h-campus'],
-    dict['set-h-preferences'],
-    dict['set-h-activity'],
-    dict['set-h-privacy'],
+    dict['set-h-activity'],        // stats card  → "Activity"
+    dict['set-h-preferences'],     // toggles card → "Preferences"
     dict['set-h-notifications'],
     dict['set-h-personalization'],
     dict['set-h-support']
@@ -3639,9 +3646,12 @@ function _evSelectStockGridPhoto(url, emoji, sec) {
 }
 
 function _evPickThumb(){
+  // The picker lives in step 7, which is collapsed by default. scrollIntoView on
+  // a display:none element is a silent no-op, so the button looked dead — open
+  // the step first, then scroll to the card rather than to the hidden grid.
+  if (typeof _ehOpenStep === 'function') _ehOpenStep(7);
   var grid = document.getElementById('ev-stock-picker-grid');
   if (grid) {
-    grid.scrollIntoView({ behavior: 'smooth', block: 'center' });
     grid.style.outline = '2.5px solid var(--p)';
     setTimeout(function() {
       grid.style.outline = '';
@@ -4439,13 +4449,9 @@ function updateProfileUI(){
 }
 function switchProfTab(tab){
   if(tab==='posts')tab='crush';
-  var wrap=document.getElementById('match-filters-wrap');
-  var pf=document.getElementById('ptab-panel-filters');
-  var pc=document.getElementById('ptab-panel-crush');
-  if(wrap && pf && pc){
-    if(tab==='filters') pf.appendChild(wrap);
-    else pc.appendChild(wrap);
-  }
+  // #match-filters-wrap no longer moves between panels: it is declared inside
+  // #ptab-panel-filters and stays there. Shuttling it into #ptab-panel-crush for
+  // every non-filters tab is what made the filters reappear on My Card.
   ['crush','activity','safety','filters'].forEach(function(t){
     var btn=document.getElementById('ptab-'+t);
     var panel=document.getElementById('ptab-panel-'+t);
@@ -5961,11 +5967,15 @@ function _uniScopeBannerHtml(){
   var landSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark-icon lucide-landmark"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>';
   var lockSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-icon lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
 
-  // Both buttons use the shared .neon-card recipe (black fill + coloured edge +
-  // halo). My University takes --p, which applyColors() sets to the user's own
-  // university colour, so the button is themed per school for free.
-  var mineBtn = '<button class="neon-card' + (mineOn ? ' grad on' : '') + '" onclick="_setHangoutUniScope(\'mine\')" style="--neon:var(--p);flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;gap:10px;padding:8px 12px;color:'+(mineOn?'#fff':'var(--fg2)')+';cursor:pointer;text-align:left;transition:all var(--dur) ease;font-family:var(--font);">'+
-    '<div style="display:flex;align-items:center;justify-content:center;color:var(--p);flex-shrink:0;">'+capSvg+'</div>'+
+  // Both buttons use _gradSkin, the same coloured-gradient recipe as the
+  // A+ / Cheats / Invite tabs: the picked one fills with its hue, the other
+  // stays nearly black. My University takes --p, which applyColors() sets to the
+  // user's own university colour, so the button is themed per school for free.
+  var mineBtn = '<button onclick="_setHangoutUniScope(\'mine\')" style="' + _gradSkin('var(--p)', mineOn, { dim: 72 }) + 'flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;text-align:left;transition:all var(--dur) ease;font-family:var(--font);">'+
+    // No colour of its own — it inherits currentColor from the button, which is
+    // #fff when picked and the hue when idle. Pinning it to var(--p) made the
+    // icon vanish on the picked button, whose fill is that same var(--p).
+    '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+capSvg+'</div>'+
     '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
       '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My University</span>'+
       '<span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+((typeof uni !== 'undefined' && uni) ? uni.name : 'University')+' '+acr+'</span>'+
@@ -5974,15 +5984,17 @@ function _uniScopeBannerHtml(){
 
   // Other Universities takes the blue already used by its "Unlock with A+" line
   // and its padlock, so the card reads as one colour.
-  var pickBtn = '<button class="neon-card' + (pickOn ? ' grad on' : '') + '" onclick="_setHangoutUniScope(\'pick\')" style="--neon:#3d7bff;flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;color:'+(pickOn?'#fff':'var(--fg2)')+';cursor:pointer;text-align:left;transition:all var(--dur) ease;position:relative;font-family:var(--font);">'+
+  var pickBtn = '<button onclick="_setHangoutUniScope(\'pick\')" style="' + _gradSkin('#3d7bff', pickOn, { dim: 72 }) + 'flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;cursor:pointer;text-align:left;transition:all var(--dur) ease;position:relative;font-family:var(--font);">'+
     '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden;">'+
-      '<div style="display:flex;align-items:center;justify-content:center;color:#3d7bff;flex-shrink:0;">'+landSvg+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+landSvg+'</div>'+
       '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
         '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Other Universities</span>'+
-        '<span style="font-size:var(--fs-xs);color:'+(isA?'#34d399':'#3d7bff')+';margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(isA?'Unlocked':'Unlock with A+')+'</span>'+
+        // "Unlock with A+" is normally blue, but the picked button's fill is
+        // that same blue, so it goes white there to stay readable.
+        '<span style="font-size:var(--fs-xs);color:'+(isA?'#34d399':(pickOn?'rgba(255,255,255,0.85)':'#3d7bff'))+';margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(isA?'Unlocked':'Unlock with A+')+'</span>'+
       '</div>'+
     '</div>'+
-    (!isA?'<div style="display:flex;align-items:center;color:#3d7bff;flex-shrink:0;margin-left:4px;">'+lockSvg+'</div>':'')+
+    (!isA?'<div style="display:flex;align-items:center;flex-shrink:0;margin-left:4px;">'+lockSvg+'</div>':'')+
   '</button>';
 
   return '<div style="display:flex;align-items:stretch;gap:8px;margin:0 0 12px;padding:4px;border-radius:var(--rad-md);background:rgba(255,255,255,0.01);box-sizing:border-box;width:100%;">'+
@@ -6161,9 +6173,9 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
 
   // Full-bleed poster: the whole card IS the photo, everything sits on a bottom scrim.
   var secCol = _secColor(e.section);
-  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
+  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid '+secCol+';border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
     // Category accent — a hairline of the section colour along the top edge
-    '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+secCol+';z-index:3;box-shadow:0 0 12px '+secCol+';"></div>' +
+    '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+secCol+';z-index:3;"></div>' +
     // Scrim: clear at the top so the photo reads, deep at the bottom so the text does
     '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.42) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0.72) 58%,rgba(0,0,0,0.96) 100%);pointer-events:none;"></div>' +
 
@@ -6250,13 +6262,22 @@ function openHangoutDetailModal(evtId) {
   // Attendee bubbles carry the event's own category hue as a neon outline, so
   // the roster reads as part of this event rather than a generic grey list.
   var _attHue = (typeof _secColor === 'function') ? _secColor(e.section) : '#3d7bff';
+  // No outer halo on either of these: nothing in this modal is selectable, and a
+  // glow on every card at once stops meaning "this is active" and just adds
+  // noise. The hue lives in the border; a faint inset keeps the frame from
+  // reading flat on pure black.
   var _attRow = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:#000;' +
     'border:1.5px solid ' + _attHue + ';border-radius:var(--rad-lg);' +
-    'box-shadow:0 0 10px ' + _attHue + '4d, inset 0 0 10px ' + _attHue + '14;';
+    'box-shadow:inset 0 0 10px ' + _attHue + '14;';
 
   // Info cards share the same neon recipe as the attendee bubbles.
   var _cardNeon = 'background:#000;border:1.5px solid ' + _attHue + ';border-radius:var(--rad-lg);' +
-    'box-shadow:0 0 12px ' + _attHue + '45, inset 0 0 12px ' + _attHue + '12;';
+    'box-shadow:inset 0 0 12px ' + _attHue + '12;';
+  // One tinted tile recipe for the leading icons, following the event's hue
+  // instead of the hardcoded blue/rose they used to carry.
+  var _icoTile = 'width:34px;height:34px;border-radius:var(--rad-sm);background:' + _attHue + '33;' +
+    'border:1.5px solid ' + _attHue + '99;display:flex;align-items:center;justify-content:center;' +
+    'color:' + _attHue + ';flex-shrink:0;';
 
   var attendeesListHtml = '';
   if (attendees.length > 0) {
@@ -6266,7 +6287,7 @@ function openHangoutDetailModal(evtId) {
       var major = (att.profile && att.profile.major) || att.major || 'Student';
       var photoHtml = photo ?
         '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
-        '<div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
+        '<div style="width:44px;height:44px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
 
       return '<div style="'+_attRow+'">' +
         photoHtml +
@@ -6286,7 +6307,9 @@ function openHangoutDetailModal(evtId) {
     var list = fg.length ? fg : friendPool;
     attendeesListHtml = list.slice(0, 4).map(function(f) {
       return '<div style="'+_attRow+'">' +
-        '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+(f.i||'U')+'</div>' +
+        // Ring added to match the real-attendee branch, which had one while this
+        // placeholder branch did not.
+        '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;border:2px solid '+_attHue+';">'+(f.i||'U')+'</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+(f.n || 'Estudiante')+'</div>' +
           '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+(f.m || 'Student')+'</div>' +
@@ -6346,7 +6369,7 @@ function openHangoutDetailModal(evtId) {
       // Date, Time & Location section with Neon frame
       '<div style="'+_cardNeon+'padding:14px 16px;margin-bottom:18px;">' +
         '<div style="display:flex;align-items:center;gap:12px;font-size:var(--fs-base);font-weight:600;color:#fff;margin-bottom:12px;">' +
-          '<div style="width:34px;height:34px;border-radius:var(--rad-sm);background:rgba(59,130,246,0.2);border:1.5px solid rgba(59,130,246,0.6);display:flex;align-items:center;justify-content:center;color:#60a5fa;flex-shrink:0;">'+icon('calendar',16)+'</div>' +
+          '<div style="' + _icoTile + '">'+icon('calendar',16)+'</div>' +
           '<div>' +
             '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">DATE & TIME</div>' +
             '<div style="color:#ffffff;font-size:var(--fs-base);font-weight:700;">'+formattedTime+'</div>' +
@@ -6354,9 +6377,9 @@ function openHangoutDetailModal(evtId) {
         '</div>' +
 
         '<div style="display:flex;align-items:center;gap:12px;font-size:var(--fs-base);font-weight:600;color:#fff;">' +
-          '<div style="width:34px;height:34px;border-radius:var(--rad-sm);background:rgba(244,63,94,0.2);border:1.5px solid rgba(244,63,94,0.6);display:flex;align-items:center;justify-content:center;color:#e04155;flex-shrink:0;">'+icon('mapPin',16)+'</div>' +
+          '<div style="' + _icoTile + '">'+icon('mapPin',16)+'</div>' +
           '<div>' +
-            '<div style="font-size:var(--fs-xs);color:#e04155;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">LOCATION</div>' +
+            '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">LOCATION</div>' +
             '<div style="color:#ffffff;font-size:var(--fs-base);font-weight:700;">'+evtAddr+'</div>' +
           '</div>' +
         '</div>' +
@@ -6365,7 +6388,11 @@ function openHangoutDetailModal(evtId) {
       // Host info section
       (function(){
         var hostPhoto = e.creator && e.creator.photos && e.creator.photos[0] ? e.creator.photos[0].url : '';
-        var hostName = e.creator ? (e.creator.firstName + ' ' + (e.creator.lastName || '')).trim() : (e.host || 'Organizer');
+        // A creator with no firstName used to render the literal string
+        // "undefined" — fall back to its name field, then to the host handle.
+        var hostName = e.creator
+          ? ((e.creator.firstName ? (e.creator.firstName + ' ' + (e.creator.lastName || '')) : (e.creator.name || '')).trim() || (e.host || 'Organizer'))
+          : (e.host || 'Organizer');
         var hostHandle = (e.creator && e.creator.handle) ? ('@' + e.creator.handle.replace(/^@/, '')) : (e.host || '@organizer');
 
         // Events seeded without a `creator` fall back to `e.host` for BOTH the
@@ -6390,24 +6417,26 @@ function openHangoutDetailModal(evtId) {
         var hostInit = String(hostName || hostHandle || 'U').replace(/^@/, '').charAt(0).toUpperCase();
 
         var hostAvHtml = hostPhoto ?
-          '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid var(--p);flex-shrink:0;"></div>' :
-          '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+hostInit+'</div>';
+          '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
+          '<div style="width:40px;height:40px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+hostInit+'</div>';
 
         return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;'+_cardNeon+'">' +
           hostAvHtml +
           '<div style="flex:1;min-width:0;">' +
-            '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.5px;font-weight:700;">HOSTED BY</div>' +
+            '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">HOSTED BY</div>' +
             // One identifier only, in white. The dim grey second copy is gone.
             '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
-              (hostSame ? hostHandle : (hostName + ' <span style="font-size:var(--fs-xs);color:#fff;opacity:0.75;font-weight:500;">' + hostHandle + '</span>')) +
+              // One identifier only: the display name when there is one, the handle
+              // otherwise. Showing both read as two different people.
+              (hostName && !hostSame ? hostName : hostHandle) +
             '</div>' +
           '</div>' +
         '</div>';
       })() +
 
       // Description section
-      '<div style="margin-bottom:20px;padding:12px 14px;'+_cardNeon+'">' +
-        '<div style="font-size:var(--fs-xs);font-weight:700;color:#7aa5ff;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">✨ ABOUT THIS EVENT</div>' +
+      '<div style="margin-bottom:18px;padding:12px 14px;'+_cardNeon+'">' +
+        '<div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">✨ ABOUT THIS EVENT</div>' +
         '<div style="font-size:var(--fs-base);color:rgba(255,255,255,0.9);line-height:1.55;white-space:pre-line;">'+desc+'</div>' +
       '</div>' +
 
@@ -6415,7 +6444,7 @@ function openHangoutDetailModal(evtId) {
       (function(){
         var _cap=e.cap||10, _going=totalGoing, _filled=Math.round((e.spots||_going)/_cap*100);
         var _pad=function(n){return n<10?('0'+n):(''+n);};
-        return '<div style="margin-bottom:20px;padding:14px;'+_cardNeon+'">' +
+        return '<div style="margin-bottom:18px;padding:14px;'+_cardNeon+'">' +
           '<div class="v-head" style="margin:0 0 12px;">Who\'s going</div>' +
           '<div class="v-stats" style="padding:4px 0 14px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:14px;">' +
             '<div class="v-stat"><div class="v-stat-num">'+_pad(_going)+'</div><div class="v-stat-lbl">Going</div></div>' +
@@ -6507,25 +6536,43 @@ function _inviteFriendToEvent(section, evName, friendName, idx) {
   }
 }
 
+// Events this user created, deduped by section+name. Shared by the My Events
+// pane and the Activity tab so the two can never disagree.
+function _createdEventsList(){
+  var allEvs=(typeof HANGOUT_EVENTS!=='undefined'?HANGOUT_EVENTS:[]).concat(window._userCreatedEvents||[]);
+  var out=[],seen={};
+  allEvs.filter(_isMyOwnEvent).forEach(function(e){
+    var k=(e.section||'')+'|'+(e.name||'');
+    if(!seen[k]){seen[k]=true;out.push(e);}
+  });
+  return out;
+}
+// Events this user joined. Own events belong to the created list, so they are
+// excluded here.
+// includePast=true returns the full history; the default keeps only upcoming
+// ones, which is what the Joined Events pane in Hangouts needs — its empty state
+// literally promises they stay "until they are over". Profile > Activity passes
+// true because it is a history, not a to-do list.
+function _joinedEventsList(includePast){
+  var allEvs=(typeof HANGOUT_EVENTS!=='undefined'?HANGOUT_EVENTS:[]).concat(
+    typeof OTHER_UNI_EVENTS!=='undefined'?OTHER_UNI_EVENTS:[], window._userCreatedEvents||[]);
+  var out=[],seen={};
+  allEvs.forEach(function(e){
+    var k=(e.section||'')+'|'+(e.name||'');
+    if(seen[k])return;
+    if(!joinedHangouts[k])return;
+    if(_isMyOwnEvent(e))return;
+    if(!includePast&&!_isEventStillActive(e))return;
+    seen[k]=true;out.push(e);
+  });
+  return out;
+}
 function renderMyHangouts() {
   var myPanel = document.getElementById('evp-my');
   if (!myPanel) return;
 
-  var allEvs = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
-    window._userCreatedEvents || []
-  );
+  var uniqueMyEvents = _createdEventsList();
 
-  var myEvents = allEvs.filter(_isMyOwnEvent);
-
-  var uniqueMyEvents = [];
-  var seen = {};
-  myEvents.forEach(function(e) {
-    var k = (e.section || '') + '|' + (e.name || '');
-    if (!seen[k]) {
-      seen[k] = true;
-      uniqueMyEvents.push(e);
-    }
-  });
 
   if (!uniqueMyEvents.length) {
     myPanel.innerHTML = emptyState({ico:'calendar',title:'No events yet',body:'Host something and your campus will see it here.',cta:'+ Create an event',onCta:"switchEvTab('create')"});
@@ -6544,22 +6591,8 @@ function renderJoinedHangouts() {
   var panel = document.getElementById('evp-joined');
   if (!panel) return;
 
-  var allEvs = (typeof HANGOUT_EVENTS !== 'undefined' ? HANGOUT_EVENTS : []).concat(
-    typeof OTHER_UNI_EVENTS !== 'undefined' ? OTHER_UNI_EVENTS : [],
-    window._userCreatedEvents || []
-  );
+  var joined = _joinedEventsList();
 
-  var joined = [];
-  var seen = {};
-  allEvs.forEach(function(e) {
-    var k = (e.section || '') + '|' + (e.name || '');
-    if (seen[k]) return;
-    if (!joinedHangouts[k]) return;
-    if (_isMyOwnEvent(e)) return;
-    if (!_isEventStillActive(e)) return;
-    seen[k] = true;
-    joined.push(e);
-  });
 
   if (!joined.length) {
     panel.innerHTML = emptyState({ico:'ticket',title:'No joined events',body:'Events you join land here with their group chat, until they are over.',cta:'Explore hangouts',onCta:"switchEvTab('nearby')"});
@@ -7301,14 +7334,11 @@ function toggleGenderAllow(g){
   var on=Object.keys(evGenderAllowed).filter(function(k){return evGenderAllowed[k];});
   if(evGenderAllowed[g]&&on.length<=1){alert('Pick at least 1 gender.');return;}
   evGenderAllowed[g]=!evGenderAllowed[g];
-  // Update button visuals
+  // Only the .on class now: the look comes from CSS (the _gradSkin recipe with a
+  // --g-hue per data-g). Repainting background/color/borderColor inline here
+  // would beat that stylesheet, since inline always wins over a class.
   document.querySelectorAll('#ev-gender-allow-row .gallow').forEach(function(btn){
-    var key=btn.getAttribute('data-g');var active=evGenderAllowed[key];
-    btn.classList.toggle('on',active);
-    var palette={female:{c:'#e04155',bgOn:'rgba(244,114,182,0.18)',bgOff:'rgba(244,114,182,0.04)'},male:{c:'#60a5fa',bgOn:'rgba(96,165,250,0.18)',bgOff:'rgba(96,165,250,0.04)'},other:{c:'#a9c4ff',bgOn:'rgba(167,139,250,0.18)',bgOff:'rgba(167,139,250,0.04)'}}[key];
-    btn.style.background=active?palette.bgOn:palette.bgOff;
-    btn.style.color=active?palette.c:'rgba(255,255,255,0.35)';
-    btn.style.borderColor=active?palette.c+'66':'rgba(255,255,255,0.12)';
+    btn.classList.toggle('on',!!evGenderAllowed[btn.getAttribute('data-g')]);
   });
   // Distribute equal % among newly active genders
   var active=Object.keys(evGenderAllowed).filter(function(k){return evGenderAllowed[k];});
@@ -7320,11 +7350,31 @@ function toggleGenderAllow(g){
   var restrict=active.length>=3?'all':active.sort().join('+');
   var gr=document.getElementById('ev-gender-restrict');if(gr)gr.value=restrict;
 }
-var _evMeta={female:{l:'♀ Female',c:'#e04155',cdim:'rgba(244,114,182,0.18)',emoji:'♀'},male:{l:'♂ Male',c:'#60a5fa',cdim:'rgba(96,165,250,0.18)',emoji:'♂'},other:{l:'⚧ Other',c:'#a9c4ff',cdim:'rgba(167,139,250,0.18)',emoji:'⚧'}};
+// `c` is mirrored by the .gallow[data-g=…] --g-hue rules in styles.css (the
+// allowed-gender pills). Change one, change the other, or the pill and its
+// ratio slider stop agreeing on what colour that gender is.
+var _evMeta={female:{l:'♀ Female',c:'#ec4899',cdim:'rgba(236,72,153,0.18)',emoji:'♀'},male:{l:'♂ Male',c:'#2563eb',cdim:'rgba(37,99,235,0.18)',emoji:'♂'},other:{l:'⚧ Other',c:'#8b5cf6',cdim:'rgba(139,92,246,0.18)',emoji:'⚧'}};
 var evGenderLock={female:false,male:false,other:false};
 function _evCapacity(){var el=document.getElementById('ev-cap');return Math.max(1,Math.min(100,parseInt(el&&el.value)||10));}
 // Collapse/expand a Hangouts event-creation filter section (University / Major / Ethnicity / Politics)
 function _evFiltToggle(h){var s=(h&&h.closest)?h.closest('.evfilt'):null;if(s)s.classList.toggle('collapsed');}
+// Collapse/expand one of the 8 Create Event step cards. Same recipe as
+// _evFiltToggle: a class on the container, with CSS hiding everything but the
+// header. Deliberately NOT the Settings accordion's max-height + overflow:hidden
+// — that caps at 1000px (card 6 is taller) and would clip the date picker popup
+// in card 2, which is absolutely positioned to escape its card.
+// The handler lives on .ehsec rather than being delegated on #evp-create: the
+// .evfilt rows in card 6 are siblings of .ehsec, so their clicks never reach it.
+function _ehCardToggle(h){var c=(h&&h.closest)?h.closest('.ehcard'):null;if(c)c.classList.toggle('collapsed');}
+// Open a step card by number and bring it into view. Used by anything that has
+// to reach content which may be collapsed.
+function _ehOpenStep(n){
+  var c=document.querySelector('#evp-create .ehcard[data-step="'+n+'"]');
+  if(!c)return null;
+  c.classList.remove('collapsed');
+  try{c.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
+  return c;
+}
 function renderEvGenderRatio(){
   var box=document.getElementById('ev-ratio-rows');if(!box)return;
   var allowed=Object.keys(evGenderAllowed).filter(function(k){return evGenderAllowed[k];});
@@ -7333,6 +7383,11 @@ function renderEvGenderRatio(){
   Object.keys(evGenderAllowed).forEach(function(k){if(!evGenderAllowed[k]){evGenderPct[k]=0;evGenderLock[k]=false;}});
   var sum=allowed.reduce(function(s,k){return s+(parseInt(evGenderPct[k])||0);},0);
   if(!sum||isNaN(sum)){var even=Math.floor(100/allowed.length);allowed.forEach(function(k,i){evGenderPct[k]=(i===allowed.length-1)?(100-even*(allowed.length-1)):even;});}
+  // Pins are only offered when all three genders are allowed (see the row below).
+  // Any stale lock from a 3-gender state has to be cleared, or an invisible pin
+  // would keep capping the sliders with no way to release it.
+  var showPins=allowed.length>=3;
+  if(!showPins)Object.keys(evGenderLock).forEach(function(k){evGenderLock[k]=false;});
   // Sum of pinned (locked) percentages — unlocked sliders can't push the total past 100
   var lockedSum=allowed.filter(function(a){return evGenderLock[a];}).reduce(function(s,a){return s+(evGenderPct[a]||0);},0);
   // Stacked bar
@@ -7346,7 +7401,10 @@ function renderEvGenderRatio(){
       '<div style="display:flex;align-items:center;gap:5px;min-width:82px;"><span style="font-size:var(--fs-sm);font-weight:600;color:'+m.c+';">'+lbl+'</span></div>'+
       '<input type="range" min="0" max="'+slMax+'" step="10" value="'+(evGenderPct[k]||0)+'" id="sl-'+k+'" '+(locked?'disabled':'')+' oninput="evSetGenderPct(\''+k+'\',this.value)" style="flex:1;accent-color:'+m.c+';'+(locked?'opacity:0.45;':'')+'"/>'+
       '<span id="pctlbl-'+k+'" style="font-size:var(--fs-sm);font-weight:600;color:#fff;min-width:38px;text-align:right;">'+(evGenderPct[k]||0)+'%</span>'+
-      '<button type="button" id="lockbtn-'+k+'" onclick="evToggleLock(\''+k+'\')" title="'+(locked?'Unlock':'Lock this percentage')+'" style="background:'+(locked?m.c:'rgba(255,255,255,0.06)')+';border:1px solid '+(locked?m.c:'var(--gbdl)')+';border-radius:var(--rad-xs);width:30px;height:30px;cursor:pointer;flex-shrink:0;color:#fff;display:inline-flex;align-items:center;justify-content:center;opacity:'+(locked?'1':'0.7')+';">'+icon('thumbtack',15)+'</button>'+
+      // Pins only make sense with all three genders in play: with two, pinning
+      // one fixes the other by arithmetic, and with one it is always 100%. So
+      // below three the button is not rendered at all.
+      (showPins?'<button type="button" id="lockbtn-'+k+'" onclick="evToggleLock(\''+k+'\')" title="'+(locked?'Unlock':'Lock this percentage')+'" style="background:'+(locked?m.c:'rgba(255,255,255,0.06)')+';border:1px solid '+(locked?m.c:'var(--gbdl)')+';border-radius:var(--rad-xs);width:30px;height:30px;cursor:pointer;flex-shrink:0;color:#fff;display:inline-flex;align-items:center;justify-content:center;opacity:'+(locked?'1':'0.7')+';">'+icon('thumbtack',15)+'</button>':'')+
     '</div>';
   }).join('');
   box.innerHTML=
@@ -7544,14 +7602,14 @@ function setEvJoinMode(mode){
 
 function _evYearTarget(el){var box=document.getElementById('ev-year-chips');if(!box)return;var yt=el.getAttribute('data-yt');if(yt==='all'){Array.prototype.forEach.call(box.querySelectorAll('.yr-chip'),function(c){c.classList.toggle('on',c===el);});return;}el.classList.toggle('on');var all=box.querySelector('[data-yt="all"]');if(all)all.classList.remove('on');if(!box.querySelector('.yr-chip.on')&&all)all.classList.add('on');}
 async function createEv(){
-  var n=document.getElementById('ev-nm')&&document.getElementById('ev-nm').value.trim();if(!n){alert('Give your event a name');return;}
-  if(hasBanned(n)){alert('⚠️ The event name contains restricted language. Please choose another.');return;}
+  var n=document.getElementById('ev-nm')&&document.getElementById('ev-nm').value.trim();if(!n){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('Give your event a name');return;}
+  if(hasBanned(n)){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('⚠️ The event name contains restricted language. Please choose another.');return;}
   var section=(document.getElementById('ev-section')&&document.getElementById('ev-section').value)||'nightlife';
   var _yt=[];var _ytb=document.getElementById('ev-year-chips');if(_ytb)Array.prototype.forEach.call(_ytb.querySelectorAll('.yr-chip.on'),function(c){_yt.push(c.getAttribute('data-yt'));});var yearTarget=(!_yt.length||_yt.indexOf('all')>-1)?'all':_yt;var _ytL={freshman:'Freshmen',sophomore:'Sophomores',junior:'Juniors',senior:'Seniors',alumni:'Alumni'};var yearBadge=(yearTarget==='all')?'':'<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(96,165,250,0.18);color:#93c5fd;border-color:rgba(96,165,250,0.4);">🎓 '+yearTarget.map(function(y){return _ytL[y]||y;}).join(', ')+'</span>';
   if(section==='exclusive'&&curPlan!=='aplus'){premAlert();return;}
-  if(section==='networking'&&(obMode||userMode)!=='alumni'){if(typeof _prettyAlert==='function')_prettyAlert('Networking events are hosted by alumni. You can browse and join them, but only alumni can create them.');else alert('Only alumni can create Networking events.');return;}
+  if(section==='networking'&&(obMode||userMode)!=='alumni'){if(typeof _ehOpenStep==='function')_ehOpenStep(1);if(typeof _prettyAlert==='function')_prettyAlert('Networking events are hosted by alumni. You can browse and join them, but only alumni can create them.');else alert('Only alumni can create Networking events.');return;}
   var descRaw=document.getElementById('ev-desc')&&document.getElementById('ev-desc').value||'';
-  if(hasBanned(descRaw)){alert('⚠️ The description contains restricted language. Please edit it.');return;}
+  if(hasBanned(descRaw)){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('⚠️ The description contains restricted language. Please edit it.');return;}
   var cap=document.getElementById('ev-cap')&&document.getElementById('ev-cap').value||'10';
   var desc=document.getElementById('ev-desc')&&document.getElementById('ev-desc').value||'';
   var mo=document.getElementById('ev-month')&&document.getElementById('ev-month').value||'';
@@ -7834,31 +7892,64 @@ function showShareModal(btn){
 }
 function sendToFriend(handle,name,btn){if(btn){btn.textContent='✅ Sent';btn.style.background='#16a34a';btn.disabled=true;}}
 
+// ══ ACTIVITY > EVENTS CREATED / JOINED ══
+// Two sub-buttons over a compact list. Rows reuse .adm-sub-btn (the app-wide
+// sub-tab language) and openHangoutDetailModal, which already accepts a
+// "section|name" key as an id — the same key the dedupe above builds.
+var _actEvTab = (function(){try{return localStorage.getItem('ugz_act_ev_tab')||'created';}catch(e){return 'created';}})();
+function _setActEvTab(v){
+  _actEvTab=v;
+  try{localStorage.setItem('ugz_act_ev_tab',v);}catch(e){}
+  if(typeof renderActivityLog==='function')renderActivityLog();
+}
+function _actEvRowHtml(e){
+  var hue=(typeof _secColor==='function')?_secColor(e.section):'#3d7bff';
+  var id=String(e.id||((e.section||'')+'|'+(e.name||''))).replace(/'/g,"\\'");
+  var d=(typeof _parseEventDate==='function')?_parseEventDate(e):null;
+  var when=(d&&!isNaN(d.getTime()))?d.toLocaleDateString([],{day:'2-digit',month:'short'}).toUpperCase():(e.time||'');
+  var meta=[e.addr||'', (e.spots!=null?e.spots+' going':'')].filter(Boolean).join(' \u00b7 ');
+  return '<div onclick="openHangoutDetailModal(\'' + id + '\')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:8px;background:#000;border:1.5px solid '+hue+';border-radius:var(--rad-md);cursor:pointer;">'+
+    '<div style="width:48px;flex-shrink:0;text-align:center;font-size:var(--fs-2xs);font-weight:800;letter-spacing:0.4px;line-height:1.25;color:'+hue+';">'+when+'</div>'+
+    '<div style="flex:1;min-width:0;">'+
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.emoji?e.emoji+' ':'')+(e.name||'Event')+'</div>'+
+      (meta?'<div style="font-size:var(--fs-xs);color:#a9c4ff;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+meta+'</div>':'')+
+    '</div>'+
+    '<span style="flex-shrink:0;color:'+hue+';font-size:var(--fs-lg);line-height:1;">\u203a</span>'+
+  '</div>';
+}
+function _actEventsHtml(){
+  var created=(typeof _createdEventsList==='function')?_createdEventsList():[];
+  // true = the whole history, past events included.
+  var joined=(typeof _joinedEventsList==='function')?_joinedEventsList(true):[];
+  var tab=(_actEvTab==='joined')?'joined':'created';
+  var list=(tab==='joined')?joined:created;
+  function btn(id,lbl,n){
+    return '<div class="adm-sub-btn'+(tab===id?' on':'')+'" data-sub="act-'+id+'" onclick="_setActEvTab(\''+id+'\')">'+
+      '<span>'+lbl+'</span><span style="opacity:0.75;font-weight:800;">'+n+'</span></div>';
+  }
+  var rows=list.length?list.map(_actEvRowHtml).join(''):
+    '<div style="text-align:center;font-size:var(--fs-sm);color:var(--fg3);padding:22px 14px;">'+
+      (tab==='joined'?'You have not joined any upcoming events yet.':'You have not created any events yet.')+'</div>';
+  return '<div class="act-events">'+
+    '<div style="display:flex;gap:6px;margin:0 0 12px;">'+btn('created','Events Created',created.length)+btn('joined','Events Joined',joined.length)+'</div>'+
+    rows +
+  '</div>';
+}
+// The Activity tab now holds exactly one thing: the Events Created / Joined
+// block. The old "Racha de Actividad" banner, the generic activity log and the
+// "No activity yet" notice were all removed by request.
+// addToActivity() below still records into userPro.activityLog on purpose —
+// nothing paints it today, but the history is kept so the log can come back
+// without users having lost what was already stored.
 function renderActivityLog() {
   var panel = document.getElementById('ptab-panel-activity');
   if (!panel) return;
-  panel.querySelectorAll('.gc, .fomo-act-hdr').forEach(function(c) { c.remove(); });
-  var log = (userPro && userPro.activityLog) || [];
-  
-  var fomoHdr = document.createElement('div');
-  fomoHdr.className = 'fomo-act-hdr';
-  fomoHdr.style.cssText = 'background:linear-gradient(135deg,rgba(43,95,217,0.2),rgba(240,62,90,0.2));border:1.5px solid rgba(61,123,255,0.5);border-radius:var(--rad-lg);padding:14px;margin:0 0 14px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(10px);';
-  fomoHdr.innerHTML = '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);color:#fff;flex-shrink:0;">🔥</div>'+
-    '<div style="flex:1;"><div class="t-body-black">Racha de Actividad · Popular en tu Campus</div><div style="font-size:var(--fs-xs);color:#d6e4ff;font-weight:500;margin-top:2px;">¡Crear eventos y publicaciones te posiciona en el Top Rank de tu universidad!</div></div>';
-  panel.prepend(fomoHdr);
+  panel.querySelectorAll('.gc, .fomo-act-hdr, .act-events').forEach(function(c) { c.remove(); });
 
-  var notice = panel.querySelector('[data-notice]');
-  if (notice) {
-    notice.style.display = log.length === 0 ? 'block' : 'none';
-  }
-  log.slice().reverse().forEach(function(item) {
-    var d = document.createElement('div');
-    d.className = 'gc';
-    d.style.cssText = 'margin:0 0 12px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-lg);backdrop-filter:blur(10px);';
-    d.innerHTML = '<div style="padding:14px;"><div style="font-size:var(--fs-base);font-weight:700;color:#a9c4ff;margin-bottom:4px;display:flex;align-items:center;gap:6px;"><span>⚡</span><span>' + (item.handle || (userPro && userPro.handle) || '@you') + '</span></div><div style="font-size:var(--fs-base);color:#ffffff;font-weight:500;line-height:1.4;">' + item.txt + '</div><div style="font-size:var(--fs-2xs);color:#7aa5ff;margin-top:6px;font-weight:600;">' + item.timeStr + '</div></div>';
-    if (notice) panel.insertBefore(d, notice);
-    else panel.appendChild(d);
-  });
+  var evWrap = document.createElement('div');
+  evWrap.innerHTML = _actEventsHtml();
+  var evBlock = evWrap.firstChild;
+  if (evBlock) panel.prepend(evBlock);
 }
 
 function addToActivity(txt){
@@ -8761,12 +8852,18 @@ function deleteMyProduct(id) {
 }
 
 function switchCrushTab(tab){
+  // 'For you' stopped being a top-level tab: it is now the first sub-tab of
+  // Discover, which is the old 'liked' panel. The alias covers three things at
+  // once — users whose ugz_last_crush_tab is still 'foryou', the static
+  // sw('unicrush'…) entry points, and any internal caller left over.
+  if(tab==='foryou'){tab='liked';window._likedSubTab='foryou';
+    try{localStorage.setItem('ugz_last_liked_subtab','foryou');sessionStorage.setItem('ugz_last_liked_subtab','foryou');}catch(e){}}
   try {
     localStorage.setItem('ugz_last_crush_tab', tab);
     sessionStorage.setItem('ugz_last_crush_tab', tab);
   } catch(e) {}
-  ['swipe','foryou','liked','search','sent','uni','uchats'].forEach(function(t){var btn=document.getElementById('ctab-'+t);var panel=document.getElementById('cpanel-'+t);if(btn){btn.classList.toggle('active',t===tab);btn.style.background=t===tab?'var(--p)':'transparent';btn.style.color=t===tab?'#fff':'rgba(255,255,255,0.5)';}if(panel)panel.classList.toggle('active',t===tab);});if(tab==='uchats'){var b=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(b)b.style.display='none';if(typeof fetchAndRenderChats==='function')fetchAndRenderChats();}if(tab==='liked'&&typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');if(tab==='sent'&&typeof _renderSentTab==='function')_renderSentTab();if(tab==='uni'&&typeof _renderUniTab==='function')_renderUniTab();if(tab==='search'&&typeof handleCrushSearch==='function')handleCrushSearch('');if(tab==='swipe'&&typeof _initCrushDeck==='function')_initCrushDeck();
-  if(tab==='foryou'){['renderSeasonBanner','renderSpotlight'].forEach(function(fn){try{if(typeof window[fn]==='function')window[fn]();}catch(e){}});}}
+  ['swipe','liked','search','sent','uni','uchats'].forEach(function(t){var btn=document.getElementById('ctab-'+t);var panel=document.getElementById('cpanel-'+t);if(btn){btn.classList.toggle('active',t===tab);btn.style.background=t===tab?'var(--p)':'transparent';btn.style.color=t===tab?'#fff':'rgba(255,255,255,0.5)';}if(panel)panel.classList.toggle('active',t===tab);});if(tab==='uchats'){var b=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(b)b.style.display='none';if(typeof fetchAndRenderChats==='function')fetchAndRenderChats();}if(tab==='liked'&&typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');if(tab==='sent'&&typeof _renderSentTab==='function')_renderSentTab();if(tab==='uni'&&typeof _renderUniTab==='function')_renderUniTab();if(tab==='search'&&typeof handleCrushSearch==='function')handleCrushSearch('');if(tab==='swipe'&&typeof _initCrushDeck==='function')_initCrushDeck();
+}
 function selectSingleChip(el){var parent=el.parentElement;if(!parent)return;parent.querySelectorAll('.yr-chip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
 
 function _yearInSchoolFromGrad(grad){
@@ -8973,7 +9070,7 @@ function buildHingeStackHtml(p,opts){
   var _reply=function(key){return '<button class="crush-reply" onclick="replyToSection(\''+p.name.replace(/'/g,"\\'")+'\',\''+key+'\')">'+icon('chat',16)+' Reply</button>';};
   var blocks=[];
   var bBlind='',bQuick='',bMatched='',bGreen='',bTot='',bLifestyle='',bWingmate='',bSecret='',bFromGreek='',bLikes='',bSpeaks='',bEthnicity='',bReligion='',bClubs='',bBucket='';
-  (function(){var bucket=isSelf?((typeof userPro!=='undefined'&&userPro.bucketList)||[]):((typeof _profileBucket==='function')?_profileBucket(p):[]);if(bucket&&bucket.length){bBucket='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">✅ Senior bucket list</div>'+bucket.map(function(it,_i){var _last=(_i===bucket.length-1);var t=(typeof _bucketText==='function')?_bucketText(it):((it&&it.t)||it);var done=(typeof _bucketDone==='function')?_bucketDone(it):!!(it&&it.done);return '<div style="font-size:var(--fs-sm);color:#fff;padding:4px 0;'+(_last?'':'border-bottom:1px solid rgba(255,255,255,0.05);')+'display:flex;align-items:center;gap:7px;"><span>✅</span><span style="flex:1;'+(done?'text-decoration:line-through;opacity:0.6;':'')+'">'+t+'</span>'+(done?'<span style="color:#4ade80;font-weight:600;">✓</span>':'')+'</div>';}).join('')+'</div>';}})();
+  (function(){var bucket=isSelf?((typeof userPro!=='undefined'&&userPro.bucketList)||[]):((typeof _profileBucket==='function')?_profileBucket(p):[]);if(bucket&&bucket.length){bBucket='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">✅ Senior bucket list</div>'+bucket.map(function(it,_i){var _last=(_i===bucket.length-1);var t=(typeof _bucketText==='function')?_bucketText(it):((it&&it.t)||it);var done=(typeof _bucketDone==='function')?_bucketDone(it):!!(it&&it.done);return '<div style="font-size:var(--fs-sm);color:#fff;padding:4px 0;'+(_last?'':'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);')+'display:flex;align-items:center;gap:7px;"><span>✅</span><span style="flex:1;'+(done?'text-decoration:line-through;opacity:0.6;':'')+'">'+t+'</span>'+(done?'<span style="color:#4ade80;font-weight:600;">✓</span>':'')+'</div>';}).join('')+'</div>';}})();
   if(blindHide)bBlind='<div class="crush-info-block" style="text-align:center;"><div style="font-size:var(--fs-xl);">🕯️</div><div style="font-size:var(--fs-base);font-weight:700;color:#a9c4ff;">Blind date</div><div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.5;">Photos hidden — match on personality.<br>You\'ll both reveal after a few messages.</div></div>';
   // ── Quick facts: all the badges that used to crowd the photo, now a clean chip row below it ──
   (function(){
@@ -9007,13 +9104,13 @@ function buildHingeStackHtml(p,opts){
     var zc=myZ?_zodiacCompat(myZ,theirZ.s):null;
     if(zc!=null&&zc>=0.8)moChips.push((theirZ.e||'♌')+' '+myZ+' × '+theirZ.s);
     if(moChips.length){
-      sharedBlock='<div style="margin-top:10px;padding:12px 14px;background:#000;border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-md);"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">💞 YOU MATCHED ON</div><div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;">'+moChips.map(function(i){return '<div style="font-size:var(--fs-sm);padding:5px 12px;background:#000;border:1px solid rgba(61,123,255,0.55);border-radius:var(--rad-md);color:#d6e4ff;font-weight:600;">'+i+'</div>';}).join('')+'</div></div>';
+      sharedBlock='<div style="margin-top:10px;padding:12px 14px;background:#000;border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-md);"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">💞 YOU MATCHED ON</div><div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;">'+moChips.map(function(i){return '<div class="ln-chip" style="--ln-hue:#3d7bff;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div>';
     }
   }
   if(mutualRow||sharedBlock)bMatched='<div class="crush-info-block">'+(mutualRow||'')+sharedBlock+'</div>';
   // 🟢 Green flags + ⚔️ This-or-that
   var gf=isSelf?(p.greenFlags||[]):_profileGreenFlags(p);
-  if(gf&&gf.length)bGreen='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:#86efac;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🟢 Green flags</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+gf.map(function(f){return '<div style="font-size:var(--fs-xs);padding:4px 9px;background:#000;border:1px solid rgba(74,222,128,0.3);border-radius:var(--rad-md);color:#86efac;font-weight:500;">'+f+'</div>';}).join('')+'</div></div>';
+  if(gf&&gf.length)bGreen='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:#86efac;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🟢 Green flags</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+gf.map(function(f){return '<div class="ln-chip" style="--ln-hue:#4ade80;font-size:var(--fs-xs);">'+f+'</div>';}).join('')+'</div></div>';
   var totMap=isSelf?(p.tot||{}):_profileTOT(p);var totPolls=_totPolls();
   if(totPolls.length){
     var mine2=_myTOT();
@@ -9047,7 +9144,7 @@ function buildHingeStackHtml(p,opts){
   if(sm)lifeRows.push(['Smoking',sm,false]);
   if(lifeRows.length){
     var _lifeIc={'Zodiac':(_zod?_zod.e:'🌀'),'Height':'📏','Workout':'🏃','Diet':'🍽️','Lives':'🏠','Pronouns':'🔤','Orientation':'🌈','Gender':'⚧','House':'🏛️','Drinking':'🍸','Smoking':'🚭','Transferred from':'🔄'};
-    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">🌿 ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(255,255,255,0.07);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
+    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">🌿 ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
   }
   // 🤝 Wingmate endorsement
   // (Secret prompt removed per user request — voice note + 3 prompts only)
@@ -9063,8 +9160,8 @@ function buildHingeStackHtml(p,opts){
   }
   // Likes / Speaks (split into separate sections so they can be ordered independently)
   var speaksList = isSelf ? (userPro.languages || userPro.langs || userPro.flags || []) : (p.flags || (p.background && p.background.languages) || p.languages || []);
-  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div style="font-size:var(--fs-sm);padding:6px 14px;background:#000;border:1.5px solid rgba(59,130,246,0.4);border-radius:var(--rad-lg);color:#93c5fd;font-weight:600;">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
-  if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#e04155;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div style="font-size:var(--fs-sm);padding:6px 13px;background:#000;border:1.5px solid rgba(240,62,90,0.4);border-radius:var(--rad-lg);color:#e04155;font-weight:600;">'+i+'</div>';}).join('')+'</div></div></div>';
+  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
+  if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#e04155;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div class="ln-chip" style="--ln-hue:#e04155;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div></div>';
   // Ethnicity
   if(p.ethnicity)bEthnicity='<div class="crush-info-block">'+'<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;">🌎 <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Ethnicity</b>'+p.ethnicity+'</span></div></div>';
   // Religion + Politics — FIRST (before Clubs)
@@ -10851,7 +10948,7 @@ function _setLikedSub(v){
   if(typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');
 }
 function _likedSubRow(){
-  var t=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'likes';
+  var t=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'foryou';
   if(t==='liked'||t==='admirers')t='saw'; // Admirers merged into Secret Admirers
   window._likedSubTab = t;
   var heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>';
@@ -10863,8 +10960,12 @@ function _likedSubRow(){
     return '<div class="adm-sub-btn' + (on ? ' on' : '') + '" data-sub="'+id+'" onclick="_setLikedSub(\''+id+'\')">' + svgIcon + '<span>' + lbl + '</span></div>';
   }
 
+  // Discover's three sub-tabs. 'foryou' is the old top-level For you tab folded
+  // in here; it reuses the flame that tab carried.
+  var flameSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>';
   return '<div style="display:flex;gap:6px;padding:10px var(--s) 12px;margin-bottom:4px;">' +
-    b('likes', 'Likes', sendSvg) +
+    b('foryou', 'For you', flameSvg) +
+    b('likes', 'Likes Sent', sendSvg) +
     b('saw', 'Secret Admirers', hatGlassesSvg) +
     '</div>';
 }
@@ -10997,6 +11098,8 @@ function _likedSawHtml(pool,unlimited){
   return banner+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
 }
 
+// No callers since the Global/University/Country rank cards were removed. Kept
+// alongside loadUserStats for the same reason.
 function _getUniCountryFlagInfo(uniObj) {
   var u = uniObj || (typeof _getCurrentUni === 'function' ? _getCurrentUni() : null) || (typeof uni !== 'undefined' ? uni : null);
   var domain = (u && u.domain) ? u.domain : '';
@@ -11058,6 +11161,8 @@ function _getUniCountryFlagInfo(uniObj) {
   return { code: code, flagHtml: flagHtml, name: countryName };
 }
 
+// No callers since the Discover stats bar was removed. Kept on purpose: this is
+// the only place the /stats endpoint and its response shape are still recorded.
 async function loadUserStats() {
   if (typeof apiClient === 'undefined') return;
   try {
@@ -11074,146 +11179,46 @@ async function loadUserStats() {
   }
 }
 
-function _getAdmirersRanksHtml(subTab) {
-  var uObj = (typeof _getCurrentUni === 'function' ? _getCurrentUni() : null) || (typeof uni !== 'undefined' ? uni : null);
-  var uAcr = (uObj && (uObj.acronym || uObj.name)) ? (uObj.acronym || uObj.name) : 'UANE';
-  var cInfo = _getUniCountryFlagInfo(uObj);
 
-  var stats = window.userStatsData || {};
-
-  var rank1 = (stats.globalRank !== undefined) ? ('#' + stats.globalRank) : '#124';
-  var rank1Lbl = 'Global';
-  var rank1Chg = stats.globalChange || '↑ 7 hoy';
-  var rank1Color = (rank1Chg && rank1Chg.includes('↓')) ? '#e04155' : '#4ade80';
-
-  var rank2 = (stats.uniRank !== undefined) ? ('#' + stats.uniRank) : '#5';
-  var rank2Lbl = uAcr;
-  var rank2Chg = stats.uniChange || '↑ 2 hoy';
-  var rank2Color = (rank2Chg && rank2Chg.includes('↓')) ? '#e04155' : '#4ade80';
-
-  var rank3 = (stats.countryRank !== undefined) ? ('#' + stats.countryRank) : '#32';
-  var rank3Lbl = cInfo.name;
-  var rank3Icon = cInfo.flagHtml;
-  var rank3Chg = stats.countryChange || '↓ 1 hoy';
-  var rank3Color = (rank3Chg && rank3Chg.includes('↓')) ? '#e04155' : '#4ade80';
-
-  var formatVal = function(num, fallback) {
-    if (num === undefined || num === null) return fallback;
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return String(num);
-  };
-
-  var rawTotal = stats.totalLikes !== undefined ? stats.totalLikes : 0;
-  var rawToday = stats.todayLikes !== undefined ? stats.todayLikes : 0;
-  var rawWeek = stats.weekLikes !== undefined ? stats.weekLikes : 0;
-
-  var stat1Icon = '💖', stat1Val = formatVal(rawTotal, '0'), stat1Lbl = 'Total Likes';
-  var stat2Icon = '🔥', stat2Val = formatVal(rawToday, '0'), stat2Lbl = 'Today Likes';
-  var stat3Icon = '📈', stat3Val = formatVal(rawWeek, '0'), stat3Lbl = 'Week Likes';
-
-  var glowBorder = 'rgba(6,182,212,0.5)';
-  if (subTab === 'likes') {
-    glowBorder = 'rgba(56,189,248,0.5)';
-    var sentPool = window._sentLikesData || [];
-    var sentTotal = (stats.totalSentLikes !== undefined && stats.totalSentLikes !== null) ? stats.totalSentLikes : sentPool.length;
-    var sentToday = (stats.todaySentLikes !== undefined && stats.todaySentLikes !== null) ? stats.todaySentLikes : 0;
-    var sentWeek = (stats.weekSentLikes !== undefined && stats.weekSentLikes !== null) ? stats.weekSentLikes : 0;
-
-    stat1Icon = '🚀'; stat1Val = formatVal(sentTotal, '0'); stat1Lbl = 'Likes Sent';
-    stat2Icon = '🔥'; stat2Val = formatVal(sentToday, '0'); stat2Lbl = 'Today';
-    stat3Icon = '📈'; stat3Val = formatVal(sentWeek, '0'); stat3Lbl = 'This Week';
-  } else if (subTab === 'liked') {
-    glowBorder = 'rgba(240,62,90,0.5)';
-    stat1Icon = '💖'; stat1Val = formatVal(rawTotal, '0'); stat1Lbl = 'Admirers';
-    stat2Icon = '🔥'; stat2Val = formatVal(rawToday, '0'); stat2Lbl = 'Today';
-    stat3Icon = '📈'; stat3Val = formatVal(rawWeek, '0'); stat3Lbl = 'This Week';
-  } else if (subTab === 'saw') {
-    glowBorder = 'rgba(61,123,255,0.5)';
-    var viewsPool = window._profileViewsData || [];
-    
-    var vTotal = (stats.totalViews !== undefined && stats.totalViews !== null) ? stats.totalViews : viewsPool.length;
-    var vToday = (stats.todayViews !== undefined && stats.todayViews !== null) ? stats.todayViews : 0;
-    var vWeek = (stats.weekViews !== undefined && stats.weekViews !== null) ? stats.weekViews : 0;
-
-    if (viewsPool.length > 0) {
-      if (vTotal < viewsPool.length) vTotal = viewsPool.length;
-
-      var now = new Date();
-      var startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      var startWeek = now.getTime() - 7 * 24 * 60 * 60 * 1000;
-
-      var countToday = 0;
-      var countWeek = 0;
-      viewsPool.forEach(function(item) {
-        var t = item.updatedAt ? new Date(item.updatedAt).getTime() : Date.now();
-        if (t >= startToday) countToday++;
-        if (t >= startWeek) countWeek++;
-      });
-
-      if (vToday < countToday) vToday = countToday;
-      if (vWeek < countWeek) vWeek = countWeek;
-    }
-
-    stat1Icon = '🕵️'; stat1Val = formatVal(vTotal, '0'); stat1Lbl = 'Secret Views';
-    stat2Icon = '🔥'; stat2Val = formatVal(vToday, '0'); stat2Lbl = 'Today';
-    stat3Icon = '📈'; stat3Val = formatVal(vWeek, '0'); stat3Lbl = 'This Week';
-  }
-
-  var ranksGrid = 
-    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 var(--s) 10px;">' +
-      // Card 1: Global Rank (Neon Cyan Accent)
-      '<div style="background:rgba(6,182,212,0.1);border:1.5px solid rgba(6,182,212,0.6);border-radius:var(--rad-lg);padding:10px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
-        '<div style="display:flex;align-items:center;justify-content:center;gap:4px;"><span style="font-size:var(--fs-base);">🌐</span><span style="font-size:var(--fs-xs);color:#e2e8f0;font-weight:600;">' + rank1Lbl + '</span></div>' +
-        '<div style="font-size:var(--fs-xl);font-weight:900;color:#38bdf8;text-shadow:0 0 12px rgba(56,189,248,0.6);margin:3px 0;">' + rank1 + '</div>' +
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:' + rank1Color + ';">' + rank1Chg + '</div>' +
-      '</div>' +
-      // Card 2: Uni Rank (Neon Gold Accent)
-      '<div style="background:rgba(251,191,36,0.1);border:1.5px solid rgba(251,191,36,0.6);border-radius:var(--rad-lg);padding:10px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
-        '<div style="display:flex;align-items:center;justify-content:center;gap:4px;width:100%;"><span style="font-size:var(--fs-base);">🏛️</span><span style="font-size:var(--fs-xs);color:#e2e8f0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + rank2Lbl + '</span></div>' +
-        '<div style="font-size:var(--fs-xl);font-weight:900;color:#facc15;text-shadow:0 0 12px rgba(250,204,21,0.6);margin:3px 0;">' + rank2 + '</div>' +
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:' + rank2Color + ';">' + rank2Chg + '</div>' +
-      '</div>' +
-      // Card 3: Country Rank (gradz red accent)
-      '<div style="background:rgba(220,38,38,0.1);border:1.5px solid rgba(220,38,38,0.6);border-radius:var(--rad-lg);padding:10px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;">' +
-        '<div style="display:flex;align-items:center;justify-content:center;gap:4px;">' + rank3Icon + '<span style="font-size:var(--fs-xs);color:#e2e8f0;font-weight:600;">' + rank3Lbl + '</span></div>' +
-        '<div style="font-size:var(--fs-xl);font-weight:900;color:#dc2626;text-shadow:0 0 12px rgba(220,38,38,0.6);margin:3px 0;">' + rank3 + '</div>' +
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:' + rank3Color + ';">' + rank3Chg + '</div>' +
-      '</div>' +
-    '</div>';
-
-  var statsBar = 
-    '<div style="background:rgba(13,13,17,0.85);border:1.5px solid ' + glowBorder + ';border-radius:var(--rad-lg);padding:13px 10px;margin:0 var(--s) 14px;display:flex;align-items:center;justify-content:space-around;backdrop-filter:blur(12px);">' +
-      '<div style="text-align:center;">' +
-        '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px;text-shadow:0 0 10px rgba(255,255,255,0.4);"><span>' + stat1Icon + '</span><span>' + stat1Val + '</span></div>' +
-        '<div style="font-size:var(--fs-2xs);color:#a9c4ff;font-weight:600;margin-top:2px;">' + stat1Lbl + '</div>' +
-      '</div>' +
-      '<div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>' +
-      '<div style="text-align:center;">' +
-        '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px;text-shadow:0 0 10px rgba(255,255,255,0.4);"><span>' + stat2Icon + '</span><span>' + stat2Val + '</span></div>' +
-        '<div style="font-size:var(--fs-2xs);color:#a9c4ff;font-weight:600;margin-top:2px;">' + stat2Lbl + '</div>' +
-      '</div>' +
-      '<div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>' +
-      '<div style="text-align:center;">' +
-        '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;gap:4px;text-shadow:0 0 10px rgba(255,255,255,0.4);"><span>' + stat3Icon + '</span><span>' + stat3Val + '</span></div>' +
-        '<div style="font-size:var(--fs-2xs);color:#a9c4ff;font-weight:600;margin-top:2px;">' + stat3Lbl + '</div>' +
-      '</div>' +
-    '</div>';
-
-  return ranksGrid + statsBar;
+// Detach #cpanel-foryou from wherever it is and hand it back to
+// #discover-panels, hidden. Returns the element so the caller can re-attach it.
+// Without this, overwriting #cpanel-liked's innerHTML while For you is showing
+// would delete the node for good, and switching back would render into nothing.
+function _discoverParkForYou(){
+  var fy=document.getElementById('cpanel-foryou');
+  if(!fy)return null;
+  var home=document.getElementById('discover-panels');
+  if(home&&fy.parentElement!==home)home.appendChild(fy);
+  fy.classList.remove('active');
+  fy.style.display='none';
+  return fy;
 }
-
 function _renderLikedYouReveal(unlimited){
-  if (typeof apiClient !== 'undefined' && (!window.userStatsData || Date.now() - (window._lastStatsFetch || 0) > 10000)) {
-    window._lastStatsFetch = Date.now();
-    loadUserStats();
-  }
   var panel=document.getElementById('cpanel-liked');if(!panel)return;
-  var subTab=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'likes';
+  var subTab=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'foryou';
   if(subTab==='liked'||subTab==='admirers')subTab='saw'; // merged
   window._likedSubTab = subTab;
+
+  // The For you sub-tab reuses the whole #cpanel-foryou element (season banner,
+  // Campus Wrapped, senior send-off, Best Picks / New Picks) rather than
+  // duplicating its markup, so every existing render function keeps working.
+  // It is parked back in #discover-panels first, without exception: while it sits
+  // inside this panel, the `panel.innerHTML = …` below would destroy it and the
+  // node could never come back.
+  var _fy=_discoverParkForYou();
   var subRow=_likedSubRow();
-  var ranks=_getAdmirersRanksHtml(subTab);
+  if(subTab==='foryou'){
+    panel.innerHTML=subRow;
+    if(_fy){_fy.style.display='block';_fy.classList.add('active');panel.appendChild(_fy);}
+    // Exactly the two the old top-level 'foryou' hook ran. Campus Wrapped and
+    // the senior send-off are left alone on purpose: renderDiscover() blanks
+    // them on entering Campus, so rendering them here would quietly switch on a
+    // banner that was deliberately suppressed.
+    ['renderSeasonBanner','renderSpotlight'].forEach(function(fn){
+      try{if(typeof window[fn]==='function')window[fn]();}catch(e){}
+    });
+    return;
+  }
 
   if(subTab==='likes'){
     if (typeof apiClient !== 'undefined' && (!window._sentLikesData || Date.now() - (window._lastSentLikesFetch || 0) > 5000)) {
@@ -11221,7 +11226,7 @@ function _renderLikedYouReveal(unlimited){
       loadSentLikes();
     }
     var likesPool = window._sentLikesData;
-    panel.innerHTML = subRow + ranks + _getSentLikesHtml(likesPool);
+    panel.innerHTML = subRow + _getSentLikesHtml(likesPool);
     return;
   }
 
@@ -11237,7 +11242,7 @@ function _renderLikedYouReveal(unlimited){
       window._lastAdmirersFetch = Date.now();
       loadAdmirers();
     }
-    panel.innerHTML = subRow + ranks + _likedSawHtml(_mergedAdmirersPool(), unlimited);
+    panel.innerHTML = subRow + _likedSawHtml(_mergedAdmirersPool(), unlimited);
     return;
   }
 
@@ -11255,7 +11260,7 @@ function _renderLikedYouReveal(unlimited){
     pool = pool.filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);});
   }
 
-  if(!pool.length){panel.innerHTML=subRow+ranks+'<div style="text-align:center;padding:40px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">No admiradores aún 💘</div>';return;}
+  if(!pool.length){panel.innerHTML=subRow+'<div style="text-align:center;padding:40px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">No admiradores aún 💘</div>';return;}
 
   // Free Plan allows 1 free reveal per week
   var revealed = unlimited ? pool.length : 1;
@@ -11289,7 +11294,7 @@ function _renderLikedYouReveal(unlimited){
     '</div>';
   }).join('');
   
-  panel.innerHTML=subRow+ranks+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
+  panel.innerHTML=subRow+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
 }
 function swipe(dir){
   var card=document.getElementById('crush-card');if(!card||card.style.display==='none')return;
@@ -14278,18 +14283,25 @@ function _spotlightCard(r,i,opts){
     (opts.sport ? '<span style="font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;background:rgba(6,182,212,0.25);border:1px solid rgba(6,182,212,0.65);border-radius:var(--rad-xs);padding:2.5px 8px;letter-spacing:0.5px;">🏅 ' + opts.sport.toUpperCase() + '</span>' : '') +
   '</div>';
 
+  // What they study — major, plus the minor when there is one. This replaced the
+  // "NEW" tag on the New Picks row: the tag said nothing the header didn't.
+  var studyLine = p.major ? (p.minor ? p.major + ' · ' + p.minor : p.major) : (p.minor || '');
+
   var clickHandler = (opts.other && typeof curPlan !== 'undefined' && curPlan !== 'aplus')
     ? "premAlert('🔒 Viewing profiles from other universities requires an A+ Student subscription. Upgrade to unlock!')"
     : "viewUserUnicrush(null,'" + safe + "','" + p.bg + "','" + ((opts.other && r.uni) ? String(r.uni.name).replace(/'/g, "") : "") + "')";
 
   return '<div class="spotlight-rank-card" style="flex:0 0 205px;scroll-snap-align:start;border-radius:var(--rad-xl);overflow:hidden;border:1.5px solid '+brd+';'+glow+'background:#0b0b0e;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
     '<div style="height:315px;'+cover+'position:relative;cursor:pointer;" onclick="'+clickHandler+'">'+
-      '<div style="position:absolute;top:10px;left:10px;'+rankBg+'font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:var(--rad-lg);display:flex;align-items:center;gap:4px;z-index:2;">'+rankIco+' #'+(i+1)+'</div>'+
-      likeBadgeHtml+
+      // opts.plain drops both corner badges: the "For you" tab is no longer a
+      // leaderboard, so a #1 rosette and a like count would be claiming an
+      // order the row doesn't have.
+      (opts.plain?'':'<div style="position:absolute;top:10px;left:10px;'+rankBg+'font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:var(--rad-lg);display:flex;align-items:center;gap:4px;z-index:2;">'+rankIco+' #'+(i+1)+'</div>')+
+      (opts.plain?'':likeBadgeHtml)+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:50px 12px 14px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 65%, transparent 100%);">'+
         '<div style="font-size:var(--fs-lg);font-weight:900;color:#ffffff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);">'+p.name+' '+(p.age||'')+(p.verified?_verBadge(15):'')+'</div>'+
         pillsHtml+
-        (!opts.sport && p.major ? '<div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.major+'</div>' : '')+
+        (!opts.sport && studyLine ? '<div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+studyLine+'</div>' : '')+
       '</div>'+
     '</div>'+
   '</div>';
@@ -14298,10 +14310,27 @@ function _spotlightCard(r,i,opts){
 function _athRow(gender,label,other){if(typeof crushDataAll==='undefined'||!crushDataAll)return '';var uniObjs=other?Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name&&(!uni||u.name!==uni.name);}):[];var gp=crushDataAll.filter(function(p){var matchUni = other || curPlan === 'aplus' || (p.uni && p.uni.name === (uni && uni.name)); return matchUni && (!p.gender||p.gender===gender);});if(!gp.length)gp=crushDataAll.slice();var cards=[],i;for(i=0;i<10&&gp.length;i++){var p=gp[i%gp.length];var h=_strHash((p.name||'')+(other?'oath':'math')+i);var sport=(typeof SPORTS!=='undefined')?SPORTS[h%(SPORTS.length-1)]:'Soccer';var likes=200+(h%2800);var r={p:p,likes:likes,uni:(other&&uniObjs.length)?uniObjs[h%uniObjs.length]:null};cards.push(_spotlightCard(r,cards.length,{sport:sport,other:other}));}if(!cards.length)return '';return '<div style="font-size:var(--fs-sm);font-weight:700;color:#a9c4ff;padding:10px var(--s) 6px;text-transform:uppercase;letter-spacing:0.6px;">'+label+'</div><div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 10px;-webkit-overflow-scrolling:touch;">'+cards.join('')+'</div>';}
 
 function _discoverCompatHtml(){if(typeof crushDataAll==='undefined'||!crushDataAll)return '';var pref=(typeof crushGenderPref!=='undefined')?crushGenderPref:'female';var pool=crushDataAll.filter(function(p){return pref==='any'?true:(p.gender===pref);});if(!pool.length)pool=crushDataAll.slice();var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name&&(!uni||u.name!==uni.name);});function _cp(x){return (typeof _megaCompat==='function')?(_megaCompat(x).pct||50):50;}var mine=pool.slice().map(function(x){return {p:x,likes:200+(_strHash((x.name||'')+'clk')%2800),compat:_cp(x)};}).sort(function(a,b){return b.compat-a.compat;}).slice(0,5).map(function(r,i){return _spotlightCard(r,i,{});}).join('');var oth=pool.slice().map(function(x){var h=_strHash((x.name||'')+'ocmp');return {p:x,likes:200+(h%2800),compat:_cp(x),uni:uniObjs.length?uniObjs[h%uniObjs.length]:null};}).sort(function(a,b){return b.compat-a.compat;}).slice(0,5).map(function(r,i){return _spotlightCard(r,i,{other:true});}).join('');var row='display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 10px;-webkit-overflow-scrolling:touch;';return '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:10px var(--s) 6px;">\uD83E\uDDED Discover \u00b7 Top 5 compatible \u00b7 '+((uni&&uni.acronym)||'your school')+'</div><div style="'+row+'">'+mine+'</div>'+'<div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:10px var(--s) 6px;">\uD83C\uDF0D Top 5 compatible \u00b7 other universities (near you)</div><div style="'+row+'">'+oth+'</div>';}
+// ── Rotation keys for the "For you" rows ──
+// Both rows are seeded from the calendar rather than shuffled at random, so the
+// selection is stable for everyone who opens the tab in the same period and
+// changes on its own when the period rolls over — no stored state, no timer.
+function _fyDayKey(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function _fyWeekKey(){
+  // Monday-based week number: shift so Sunday counts as the end of the week.
+  var d=new Date();var day=(d.getDay()+6)%7;
+  var monday=new Date(d.getFullYear(),d.getMonth(),d.getDate()-day);
+  var jan1=new Date(monday.getFullYear(),0,1);
+  return monday.getFullYear()+'-w'+Math.floor((monday-jan1)/604800000);
+}
+// Deterministic Fisher-Yates driven by _strHash(seed) — same seed, same order.
+function _fySeededPick(arr,seed,n){
+  var a=arr.slice();
+  for(var i=a.length-1;i>0;i--){var j=_strHash(seed+':'+i)%(i+1);var t=a[i];a[i]=a[j];a[j]=t;}
+  return a.slice(0,n);
+}
 function renderSpotlight(){
   var box=document.getElementById('crush-spotlight');if(!box||typeof crushDataAll==='undefined'||!crushDataAll)return;
   var pool=crushDataAll.slice(); if(!pool.length){box.innerHTML='';return;}
-  var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name&&(!uni||u.name!==uni.name);});
   function _cp(x){return (typeof _megaCompat==='function')?(_megaCompat(x).pct||60):60;}
   function hdr(t, col){
     col = col || '#f59e0b';
@@ -14322,52 +14351,24 @@ function renderSpotlight(){
   });
   if (!datingPool.length) datingPool = sameUniPool.slice();
 
-  var best=datingPool.slice().map(function(x){return {p:x,likes:200+(_strHash((x.name||'')+'clk')%2800),compat:_cp(x)};}).sort(function(a,b){return b.compat-a.compat;}).slice(0,8).map(function(r,i){return _spotlightCard(r,i,{});}).join('');
-  
-  // Nearby Universities: other universities in the same city (if free) or any other (if premium)
-  var userCity = userPro && userPro.campus ? userPro.campus : getUniversityCity(uni && uni.name);
-  var nearPool = pool.filter(function(x) {
-    var isOtherUni = x.uni && x.uni.name !== (uni && uni.name);
-    if (curPlan !== 'aplus') {
-      var candCity = x.academic && x.academic.campus ? x.academic.campus : getUniversityCity(x.uni && x.uni.name);
-      var sameCity = userCity && candCity && userCity.toLowerCase() === candCity.toLowerCase();
-      return isOtherUni && sameCity;
-    }
-    return isOtherUni;
-  });
-  var near=nearPool.slice().map(function(x){
-    var h=_strHash((x.name||'')+'ouni');
-    return {p:x,likes:200+(h%2800),uni:x.uni || null};
-  }).sort(function(a,b){return b.likes-a.likes;}).slice(0,8).map(function(r,i){return _spotlightCard(r,i,{other:true});}).join('');
+  // Best Picks: keep it genuinely "best" by narrowing to the top slice by
+  // compatibility first, then rotating within that slice once a day.
+  var FY_N = 5;
+  var ranked = datingPool.slice()
+    .map(function(x){return {p:x,likes:200+(_strHash((x.name||'')+'clk')%2800),compat:_cp(x)};})
+    .sort(function(a,b){return b.compat-a.compat;});
+  var bestPool = ranked.slice(0, Math.max(FY_N, Math.min(ranked.length, FY_N * 3)));
+  var best = _fySeededPick(bestPool, 'fy-best-' + _fyDayKey(), FY_N)
+    .map(function(r,i){return _spotlightCard(r,i,{plain:true});}).join('');
 
-  var lockNote=(typeof curPlan!=='undefined'&&curPlan!=='aplus')?' <span style="font-size:var(--fs-2xs);font-weight:600;color:#7aa5ff;">A+ to like</span>':'';
-  function tagged(sourceArr,seed,tag,other){var arr=sourceArr.slice();for(var i=arr.length-1;i>0;i--){var j=_strHash(seed+i)%(i+1);var t=arr[i];arr[i]=arr[j];arr[j]=t;}return row(arr.slice(0,8).map(function(x,i){var h=_strHash((x.name||'')+seed);var r={p:x,likes:100+(h%400),uni:x.uni || null};return _spotlightCard(r,i,{sport:tag,other:other});}).join(''));}
-  
-  // Global Students: students from a different city, selected randomly
-  var globalPool = pool.filter(function(x) {
-    var candCity = x.academic && x.academic.campus ? x.academic.campus : getUniversityCity(x.uni && x.uni.name);
-    return userCity && candCity && userCity.toLowerCase() !== candCity.toLowerCase();
-  });
-  var globalShuffled = globalPool.slice();
-  for (var i = globalShuffled.length - 1; i > 0; i--) {
-    var j = Math.floor(Math.random() * (i + 1));
-    var temp = globalShuffled[i];
-    globalShuffled[i] = globalShuffled[j];
-    globalShuffled[j] = temp;
-  }
-  var globalStudentsPool = globalShuffled.slice(0, 8)
-    .map(function(x, i) {
-      return _spotlightCard({ p: x, likes: x.likes || 0, uni: x.uni || null }, i, { other: true });
-    })
-    .join('');
+  // New Picks: rotates once a week off the same pool, no tag on the cards.
+  var fresh = _fySeededPick(datingPool, 'fy-new-' + _fyWeekKey(), FY_N)
+    .map(function(x,i){var h=_strHash((x.name||'')+'neww');
+      return _spotlightCard({p:x,likes:100+(h%400),uni:x.uni||null},i,{plain:true});}).join('');
 
   box.innerHTML=
-    hdr('✨ Best Matches Today', '#f59e0b')+row(best)+
-    hdr('🌎 Nearby Universities'+lockNote, '#38bdf8')+row(near)+
-    hdr('🌐 Global Students', '#a9c4ff')+row(globalStudentsPool)+
-    hdr('🏈 Top Athletes', '#fb923c')+_athRow('male','Men',false)+_athRow('female','Women',false)+
-    hdr('🎵 Creators on Campus', '#e04155')+tagged(sameUniPool,'crea','Creator',false)+
-    hdr('🆕 New This Week', '#4ade80')+tagged(datingPool,'neww','Freshman',false);
+    hdr('✨ Best Picks For You', '#f59e0b')+row(best)+
+    hdr('🆕 New Picks This Week', '#4ade80')+row(fresh);
 }
 var SPOTLIGHT_LIKE_BONUS=20;
 var spotlightState={day:null};
@@ -15178,13 +15179,45 @@ function _isFriend(name) {
   return false;
 }
 
-// All three buttons share one recipe: a gradient of their own hue plus a solid
-// border of that hue, so the set reads as siblings rather than one filled
-// button next to two hollow ones.
+// ══ Shared "coloured gradient" button skin ══
+// The A+ / Cheats / Invite tab recipe, factored out so the relationship bar and
+// the university scope buttons use the exact same look instead of three copies.
+//   on  → bright hue→dark fill, a lighter gradient on the edge, halo, white label
+//   off → the same gradient dimmed nearly to black, hue label, no halo
+// Rounded corners rule out border-image, so the edge is a second background
+// painted on the border box while the fill sits on the padding box.
+// The glow uses color-mix rather than appending '66' to the hex, because `color`
+// may arrive as var(--p) (the university colour), and var()+'66' is not a colour.
+// opts.dim (0-100) tones the selected fill down without touching the edge or the
+// halo, so a button can read calmer while keeping its neon outline. 100 is the
+// full-strength default: color-mix(C 100%, #000) is C, so nothing changes.
+function _gradSkin(color, on, opts) {
+  opts = opts || {};
+  var radius = opts.radius || 'var(--rad-md)';
+  if (on) {
+    var dim = opts.dim == null ? 100 : opts.dim;
+    var fill = opts.grad || ('linear-gradient(135deg,'
+      + ' color-mix(in srgb, ' + color + ' ' + dim + '%, #000) 0%,'
+      + ' color-mix(in srgb, ' + color + ' ' + Math.round(dim * 0.4) + '%, #000) 100%)');
+    return 'border-radius:' + radius + ';border:1.5px solid transparent;'
+      + 'background:' + fill + ' padding-box,'
+      + ' linear-gradient(135deg, ' + color + ', color-mix(in srgb, ' + color + ' 35%, #fff)) border-box;'
+      + 'color:#fff;'
+      + 'box-shadow:0 0 12px color-mix(in srgb, ' + color + ' 40%, transparent);'
+      + 'text-shadow:0 0 8px ' + color + ';';
+  }
+  return 'border-radius:' + radius + ';'
+    + 'background:linear-gradient(135deg, color-mix(in srgb, ' + color + ' 22%, #000) 0%, #000 100%);'
+    + 'border:1px solid color-mix(in srgb, ' + color + ' 40%, transparent);'
+    + 'color:' + color + ';';
+}
+
+// Drawn in the unselected state — dark fill, hue on the outline and on the label
+// — because none of these is a "current" choice; they are three actions offered
+// side by side. Keeps the pill radius asked for earlier.
 function _relBtn(label, hue, onclick) {
-  return '<button onclick="' + onclick + '" style="flex:1;min-width:0;padding:11px 8px;border-radius:var(--rad-md);' +
-    'background:linear-gradient(135deg,' + hue + ' 0%, color-mix(in srgb,' + hue + ' 42%, #000) 100%);' +
-    'border:1.5px solid ' + hue + ';color:#fff;' +
+  return '<button onclick="' + onclick + '" style="flex:1;min-width:0;padding:12px 8px;' +
+    _gradSkin(hue, false, { radius: 'var(--rad-pill)' }) +
     'font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap;">' + label + '</button>';
 }
 
@@ -15884,13 +15917,11 @@ function initSettingsAccordion() {
     h.style.justifyContent = 'space-between';
     h.style.alignItems = 'center';
     h.style.userSelect = 'none';
-    h.style.padding = '12px 14px';
-    h.style.background = 'rgba(255,255,255,0.03)';
-    h.style.borderRadius = '12px';
-    h.style.marginTop = '12px';
-    h.style.marginBottom = '6px';
-    h.style.border = '1px solid rgba(255,255,255,0.04)';
-    h.style.transition = 'background 0.2s, border-color 0.2s, color 0.2s';
+    // No box any more: background / border / borderRadius used to be written
+    // here, which is why the grey rounded rectangle around every section title
+    // could not be changed from the stylesheet. The header is now just the title
+    // and its chevron; padding and spacing live in CSS with the rest.
+    h.style.transition = 'color 0.2s';
     
     var chevron = document.createElement('span');
     chevron.className = 'set-h-chevron';
@@ -16107,12 +16138,19 @@ function _uniStateOf(domain){return _UNI_STATE[domain.replace('.edu','')]||'';}
 // Universities grouped by country (🇺🇸/🇲🇽/🇨🇦) with data-country + data-state on each chip
 function _uniChipsHtml(){
   var groups={US:[],MX:[],CA:[]};
-  Object.keys(UNI).forEach(function(d){var c=_uniCountry(d);groups[c].push({d:d,name:UNI[d].name,acr:_uniAcronym(UNI[d]),st:_uniStateOf(d)});});
+  // p / p2 are the school's own primary and secondary colours (every record in
+  // universities.json carries both). They ride along on the chip so a picked one
+  // can underline itself in its real colours instead of a generic filter hue.
+  Object.keys(UNI).forEach(function(d){var c=_uniCountry(d);groups[c].push({d:d,name:UNI[d].name,acr:_uniAcronym(UNI[d]),st:_uniStateOf(d),p:UNI[d].p||'',p2:UNI[d].p2||''});});
   var order=[['US','🇺🇸 United States'],['MX','🇲🇽 Mexico'],['CA','🇨🇦 Canada']];
   var html='';
   order.forEach(function(o){var list=groups[o[0]];if(!list.length)return;list.sort(function(a,b){return a.name.localeCompare(b.name);});
     html+='<div class="uni-grp-head" data-country="'+o[0]+'" style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;width:100%;margin:7px 0 2px;">'+o[1]+'</div>';
-    html+=list.map(function(u){return '<div class="yr-chip" data-country="'+o[0]+'" data-state="'+u.st+'" data-name="'+(u.name||'').replace(/"/g,'')+'" data-acr="'+(u.acr||'').replace(/"/g,'')+'" style="font-size:var(--fs-2xs);" onclick="_uniPickChip(this)">'+u.name+' ('+u.acr+')</div>';}).join('');
+    html+=list.map(function(u){
+      var c1=u.p||'#3d7bff', c2=u.p2||u.p||'#3d7bff';
+      return '<div class="yr-chip" data-country="'+o[0]+'" data-state="'+u.st+'" data-name="'+(u.name||'').replace(/"/g,'')+'" data-acr="'+(u.acr||'').replace(/"/g,'')+'"'+
+        ' style="font-size:var(--fs-2xs);--u-p:'+c1+';--u-p2:'+c2+';" onclick="_uniPickChip(this)">'+u.name+' ('+u.acr+')</div>';
+    }).join('');
   });
   return html;
 }
@@ -16597,7 +16635,7 @@ addLink=function(){var raw=prompt('Enter URL or @username (Instagram, YouTube, L
 
 // ── MAX SPOTS ENFORCEMENT ──
 var _origCreateEv=createEv;
-createEv=function(){var capEl=document.getElementById('ev-cap');if(capEl){var cap=parseInt(capEl.value);if(curPlan==='free'&&cap>10){alert('Free plan: max 10 spots. Upgrade for more!');capEl.value=10;return;}if(cap>100){alert('Max 100 spots.');capEl.value=100;return;}}return _origCreateEv();};
+createEv=function(){var capEl=document.getElementById('ev-cap');if(capEl){var cap=parseInt(capEl.value);if(curPlan==='free'&&cap>10){if(typeof _ehOpenStep==='function')_ehOpenStep(4);alert('Free plan: max 10 spots. Upgrade for more!');capEl.value=10;return;}if(cap>100){if(typeof _ehOpenStep==='function')_ehOpenStep(4);alert('Max 100 spots.');capEl.value=100;return;}}return _origCreateEv();};
 
 // ── NETWORK FEATURES (Alumni) ──
 function openNetCreate(){
@@ -16772,8 +16810,13 @@ var _origSwitchCrushTab=switchCrushTab;
 switchCrushTab=function(tab){_origSwitchCrushTab(tab);};
 var _origSwitchProfTabForAge=switchProfTab;
 switchProfTab=function(tab){_origSwitchProfTabForAge(tab);
-  // Age Range filter is now static in the Match Filters markup — just refresh it
-  if(tab==='crush'){if(typeof _populateFilterChips==='function')_populateFilterChips();if(typeof _applyPlanLocks==='function')_applyPlanLocks();if(typeof renderFilterPresets==='function')renderFilterPresets();setTimeout(function(){if(typeof updateAgeRange==='function')updateAgeRange();},60);}};
+  // Age Range filter is now static in the Match Filters markup — just refresh it.
+  // 'filters' matters as much as 'crush': switchProfTab moves #match-filters-wrap
+  // into #ptab-panel-filters for that tab, and the fill of the dual range slider
+  // has no left/right until updateAgeRange() writes them. Firing only on 'crush'
+  // meant opening Filters showed a zero-width (invisible) fill until you dragged
+  // a handle, which is the only other thing that calls it.
+  if(tab==='crush'||tab==='filters'){if(typeof _populateFilterChips==='function')_populateFilterChips();if(typeof _applyPlanLocks==='function')_applyPlanLocks();if(typeof renderFilterPresets==='function')renderFilterPresets();setTimeout(function(){if(typeof updateAgeRange==='function')updateAgeRange();},60);}};
 
 function updateAgeRange(){
   var minEl=document.getElementById('crush-age-min'),maxEl=document.getElementById('crush-age-max');if(!minEl||!maxEl)return;
@@ -18197,9 +18240,6 @@ function renderInviteEarn(){
       'No top recruiters yet 👑<br><span style="font-size:var(--fs-2xs);color:var(--fg2);">Be the first on the leaderboard!</span>' +
     '</div>';
   }
-  var bonusProgressCount = c % 3;
-  var bonusCompleted = (c > 0 && c % 3 === 0);
-  var bonusText = (bonusCompleted ? '3 / 3 ✅' : (bonusProgressCount + ' / 3'));
   return ''+
   '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
   '<img class="ap-banner" src="images/banner_invite.png" style="width:calc(100% - 32px);height:auto;border-radius:30px;margin: 0 16px 16px 16px;display:block;box-sizing:border-box;" />'+
@@ -18210,7 +18250,6 @@ function renderInviteEarn(){
   '<div style="display:flex;gap:12px;align-items:center;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;"><span style="font-size:var(--fs-sm);color:var(--fg2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">'+icon('link',16)+' undrgradz.app/i/'+code+'</span><span onclick="_inviteCopy(\'https://undrgradz.app/i/'+code+'\')" style="font-size:var(--fs-sm);font-weight:600;color:#3d7bff;cursor:pointer;">Copy</span></div></div>'+_qrSvg+'</div></div>'+
   '<div style="display:flex;gap:10px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;flex-wrap:wrap;"><div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1.5px solid #22d3ee;box-shadow:0 0 12px #22d3ee45, inset 0 0 12px #22d3ee12;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
   '<div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1.5px solid #a3e635;box-shadow:0 0 12px #a3e63545, inset 0 0 12px #a3e63512;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
-  '<div style="background:linear-gradient(120deg,rgba(43,95,217,0.15),rgba(240,62,90,0.12));border:1px solid rgba(43,95,217,0.35);border-radius:var(--rad-md);padding:14px;margin: 0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;display:flex;align-items:center;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-sm);font-weight:700;color:#fff;letter-spacing:0.3px;">BONUS CHALLENGE 🚀</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;">Invite 3 more friends this week and get a <b style="color:#fbbf24;">Mega Boost!</b></div></div><div style="font-size:var(--fs-xs);font-weight:600;color:#fff;white-space:nowrap;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:var(--rad-sm);">'+bonusText+'</div></div>'+
   '<button class="gbtn" style="background:linear-gradient(90deg,#c9243b,#800614 55%,#fb923c);font-size:var(--fs-md);font-weight:700;margin:0 16px 16px 16px;width:calc(100% - 32px);box-sizing:border-box;border:none;color:#fff;padding:14px;border-radius:var(--rad-md);cursor:pointer;box-shadow:var(--el-2);" onclick="_inviteShare(\'more\')">Invite Friends Now ›</button>'+
   '<div style="height:8px;"></div>';
 }
@@ -18231,7 +18270,7 @@ function showPlansForGender(){
   // border, glow and idle state.
   var tab = function(t, iconSvg, lbl, color, grad) {
     var on = (_plansTab === t);
-    var style = 'flex:1;text-align:center;padding:10px 8px;border-radius:var(--rad-md);font-size:var(--fs-base);font-weight:800;cursor:pointer;transition:all var(--dur) ease;display:flex;align-items:center;justify-content:center;gap:6px;';
+    var style = 'flex:1;text-align:center;padding:10px 8px;font-size:var(--fs-base);font-weight:800;cursor:pointer;transition:all var(--dur) ease;display:flex;align-items:center;justify-content:center;gap:6px;';
 
     // No colour of its own: the icon inherits currentColor from the tab, which
     // is #fff when active and the hue when idle. It used to be hard-pinned to
@@ -18239,26 +18278,7 @@ function showPlansForGender(){
     // background and effectively disappeared.
     var iconHtml = '<span style="display:inline-flex;align-items:center;">' + iconSvg + '</span>';
 
-    if (on) {
-      var fill = grad || ('linear-gradient(135deg, ' + color + ' 0%, color-mix(in srgb, ' + color + ' 40%, #000) 100%)');
-      // Gradient edge on the selected tab only. Rounded corners rule out
-      // border-image, so the fill goes on the padding box and the edge gradient
-      // on the border box — both in one `background`, which is why this can't
-      // be a class here (the inline fill would win over it).
-      style += 'border:1.5px solid transparent;'
-        + 'background:' + fill + ' padding-box,'
-        + ' linear-gradient(135deg, ' + color + ', color-mix(in srgb, ' + color + ' 35%, #fff)) border-box;'
-        + 'color:#fff;'
-        // This box-shadow used to be emitted without its property name, so the
-        // browser dropped the whole declaration and the active tab had no glow.
-        + 'box-shadow:0 0 12px ' + color + '66;'
-        + 'text-shadow:0 0 8px ' + color + ';';
-    } else {
-      // Idle tabs get the same gradient, just dark enough to read as inactive.
-      style += 'background:linear-gradient(135deg, color-mix(in srgb, ' + color + ' 22%, #000) 0%, #000 100%);'
-        + 'border:1px solid color-mix(in srgb, ' + color + ' 40%, transparent);'
-        + 'color:' + color + ';';
-    }
+    style += _gradSkin(color, on, { grad: grad });
     return '<div onclick="_plansTabSet(\'' + t + '\')" style="' + style + '">' + iconHtml + '<span>' + lbl + '</span></div>';
   };
 
@@ -18379,7 +18399,7 @@ sw=function(id,label){
   if(id==='discover'&&typeof renderDiscover==='function')renderDiscover('foryou');
 };
 function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['swipe','foryou','liked','search','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});var aw=document.getElementById('unicrush-age-wall');if(aw&&aw.parentElement!==pn.parentElement)pn.parentElement.appendChild(aw);}
-function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var _saved='';try{_saved=sessionStorage.getItem('ugz_last_crush_tab')||localStorage.getItem('ugz_last_crush_tab')||'';}catch(e){}var _valid={swipe:1,foryou:1,liked:1,search:1};var defaultTab=_valid[_saved]?_saved:'foryou';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
+function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var _saved='';try{_saved=sessionStorage.getItem('ugz_last_crush_tab')||localStorage.getItem('ugz_last_crush_tab')||'';}catch(e){}var _valid={swipe:1,foryou:1,liked:1,search:1};var defaultTab=_valid[_saved]?_saved:'liked';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
 document.addEventListener('DOMContentLoaded',function(){setTimeout(_moveDiscover,60);setTimeout(function(){var uc=document.getElementById('cpanel-uchats'),sc=document.getElementById('sec-chats');if(uc&&sc&&uc.parentElement!==sc){uc.classList.remove('crush-tab-panel');uc.style.display='none';sc.appendChild(uc);}},90);setTimeout(function(){var mf=document.getElementById('match-filters-wrap'),fp=document.getElementById('ptab-panel-filters');if(mf&&fp&&mf.parentElement!==fp)fp.appendChild(mf);},80);});
 
 // Show plans when navigating to premium (Interested In filter now lives statically in the Match Filters markup)
