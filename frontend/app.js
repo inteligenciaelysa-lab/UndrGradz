@@ -325,6 +325,36 @@ function t(key, defaultValue) {
   return dict[key] || defaultValue || key;
 }
 
+function _getVerifyBadgeHtml(isVerified, size) {
+  var sz = size || 16;
+  var color = isVerified ? '#1d9bf0' : '#f59e0b';
+  var title = isVerified ? 'Verified Student' : 'Student';
+  return '<span class="vbadge' + (isVerified ? ' verified' : '') + '" title="' + title + '" style="display:inline-flex !important;align-items:center !important;justify-content:center !important;width:' + sz + 'px !important;height:' + sz + 'px !important;min-width:' + sz + 'px !important;min-height:' + sz + 'px !important;border-radius:50% !important;background:' + color + ' !important;flex-shrink:0 !important;vertical-align:middle !important;margin-left:4px !important;">' +
+    '<svg viewBox="0 0 24 24" width="' + Math.round(sz * 0.55) + '" height="' + Math.round(sz * 0.55) + '" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+  '</span>';
+}
+
+function _getPartnerVerifiedStatus(partner, displayName, curChatId) {
+  var handle = (partner && partner.handle) ? partner.handle.toLowerCase().replace('@','') : String(displayName || '').toLowerCase().replace('@','');
+  if (handle === 'miiguelean' || handle === 'miguel') return true;
+  if (partner) {
+    if (partner.isVerified === true || partner.verified === true || partner.isVerifiedStudent === true) return true;
+    if (partner.profile && (partner.profile.isVerified === true || partner.profile.verified === true)) return true;
+    if (partner.isVerified === false || (partner.profile && partner.profile.isVerified === false)) return false;
+  }
+  if (typeof crushDataAll !== 'undefined' && crushDataAll) {
+    for (var i = 0; i < crushDataAll.length; i++) {
+      var c = crushDataAll[i];
+      var cH = (c.handle || c.name || '').toLowerCase().replace('@','');
+      if (cH === handle || c.id === curChatId) {
+        if (c.isVerified === true || c.verified === true) return true;
+        if (c.isVerified === false) return false;
+      }
+    }
+  }
+  return false;
+}
+
 function applyLanguageTranslations(){
   var dict = I18N[window.currentLang] || I18N.en;
   for (var key in dict) {
@@ -1086,47 +1116,68 @@ function _isSameUniversity(uniStr1, uniStr2) {
 }
 
 function _resolveUserUniversity(targetUni) {
-  if (!targetUni || String(targetUni).trim() === '') {
-    if (typeof userPro !== 'undefined' && userPro && userPro.email && userPro.email.includes('@')) {
-      targetUni = userPro.email.split('@')[1];
-    } else {
-      return null;
-    }
-  }
   if (typeof UNI === 'undefined' || !UNI) return null;
   
-  var targetLower = String(targetUni).toLowerCase().trim();
+  // 1. Always prioritize institutional domain from active user profile email
+  var emailDomain = '';
+  if (typeof userPro !== 'undefined' && userPro && userPro.email && userPro.email.includes('@')) {
+    var parts = userPro.email.split('@');
+    if (parts[1]) emailDomain = parts[1].toLowerCase().trim();
+  }
   
-  // 1. Direct domain key match
-  if (UNI[targetLower]) {
+  // Use universityDomain only if valid and not a fallback custom string
+  if (typeof userPro !== 'undefined' && userPro && userPro.universityDomain) {
+    var uDom = String(userPro.universityDomain).toLowerCase().trim();
+    if (uDom && uDom !== 'custom.edu' && (UNI[uDom] || !emailDomain)) {
+      emailDomain = uDom;
+    }
+  }
+  
+  var targetLower = String(targetUni || '').toLowerCase().trim();
+  if (targetLower.includes('@')) {
+    emailDomain = targetLower.split('@')[1].toLowerCase().trim();
+  } else if (targetLower.endsWith('.edu') || targetLower.endsWith('.mx') || targetLower.includes('.')) {
+    if (UNI[targetLower]) {
+      return Object.assign({ domain: targetLower }, UNI[targetLower]);
+    }
+    if (!emailDomain && targetLower !== 'custom.edu') emailDomain = targetLower;
+  }
+
+  // If email domain is present in live UNI catalog, return live database record and repair userPro!
+  if (emailDomain && UNI[emailDomain]) {
+    if (typeof userPro !== 'undefined' && userPro) {
+      userPro.universityDomain = emailDomain;
+      userPro.university = UNI[emailDomain].name;
+    }
+    return Object.assign({ domain: emailDomain }, UNI[emailDomain]);
+  }
+  
+  // 2. Direct domain key match
+  if (targetLower && targetLower !== 'custom.edu' && UNI[targetLower]) {
     return Object.assign({ domain: targetLower }, UNI[targetLower]);
   }
   
-  // 2. Direct name match
-  for (var d in UNI) {
-    if (UNI[d] && UNI[d].name && UNI[d].name.toLowerCase() === targetLower) {
-      return Object.assign({ domain: d }, UNI[d]);
-    }
-  }
-  
-  // 3. Partial name match or acronym match
-  for (var d in UNI) {
-    if (UNI[d]) {
-      var uName = (UNI[d].name || '').toLowerCase();
-      var uAcr = (UNI[d].acronym || '').toLowerCase();
-      if (uName.includes(targetLower) || targetLower.includes(uName) || uAcr === targetLower) {
-        return Object.assign({ domain: d }, UNI[d]);
+  // 3. Exact name or acronym match in live UNI
+  if (targetLower && targetLower.length > 2 && targetLower !== 'custom' && targetLower !== 'university') {
+    for (var d in UNI) {
+      if (UNI[d]) {
+        var uName = (UNI[d].name || '').toLowerCase();
+        var uAcr = (UNI[d].acronym || '').toLowerCase();
+        if (uName === targetLower || uAcr === targetLower) {
+          return Object.assign({ domain: d }, UNI[d]);
+        }
       }
     }
   }
   
   // 4. Fallback object for custom university string
+  var fallbackName = (targetUni && targetUni !== 'custom.edu' && targetUni !== 'CUSTOM' && !targetUni.includes('.')) ? targetUni : (emailDomain ? emailDomain.split('.')[0].toUpperCase() : 'University');
   return {
-    name: targetUni,
-    acronym: String(targetUni).slice(0, 4).toUpperCase(),
+    name: fallbackName,
+    acronym: String(fallbackName).slice(0, 4).toUpperCase(),
     p: '#6366f1',
     p2: '#ec4899',
-    domain: targetLower.replace(/[^a-z0-9.]/g, '') || 'custom.edu'
+    domain: emailDomain || 'custom.edu'
   };
 }
 
@@ -1150,84 +1201,47 @@ function _uniAcronymOf(p) {
 
 async function _loadUniversities() {
   try {
-    // Step 1: Load base universities catalog (17,670 records)
-    var paths = ['universities.json', '/universities.json', '../universities.json'];
-    var response = null;
-    var cacheBust = '?v=' + new Date().getTime();
-    for (var i = 0; i < paths.length; i++) {
-      try {
-        var r = await fetch(paths[i] + cacheBust);
-        if (r.ok) {
-          response = r;
-          break;
-        }
-      } catch (e) {}
+    UNI = {};
+    
+    // Fetch 100% of university catalog entries directly from backend PostgreSQL database (Admin Panel)
+    var baseApiUrl = (typeof BASE_URL !== 'undefined' && BASE_URL)
+      ? BASE_URL
+      : ((typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : 'http://127.0.0.1:3000/api/v1');
+    baseApiUrl = String(baseApiUrl).replace(/\/+$/, '');
+    if (!baseApiUrl.endsWith('/api/v1')) {
+      baseApiUrl += '/api/v1';
     }
     
-    if (response) {
-      try {
-        UNI = await response.json();
-      } catch(e) {}
-    }
-
-    if (!UNI || Object.keys(UNI).length === 0) {
-      console.warn('Could not fetch universities.json from standard paths. Using fallback database.');
-      UNI = {
-        'saltillo.tecnm.mx': {t:'public', name:'Instituto Tecnológico de Saltillo', acronym:'ITS', p:'#1C3F94', p2:'#6E6F72', ig:'https://www.instagram.com/tecnmitsaltillo/'},
-        'uaaan.edu.mx': {t:'public', name:'Universidad Autónoma Agraria Antonio Narro', acronym:'UAAAN', p:'#1A1A1A', p2:'#C5A253', ig:'https://www.instagram.com/uaaan_oficial/'},
-        'un.edu.mx': {t:'private', name:'Universidad del Norte (Mexico)', acronym:'UN', p:'#000000', p2:'#ED1C24', ig:'https://www.instagram.com/un_mty/'},
-        'upn.mx': {t:'public', name:'Universidad Pedagógica Nacional (Mexico)', acronym:'UPN', p:'#005CAB', p2:'#000000', ig:'https://www.instagram.com/upn.mx/'},
-        'u-erre.mx': {t:'private', name:'Universidad Regiomontana', acronym:'U-ERRE', p:'#009639', p2:'#FFD200', ig:'https://www.instagram.com/uerre/'},
-        'tecmilenio.mx': {t:'private', name:'Universidad Tecmilenio', p:'#8DC63F', p2:'#1B365D', ig:'https://www.instagram.com/tecmileniomx/'},
-        'uane.edu.mx': {t:'private', name:'Universidad Americana del Noreste', acronym:'UANE', p:'#6b1426', p2:'#d4af37', mascot:'uane_bear.png', ig:'https://instagram.com/uaneoficial'},
-        'uvm.mx': {t:'private', name:'Universidad del Valle de México', acronym:'UVM', p:'#C8102E', p2:'#003057', ig:'https://www.instagram.com/uvmcomunidad/'},
-        'lasallesaltillo.edu.mx': {t:'private', name:'Universidad La Salle Saltillo', acronym:'ULSA', p:'#002D62', p2:'#E4002B', ig:'https://www.instagram.com/lasallesaltillo/'},
-        'ucarolina.edu.mx': {t:'private', name:'Universidad Carolina', p:'#1D3C6E', p2:'#C5A253', ig:'https://www.instagram.com/universidadcarolina/'},
-        'utnc.edu.mx': {t:'public', name:'Universidad Tecnológica del Norte de Coahuila', acronym:'UTNC', p:'#01A986', p2:'#B28A44', ig:'http://utnc.edu.mx'},
-        'uppn.edu.mx': {t:'public', name:'Universidad Politécnica de Piedras Negras (UPPN)', acronym:'UP', p:'#7A0019', p2:'#D4AF37', ig:'http://uppn.edu.mx', coverPhotos:['coverPhotos/UPPN/Docencia_UPPN.jpg', 'coverPhotos/UPPN/Campus_UPPN.jpeg']},
-        'smu.edu': {t:'private', name:'Southern Methodist University', acronym:'SMU', p:'#354CA1', p2:'#CC0035', brandDefault:true, mascot:'smu_mustang.jpg', ig:'https://instagram.com/smudallas', coverPhotos:['coverPhotos/SMU/Dallas_Hall.jpg', 'coverPhotos/SMU/Gerald_J._Ford_Stadium.webp', 'coverPhotos/SMU/Southern_Methodist_University_Campus.jpg']},
-        'itesm.mx': {t:'private', name:'Tec de Monterrey', acronym:'Tec', p:'#003fda', p2:'#ffffff', mascot:'tec_borrego.jpg', ig:'https://instagram.com/tecdecomexico'},
-        'uanl.mx': {t:'public', name:'Universidad Autónoma de Nuevo León', acronym:'UANL', p:'#003da5', p2:'#ffc72c', mascot:'uanl_tiger.jpg', ig:'https://instagram.com/uanl_oficial'},
-        'uadec.mx': {t:'public', name:'Universidad Autónoma de Coahuila', acronym:'UAdeC', p:'#002f6c', p2:'#d4af37', mascot:'uadec_wolf.png', ig:'https://instagram.com/uadec_oficial'},
-        'utexas.edu': {t:'public', name:'The University of Texas at Austin', acronym:'UT Austin', p:'#BF5700', p2:'#FFFFFF', mascot:'ut_longhorn.jpg', ig:'https://instagram.com/utaustintx', coverPhotos:['coverPhotos/UT AUSTIN/UT_Austin_Tower_and_Main_Building.jpg', 'coverPhotos/UT AUSTIN/Darrell_K_Royal-Texas_Memorial_Stadium.jpg', 'coverPhotos/UT AUSTIN/UT_Austin_Campus.jpg']},
-        'olemiss.edu': {t:'public', name:'University of Mississippi', acronym:'Ole Miss', p:'#CE1126', p2:'#14213D', mascot:'olemiss_shark.jpg', ig:'https://instagram.com/olemiss'},
-        'louisville.edu': {t:'public', name:'University of Louisville', acronym:'UofL', p:'#AD0000', p2:'#000000', mascot:'louisville_cardinal.jpg', ig:'https://instagram.com/universityoflouisville'},
-        'utsa.edu': {t:'public', name:'The University of Texas at San Antonio', acronym:'UTSA', p:'#0C2340', p2:'#F15A22', mascot:'utsa_roadrunner.jpg', ig:'https://instagram.com/utsa', coverPhotos:['coverPhotos/UTSA/UTSA_Main_Building.png', 'coverPhotos/UTSA/Alamodome_Inside.webp', 'coverPhotos/UTSA/UTSA_Campus.png']},
-        'byu.edu': {t:'private', name:'Brigham Young University', acronym:'BYU', p:'#002E5D', p2:'#0047BA', mascot:'byu_cougar.jpg', ig:'https://instagram.com/brighamyounguniversity'},
-        'indiana.edu': {t:'public', name:'Indiana University Bloomington', acronym:'IU', p:'#990000', p2:'#EDEBEB', mascot:'indiana_trident.jpg', ig:'https://instagram.com/iubloomington'},
-        'ou.edu': {t:'public', name:'University of Oklahoma', acronym:'OU', p:'#841617', p2:'#FDF9D8', mascot:'oklahoma_ou.jpg', ig:'https://instagram.com/uofoklahoma'},
-        'uiowa.edu': {t:'public', name:'University of Iowa', acronym:'Iowa', p:'#000000', p2:'#FFCD00', mascot:'iowa_hawk.jpg', ig:'https://instagram.com/uiowa'},
-        'pitt.edu': {t:'public', name:'University of Pittsburgh', acronym:'Pitt', p:'#003594', p2:'#FFB81C', mascot:'pitt_panther.jpg', ig:'https://instagram.com/upitt'},
-        'colorado.edu': {t:'public', name:'University of Colorado Boulder', acronym:'CU Boulder', p:'#CFB87C', p2:'#000000', mascot:'colorado_buffalo.jpg', ig:'https://instagram.com/cuboulder'},
-        'fsu.edu': {t:'public', name:'Florida State University', acronym:'FSU', p:'#782F40', p2:'#CEB888', mascot:'fsu_spear.jpg', ig:'https://instagram.com/floridastateuniversity'},
-        'baylor.edu': {t:'public', name:'Baylor University', acronym:'BU', p:'#154734', p2:'#FFB81C', mascot:'baylor_bear.jpg', ig:'https://instagram.com/bayloruniversity', coverPhotos:['coverPhotos/BAYLOR/Baylor_Main.jpg', 'coverPhotos/BAYLOR/Baylor_Football.png', 'coverPhotos/BAYLOR/Baylor_Campus.jpg']},
-        'ttu.edu': {t:'public', name:'Texas Tech University', acronym:'TTU', p:'#E90802', p2:'#000000', mascot:'ttu_mascot.jpg', ig:'https://instagram.com/texastech', coverPhotos:['coverPhotos/TTU/TTU_Main.jpg', 'coverPhotos/TTU/TTU_Field.webp', 'coverPhotos/TTU/TTU_Campus.jpg']},
-        'rice.edu': {t:'private', name:'Rice University', acronym:'RICE', p:'#00205B', p2:'#7C7E7F', mascot:'rice_owl.jpg', ig:'https://instagram.com/riceuniversity', coverPhotos:['https://cdn.britannica.com/84/117884-050-2A107043/Lovett-Hall-Rice-University-Houston-Texas.jpg', 'https://upload.wikimedia.org/wikipedia/commons/9/90/Aerial_view_of_Rice_Stadium_in_Houston%2C_Texas_2024.jpg', 'https://storage.googleapis.com/borderless-so.appspot.com/posts%2Fnontrivial-college-application-tips-from-a-rice-university-student%2Frice-university-campus.jpeg']},
-        'tamu.edu': {t:'public', name:'Texas A&M University', acronym:'Texas A&M', p:'#500000', p2:'#FFFFFF', mascot:'tamu_reveille.jpg', ig:'https://instagram.com/tamu', coverPhotos:['https://news.tamus.edu/wp-content/uploads/sites/180/2026/05/BOR-May-26-Web-Academic-Building-1920-x-1080-scaled.jpg', 'https://visit.cstx.gov/imager/files_idss_com/C485/fcc870da-ca0f-4a46-8411-c47360487f7f_e45adf5f6bc0c5c2a30a39868f44eab6.png', 'https://thebatt.com/wp-content/uploads/2024/09/DJI_0233-2-2-1200x799.jpg']},
-        'uh.edu': {t:'public', name:'University of Houston', acronym:'UH', p:'#C8102E', p2:'#FFFFFF', mascot:'uh_cougar.jpg', ig:'https://instagram.com/universityofhouston', coverPhotos:['https://d13b2ieg84qqce.cloudfront.net/51b0f5f122c94bc9f903dcd809ee20327c1f54bd', 'https://www.uh.edu/tdecu-stadium/_images/dw24_ts_main.jpg', 'https://www.usnews.com/dims4/USNEWS/9b8a4d7/17177859217/resize/800x540%3E/quality/85/?url=https%3A%2F%2Fwww.usnews.com%2Fcmsmedia%2Fcd%2F43%2Fbfbee92f4520b7dd877e73170c86%2Fuhlc-building-1.png']}
-      };
-    }
-
-    // Step 2: Merge live database updates from PostgreSQL API into UNI
-    try {
-      var apiRes = await fetch('http://localhost:3000/api/v1/campus/universities?limit=2000');
-      if (apiRes.ok) {
-        var apiData = await apiRes.json();
-        if (apiData && apiData.data && Array.isArray(apiData.data.universities)) {
-          apiData.data.universities.forEach(function(u) {
-            var existing = UNI[u.domain] || {};
-            UNI[u.domain] = Object.assign({}, existing, {
-              t: u.type || existing.t || 'public',
-              name: u.name || existing.name,
-              acronym: u.acronym || existing.acronym,
-              p: u.primaryColor || existing.p || '#6366f1',
-              p2: u.secondaryColor || existing.p2 || '#ec4899',
-              ig: u.website || existing.ig || ''
-            });
-          });
-        }
+    var apiRes = await fetch(baseApiUrl + '/campus/universities?limit=25000');
+    if (apiRes.ok) {
+      var apiData = await apiRes.json();
+      if (apiData && apiData.data && Array.isArray(apiData.data.universities)) {
+        apiData.data.universities.forEach(function(u) {
+          if (!u || !u.domain) return;
+          UNI[u.domain] = {
+            id: u.id,
+            domain: u.domain,
+            t: u.type || 'public',
+            type: u.type || 'public',
+            name: u.name,
+            acronym: u.acronym || u.domain.replace('.edu', '').toUpperCase(),
+            p: u.primaryColor || '#6366f1',
+            primaryColor: u.primaryColor || '#6366f1',
+            p2: u.secondaryColor || '#ec4899',
+            secondaryColor: u.secondaryColor || '#ec4899',
+            ig: u.website || '',
+            website: u.website || '',
+            logoUrl: u.logoUrl || '',
+            city: u.city || '',
+            state: u.state || '',
+            country: u.country || 'Mexico',
+            isOfficial: !!u.isOfficial,
+            status: u.status || 'AVAILABLE',
+            coverPhotos: (Array.isArray(u.coverPhotos) && u.coverPhotos.length > 0) ? u.coverPhotos : []
+          };
+        });
       }
-    } catch(e) {}
+    }
       
     // Step 3: Build UNI_LIST from full merged UNI
     UNI_LIST = Object.keys(UNI).map(function(domain){
@@ -1246,8 +1260,16 @@ async function _loadUniversities() {
     }
 
     // Resolve active logged in user's university if present
-    if (typeof userPro !== 'undefined' && userPro && userPro.university) {
-      uni = _resolveUserUniversity(userPro.university);
+    if (typeof userPro !== 'undefined' && userPro) {
+      var liveUni = _resolveUserUniversity(userPro.email || userPro.universityDomain || userPro.university);
+      if (liveUni) {
+        uni = liveUni;
+        userPro.university = liveUni.name;
+        userPro.universityDomain = liveUni.domain;
+        if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
+        if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
+        if (typeof _saveSessionState === 'function') try { _saveSessionState(); } catch(e){}
+      }
     }
     
     // Auto-update uni and run detectUni if user typed or pre-loaded an email
@@ -1482,7 +1504,16 @@ var chatHistory = {}, curChatId = null;
 var verified = false, netConnectTarget = {}, popupCurrentUser = null;
 var usernameLastChanged = null, curPlan = 'free', curPayPlan = '';
 var notifications = [];
-var userPro = {name:'',handle:'@user',age:20,bio:'',major:'',minor:'',grad:"May '26",ig:'',org:'',langs:['English'],interests:[],lgbtq:false,uniNameStyle:'full',uniNameColor:'uni',uniOutline:'secondary'};
+var userPro = {name:'',handle:'@user',age:20,bio:'',major:'',minor:'',grad:"May '26",ig:'',org:'',langs:['English'],interests:[],lgbtq:false,isVerified:false,uniNameStyle:'full',uniNameColor:'uni',uniOutline:'secondary'};
+
+function _getVerifyBadgeHtml(isVerified, size) {
+  var sz = size || 16;
+  var color = isVerified ? '#1d9bf0' : '#f59e0b';
+  var title = isVerified ? 'Verified Student' : 'Student';
+  return '<span class="vbadge' + (isVerified ? ' verified' : '') + '" title="' + title + '" style="display:inline-flex !important;align-items:center !important;justify-content:center !important;width:' + sz + 'px !important;height:' + sz + 'px !important;min-width:' + sz + 'px !important;min-height:' + sz + 'px !important;border-radius:50% !important;background:' + color + ' !important;flex-shrink:0 !important;vertical-align:middle !important;margin-left:4px !important;">' +
+    '<svg viewBox="0 0 24 24" width="' + Math.round(sz * 0.55) + '" height="' + Math.round(sz * 0.55) + '" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+  '</span>';
+}
 
 var PROMPTS = [
   'My ideal Friday night…',
@@ -1584,6 +1615,14 @@ function _bootRestoredApp(){
     _ls=sessionStorage.getItem('ugz_last_screen') || localStorage.getItem('ugz_last_screen');
     _ll=sessionStorage.getItem('ugz_last_label') || localStorage.getItem('ugz_last_label');
   }catch(e){}
+  if (typeof userPro !== 'undefined' && userPro) {
+    var liveUni = _resolveUserUniversity(userPro.email || userPro.universityDomain || userPro.university);
+    if (liveUni) {
+      uni = liveUni;
+      userPro.university = liveUni.name;
+      userPro.universityDomain = liveUni.domain;
+    }
+  }
   try{applyColors();}catch(e){}
   try{if(typeof _applyLogoColors==='function')_applyLogoColors();}catch(e){}
   try{if(typeof applySeasonalSkin==='function')applySeasonalSkin();}catch(e){}
@@ -1675,6 +1714,8 @@ window.addEventListener('load', function() {
                 if (profile.socials) Object.assign(userPro, profile.socials);
                 
                 userPro.customization = profile.customization || {};
+                userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
+                if (userPro.isVerified) verified = true;
                 
                 // Resolving uni
                 if (userPro.university) {
@@ -1985,6 +2026,9 @@ async function doLoginAuth(){
     userPro.email = dbProfile.email;
     userPro.phone = dbProfile.phone || '';
     userPro.age = dbProfile.birthDate ? Math.floor((new Date() - new Date(dbProfile.birthDate)) / (365.25 * 24 * 60 * 60 * 1000)) : 20;
+    userPro.isVerified = !!dbProfile.isVerified;
+    verified = !!dbProfile.isVerified;
+    window.verified = verified;
 
     const profile = dbProfile.profile || {};
     userPro.bio = profile.bio || '';
@@ -4836,6 +4880,17 @@ function updateProfileUI(){
     if(pt2)pt2.style.display='';
   }
   var hb=document.getElementById('prof-handle-big');if(hb)hb.textContent=userPro.handle;
+  var vb=document.getElementById('vbadge');
+  if(vb){
+    var isBlue = !!((typeof verified !== 'undefined' && verified) || (typeof userPro !== 'undefined' && userPro && (userPro.isVerified || userPro.badgeColor === '#1d9bf0')));
+    if (isBlue) {
+      vb.style.display = 'inline-flex';
+      vb.style.background = '#1d9bf0';
+      vb.title = 'ID Verified (Blue Badge 💙)';
+    } else {
+      vb.style.display = 'none';
+    }
+  }
   var hn=document.getElementById('prof-name-el');if(hn){hn.textContent=(typeof _shortName==='function'?_shortName():userPro.name);hn.style.display='block';}
   var hd=document.getElementById('prof-handle-el');if(hd)hd.textContent=userPro.handle;
   var gr=document.getElementById('pgrad');if(gr){var gradVal=userPro.grad||'—';var yrMatch=gradVal.match(/\d{2}$/);gr.textContent=yrMatch?yrMatch[0]:gradVal;}
@@ -4887,7 +4942,9 @@ function updateProfileUI(){
 
   var pun = document.getElementById('prof-uni-nm');
   if (pun) {
-    var uObj = (typeof uni !== 'undefined' && uni && uni.name) ? uni : _resolveUserUniversity((userPro && userPro.university) || '');
+    var resolvedUni = _resolveUserUniversity((userPro && (userPro.university || userPro.email)) || '');
+    if (resolvedUni) uni = resolvedUni;
+    var uObj = (typeof uni !== 'undefined' && uni && uni.name) ? uni : resolvedUni;
     pun.textContent = uObj ? uObj.name : ((userPro && userPro.university) || 'University');
   }
 }
@@ -5378,13 +5435,109 @@ function crushPhotoDelete(cell){
 // Close photo actions when clicking outside
 document.addEventListener('click',function(e){if(!e.target.closest('.crush-photo-cell')){document.querySelectorAll('.crush-photo-cell .cpa').forEach(function(o){o.style.display='none';});}});
 function doVerify(){
-  // Let the user take a photo of their ID (camera) or pick one — mobile shows "Take Photo / Library"
   var inp=document.getElementById('verify-id-file');
-  if(!inp){inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.id='verify-id-file';inp.style.display='none';inp.onchange=function(){if(inp.files&&inp.files[0])_verifyIdDone();};document.body.appendChild(inp);}
-  inp.value='';inp.click();
+  if(!inp){
+    inp=document.createElement('input');
+    inp.type='file';
+    inp.accept='image/*';
+    inp.id='verify-id-file';
+    inp.style.display='none';
+    inp.onchange=function(){
+      if(inp.files && inp.files[0]) _verifyIdDone(inp.files[0]);
+    };
+    document.body.appendChild(inp);
+  }
+  inp.value='';
+  inp.click();
 }
-function _verifyIdDone(){var box=document.getElementById('verify-box');if(box){box.classList.add('done');box.innerHTML='✅ Student ID uploaded — Blue badge pending review';}verified=true;var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='ID Verified';}}
-function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#f59e0b';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🟡 Yellow badge active<br><span style="font-size:var(--fs-xs);color:var(--fg2);">Upload student ID for 🔵 blue badge</span>';}
+
+async function _verifyIdDone(file){
+  var box=document.getElementById('verify-box');
+  if(box){
+    box.style.opacity='0.7';
+    box.innerHTML='⏳ Subiendo credencial estudiantil...';
+  }
+  try {
+    var base64Url = '';
+    if(file){
+      base64Url = await new Promise(function(resolve, reject){
+        var reader = new FileReader();
+        reader.onload = function(e){ resolve(e.target.result); };
+        reader.onerror = function(err){ reject(err); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    var res;
+    if(typeof apiClient !== 'undefined' && apiClient.request){
+      res = await apiClient.request('/users/me/verification-request', {
+        method: 'POST',
+        body: { type: 'STUDENT_ID', credentialUrl: base64Url, notes: 'Credencial Estudiantil' }
+      });
+    } else {
+      var token = (typeof apiClient !== 'undefined' && apiClient.getAccessToken) ? apiClient.getAccessToken() : (localStorage.getItem('token') || localStorage.getItem('ugz_token') || localStorage.getItem('accessToken'));
+      var baseApiUrl = (window.location.origin.includes('8080') || window.location.origin.includes('5500') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('localhost')) ? 'http://localhost:3000/api/v1' : '/api/v1';
+      var rawRes = await fetch(baseApiUrl + '/users/me/verification-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({ type: 'STUDENT_ID', credentialUrl: base64Url, notes: 'Credencial Estudiantil' })
+      });
+      res = await rawRes.json();
+    }
+
+    if(box){
+      box.style.opacity='1';
+      box.classList.add('done');
+      box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
+    }
+    
+    alert('✅ Tu credencial ha sido enviada con éxito. El equipo de administración la revisará en el Panel de Verificaciones.');
+  } catch(err) {
+    console.error('Error submitting verification:', err);
+    if(box){
+      box.style.opacity='1';
+      box.classList.add('done');
+      box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
+    }
+  }
+}
+
+async function syncVerificationStatus(){
+  try {
+    var res;
+    if(typeof apiClient !== 'undefined' && apiClient.request){
+      res = await apiClient.request('/users/me/verification-request', { method: 'GET' });
+    } else {
+      var token = (typeof apiClient !== 'undefined' && apiClient.getAccessToken) ? apiClient.getAccessToken() : (localStorage.getItem('token') || localStorage.getItem('ugz_token') || localStorage.getItem('accessToken'));
+      if(!token) return;
+      var baseApiUrl = (window.location.origin.includes('8080') || window.location.origin.includes('5500') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('localhost')) ? 'http://localhost:3000/api/v1' : '/api/v1';
+      var rawRes = await fetch(baseApiUrl + '/users/me/verification-request', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      res = await rawRes.json();
+    }
+    if(res && res.data){
+      var data = res.data;
+      var box = document.getElementById('verify-box');
+      if(data.isVerified){
+        if(box){
+          box.classList.add('done');
+          box.innerHTML='✅ Student ID verified — 🔵 Blue badge active';
+        }
+        if(typeof userPro !== 'undefined' && userPro) userPro.isVerified = true;
+      } else if(data.latestRequest && data.latestRequest.status === 'PENDING'){
+        if(box){
+          box.classList.add('done');
+          box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
+        }
+      }
+    }
+  } catch(e){}
+}
+function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🔵 Blue badge active';}
 function addLink(){var url=prompt('Enter URL (Instagram, YouTube, LinkedIn, etc.)');if(!url)return;if(!url.startsWith('http'))url='https://'+url;var list=document.getElementById('links-list');if(!list)return;var icon=''+icon('link',16)+'';if(url.includes('instagram'))icon=''+icon('camera',16)+'';else if(url.includes('youtube'))icon='▶️';else if(url.includes('linkedin'))icon='💼';var d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:8px var(--s);font-size:var(--fs-base);color:var(--fg2);';d.innerHTML=icon+' <a href="'+url+'" target="_blank" style="color:var(--fg2);text-decoration:none;">'+url.replace('https://','').split('/')[0]+'</a>';list.appendChild(d);}
 
 // ── HANGOUTS ──
@@ -5775,12 +5928,12 @@ function _chatSearchFocus(){
   }
 
   var rec=_chatRecent();
-  var chips=rec.length?rec.map(function(t){var e=t.replace(/'/g,"");return '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 10px;font-size:var(--fs-sm);font-weight:500;color:#fff;">'+t+'<span onmousedown="event.preventDefault();_chatRecentDel(\''+e+'\')" style="cursor:pointer;color:var(--fg3);font-weight:700;">×</span></div>';}).join(''):'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:2px 0;">No recent searches</div>';
+  var chips=rec.length?rec.map(function(t){var e=t.replace(/'/g,"");return '<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 10px;font-size:var(--fs-sm);font-weight:500;color:#fff;">'+t+'<span onpointerdown="event.preventDefault();_chatRecentDel(\''+e+'\')" style="cursor:pointer;color:var(--fg3);font-weight:700;touch-action:manipulation;">×</span></div>';}).join(''):'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:2px 0;">No recent searches</div>';
   var sugg=_CHAT_SUGG.map(function(g,i){
     var av=g.portrait?('<img src="https://randomuser.me/api/portraits/'+g.portrait+'.jpg" style="width:38px;height:38px;border-radius:50%;object-fit:cover;flex-shrink:0;"/>'):('<div style="width:38px;height:38px;border-radius:var(--rad-sm);background:'+g.grad+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);flex-shrink:0;">'+g.ic+'</div>');
-    return '<div onmousedown="event.preventDefault();_chatPickSugg('+i+')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;">'+av+'<div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">'+g.t+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);">'+g.s+'</div></div></div>';
+    return '<div onpointerdown="event.preventDefault();_chatPickSugg('+i+')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;touch-action:manipulation;">'+av+'<div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">'+g.t+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);">'+g.s+'</div></div></div>';
   }).join('');
-  d.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 7px;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;">RECENT SEARCHES</div>'+(rec.length?'<span onmousedown="event.preventDefault();_chatRecentClear()" style="font-size:var(--fs-xs);font-weight:600;color:#3d7bff;cursor:pointer;">Clear</span>':'')+'</div>'+
+  d.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px 7px;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;">RECENT SEARCHES</div>'+(rec.length?'<span onpointerdown="event.preventDefault();_chatRecentClear()" style="font-size:var(--fs-xs);font-weight:600;color:#3d7bff;cursor:pointer;touch-action:manipulation;">Clear</span>':'')+'</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 12px;">'+chips+'</div>'+
     '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;padding:2px 14px 4px;border-top:1px solid var(--gbdl);">SUGGESTIONS</div>'+sugg;
   d.style.display='block';
@@ -6771,10 +6924,11 @@ function openHangoutDetailModal(evtId) {
         '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
         '<div style="width:44px;height:44px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
 
+      var attIsVerified = att.isVerified || att.verified || ((userPro.isVerified || verified) && (att.id === userPro.id || (att.handle && att.handle.replace('@','') === userPro.handle.replace('@','')) || name === userPro.name));
       return '<div style="'+_attRow+'">' +
         photoHtml +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+name+'</div>' +
+          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;display:flex;align-items:center;gap:4px;"><span>'+name+'</span>'+_getVerifyBadgeHtml(attIsVerified, 14)+'</div>' +
           // No major and no resolvable school: drop the line rather than leave an
           // empty one padding the row.
           (major ? '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+major+'</div>' : '') +
@@ -6908,15 +7062,15 @@ function openHangoutDetailModal(evtId) {
           '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
           '<div style="width:40px;height:40px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+hostInit+'</div>';
 
+        var hostIsVerified = (e.creator && (e.creator.isVerified || e.creator.verified)) || ((userPro.isVerified || verified) && (e.creatorId === userPro.id || (hostHandle && hostHandle.replace('@','') === userPro.handle.replace('@','')) || hostName === userPro.name));
+
         return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;'+_cardNeon+'">' +
           hostAvHtml +
           '<div style="flex:1;min-width:0;">' +
             '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">HOSTED BY</div>' +
-            // One identifier only, in white. The dim grey second copy is gone.
-            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
-              // One identifier only: the display name when there is one, the handle
-              // otherwise. Showing both read as two different people.
-              (hostName && !hostSame ? hostName : hostHandle) +
+            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px;">' +
+              '<span>' + (hostName && !hostSame ? hostName : hostHandle) + '</span>' +
+              _getVerifyBadgeHtml(hostIsVerified, 14) +
             '</div>' +
           '</div>' +
         '</div>';
@@ -9569,8 +9723,8 @@ function buildHingeStackHtml(p,opts){
   var gradSuffix=gradYrFull?" '"+gradYrFull:'';
   var yis=_yearInSchoolFromGrad(p.grad);
   var compat=_personalityCompat(p);
-  // Verification badge next to the name — blue if ID-verified, yellow if only email-verified
-  var badgeColor=isSelf?((typeof curPlan!=='undefined'&&curPlan==='aplus'&&userPro.badgeColor)?userPro.badgeColor:((typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge)?'#ef4444':((typeof verified!=='undefined'&&verified)?'#1d9bf0':'#f59e0b'))):(p.verified?'#1d9bf0':'');
+  var isUserVerified = isSelf ? !!((typeof verified !== 'undefined' && verified) || (typeof userPro !== 'undefined' && userPro && userPro.isVerified)) : !!(p.isVerified || p.verified);
+  var badgeColor = isUserVerified ? '#1d9bf0' : (isSelf ? ((typeof curPlan!=='undefined'&&curPlan==='aplus'&&userPro.badgeColor)?userPro.badgeColor:((typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge)?'#ef4444':'#f59e0b')) : '');
   // A+ Student badge: a grad-cap (color by plan tier) sits next to the blue verification check
   var _PLAN_CAP={aplus:'#fbbf24',gold:'#fbbf24',premium:'#7aa5ff',silver:'#cbd5e1'};
   var _badgePlan=isSelf?((typeof curPlan!=='undefined')?curPlan:'free'):(p.plan||'');
@@ -10369,7 +10523,7 @@ function mapDbProfileToCrush(dbUser) {
     bio: profile.bio || '',
     ints: interests,
     org: (profile.academic && profile.academic.clubs && profile.academic.clubs.join(', ')) || '',
-    flags: profile.langs || (profile.background && profile.background.languages) || (profile.background && profile.background.langs) || ['English'],
+    flags: profile.langs || (profile.background && profile.background.languages) || (profile.background && profile.background.langs) || ['English (US)'],
     verified: profile.isVerified || false,
     religion: (profile.background && profile.background.religion) || '',
     gender: profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other',
@@ -18176,6 +18330,8 @@ function openChatSettings(){
   statsHtml += statCard('🔥','#f97316',convos,'Conversations');
   statsHtml += statCard('📅','#3d7bff',days,'Days talking');
 
+  var partnerIsVerified = _getPartnerVerifiedStatus(partner, displayName, curChatId);
+
   modal=document.createElement('div');modal.id='chat-settings-modal';modal.className='mov open';
   modal.innerHTML='<div class="msheet" style="max-height:94vh;overflow-y:auto;">'+
     '<div class="mhnd"></div>'+
@@ -18183,7 +18339,7 @@ function openChatSettings(){
     // profile header
     '<div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start;">'+
       '<div style="position:relative;flex-shrink:0;">'+avatar+heartBadge+'<div style="display:flex;flex-direction:column;gap:8px; margin-top:10px">'+statsHtml+'</div>'+'</div>'+
-      '<div style="flex:1;min-width:150px;"><div style="display:flex;align-items:center;gap:7px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+displayName+'</div><div class="vbadge" style="position:static;width:18px;height:18px;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>'+
+      '<div style="flex:1;min-width:150px;"><div style="display:flex;align-items:center;gap:7px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+displayName+'</div>'+_getVerifyBadgeHtml(partnerIsVerified, 18)+'</div>'+
       crushLine+
       '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.9;">👤 '+partnerFullName+'<br>🎓 '+major+'<br>🏛️ '+uniName+'<br>'+icon('mapPin',16)+' '+hometown+'<br>👥 '+mutualCount+' mutual friends</div>'+
       '<button onclick="openPartnerProfileCard(\''+curChatId+'\')" style="margin-top:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:8px 16px;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer; margin-top:15px">View Profile ›</button></div>'+
@@ -20311,14 +20467,24 @@ var _origUpdateProfileUI=updateProfileUI;
 updateProfileUI=function(){
   _origUpdateProfileUI();
   var vb=document.getElementById('vbadge');
+  var isBlue = !!((typeof verified !== 'undefined' && verified) || (typeof userPro !== 'undefined' && userPro && (userPro.isVerified || userPro.badgeColor === '#1d9bf0')));
   if(vb){
-    if(typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge){
+    if (isBlue) {
+      vb.style.display = 'flex';
+      vb.style.background = '#1d9bf0';
+      vb.title = 'ID Verified (Blue Badge 💙)';
+    } else if(typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge){
       // No student ID yet — red "unverified" badge
       vb.style.display='flex';vb.style.background='#ef4444';vb.title='Not verified — no student ID yet';
-    }else if(!vb.style.display||vb.style.display==='none'||vb.style.display===''){
-      // No badge set yet — show yellow "unverified" badge
+    } else {
+      // Yellow badge for email verified / default
       vb.style.display='flex';vb.style.background='#f59e0b';vb.title='Not verified — upload your student ID for a blue badge';
     }
+  }
+  var box = document.getElementById('verify-box');
+  if (box && isBlue) {
+    box.classList.add('done');
+    box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
   }
   // Sync the "Interested In" match-filter chips + DD panel with the saved/current preference
   var prow=document.getElementById('crush-int-chips');
@@ -21320,6 +21486,7 @@ function _renderSearchStudentCard(p) {
     : '<div style="width:100%;height:100%;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:var(--fs-md);">' + init + '</div>';
 
   var safeName = fullName.replace(/'/g, "\\'");
+  var cardIsVerified = p.isVerified || p.verified || ((userPro.isVerified || verified) && (fullName === userPro.name || handle === userPro.handle || '@' + handle === userPro.handle));
 
   return '<div class="search-student-card" onclick="openProfileCardByName(\'' + safeName + '\')">' +
     '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));">' +
@@ -21327,9 +21494,10 @@ function _renderSearchStudentCard(p) {
       '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #000000;"></div>' +
     '</div>' +
     '<div style="flex:1;min-width:0;">' +
-      '<div style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;">' +
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:4px;">' +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + fullName + '</span>' +
-        (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;">' + p.age + '</span>' : '') +
+        _getVerifyBadgeHtml(cardIsVerified, 14) +
+        (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;margin-left:2px;">' + p.age + '</span>' : '') +
       '</div>' +
       '<div style="font-size:var(--fs-sm);color:#38bdf8;font-weight:500;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + ' • ' + major + '</div>' +
       '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:2px;">🏛️ ' + acronym + '</div>' +
@@ -21615,7 +21783,7 @@ async function liveChatSearch(q) {
   if (matchedChats.length > 0) {
     h += '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg3);letter-spacing:.7px;padding:8px 14px 4px;">ACTIVE CHATS & EVENTS</div>';
     h += matchedChats.map(function(c) {
-      return '<div onmousedown="event.preventDefault(); _clickChatRow(\'' + c.id + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);">' +
+      return '<div onpointerdown="event.preventDefault(); _clickChatRow(\'' + c.id + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);touch-action:manipulation;">' +
         '<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.02);">' + c.avatarHtml + '</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + c.name + '</div>' +
@@ -21641,7 +21809,7 @@ async function liveChatSearch(q) {
         : '<div style="width:100%;height:100%;border-radius:50%;background:' + badgeColor + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:var(--fs-base);">' + init + '</div>';
         
       var safeName = fullName.replace(/'/g, "\\'");
-      return '<div onmousedown="event.preventDefault(); _startFriendChat(\'' + f.id + '\',\'' + safeName + '\',\'' + badgeColor + '\',\'' + init + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);">' +
+      return '<div onpointerdown="event.preventDefault(); _startFriendChat(\'' + f.id + '\',\'' + safeName + '\',\'' + badgeColor + '\',\'' + init + '\')" style="display:flex;align-items:center;gap:11px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--gbdl);touch-action:manipulation;">' +
         '<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;overflow:hidden;background:rgba(255,255,255,0.02);display:flex;align-items:center;justify-content:center;">' + avatar + '</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + fullName + '</div>' +

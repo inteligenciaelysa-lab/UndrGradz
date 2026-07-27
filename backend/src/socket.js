@@ -243,4 +243,15 @@ const notifyMatchCreated = (userAId, userBId, payloadA, payloadB) => {
   }
 };
 
-module.exports = { setupSocket, onlineUsers, notifyGhostModeChanged, notifyMatchCreated };
+const notifyUniversityCatalogUpdated = (uniData) => {
+  if (!ioInstance) return;
+  try {
+    ioInstance.emit('universityCatalogUpdated', uniData);
+    console.log(`⚡ Broadcasted live universityCatalogUpdated event`);
+  } catch (error) {
+    console.error('❌ Failed to emit live universityCatalogUpdated event:', error);
+  }
+};
+
+module.exports = { setupSocket, onlineUsers, notifyGhostModeChanged, notifyMatchCreated, notifyUniversityCatalogUpdated };
+

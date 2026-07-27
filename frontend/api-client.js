@@ -24,7 +24,7 @@ const API_HOST = HOST || 'localhost'; // file:// deja hostname vacío -> localho
 
 // Túnel público (efímero de trycloudflare) — reemplázalo por tu URL vigente si
 // vuelves a exponer el backend hacia afuera.
-const REMOTE_URL = 'https://tucson-seniors-multimedia-key.trycloudflare.com';
+const REMOTE_URL = 'https://ward-gabriel-either-exams.trycloudflare.com';
 
 const BASE_URL = IS_LOCAL
   ? `http://${API_HOST}:3000/api/v1`
@@ -42,9 +42,8 @@ class ApiClient {
     this.socket = null;
   }
 
-  // Retrieve stored tokens
   getAccessToken() {
-    return localStorage.getItem('accessToken');
+    return localStorage.getItem('accessToken') || localStorage.getItem('token') || localStorage.getItem('ugz_token') || sessionStorage.getItem('accessToken') || sessionStorage.getItem('token');
   }
 
   getRefreshToken() {
@@ -72,6 +71,9 @@ class ApiClient {
     
     // Prepare headers & credentials
     options.headers = options.headers || {};
+    if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+      options.body = JSON.stringify(options.body);
+    }
     options.headers['Content-Type'] = options.headers['Content-Type'] || 'application/json';
     options.credentials = 'include';
     
@@ -109,6 +111,38 @@ class ApiClient {
       console.error(`❌ API Request Error [${endpoint}]:`, error.message);
       throw error;
     }
+  }
+
+  get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'GET' });
+  }
+
+  post(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+  }
+
+  put(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(body)
+    });
+  }
+
+  patch(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    });
+  }
+
+  delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'DELETE' });
   }
 
   /**
@@ -535,6 +569,94 @@ class ApiClient {
 
     this.socket.on('friendLocationRemoved', (data) => {
       if (this.socketCallbacks.onFriendLocationRemoved) this.socketCallbacks.onFriendLocationRemoved(data);
+    });
+
+    this.socket.on('universityCatalogUpdated', (data) => {
+      console.log('🏛️ Received live universityCatalogUpdated notification:', data);
+      if (data && data.domain && typeof UNI !== 'undefined' && UNI) {
+        var existing = UNI[data.domain] || {};
+        UNI[data.domain] = Object.assign({}, existing, {
+          id: data.id || existing.id,
+          domain: data.domain,
+          t: data.type || existing.t || 'public',
+          type: data.type || existing.type || 'public',
+          name: data.name || existing.name,
+          acronym: data.acronym || existing.acronym,
+          p: data.primaryColor || existing.p || existing.primaryColor || '#6366f1',
+          primaryColor: data.primaryColor || existing.primaryColor || existing.p || '#6366f1',
+          p2: data.secondaryColor || existing.p2 || existing.secondaryColor || '#ec4899',
+          secondaryColor: data.secondaryColor || existing.secondaryColor || existing.p2 || '#ec4899',
+          ig: data.website || existing.ig || existing.website || '',
+          website: data.website || existing.website || existing.ig || '',
+          logoUrl: data.logoUrl || existing.logoUrl || '',
+          city: data.city || existing.city || '',
+          state: data.state || existing.state || '',
+          country: data.country || existing.country || 'Mexico',
+          isOfficial: data.isOfficial !== undefined ? data.isOfficial : (existing.isOfficial || false),
+          status: data.status || existing.status || 'AVAILABLE',
+          coverPhotos: (Array.isArray(data.coverPhotos) && data.coverPhotos.length > 0) ? data.coverPhotos : (existing.coverPhotos || [])
+        });
+      }
+      if (typeof _loadUniversities === 'function') {
+        _loadUniversities().then(() => {
+          if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
+          if (typeof renderCrushPreview === 'function') try { renderCrushPreview(); } catch(e){}
+        }).catch(() => {});
+      }
+    });
+
+    this.socket.on('userVerificationUpdated', (data) => {
+      console.log('🎓 Received live userVerificationUpdated notification:', data);
+      if (data) {
+        if (typeof userPro !== 'undefined' && userPro) {
+          if (data.status === 'APPROVED') {
+            if (typeof verified !== 'undefined') verified = true;
+            userPro.isVerified = true;
+            userPro.badgeColor = data.badgeColor || '#1d9bf0';
+            var vb = document.getElementById('vbadge');
+            if (vb) {
+              vb.style.display = 'flex';
+              vb.style.background = '#1d9bf0';
+              vb.title = 'ID Verified (Blue Badge)';
+            }
+            var box = document.getElementById('verify-box');
+            if (box) {
+              box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
+            }
+          } else if (data.status === 'REJECTED') {
+            if (typeof verified !== 'undefined') verified = false;
+            userPro.isVerified = false;
+            var box = document.getElementById('verify-box');
+            if (box) {
+              box.innerHTML = '⚠️ Credencial Rechazada — ' + (data.message || 'Intenta subir una foto clara.');
+            }
+          }
+        }
+        if (typeof pushNotification === 'function') {
+          try {
+            pushNotification(data.message || (data.status === 'APPROVED' ? '🎓 ¡Tu credencial fue aprobada! Insignia azul (Blue Badge) otorgada.' : '⚠️ Solicitud de verificación no aprobada.'), data.status === 'APPROVED' ? 'success' : 'warning');
+          } catch(e){}
+        }
+
+        if (typeof notifData !== 'undefined' && Array.isArray(notifData)) {
+          notifData.unshift({
+            type: 'system',
+            from: 'Undrgradz Admin',
+            handle: '@system',
+            av: data.status === 'APPROVED' ? '💙' : '⚠️',
+            color: data.status === 'APPROVED' ? '#1d9bf0' : '#ef4444',
+            msg: data.message || (data.status === 'APPROVED' ? '¡Tu credencial ha sido aprobada! Has obtenido la Insignia Azul.' : 'Tu credencial no pudo ser validada.'),
+            time: 'now',
+            id: 'verif_' + Date.now()
+          });
+          if (typeof _updateNotifBadge === 'function') try { _updateNotifBadge(); } catch(e){}
+        }
+        if (typeof alert === 'function') {
+          alert((data.title || 'Actualización de Verificación') + '\n\n' + data.message);
+        }
+        if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
+        if (typeof renderCrushPreview === 'function') try { renderCrushPreview(); } catch(e){}
+      }
     });
   }
 

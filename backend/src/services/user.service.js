@@ -16,6 +16,10 @@ class UserService {
         birthDate: true,
         isEmailVerified: true,
         isPhoneVerified: true,
+        isVerified: true,
+        isCreatorVerified: true,
+        isAthleteVerified: true,
+        isGovtVerified: true,
         createdAt: true,
         profile: true,
         photos: {
@@ -60,13 +64,27 @@ class UserService {
       })
     ]);
 
-    if (user.profile && (!user.profile.university || user.profile.university.trim() === '')) {
+    if (user.profile) {
       const domain = user.email ? user.email.split('@')[1] : '';
       if (domain) {
-        if (domain.includes('utnc') || domain.includes('utn')) user.profile.university = 'Universidad Tecnológica del Norte de Coahuila';
-        else if (domain.includes('uane')) user.profile.university = 'Universidad Americana del Noreste';
-        else if (domain.includes('uadec')) user.profile.university = 'Universidad Autónoma de Coahuila';
-        else if (domain.includes('utexas')) user.profile.university = 'The University of Texas at Austin';
+        const dbUni = await prisma.university.findUnique({ where: { domain } });
+        if (dbUni) {
+          const oldName = user.profile.university;
+          const oldUniId = user.profile.universityId;
+          user.profile.university = dbUni.name;
+          user.profile.universityDomain = dbUni.domain;
+          user.profile.universityId = dbUni.id;
+
+          if (oldName !== dbUni.name || oldUniId !== dbUni.id) {
+            await prisma.userProfile.update({
+              where: { id: user.profile.id },
+              data: {
+                university: dbUni.name,
+                universityId: dbUni.id,
+              }
+            }).catch(() => {});
+          }
+        }
       }
     }
 
@@ -263,14 +281,67 @@ class UserService {
           }
         },
         photos: {
-          orderBy: {
-            order: 'asc',
-          },
-          take: 1,
-        },
+          orderBy: { order: 'asc' },
+          take: 1
+        }
       },
-      take: 20,
+      take: 20
     });
+  }
+
+  /**
+   * Student ID Verification Request submission
+   */
+  async submitVerificationRequest(userId, { type = 'STUDENT_ID', documentUrl, credentialUrl, notes }) {
+    const credUrl = credentialUrl || documentUrl;
+    if (!credUrl) {
+      throw new AppError('Se requiere la foto o archivo de la credencial', 400);
+    }
+    const existing = await prisma.verificationRequest.findFirst({
+      where: { userId, type, status: 'PENDING' }
+    });
+
+    let requestRecord;
+    if (existing) {
+      requestRecord = await prisma.verificationRequest.update({
+        where: { id: existing.id },
+        data: {
+          credentialUrl: credUrl,
+          notes: notes || existing.notes || 'Subido por el estudiante',
+          createdAt: new Date()
+        }
+      });
+    } else {
+      requestRecord = await prisma.verificationRequest.create({
+        data: {
+          userId,
+          type,
+          status: 'PENDING',
+          credentialUrl: credUrl,
+          notes: notes || 'Solicitud enviada por el estudiante'
+        }
+      });
+    }
+
+    return requestRecord;
+  }
+
+  async getVerificationStatus(userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isVerified: true, isCreatorVerified: true, isAthleteVerified: true, isGovtVerified: true }
+    });
+
+    const latestRequest = await prisma.verificationRequest.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return {
+      isVerified: !!user?.isVerified,
+      badges: user,
+      latestRequest
+    };
   }
 }
 

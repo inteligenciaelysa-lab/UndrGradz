@@ -1972,7 +1972,7 @@ document.addEventListener('DOMContentLoaded', () => {
      ========================================================================== */
   let currentVerifTab = 'ALL';
   let activeFilters = {
-    status: 'PENDING',
+    status: 'ALL',
     type: 'ALL',
     university: 'ALL',
     major: 'ALL',
@@ -2480,7 +2480,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       fileWidgetHtml = `
-        <div class="verif-file-widget" onclick="openCredentialModal('${photoUrl}', '${u.firstName} ${u.lastName}', '${req.type}')" title="Haz clic para inspeccionar documento">
+        <div class="verif-file-widget" onclick="openCredentialModal('${req.id}')" title="Haz clic para inspeccionar documento">
           <div class="flex items-center gap-3">
             <div class="verif-file-icon-box">📄</div>
             <div>
@@ -2501,7 +2501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       fileWidgetHtml = `
-        <div class="verif-file-widget" onclick="openCredentialModal('${photoUrl}', '${u.firstName} ${u.lastName}', '${req.type}')" title="Haz clic para inspeccionar documento">
+        <div class="verif-file-widget" onclick="openCredentialModal('${req.id}')" title="Haz clic para inspeccionar documento">
           <div class="flex items-center gap-3">
             <div class="verif-file-icon-box">📄</div>
             <div>
@@ -2521,7 +2521,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       fileWidgetHtml = `
-        <div class="verif-file-widget" onclick="openCredentialModal('${photoUrl}', '${u.firstName} ${u.lastName}', '${req.type}')" title="Haz clic para inspeccionar documento">
+        <div class="verif-file-widget" onclick="openCredentialModal('${req.id}')" title="Haz clic para inspeccionar documento">
           <div class="flex items-center gap-3">
             <div class="verif-file-icon-box">🪪</div>
             <div>
@@ -2575,11 +2575,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="flex gap-2">
             ${isCreator ? `
-              <button class="btn-verif-view flex-1" onclick="openCredentialModal('${photoUrl}', '${u.firstName} ${u.lastName}', '${req.type}')">
+              <button class="btn-verif-view flex-1" onclick="openCredentialModal('${req.id}')">
                 👁️ Ver perfiles
               </button>
             ` : `
-              <button class="btn-verif-view flex-1" onclick="openCredentialModal('${photoUrl}', '${u.firstName} ${u.lastName}', '${req.type}')">
+              <button class="btn-verif-view flex-1" onclick="openCredentialModal('${req.id}')">
                 👁️ Ver doc
               </button>
             `}
@@ -2600,6 +2600,80 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
   }
+
+  // Define global modal inspection viewer for student credentials
+  window.openCredentialModal = (requestId) => {
+    const req = cachedRequests.find(r => r.id === requestId);
+    const u = req ? (req.user || {}) : {};
+    const studentName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Estudiante';
+    const handle = u.handle || `@${u.firstName?.toLowerCase() || 'user'}`;
+    const university = u.profile?.university || 'Universidad';
+    const major = u.profile?.major || '';
+    const majorText = major ? ` (${major})` : '';
+    let rawDocUrl = req?.credentialUrl;
+    let isValidDocUrl = rawDocUrl && typeof rawDocUrl === 'string' && (rawDocUrl.startsWith('data:') || rawDocUrl.startsWith('http://') || rawDocUrl.startsWith('https://') || rawDocUrl.startsWith('/'));
+    let docUrl = isValidDocUrl ? rawDocUrl : (u.photos && u.photos[0] ? u.photos[0].url : null);
+
+    const isApproved = req?.status === 'APPROVED';
+    const isRejected = req?.status === 'REJECTED';
+
+    const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().includes('.pdf') || docUrl.startsWith('data:application/pdf'));
+
+    let previewHtml = '';
+    if (!docUrl) {
+      previewHtml = `
+        <div style="text-align:center; padding:30px 15px; background:rgba(239,68,68,0.1); border-radius:12px; border:1.5px solid rgba(239,68,68,0.3); margin:12px 0;">
+          <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
+          <div style="font-size:14px; font-weight:700; color:#ef4444;">No se adjuntó archivo de credencial válido</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:4px;">El estudiante deberá volver a subir una fotografía legible de su credencial desde la app.</div>
+        </div>
+      `;
+    } else if (isPdf) {
+      previewHtml = `<iframe src="${docUrl}" style="width:100%; height:480px; border-radius:12px; border:1px solid rgba(255,255,255,0.15);"></iframe>`;
+    } else {
+      previewHtml = `
+        <div style="text-align:center; padding:12px; background:rgba(0,0,0,0.5); border-radius:12px; border:1.5px solid rgba(255,255,255,0.1); margin:12px 0;">
+          <img src="${docUrl}" alt="Credencial Estudiantil" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:8px; display:inline-block; box-shadow:0 8px 30px rgba(0,0,0,0.5);" />
+        </div>
+      `;
+    }
+
+    openModal(`
+      <div style="padding:4px;">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-2">
+          <div>
+            <h3 style="font-size:17px; font-weight:800; color:#fff; margin:0;" class="flex items-center gap-2">
+              <span>🪪 Documento de Verificación Estudiantil</span>
+            </h3>
+            <div style="font-size:12px; color:#a855f7; font-weight:600; margin-top:3px;">
+              ${studentName} <span style="color:#94a3b8; font-weight:400;">(${handle})</span> · ${university}${majorText}
+            </div>
+          </div>
+        </div>
+
+        ${previewHtml}
+
+        <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-800">
+          <div style="font-size:12px; color:#94a3b8; font-weight:600;">
+            Estado actual: <span style="color:${isApproved ? '#22c55e' : (isRejected ? '#ef4444' : '#f59e0b')}; text-transform:uppercase;">${req?.status || 'PENDIENTE'}</span>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cerrar</button>
+            ${!isApproved ? `
+              <button class="btn btn-success btn-sm font-bold" onclick="closeModal(); confirmApproveVerif('${requestId}', '${req?.type}', '${studentName}')">
+                ✓ Aprobar Credencial
+              </button>
+            ` : ''}
+            ${!isRejected ? `
+              <button class="btn btn-danger btn-sm font-bold" onclick="closeModal(); confirmRejectVerif('${requestId}', '${studentName}')">
+                ✕ Rechazar
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `);
+  };
 
   // Interactive Confirmation & Modals for Approval and Rejection
   window.confirmApproveVerif = async (requestId, type, studentName) => {

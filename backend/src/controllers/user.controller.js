@@ -191,6 +191,46 @@ class UserController {
       next(error);
     }
   }
+
+  async submitVerificationRequest(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const { type, documentUrl, credentialUrl, notes } = req.body;
+      const finalUrl = credentialUrl || documentUrl;
+      const requestRecord = await userService.submitVerificationRequest(userId, { type, credentialUrl: finalUrl, notes });
+
+      try {
+        const { getIO } = require('../socket');
+        const io = getIO();
+        if (io) {
+          io.emit('newVerificationRequest', requestRecord);
+        }
+      } catch (_) {}
+
+      res.status(201).json({
+        status: 'success',
+        data: {
+          request: requestRecord,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getVerificationStatus(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const statusData = await userService.getVerificationStatus(userId);
+
+      res.status(200).json({
+        status: 'success',
+        data: statusData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();
