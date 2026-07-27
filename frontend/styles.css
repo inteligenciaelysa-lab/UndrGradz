@@ -6322,16 +6322,20 @@ html.light-secondary #ev-publish-btn {
   border: 1px solid color-mix(in srgb, var(--sub-hue) 40%, transparent);
   color: var(--sub-hue);
 }
+/* Just the fill. The lit border-box edge used to end in
+   color-mix(hue, #fff) — at this size that pale ring read as an outline drawn
+   around the tab rather than as a glow, so the border, the halo and the
+   text-shadow are all gone. */
 .adm-sub-btn.on {
-  border: 1.5px solid transparent;
+  /* transparent, not none: the idle state carries a 1px border, and dropping it
+     here would make the selected tab 2px shorter than its neighbours. */
+  border: 1px solid transparent;
   background: linear-gradient(135deg,
                 color-mix(in srgb, var(--sub-hue) 72%, #000) 0%,
-                color-mix(in srgb, var(--sub-hue) 29%, #000) 100%) padding-box,
-              linear-gradient(135deg, var(--sub-hue),
-                color-mix(in srgb, var(--sub-hue) 35%, #fff)) border-box;
+                color-mix(in srgb, var(--sub-hue) 29%, #000) 100%);
   color: #fff;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--sub-hue) 40%, transparent);
-  text-shadow: 0 0 8px var(--sub-hue);
+  box-shadow: none;
+  text-shadow: none;
 }
 /* The icon inherits currentColor in both states. It used to be pinned to the
    hue, which on the selected tab is the colour of its own fill. */
@@ -9683,17 +9687,19 @@ select:-webkit-autofill {
   height: 3px;
   border-radius: 2px;
   background: var(--chip, #3d7bff);
-  box-shadow: 0 0 10px var(--chip, #3d7bff),
-              0 0 18px color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
-  transform: scaleX(0);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1);
   transform-origin: center;
-  opacity: 0;
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   pointer-events: none;
 }
 .nfchip.on::after {
   transform: scaleX(1);
   opacity: 1;
+  box-shadow: 0 0 10px var(--chip, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
 }
 
 /* ══ SETTINGS — a different neon edge per section ══
@@ -9819,18 +9825,20 @@ select:-webkit-autofill {
   height: 3px;
   border-radius: 2px;
   background: var(--chip, #3d7bff);
-  box-shadow: 0 0 10px var(--chip, #3d7bff),
-              0 0 18px color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
-  transform: scaleX(0);
+  /* Idle: the line is there, just dim and unlit — you can see every section's
+     colour at a glance. Selecting it turns the glow on. */
+  box-shadow: none;
+  transform: scaleX(1);
   transform-origin: center;
-  opacity: 0;
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   pointer-events: none;
 }
 #sec-chats .chatsec-chip.on::after,
 #sec-hangouts .evsec-chip.on::after {
-  transform: scaleX(1);
   opacity: 1;
+  box-shadow: 0 0 10px var(--chip, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--chip, #3d7bff) 55%, transparent);
 }
 
 /* Nightlife/Matches had a wine FILL when selected; with no pill there is
@@ -9929,18 +9937,22 @@ select:-webkit-autofill {
   height: 3px;
   border-radius: 2px;
   background: var(--tab-hue, #3d7bff);
-  box-shadow: 0 0 10px var(--tab-hue, #3d7bff),
-              0 0 18px color-mix(in srgb, var(--tab-hue, #3d7bff) 55%, transparent);
-  transform: scaleX(0);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1);
   transform-origin: center;
-  opacity: 0;
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   pointer-events: none;
 }
+/* These two use .active rather than .on, so they need their own copy of the
+   selected state — the glow lives here, the idle line above stays unlit. */
 #discover-tabs .crush-tab.active::after,
 #prof-tabs .prof-tab.active::after {
   transform: scaleX(1);
   opacity: 1;
+  box-shadow: 0 0 10px var(--tab-hue, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--tab-hue, #3d7bff) 55%, transparent);
 }
 
 /* ── Hangouts sort control: underline instead of an outlined bubble ── */
@@ -10015,18 +10027,22 @@ select:-webkit-autofill {
   height: 3px;
   border-radius: 2px;
   background: var(--grp-hue, #3d7bff);
-  box-shadow: 0 0 10px var(--grp-hue, #3d7bff),
-              0 0 18px color-mix(in srgb, var(--grp-hue, #3d7bff) 55%, transparent);
-  transform: scaleX(0);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1);
   transform-origin: center;
-  opacity: 0;
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   pointer-events: none;
 }
 #ptab-panel-filters .yr-chip.on::after,
 #match-filters-wrap .yr-chip.on::after {
   transform: scaleX(1);
   opacity: 1;
+  /* --grp-hue, the same variable the line above uses. It briefly read --tab-hue,
+     which made every filter chip glow blue under a red/green/amber line. */
+  box-shadow: 0 0 10px var(--grp-hue, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--grp-hue, #3d7bff) 55%, transparent);
 }
 
 /* ══ FILTER SECTION TITLES: A LINE PER SECTION ══
@@ -10149,12 +10165,12 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 }
 .gallow.on,
 #ev-year-chips .yr-chip.on {
-  border: 1.5px solid transparent !important;
+  /* The edge used to be a gradient ending in color-mix(hue, #fff), which read as
+     a white outline around the filled chip. Solid hue instead. */
+  border: 1.5px solid var(--g-hue) !important;
   background: linear-gradient(135deg,
                 color-mix(in srgb, var(--g-hue) 72%, #000) 0%,
-                color-mix(in srgb, var(--g-hue) 29%, #000) 100%) padding-box,
-              linear-gradient(135deg, var(--g-hue),
-                color-mix(in srgb, var(--g-hue) 35%, #fff)) border-box !important;
+                color-mix(in srgb, var(--g-hue) 29%, #000) 100%) !important;
   color: #fff !important;
   /* No halo here, by request: the gradient fill and the lighter edge already
      mark the selection, and 7 chips glowing at once was too much. */
@@ -10221,12 +10237,12 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
   height: 3px;
   border-radius: 2px;
   background: var(--hg-hue, #3d7bff);
-  box-shadow: 0 0 10px var(--hg-hue, #3d7bff),
-              0 0 18px color-mix(in srgb, var(--hg-hue, #3d7bff) 55%, transparent);
-  transform: scaleX(0);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1);
   transform-origin: center;
-  opacity: 0;
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   pointer-events: none;
 }
 #ev-uni-choose-chips .yr-chip.on::after,
@@ -10236,6 +10252,8 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 #ev-lang-chips .yr-chip.on::after {
   transform: scaleX(1);
   opacity: 1;
+  box-shadow: 0 0 10px var(--hg-hue, #3d7bff),
+              0 0 18px color-mix(in srgb, var(--hg-hue, #3d7bff) 55%, transparent);
 }
 
 /* Discover's third sub-tab. 'saw' keeps the neon orange it was given by request
@@ -10346,17 +10364,19 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
      #ptab-panel-filters .yr-chip::after) sit one specificity tier above this
      two-class selector and would keep painting their flat group hue. */
   background: linear-gradient(90deg, var(--u-p, #3d7bff), var(--u-p2, #3d7bff)) !important;
-  box-shadow: 0 0 10px var(--u-p, #3d7bff),
-              0 0 16px color-mix(in srgb, var(--u-p2, #3d7bff) 45%, transparent) !important;
-  transform: scaleX(0);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1);
   transform-origin: center;
-  opacity: 0;
-  transition: transform var(--dur) var(--ease-out), opacity var(--dur) var(--ease);
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
   pointer-events: none;
 }
 .uni-chips-box .yr-chip.on::after {
   transform: scaleX(1);
   opacity: 1;
+  box-shadow: 0 0 10px var(--u-p, #3d7bff),
+              0 0 16px color-mix(in srgb, var(--u-p2, #3d7bff) 45%, transparent) !important;
 }
 /* The country headings inside the box are not chips — keep them out of it. */
 .uni-chips-box .uni-grp-head::after { content: none; }
@@ -10419,4 +10439,501 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 #evp-create .ehcard > *:not(.ehsec) {
   margin-left: 2px;
   margin-right: 2px;
+}
+
+/* ══════════ SIGN UP / ONBOARDING: TODO A SUBRAYADO NEÓN ══════════
+   The last stretch of the app still on pills. Same language as the filters and
+   the tab bars: no capsule, white label, a neon line that lights on selection.
+   Three families share the recipe and differ only in where the hue comes from —
+   --ob-hue for a plain chip, the category hue for interests, and a flag gradient
+   for languages. */
+
+/* ── 1. Los chips de sign up ── */
+.ob4-chip {
+  --ob-hue: #e04155;
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 7px 10px 10px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+.ob4-chip.on {
+  /* box-shadow has to be reset too: the layer at ~8337 forces a white edge and
+     a coloured glow on the selected chip with !important. */
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+}
+.ob4-chip::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ob-line, var(--ob-hue));
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1);
+  transform-origin: center;
+  opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  pointer-events: none;
+}
+.ob4-chip.on::after { transform: scaleX(1); opacity: 1;   box-shadow: 0 0 10px var(--ob-hue), 0 0 18px color-mix(in srgb, var(--ob-hue) 50%, transparent);
+}
+
+/* ── 2. Las pestañas de categoría de intereses, un tono cada una ── */
+.ob4-catchip[data-cat="All"]      { --cat-hue: #3d7bff; }
+.ob4-catchip[data-cat="Lifestyle"]{ --cat-hue: #22c55e; }
+.ob4-catchip[data-cat="Hobbies"]  { --cat-hue: #c084fc; }
+.ob4-catchip[data-cat="Arts"]     { --cat-hue: #ec4899; }
+.ob4-catchip[data-cat="Sports"]   { --cat-hue: #a3e635; }
+.ob4-catchip[data-cat="Academic"] { --cat-hue: #22d3ee; }
+.ob4-catchip[data-cat="Social"]   { --cat-hue: #fbbf24; }
+.ob4-catchip {
+  --cat-hue: #3d7bff;
+  position: relative;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 8px 11px 11px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+/* Same here: ~8357 sets a white border and a cyan halo with !important. */
+.ob4-catchip.on {
+  color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.ob4-catchip::after {
+  content: "";
+  position: absolute;
+  left: 7px; right: 7px; bottom: 0;
+  height: 3px; border-radius: 2px;
+  background: var(--cat-hue);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1); transform-origin: center; opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  pointer-events: none;
+}
+.ob4-catchip.on::after { transform: scaleX(1); opacity: 1;   box-shadow: 0 0 10px var(--cat-hue), 0 0 18px color-mix(in srgb, var(--cat-hue) 50%, transparent);
+}
+
+/* ── 3. Las tarjetas de interés heredan el tono de SU categoría ──
+   data-cat comes from the third field of each INTERESTS4 entry, so an interest
+   is always the colour of the category it belongs to, whichever tab you are on. */
+.ob4-int[data-cat="Lifestyle"] { --cat-hue: #22c55e; }
+.ob4-int[data-cat="Hobbies"]   { --cat-hue: #c084fc; }
+.ob4-int[data-cat="Arts"]      { --cat-hue: #ec4899; }
+.ob4-int[data-cat="Sports"]    { --cat-hue: #a3e635; }
+.ob4-int[data-cat="Academic"]  { --cat-hue: #22d3ee; }
+.ob4-int[data-cat="Social"]    { --cat-hue: #fbbf24; }
+.ob4-int {
+  --cat-hue: #3d7bff;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 14px 6px 13px !important;
+}
+.ob4-int::after {
+  content: "";
+  position: absolute;
+  left: 10px; right: 10px; bottom: 0;
+  height: 3px; border-radius: 2px;
+  background: var(--cat-hue);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1); transform-origin: center; opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  pointer-events: none;
+}
+.ob4-int.on::after { transform: scaleX(1); opacity: 1;   box-shadow: 0 0 10px var(--cat-hue), 0 0 18px color-mix(in srgb, var(--cat-hue) 50%, transparent);
+}
+.ob4-int.on { background: transparent !important; box-shadow: none !important; }
+.ob4-int .inm { color: rgba(255, 255, 255, 0.78); }
+.ob4-int.on .inm { color: #fff; }
+/* The +/✓ corner badge loses its circle along with everything else. */
+.ob4-int .iadd {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--cat-hue) !important;
+  font-weight: 800;
+}
+
+/* ── 4. Los badges A+ Student: texto subrayado en amarillo, sin cápsula ── */
+.filter-lock-badge,
+.tag.gold {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 0 3px !important;
+  color: #fde047 !important;
+  box-shadow: inset 0 -2px 0 0 #fde047 !important;
+  text-shadow: 0 0 8px color-mix(in srgb, #fde047 45%, transparent);
+}
+
+/* ── Hangouts: Type of University / University chips a subrayado neón ──
+   These two groups sit in card 6 and were still capsules. Cyan for the type,
+   magenta for the university, matching their equivalents in the Crush filters. */
+#ev-schooltype-chips { --hg-hue: #22d3ee; }
+#ev-uni-scope        { --hg-hue: #ec4899; }
+#ev-schooltype-chips .yr-chip,
+#ev-uni-scope .yr-chip {
+  position: relative !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 7px 10px 10px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  text-shadow: none !important;
+}
+#ev-schooltype-chips .yr-chip.on,
+#ev-uni-scope .yr-chip.on {
+  color: #fff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+#ev-schooltype-chips .yr-chip::after,
+#ev-uni-scope .yr-chip::after {
+  content: "";
+  position: absolute;
+  left: 8px; right: 8px; bottom: 0;
+  height: 3px; border-radius: 2px;
+  background: var(--hg-hue);
+  /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
+  box-shadow: none;
+  transform: scaleX(1); transform-origin: center; opacity: 0.3;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  pointer-events: none;
+}
+#ev-schooltype-chips .yr-chip.on::after,
+#ev-uni-scope .yr-chip.on::after { transform: scaleX(1); opacity: 1;   box-shadow: 0 0 10px var(--hg-hue), 0 0 18px color-mix(in srgb, var(--hg-hue) 55%, transparent);
+}
+
+/* ── Los títulos de las secciones de sign up, subrayados ──
+   .ob4-flabel is the label over each chip group (On campus I live…, I am
+   involved in…, ethnicity, religion, politics). A fading line, the same shape
+   the Match Filters headings use, so a heading never reads as a selection. */
+.ob4-flabel,
+#ob4-content .field > label {
+  --ob-hue: #e04155;
+  position: relative;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+.ob4-flabel::after,
+#ob4-content .field > label::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--ob-hue) 0%, color-mix(in srgb, var(--ob-hue) 45%, transparent) 45%, transparent 100%);
+  box-shadow: 0 0 9px color-mix(in srgb, var(--ob-hue) 55%, transparent);
+  pointer-events: none;
+}
+
+/* ── El CONTINUE del sign up: el primario de la escuela, sólido ──
+   It was a three-stop gradient (uni primary → wine → uni secondary) with a white
+   edge and a halo, then two stops. Now one flat colour: the school's primary,
+   the same --uni-p that detectUni() writes from the email domain, so CONTINUE
+   and the GRADZ logo always agree. No gradient, no border, no halo. */
+.ob4-cta {
+  background: var(--uni-p, var(--p)) !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.ob4-cta:hover:not(:disabled) {
+  box-shadow: none !important;
+  filter: brightness(1.08);
+}
+
+/* ── Volver: dos salidas desde cualquier paso del sign up ── */
+.ob4-backrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  flex-wrap: wrap;
+}
+.ob4-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: var(--rad-pill);
+  background: #000;
+  border: 1.5px solid color-mix(in srgb, var(--p) 45%, transparent);
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.ob4-back:hover { border-color: var(--p); color: #fff; }
+/* Leaving sign-up entirely is the destructive one, so it wears the wine edge. */
+.ob4-back.exit { border-color: color-mix(in srgb, var(--wine) 55%, transparent); }
+.ob4-back.exit:hover { border-color: var(--wine); }
+
+/* The lone "Back to log in" now sits above the logo, so it reads as leaving the
+   flow rather than as a step control. Quiet by default. */
+.ob4-backrow {
+  justify-content: flex-start;
+  margin: 0 0 6px;
+}
+.ob4-back.exit {
+  padding: 7px 12px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.62);
+}
+.ob4-back.exit:hover {
+  border-color: color-mix(in srgb, var(--wine) 65%, transparent);
+  color: #fff;
+}
+
+/* ── Login: fuera el borde blanco y el halo ──
+   The tab bar, the selected tab and the submit button each carried a white edge
+   plus a red halo (some of it as an inset white highlight, which is what read as
+   an outline on the red fill). Flat now — the red fill is enough to say which
+   one is selected. */
+.auth-tabs-bar {
+  border: none !important;
+}
+.auth-tab-btn.active {
+  box-shadow: none !important;
+}
+.auth-submit-btn,
+#do-login-btn {
+  border: none !important;
+  box-shadow: none !important;
+}
+.auth-submit-btn:hover,
+#do-login-btn:hover {
+  box-shadow: none !important;
+  filter: brightness(1.08);
+}
+
+/* ── Invite Friends: el interruptor en ámbar ──
+   Scoped to this one toggle so it matches the amber "Friends portion" block it
+   reveals; every other .sw keeps the school colour. */
+#ev-friends-sw.on {
+  background: #fbbf24 !important;
+}
+
+/* ── Los badges A+ Student vuelven a ser pastilla ──
+   They were briefly yellow underlined text. Back to the capsule, and now BOTH
+   classes share one recipe — .filter-lock-badge and .tag.gold used to be styled
+   separately and drifted apart. */
+.filter-lock-badge,
+.tag.gold {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  border: none !important;
+  border-radius: var(--rad-pill) !important;
+  padding: 2px 9px !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  white-space: nowrap;
+}
+
+/* ── El botón Publish toma el color de la sección elegida ──
+   --pub-hue is written by onEvSectionChange() from _secColor(); the fallback
+   keeps the school colour for the very first paint. */
+#evp-create #ev-publish-btn {
+  background: linear-gradient(90deg,
+              var(--pub-hue, var(--p)),
+              color-mix(in srgb, var(--pub-hue, var(--p)) 45%, #000)) !important;
+}
+
+/* ── La barra Friends / Matches / Events Joined, ahora en Activity ──
+   .prof-stats was drawn to sit on the cover photo: frosted blur, translucent
+   black, no bottom margin. In Activity it sits on flat black instead, so the
+   blur has nothing to blur and the strip needs room under it before the
+   Events Created / Joined list starts. */
+.act-stats {
+  margin: 0 auto 16px;
+  max-width: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: #000;
+}
+
+/* ── Los botones Change / Verify / Switch toman el color de su sección ──
+   .set-chg went through six earlier layers (glass, ghost, gradient, glow…) and
+   ended up as a vertical three-stop gradient in var(--p), the university colour,
+   identical in every section. It now fills flat with the section's own
+   --sec-neon — one solid colour, no gradient, no halo — so each button matches
+   the card it sits in. --sec-ink is written next to --sec-neon by
+   _paintSettingsNeon() and flips to black on the light hues.
+   Scoped to #settings-modal and marked !important to clear the earlier layers;
+   .set-chg outside Settings is unaffected. */
+#settings-modal .set-chg {
+  background: var(--sec-neon, var(--p)) !important;
+  background-image: none !important;
+  border: 1px solid var(--sec-neon, var(--p)) !important;
+  color: var(--sec-ink, #fff) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* ══ APP THEME · UNIVERSITY COLORS ═══════════════════════════════════════════
+   Second look for the whole app, switched from Settings > Appearance. The
+   canvas takes the school's primary and the GENERIC accents take its
+   secondary; anything whose hue identifies a category keeps its own colour.
+
+   Two variables, both written by _applyAppTheme():
+     --uni-field  the canvas — color-mix(var(--p) 22%, #000)
+     --uni-neon   the generic accent — normally var(--p2)
+
+   Why 22% and not the flat school colour: on flat #01A986 (UTNC) its gold
+   underline measures 1.06 contrast — 1.0 means the two colours are identical.
+   At 22% it is 5.16 and the field still reads as UTNC green.
+
+   Everything here is !important because it has to beat the BLACK CANVAS layer
+   at ~9516 and the inline hues several of these variables get from JS. */
+
+/* ── The canvas. These three rules are the only ones the mode has to overturn:
+      BLACK CANVAS pins html/body/#app to #000 !important, which is exactly why
+      the var(--p) gradients at 203 and 993 are dead code today. ── */
+html.theme-uni,
+html.theme-uni body {
+  background: var(--uni-field, #000) !important;
+  background-image: none !important;
+}
+html.theme-uni #app {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--uni-field, #000) 78%, #000) 0%,
+    var(--uni-field, #000) 45%,
+    color-mix(in srgb, var(--uni-field, #000) 82%, #000) 100%
+  ) !important;
+}
+/* Panels and cards deliberately untouched — they stay near-black, which is what
+   keeps every neon accent legible once the field behind them is coloured. */
+
+/* ── Generic accents → the school's secondary.
+      NOT touched, on purpose: --grp-hue, --chip, --cat-hue, --step-hue,
+      --g-hue, --hg-hue, --sort-hue, --sec-neon, --pub-hue, --u-p/--u-p2.
+      Each of those identifies a specific thing (which filter group, which
+      interest category, which settings section), so flattening them would
+      throw away information the colour is carrying. ── */
+html.theme-uni .neon-card,
+html.theme-uni .crush-tab,
+html.theme-uni .prof-tab,
+html.theme-uni .adm-sub-btn {
+  --neon: var(--uni-neon) !important;
+  --tab-hue: var(--uni-neon) !important;
+  --sub-hue: var(--uni-neon) !important;
+}
+html.theme-uni {
+  --neon-blue: var(--uni-neon) !important;
+  --neon-cyan: var(--uni-neon) !important;
+  --neon-pink: var(--uni-neon) !important;
+  --neon-purple: var(--uni-neon) !important;
+  --neon-violet: var(--uni-neon) !important;
+  --neon-magenta: var(--uni-neon) !important;
+  --neon-green: var(--uni-neon) !important;
+  --neon-lime: var(--uni-neon) !important;
+  --neon-gold: var(--uni-neon) !important;
+  --neon-amber: var(--uni-neon) !important;
+  --neon-orange: var(--uni-neon) !important;
+  --neon-red: var(--uni-neon) !important;
+}
+
+/* ── Crush: one colour for all five actions, white glyphs. The SVGs already
+      stroke with currentColor, so the colour declaration is enough. ── */
+html.theme-uni .crb-neon-undo,
+html.theme-uni .crb-neon-x,
+html.theme-uni .crb-neon-star,
+html.theme-uni .crb-neon-heart,
+html.theme-uni .crb-neon-rose {
+  background: var(--uni-neon) !important;
+  border-color: var(--uni-neon) !important;
+  color: #fff !important;
+}
+html.theme-uni .crb-neon-undo:hover,
+html.theme-uni .crb-neon-x:hover,
+html.theme-uni .crb-neon-star:hover,
+html.theme-uni .crb-neon-heart:hover,
+html.theme-uni .crb-neon-rose:hover {
+  box-shadow: 0 0 14px color-mix(in srgb, var(--uni-neon) 70%, transparent) !important;
+}
+
+/* ── Sign-up and auth stay in Undrgradz: you have no school to theme with until
+      you pick one, and step 3 hands out its own 12 label hues. ── */
+html.theme-uni #authscreen,
+html.theme-uni #onboarding {
+  background: #000 !important;
+}
+
+/* ── Settings > Appearance: the two mode buttons. _paintAppThemeBtns() writes
+      the fill inline via _gradSkin; only the row needs styling. ── */
+#apptheme-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ══ App Theme: apagado ══════════════════════════════════════════════════════
+   The Undrgradz / University Colors switch is off (APP_THEME_ENABLED in app.js).
+   The section is HIDDEN, not removed: applyLanguageTranslations() walks .set-h
+   and _paintSettingsNeon() walks .set-card, both BY INDEX, so pulling these two
+   nodes out of the markup would shift every section title and hue after them —
+   the bug that has already bitten this file twice. display:none keeps them
+   counted and everything stays aligned.
+   Turning APP_THEME_ENABLED back on adds html.apptheme-on and they reappear.
+
+   Written as :not(.apptheme-on) with !important rather than a hide/show pair:
+   initSettingsAccordion() (app.js:16285) writes `display:flex` INLINE on every
+   .set-h, so a plain rule loses, and a "show" rule of our own would have to
+   guess the natural value and would fight the accordion. One rule, no guessing. */
+html:not(.apptheme-on) #set-h-appearance,
+html:not(.apptheme-on) #set-card-appearance {
+  display: none !important;
+}
+
+/* ══ El registro sigue al correo: GRADZ y CONTINUE ═══════════════════════════
+   Both read --uni-p, which detectUni() writes from the email domain on every
+   keystroke, so the logo and the button always show the same school colour —
+   UT Austin orange, UTNC green, UANL blue.
+
+   Schools flagged brandDefault in the UNI table opt out of both and keep the
+   default red. Only SMU carries it today: its own colours are red and blue, and
+   the default red is already the one they want.
+
+   Scoped to these two on purpose — --uni-p feeds a dozen other things on this
+   screen (progress bar, glows, chips) that must keep the school's real colour. */
+html.brand-default .ob4-brand .logo-gradz {
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+}
+/* :not(:disabled) matters: this selector outweighs .ob4-cta:disabled (~6954),
+   so without it an SMU user would get a red CONTINUE while it is still greyed
+   out and unclickable. */
+html.brand-default .ob4-cta:not(:disabled) {
+  background: #dc2626 !important;
+  background-image: none !important;
 }

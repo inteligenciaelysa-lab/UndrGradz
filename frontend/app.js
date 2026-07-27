@@ -69,6 +69,9 @@ var I18N = {
     "set-pwd-title": "Password & Security",
     "set-pwd-desc": "Update your password",
     "set-h-campus": "Campus & Identity",
+    "set-h-appearance": "Appearance",
+    "set-apptheme-title": "App Theme",
+    "set-apptheme-desc": "How the whole app is coloured",
     "set-uni-title": "My University",
     "set-class-title": "Class Year",
     "set-major-title": "Major",
@@ -115,8 +118,6 @@ var I18N = {
     "set-interests-desc": "Customize your interests",
     "set-discocrush-title": "Discoverable in Crush",
     "set-discocrush-desc": "Let others find you in Crush",
-    "set-crossover-title": "Open to alumni & students",
-    "set-crossover-desc": "Match across student/alumni",
     "set-h-support": "Support & About",
     "set-help-title": "Help Center",
     "set-help-desc": "FAQs and support",
@@ -234,6 +235,9 @@ var I18N = {
     "set-pwd-title": "Contraseña y Seguridad",
     "set-pwd-desc": "Cambiar tu contraseña",
     "set-h-campus": "Universidad e Identidad",
+    "set-h-appearance": "Apariencia",
+    "set-apptheme-title": "Tema de la App",
+    "set-apptheme-desc": "Cómo se colorea toda la app",
     "set-uni-title": "Mi Universidad",
     "set-class-title": "Generación",
     "set-major-title": "Carrera",
@@ -280,8 +284,6 @@ var I18N = {
     "set-interests-desc": "Personaliza tus intereses",
     "set-discocrush-title": "Visible en Crushes",
     "set-discocrush-desc": "Permite que otros te encuentren en la sección de Crushes",
-    "set-crossover-title": "Estudiantes y Egresados",
-    "set-crossover-desc": "Emparejar entre estudiantes y egresados",
     "set-h-support": "Soporte y Acerca de",
     "set-help-title": "Centro de Ayuda",
     "set-help-desc": "Preguntas frecuentes y soporte técnico",
@@ -365,9 +367,12 @@ function applyLanguageTranslations(){
   // Slots 2 and 3 are also swapped on purpose: the card under the old
   // "Preferences" holds activity stats, and the one under "Your Activity" holds
   // settings toggles.
+  // ANY header added to or removed from the markup must be mirrored here, at the
+  // same position — this list is matched to the DOM by index, nothing else.
   var setHTitles = [
     dict['set-h-account'],
     dict['set-h-campus'],
+    dict['set-h-appearance'],      // App Theme: Undrgradz / University colours
     dict['set-h-activity'],        // stats card  → "Activity"
     dict['set-h-preferences'],     // toggles card → "Preferences"
     dict['set-h-notifications'],
@@ -1049,6 +1054,33 @@ try {
   window.prompt = function(msg, defaultVal) { return window.ugzModal.prompt(msg, defaultVal); };
 } catch(e) {}
 
+// ── Interruptor del App Theme ──────────────────────────────────────────────
+// Turned off by request: the University Colors look did not land. NOTHING was
+// deleted — _applyAppTheme(), the html.theme-uni block at the end of styles.css
+// and the Settings > Appearance markup are all still here. Flip this to true and
+// the feature comes back whole, including the choice each user already saved.
+//
+// Declared here rather than next to APP_THEMES (~4100) because the boot block
+// right below runs first; leaning on `var` hoisting to leave it undefined at
+// this point would be an accident, not a design.
+var APP_THEME_ENABLED = false;
+
+try {
+  if (APP_THEME_ENABLED) document.documentElement.classList.add('apptheme-on');
+} catch(e) {}
+
+// The app theme is painted as early as the script runs, straight from
+// localStorage, so a University user never sees a black frame first. The canvas
+// is color-mix(var(--p) …), and --p already has its :root default here, so the
+// field is right the moment applyColors() fills in the real school colour.
+try {
+  if (APP_THEME_ENABLED && localStorage.getItem('ugz_apptheme') === 'university') {
+    document.documentElement.classList.add('theme-uni');
+    document.documentElement.style.setProperty('--uni-field', 'color-mix(in srgb, var(--p) 22%, #000)');
+    document.documentElement.style.setProperty('--uni-neon', 'var(--p2)');
+  }
+} catch(e) {}
+
 function _isSameUniversity(uniStr1, uniStr2) {
   if (!uniStr1 || !uniStr2) return true;
   var u1 = String(uniStr1).toLowerCase().trim();
@@ -1111,6 +1143,24 @@ function _resolveUserUniversity(targetUni) {
   };
 }
 
+// The line under someone's name in a list. It used to fall back to a flat
+// "Student", which told you nothing — everyone on this app is a student. The
+// acronym of their school does say something, so that is what shows now. Falls
+// back to your own university when the row carries none of its own, and to ''
+// (caller drops the line) when even that is unknown.
+function _uniAcronymOf(p) {
+  try {
+    var nm = p && (p.university || p.uni || p.school ||
+      (p.profile && (p.profile.university || p.profile.uni)));
+    var u = null;
+    if (nm && typeof nm === 'object') u = nm;
+    else if (nm && typeof _resolveUserUniversity === 'function') u = _resolveUserUniversity(nm);
+    if (!u && typeof _getCurrentUni === 'function') u = _getCurrentUni();
+    if (!u && typeof uni !== 'undefined' && uni) u = uni;
+    return (u && (u.acronym || u.name)) || '';
+  } catch (_) { return ''; }
+}
+
 async function _loadUniversities() {
   try {
     // Step 1: Load base universities catalog (17,670 records)
@@ -1148,7 +1198,7 @@ async function _loadUniversities() {
         'ucarolina.edu.mx': {t:'private', name:'Universidad Carolina', p:'#1D3C6E', p2:'#C5A253', ig:'https://www.instagram.com/universidadcarolina/'},
         'utnc.edu.mx': {t:'public', name:'Universidad Tecnológica del Norte de Coahuila', acronym:'UTNC', p:'#01A986', p2:'#B28A44', ig:'http://utnc.edu.mx'},
         'uppn.edu.mx': {t:'public', name:'Universidad Politécnica de Piedras Negras (UPPN)', acronym:'UP', p:'#7A0019', p2:'#D4AF37', ig:'http://uppn.edu.mx', coverPhotos:['coverPhotos/UPPN/Docencia_UPPN.jpg', 'coverPhotos/UPPN/Campus_UPPN.jpeg']},
-        'smu.edu': {t:'private', name:'Southern Methodist University', acronym:'SMU', p:'#CC0035', p2:'#354CA1', mascot:'smu_mustang.jpg', ig:'https://instagram.com/smudallas', coverPhotos:['coverPhotos/SMU/Dallas_Hall.jpg', 'coverPhotos/SMU/Gerald_J._Ford_Stadium.webp', 'coverPhotos/SMU/Southern_Methodist_University_Campus.jpg']},
+        'smu.edu': {t:'private', name:'Southern Methodist University', acronym:'SMU', p:'#354CA1', p2:'#CC0035', brandDefault:true, mascot:'smu_mustang.jpg', ig:'https://instagram.com/smudallas', coverPhotos:['coverPhotos/SMU/Dallas_Hall.jpg', 'coverPhotos/SMU/Gerald_J._Ford_Stadium.webp', 'coverPhotos/SMU/Southern_Methodist_University_Campus.jpg']},
         'itesm.mx': {t:'private', name:'Tec de Monterrey', acronym:'Tec', p:'#003fda', p2:'#ffffff', mascot:'tec_borrego.jpg', ig:'https://instagram.com/tecdecomexico'},
         'uanl.mx': {t:'public', name:'Universidad Autónoma de Nuevo León', acronym:'UANL', p:'#003da5', p2:'#ffc72c', mascot:'uanl_tiger.jpg', ig:'https://instagram.com/uanl_oficial'},
         'uadec.mx': {t:'public', name:'Universidad Autónoma de Coahuila', acronym:'UAdeC', p:'#002f6c', p2:'#d4af37', mascot:'uadec_wolf.png', ig:'https://instagram.com/uadec_oficial'},
@@ -1622,7 +1672,6 @@ window.addEventListener('load', function() {
                 }
                 userPro.interests = profile.interests || [];
                 userPro.prompts = profile.prompts || [];
-                userPro.bucketList = profile.bucketList || [];
                 userPro.identityTags = profile.identityTags || [];
                 userPro.lookingForTags = profile.lookingForTags || [];
                 
@@ -1966,7 +2015,6 @@ async function doLoginAuth(){
     // Map rich JSON structures back
     userPro.interests = profile.interests || [];
     userPro.prompts = profile.prompts || [];
-    userPro.bucketList = profile.bucketList || [];
     userPro.identityTags = profile.identityTags || [];
     userPro.lookingForTags = profile.lookingForTags || [];
     
@@ -2240,14 +2288,31 @@ function _ob4Start(isAlumni){
     email:'',phone:'',code:'+1',bio:'',looking:['Friends'],uniNameStyle:'full'};
   if(typeof selectedHobbies==='undefined')window.selectedHobbies=[];
   wrap.innerHTML=
+    '<div class="ob4-backrow" id="ob4-backrow">'+
+      '<button type="button" class="ob4-back exit" onclick="_ob4ToLogin()">\u2039 <span id="ob4-login-lbl">Back to log in</span></button>'+
+    '</div>'+
     '<div class="ob4-brand"><span class="logo-undr">UNDR</span><span class="logo-gradz">GRADZ</span></div>'+
     '<div class="ob4-steps" id="ob4-steps"></div>'+
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:16px 0 6px;">'+
       '<div style="flex:1;min-width:0;"><div class="ob4-title" id="ob4-title"></div><div class="ob4-sub" id="ob4-sub"></div></div>'+
-      '<div id="ob4-ring" style="flex-shrink:0;"></div></div>'+
+    '</div>'+
     '<div id="ob4-content" style="flex:1;overflow-y:auto;padding:6px 0 24px;"></div>'+
     '<input type="file" id="ob4-file" accept="image/*" style="display:none;" onchange="_ob4PhotoChange(this)"/>';
   _ob4Go(1);
+}
+// Leave sign-up entirely and go back to the login screen. Everything typed so
+// far stays in suData / _ob4State, so coming back in restores it.
+function _ob4ToLogin(){
+  var onb=document.getElementById('onboarding');if(onb)onb.classList.remove('active');
+  var auth=document.getElementById('authscreen');if(auth)auth.classList.add('active');
+}
+// On step 1 there is no previous step, so the label says so and it exits.
+function _ob4BackLabel(){
+  try{
+    var isEs=window.currentLang==='es';
+    var l=document.getElementById('ob4-login-lbl');
+    if(l)l.textContent=isEs?'Volver a iniciar sesión':'Back to log in';
+  }catch(e){}
 }
 function _ob4Back(){if(_ob4Phase>1){_ob4Go(_ob4Phase-1);}else{var onb=document.getElementById('onboarding');if(onb)onb.classList.remove('active');var auth=document.getElementById('authscreen');if(auth)auth.classList.add('active');}}
 function _ob4Steps(){
@@ -2257,6 +2322,9 @@ function _ob4Steps(){
     h+='<div class="ob4-step'+(cur?' cur':'')+(done?' done':'')+'" '+((done||cur)?'style="cursor:pointer;" onclick="_ob4Go('+n+')"':'')+'><div class="ob4-dot">'+(done?'✓':n)+'</div><div class="ob4-lbl">'+L[i]+'</div></div>';}
   box.innerHTML=h;
 }
+// The PROFILE STRENGTH ring was removed from the header by request. This is
+// left in place and simply no-ops on the missing node, so the percentage it
+// computes stays available if the ring ever comes back.
 function _ob4Ring(pct){
   var box=document.getElementById('ob4-ring');if(!box)return;var full=pct>=100;
   var col1='var(--uni-p, #e04155)';
@@ -2281,6 +2349,20 @@ function _ob4Strength(){
   if(userDatingPhotos&&userDatingPhotos.filter(Boolean).length>0)p++;
   var pct=Math.min(100,Math.round(p/t*100));_ob4Ring(pct);return pct;
 }
+// Each sign-up section gets its own underline colour instead of all sharing one.
+// Done in JS for the same reason _paintSettingsNeon exists: the labels sit among
+// sibling <div>s, so :nth-of-type() miscounts them and the hues drift.
+// Covers .ob4-flabel and the plain .field > label used by step 1.
+var _OB4_LABEL_HUES=['#e04155','#3d7bff','#22c55e','#c084fc','#fbbf24','#22d3ee','#ec4899','#a3e635','#fb923c','#818cf8','#2dd4bf','#f472b6'];
+function _ob4PaintLabels(){
+  try{
+    var root=document.getElementById('ob4-content');if(!root)return;
+    var labels=root.querySelectorAll('.ob4-flabel, .field > label');
+    for(var i=0;i<labels.length;i++){
+      labels[i].style.setProperty('--ob-hue',_OB4_LABEL_HUES[i%_OB4_LABEL_HUES.length]);
+    }
+  }catch(e){}
+}
 function _ob4Go(p){
   _ob4Phase=p;
   var T = window.currentLang === 'es' ? [
@@ -2301,6 +2383,8 @@ function _ob4Go(p){
   _ob4Steps();
   var c=document.getElementById('ob4-content');if(!c)return;
   c.innerHTML=(p===1)?_ob4P1():(p===2)?_ob4P2():(p===3)?_ob4P3():(p===4)?_ob4P4():_ob4P5();
+  _ob4PaintLabels();
+  _ob4BackLabel();
   if(p===1)setTimeout(function(){if(typeof _ob4ValidateAll==='function')_ob4ValidateAll();},50);
   if(p===2)setTimeout(function(){if(typeof _ob4ValidateAll2==='function')_ob4ValidateAll2();},50);
   if(p===3&&typeof _ob4RenderInt==='function'){
@@ -2662,7 +2746,7 @@ function _ob4P3(){
 
   var gChips=genderList.map(function(x){return '<div class="ob4-chip'+(g===x[0]?' on':'')+'" onclick="_ob4Gender(this,\''+x[0]+'\')">'+x[1]+'</div>';}).join('');
   var pChips=prefList.map(function(x){return '<div class="ob4-chip'+(pr===x[0]?' on':'')+'" onclick="_ob4Pref(this,\''+x[0]+'\')">'+x[1]+'</div>';}).join('');
-  var cats=INTERESTS4_CATS.map(function(c){return '<div class="ob4-catchip'+(_ob4Cat===c?' on':'')+'" onclick="_ob4CatSel(this,\''+c+'\')">'+c+'</div>';}).join('');
+  var cats=INTERESTS4_CATS.map(function(c){return '<div class="ob4-catchip'+(_ob4Cat===c?' on':'')+'" data-cat="'+c+'" onclick="_ob4CatSel(this,\''+c+'\')">'+c+'</div>';}).join('');
   var lblYouAre = window.currentLang==='es'?'Soy':'You are';
   var lblInterestedIn = window.currentLang==='es'?'Me interesa':'Interested in';
   var lblYourInterests = window.currentLang==='es'?'Tus intereses':'Your interests';
@@ -2847,12 +2931,14 @@ function _ob4RenderLangsP4(){
     var canonical = item.en;
     var on = sel.some(function(s){ return s === item.en || s === item.es || s === item.code; });
     var flagImg = item.flag ? ('<span style="font-size:14px;margin-right:6px;">' + item.flag + '</span>') : '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:6px;box-shadow:var(--el-1);"/>';
-    return '<div class="ob4-chip' + (on ? ' on' : '') + '" onclick="_ob4ToggleLang(\'' + canonical.replace(/'/g, "\\'") + '\')" style="padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;border-radius:var(--rad-md);display:inline-flex;align-items:center;white-space:nowrap;">' + (on ? '✓ ' : '') + flagImg + label + '</div>';
+    // --ob-line carries the flag as a gradient, --ob-hue its most saturated stop
+    // for the glow. Both are read by the .ob4-chip::after underline.
+    return '<div class="ob4-chip' + (on ? ' on' : '') + '" onclick="_ob4ToggleLang(\'' + canonical.replace(/'/g, "\\'") + '\')" style="--ob-line:' + _obFlagLine(item.code) + ';--ob-hue:' + _obFlagGlow(item.code) + ';padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;">' + (on ? '✓ ' : '') + flagImg + label + '</div>';
   }).join('');
 
   return '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;margin-top:16px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-      '<div style="font-size:var(--fs-sm);font-weight:700;color:var(--fg2);letter-spacing:0.5px;">🗣️ ' + title + '</div>' +
+      '<div class="ob4-flabel" style="margin:0;flex:1;">🗣️ ' + title + '</div>' +
       '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">' + selectedLbl + ': <span id="ob4-langcount" style="color:#fff;">' + sel.length + '</span></div>' +
     '</div>' +
     '<div style="display:flex;flex-wrap:wrap;gap:8px;" id="ob4-languages-box">' + chipsHtml + '</div>' +
@@ -3163,7 +3249,7 @@ function _ob4RenderInt(){
   if(_ob4Cat==='All'&&!q&&list.length>21){
     list=list.slice(0,21);
   }
-  var cells=list.map(function(it){var on=_ob4IntSel(it[0]);return '<div class="ob4-int'+(on?' on':'')+'" onclick="_ob4ToggleInt(\''+it[0].replace(/'/g,"")+'\',\''+it[1]+'\')"><div class="iadd">'+(on?'✓':'+')+'</div><div class="ie">'+it[1]+'</div><div class="inm">'+it[0]+'</div></div>';}).join('');
+  var cells=list.map(function(it){var on=_ob4IntSel(it[0]);return '<div class="ob4-int'+(on?' on':'')+'" data-cat="'+(it[2]||'')+'" onclick="_ob4ToggleInt(\''+it[0].replace(/'/g,"")+'\',\''+it[1]+'\')"><div class="iadd">'+(on?'✓':'+')+'</div><div class="ie">'+it[1]+'</div><div class="inm">'+it[0]+'</div></div>';}).join('');
   var sectionLabel = window.currentLang==='es'?(_ob4Cat==='All'?'🔥 Intereses Populares':'Intereses de '+_ob4Cat):(_ob4Cat==='All'?'🔥 Trending Interests':_ob4Cat+' Interests');
   grid.innerHTML='<div class="ob4-flabel">'+sectionLabel+'</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+cells+'</div>';
 }
@@ -3173,7 +3259,10 @@ function _ob4ToggleInt(name,emoji){
   if(idx>-1){selectedHobbies.splice(idx,1);}
   else{if(selectedHobbies.length>=10){alert('You can pick up to 10 interests.');return;}selectedHobbies.push(val);}
   var cnt=document.getElementById('ob4-intcount');if(cnt)cnt.textContent=selectedHobbies.length;
-  _ob4RenderInt();_ob4Strength();
+  _ob4RenderInt();
+  // The progress ring belongs to sign-up. Edit Interests reuses this same
+  // toggle from a modal, where #ob4-content is not mounted.
+  if(document.getElementById('ob4-content'))_ob4Strength();
   if(typeof _ob4ValidateAll3==='function')_ob4ValidateAll3();
 }
 function _ob4AddCustom(){var v=prompt('Add a custom interest:');if(v&&v.trim()){if(selectedHobbies.length>=10){alert('You can pick up to 10 interests.');return;}selectedHobbies.push('✨ '+v.trim());var cnt=document.getElementById('ob4-intcount');if(cnt)cnt.textContent=selectedHobbies.length;_ob4RenderInt();_ob4Strength();if(typeof _ob4ValidateAll3==='function')_ob4ValidateAll3();}}
@@ -3333,7 +3422,10 @@ function _ob4RenderLangs(){
     var canonical = item.en;
     var on = sel.some(function(s){ return s === item.en || s === item.es || s === item.code; });
     var flagImg = '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:6px;box-shadow:var(--el-1);"/>';
-    return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4ToggleLang(\''+canonical.replace(/'/g,"\\'")+'\')" style="padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;border-radius:var(--rad-md);display:inline-flex;align-items:center;white-space:nowrap;">'+(on?'✓ ':'')+flagImg+label+'</div>';
+    // This is the LIVE renderer — it rebuilds the whole box on every toggle, so
+    // the flag variables have to be written here too, not only in the initial
+    // HTML builder further up.
+    return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4ToggleLang(\''+canonical.replace(/'/g,"\\'")+'\')" style="--ob-line:'+_obFlagLine(item.code)+';--ob-hue:'+_obFlagGlow(item.code)+';padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;">'+(on?'✓ ':'')+flagImg+label+'</div>';
   }).join('');
   var cnt=document.getElementById('ob4-langcount');if(cnt)cnt.textContent=sel.length;
 }
@@ -3824,7 +3916,6 @@ async function launch(){
       crossover: userPro.crossover || false,
       interests: userPro.interests || selectedHobbies || [],
       prompts: userPro.prompts || selectedPrompts || [],
-      bucketList: userPro.bucketList || [],
       lookingForTags: userPro.lookingForTags || (_ob4State && _ob4State.looking) || [],
       lifestyle: {
         drinking: userPro.drinking || (_ob4State && _ob4State.drinking) || '',
@@ -3874,6 +3965,7 @@ async function launch(){
       },
       customization: {
         accentText: userPro.accentText || '',
+        appTheme: userPro.appTheme || 'undrgradz',
         anthem: userPro.anthem || '',
         badgeColor: userPro.badgeColor || '',
         cardStyle: userPro.cardStyle || '',
@@ -3957,7 +4049,90 @@ function _secDull(hex){try{if(!hex)return false;var h=String(hex).trim().replace
 function _legiblePrimary(p){return p;}
 function _applyAccentText(){var t=(typeof userPro!=='undefined'&&userPro.accentText)||'auto';var h=document.documentElement;h.classList.toggle('acc-white',t==='white');h.classList.toggle('acc-black',t==='black');}
 function _applyPrimaryContrast(p){var _l=_hexLuma(p);document.documentElement.classList.toggle('dark-primary',_l<0.32);document.documentElement.classList.toggle('light-primary',_l>0.6);_applyAccentText();}
-function applyColors(){if(!uni)return;try{document.documentElement.classList.add('uni-set');}catch(e){}try{document.documentElement.classList.toggle('light-secondary',(typeof _secDull==='function'&&_secDull(uni.p2)));}catch(e){}var pPaint=_legiblePrimary(uni.p);document.documentElement.style.setProperty('--p',pPaint);document.documentElement.style.setProperty('--p2',uni.p2);document.body.style.setProperty('--p',pPaint);_applyPrimaryContrast(uni.p);var pun=document.getElementById('prof-uni-nm');if(pun)pun.textContent=uni.name;}
+function applyColors(){if(!uni)return;try{document.documentElement.classList.add('uni-set');}catch(e){}try{document.documentElement.classList.toggle('light-secondary',(typeof _secDull==='function'&&_secDull(uni.p2)));}catch(e){}var pPaint=_legiblePrimary(uni.p);document.documentElement.style.setProperty('--p',pPaint);document.documentElement.style.setProperty('--p2',uni.p2);document.body.style.setProperty('--p',pPaint);_applyPrimaryContrast(uni.p);var pun=document.getElementById('prof-uni-nm');if(pun)pun.textContent=uni.name;try{_applyAppTheme();}catch(e){}}
+
+// ══════════ 🎨 APP THEME — Undrgradz vs University Colors ══════════
+// Two looks for the whole app:
+//   'undrgradz' — black canvas, the multi-coloured neon accents. The default.
+//   'university' — the canvas takes your school's PRIMARY and the generic
+//                  accents take its SECONDARY.
+// Everything hangs off one class (html.theme-uni) plus two variables the CSS
+// reads, so there is exactly one lever instead of ~150 hardcoded dark fills.
+var APP_THEMES = ['undrgradz', 'university'];
+
+// How much of the primary survives on the canvas. Flat school colour is
+// unusable — UTNC's gold underline on flat #01A986 measures 1.06 contrast
+// (1.0 = the same colour). At 22% it is 5.16 and still unmistakably UTNC green.
+var _UNI_FIELD_MIX = 22;
+
+function _appTheme(){
+  // With the switch off everyone is on 'undrgradz', whatever they picked before.
+  // The stored value is deliberately left alone so it comes back untouched.
+  if (!APP_THEME_ENABLED) return 'undrgradz';
+  var t = (typeof userPro !== 'undefined' && userPro && userPro.appTheme) || null;
+  if (!t) { try { t = localStorage.getItem('ugz_apptheme'); } catch (e) {} }
+  return (APP_THEMES.indexOf(t) > -1) ? t : 'undrgradz';
+}
+
+// Lighten a hue until it can carry a line on a dark ground. Same problem
+// --red-ink solves for --red-fill in :root: Texas A&M's #500000 as an accent on
+// black is barely visible, so it gets mixed toward white until it reads.
+function _neonLegible(hex){
+  if (!hex) return hex;
+  var l = _hexLuma(hex);
+  if (l >= 0.15) return hex;
+  var pct = (l < 0.07) ? 55 : 70;   // the darker it is, the more white it needs
+  return 'color-mix(in srgb, ' + hex + ' ' + pct + '%, #fff)';
+}
+
+function _applyAppTheme(){
+  var de = document.documentElement;
+  var on = (_appTheme() === 'university') && !!(typeof uni !== 'undefined' && uni);
+  de.classList.toggle('theme-uni', on);
+  if (!on) {
+    de.style.removeProperty('--uni-field');
+    de.style.removeProperty('--uni-neon');
+    de.classList.remove('theme-uni-white');
+    return;
+  }
+  var p = uni.p || '#3d7bff', p2 = uni.p2 || p;
+  // "si sus colores son blancos, el fondo va a seguir negro, pero los colores
+  // primarios van a ser los colores neon" — a near-white secondary is no accent
+  // and no canvas, so the canvas stays black and the PRIMARY becomes the neon.
+  // Hits Tec, UT Austin, IU, OU, Texas A&M and UH, all of which carry a white p2.
+  var whiteSecondary = _hexLuma(p2) > 0.75;
+  de.classList.toggle('theme-uni-white', whiteSecondary);
+  // Built from var(--p), not from the literal hex, so the canvas follows any
+  // later change to the primary (transfer, theme picker) with no extra call.
+  de.style.setProperty('--uni-field', whiteSecondary
+    ? '#000000'
+    : 'color-mix(in srgb, var(--p) ' + _UNI_FIELD_MIX + '%, #000)');
+  de.style.setProperty('--uni-neon', _neonLegible(whiteSecondary ? p : p2));
+}
+
+function _setAppTheme(v){
+  if (APP_THEMES.indexOf(v) < 0) v = 'undrgradz';
+  if (typeof userPro !== 'undefined' && userPro) userPro.appTheme = v;
+  try { localStorage.setItem('ugz_apptheme', v); } catch (e) {}
+  _applyAppTheme();
+  if (typeof _paintAppThemeBtns === 'function') _paintAppThemeBtns();
+  if (typeof saveProfile === 'function') try { saveProfile(); } catch (e) {}
+}
+
+// The two buttons take the same coloured-gradient skin as My University /
+// Other Universities: the picked one fills with its hue, the other stays black.
+function _paintAppThemeBtns(){
+  var cur = _appTheme();
+  [['undrgradz', '#3d7bff'], ['university', 'var(--p)']].forEach(function(pair){
+    var el = document.getElementById('apptheme-' + pair[0]);
+    if (!el) return;
+    var on = (cur === pair[0]);
+    el.setAttribute('style', _gradSkin(pair[1], on, { dim: 72 }) +
+      'flex:1 1 50%;width:50%;box-sizing:border-box;min-width:0;display:flex;' +
+      'align-items:center;gap:10px;padding:10px 12px;cursor:pointer;text-align:left;' +
+      'transition:all var(--dur) ease;font-family:var(--font);');
+  });
+}
 function setAccentColor(p,p2){var pPaint=_legiblePrimary(p);document.documentElement.style.setProperty('--p',pPaint);document.documentElement.style.setProperty('--p2',p2);_applyPrimaryContrast(p);if(!uni)uni={name:'My University',p:p,p2:p2};else{uni.p=p;uni.p2=p2;}}
 // ── 🛡️ LOGO COLORS — personalize the real UndrGradz logo via a color tint (Settings → Logo Colors) ──
 var LOGO_BASE_HUE=356; // hue of the logo's red accent — tints rotate relative to this
@@ -4353,6 +4528,13 @@ function _profAccent(){
   return v||PROF_TAB_ACCENT.crush;
 }
 function _profileCompleteness(){if(typeof userPro==='undefined'||!userPro)return {pct:100};var items=[!!(userPro.bio&&userPro.bio.trim()),!!(userPro.major&&String(userPro.major).trim()),!!(userPro.interests&&userPro.interests.length>=3),!!(userPro.prompts&&userPro.prompts.length>=1),!!((userPro.greenFlags&&userPro.greenFlags.length)||(userPro.tot&&Object.keys(userPro.tot).length)||userPro.loveLanguage),!!(userPro.anthem||userPro.workout||userPro.diet||userPro.height),!!(userPro.pronouns&&userPro.pronouns.length)];var done=items.filter(Boolean).length;return {done:done,total:items.length,pct:Math.round(done/items.length*100)};}
+// Likes multiplier shown on the completeness card. Scales 1.0x -> 3.5x with how
+// much of the profile is filled in, so the figure moves as you complete it
+// instead of promising a flat 3.5x from an empty profile.
+function _profileLikeBoost(pct){
+  var p=Math.max(0,Math.min(100,pct||0));
+  return (1 + (p/100)*2.5).toFixed(1);
+}
 function _renderCompleteness(){
   var el=document.getElementById('prof-completeness');if(!el||typeof userPro==='undefined'||!userPro)return;
   var c=_profileCompleteness();if(c.pct>=100){el.style.display='none';return;}
@@ -4362,9 +4544,13 @@ function _renderCompleteness(){
   el.innerHTML='<div onclick="openEdit()" style="cursor:pointer;background:linear-gradient(135deg,color-mix(in srgb,'+A+' 14%,transparent),rgba(255,255,255,0.03));border:1.5px solid color-mix(in srgb,'+A+' 50%,transparent);border-radius:var(--rad-lg);padding:14px 16px;'+A+' 22%,transparent);backdrop-filter:blur(10px);">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">'+
       '<span style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;white-space:nowrap;">⚡ Profile <span style="color:'+A+';text-shadow:0 0 10px color-mix(in srgb,'+A+' 80%,transparent);">'+c.pct+'%</span> complete</span>'+
-      '<span style="flex:1;min-width:0;text-align:center;font-size:var(--fs-sm);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.18);border:1.5px solid rgba(245,158,11,0.5);padding:7px 12px;border-radius:var(--rad-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">🔥 3.5x more Likes</span>'+
+      ''+
     '</div>'+
-    '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.72);margin-bottom:9px;font-weight:500;">'+tip+' to climb your university Top Rank</div>'+
+    // The likes multiplier used to be a separate pill. It now lives in the
+    // sentence and scales with how complete the profile is — 1.0x at nothing
+    // filled in, up to 3.5x at 100% — so the number is a reason to keep going
+    // rather than a fixed promise.
+    '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.72);margin-bottom:9px;font-weight:500;">'+tip+' to get <b style="color:#fde68a;font-weight:800;">'+_profileLikeBoost(c.pct)+'x more Likes</b> and climb your university Top Rank</div>'+
     '<div style="height:8px;border-radius:var(--rad-xs);background:rgba(0,0,0,0.8);overflow:hidden;border:1px solid rgba(255,255,255,0.1);">'+
       '<div style="height:100%;width:'+c.pct+'%;background:linear-gradient(90deg,color-mix(in srgb,'+A+' 45%,#06b6d4),'+A+');border-radius:var(--rad-xs);'+A+' 80%,transparent);"></div>'+
     '</div>'+
@@ -4993,6 +5179,11 @@ function switchEvTab(tab){
     buildUniInviteSection();
     renderEvGenderRatio();
     if(typeof _populateFilterChips==='function')_populateFilterChips();
+    // Paint Publish with the section the form opens on, not just on change.
+    if(typeof onEvSectionChange==='function'){
+      var _sEl=document.getElementById('ev-section');
+      onEvSectionChange((_sEl&&_sEl.value)||'nightlife');
+    }
     if(typeof _applyPlanLocks==='function')_applyPlanLocks();
     if(typeof _renderEvGreekCohost==='function')_renderEvGreekCohost();
   }
@@ -5119,6 +5310,13 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 
 function onEvSectionChange(sec){
+  // Publish takes the chosen section's colour, so the button that creates the
+  // event matches the category it will land in. Same _secColor the cards, the
+  // detail modal and the section chips already use.
+  try{
+    var pb=document.getElementById('ev-publish-btn');
+    if(pb&&typeof _secColor==='function')pb.style.setProperty('--pub-hue',_secColor(sec));
+  }catch(e){}
   var extras=document.getElementById('ev-study-extras');
   if(extras)extras.style.display=(sec==='study')?'block':'none';
   var abroadExtras=document.getElementById('ev-abroad-extras');
@@ -5453,7 +5651,7 @@ function _friendsForPicker(){
         init:nm.charAt(0).toUpperCase(),
         color:(f.profile&&f.profile.customization&&f.profile.customization.badgeColor)||'#2b5fd9',
         photo:(f.photos&&f.photos[0]&&f.photos[0].url)||'',
-        sub:(f.profile&&f.profile.major)||'Student'
+        sub:(f.profile&&f.profile.major)||_uniAcronymOf(f)
       };
     });
   }
@@ -5465,7 +5663,7 @@ function _friendsForPicker(){
       init:(av&&av.textContent.trim())||'?',
       color:(av&&av.style.background)||'#2b5fd9',
       photo:'',
-      sub:(sub&&sub.textContent.trim())||'Student'
+      sub:(sub&&sub.textContent.trim())||_uniAcronymOf(null)
     };
   });
 }
@@ -5958,8 +6156,7 @@ var _hangoutUniScope='mine';
 function _setHangoutUniScope(v){if((v==='near'||v==='pick')&&curPlan!=='aplus'){if(typeof premAlert==='function')premAlert();return;}_hangoutUniScope=v;_uniScopeBy.ev=v;var ch=document.getElementById('ev-uni-chooser');if(ch)ch.style.display=(v==='pick')?'':'none';var row=document.getElementById('ev-uni-scope');if(row)row.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-scope')===v);});if(typeof renderHangouts==='function')renderHangouts();}
 function _uniScopeBannerHtml(){
   var isA = (typeof curPlan !== 'undefined' && curPlan === 'aplus');
-  var acr = (typeof uni !== 'undefined' && uni && uni.acronym) ? ('(' + uni.acronym + ')') : '';
-  
+
   var mineOn = _hangoutUniScope === 'mine';
   var pickOn = _hangoutUniScope === 'pick';
   
@@ -5978,7 +6175,9 @@ function _uniScopeBannerHtml(){
     '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+capSvg+'</div>'+
     '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
       '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My University</span>'+
-      '<span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+((typeof uni !== 'undefined' && uni) ? uni.name : 'University')+' '+acr+'</span>'+
+      // The acronym, not the full name: "Universidad Tecnológica del Norte de
+      // Coahuila" only ever showed as "Universidad Tecnológica d…" in this width.
+      '<span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+((typeof _uniAcronymOf === 'function' && _uniAcronymOf(null)) || 'University')+'</span>'+
     '</div>'+
   '</button>';
 
@@ -6110,6 +6309,9 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
 
   // Format relative date and time (no weekday, Today / Tomorrow / In 2 days / In 3 days / 23 Jul)
   var formattedTime = (typeof _formatRelativeEventTime === 'function') ? _formatRelativeEventTime(e) : (e.time || 'Coming soon');
+  // Started, still has room: a date is useless now, so the line says so instead.
+  var _live = (typeof _evLiveState === 'function') && _evLiveState(e) === 'live';
+  if (_live) formattedTime = 'Active right now';
 
   // Avatars Stack and Joined Count
   var attendees = e.attendees || [];
@@ -6190,8 +6392,11 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       // Clamped to 2 lines so a runaway title can never grow the block and swallow the photo
       '<div style="font-size:var(--fs-lg);font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.3px;text-shadow:0 2px 12px rgba(0,0,0,0.95);margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + e.name + ' ' + evtEmoji + '</div>' +
 
-      '<div style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);font-weight:600;color:rgba(255,255,255,0.94);margin-bottom:5px;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
-        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>' +
+      '<div style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);font-weight:' + (_live ? '800' : '600') + ';color:' + (_live ? '#4ade80' : 'rgba(255,255,255,0.94)') + ';margin-bottom:5px;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
+        (_live
+          // A live dot reads as "happening" the way a calendar never can.
+          ? '<span style="width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;animation:fomoPulse 1.6s infinite ease-in-out;"></span>'
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>') +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + formattedTime + '</span>' +
       '</div>' +
 
@@ -6237,6 +6442,10 @@ function openHangoutDetailModal(evtId) {
   }
 
   var formattedTime = (typeof _formatRelativeEventTime === 'function') ? _formatRelativeEventTime(e) : (e.time || 'Coming soon');
+  // Same rule the cards use: started with room left reads as live, not as a date.
+  if ((typeof _evLiveState === 'function') && _evLiveState(e) === 'live') {
+    formattedTime = 'Active right now';
+  }
   var evtAddr = e.addr || e.address || 'Campus';
   var evtEmoji = e.emoji || '🍿';
   var desc = e.desc || 'Join this hangout to meet more people from your campus and nearby, and have a great time.';
@@ -6275,8 +6484,8 @@ function openHangoutDetailModal(evtId) {
     'box-shadow:inset 0 0 12px ' + _attHue + '12;';
   // One tinted tile recipe for the leading icons, following the event's hue
   // instead of the hardcoded blue/rose they used to carry.
-  var _icoTile = 'width:34px;height:34px;border-radius:var(--rad-sm);background:' + _attHue + '33;' +
-    'border:1.5px solid ' + _attHue + '99;display:flex;align-items:center;justify-content:center;' +
+  // Just the glyph now — the tinted rounded box around it was removed.
+  var _icoTile = 'width:22px;display:flex;align-items:center;justify-content:center;' +
     'color:' + _attHue + ';flex-shrink:0;';
 
   var attendeesListHtml = '';
@@ -6284,7 +6493,7 @@ function openHangoutDetailModal(evtId) {
     attendeesListHtml = attendees.map(function(att) {
       var photo = (att.photos && att.photos[0]) ? att.photos[0].url : '';
       var name = att.firstName || (att.name ? att.name.split(' ')[0] : 'Estudiante');
-      var major = (att.profile && att.profile.major) || att.major || 'Student';
+      var major = (att.profile && att.profile.major) || att.major || _uniAcronymOf(att);
       var photoHtml = photo ?
         '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
         '<div style="width:44px;height:44px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
@@ -6293,7 +6502,9 @@ function openHangoutDetailModal(evtId) {
         photoHtml +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+name+'</div>' +
-          '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+major+'</div>' +
+          // No major and no resolvable school: drop the line rather than leave an
+          // empty one padding the row.
+          (major ? '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+major+'</div>' : '') +
         '</div>' +
       '</div>';
     }).join('');
@@ -6312,7 +6523,7 @@ function openHangoutDetailModal(evtId) {
         '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;border:2px solid '+_attHue+';">'+(f.i||'U')+'</div>' +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+(f.n || 'Estudiante')+'</div>' +
-          '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+(f.m || 'Student')+'</div>' +
+          ((f.m || _uniAcronymOf(f)) ? '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+(f.m || _uniAcronymOf(f))+'</div>' : '') +
         '</div>' +
       '</div>';
     }).join('');
@@ -6320,9 +6531,13 @@ function openHangoutDetailModal(evtId) {
 
   var key = e.section + '|' + e.name;
   var isJoined = !!joinedHangouts[key];
+  // Once the date has passed the event is history: joining and inviting both
+  // stop making sense, so neither button is offered.
+  var _isOver = (typeof _isEventStillActive === 'function') && !_isEventStillActive(e);
 
   // Already joined? Chat / Leave live on the Joined Events card — no need to repeat them here.
-  var actionButtonsHtml = isJoined ? '' :
+  var _overNotice = _isOver ? ('<div style="margin-top:14px;width:100%;padding:13px;border-radius:var(--rad-md);background:#000;border:1.5px solid rgba(255,255,255,0.18);color:var(--fg2);font-size:var(--fs-sm);font-weight:600;text-align:center;">This event has already happened</div>') : '';
+  var actionButtonsHtml = (isJoined || _isOver) ? _overNotice :
     '<div style="margin-top:14px;width:100%;">' +
       '<button onclick="closeHangoutDetailModal();joinHangoutEv(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\',\''+e.restriction+'\',this)" style="width:100%;padding:15px;border-radius:var(--rad-md);background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;color:#fff;font-family:var(--font);font-size:var(--fs-md);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.4px;">Join Event</button>' +
     '</div>';
@@ -6334,7 +6549,7 @@ function openHangoutDetailModal(evtId) {
   // Same gradient shape as Join Event (hue → darker hue), but in the event's own
   // section colour, so the whole modal reads as one category.
   var _inviteGrad = 'linear-gradient(135deg,' + _attHue + ' 0%, color-mix(in srgb,' + _attHue + ' 42%, #000) 100%)';
-  var inviteBtnHtml = (_seatsLeft > 0) ?
+  var inviteBtnHtml = (_seatsLeft > 0 && !_isOver) ?
     '<div style="margin-top:10px;width:100%;">' +
       '<button onclick="openEventInviteFriends(\''+e.section+'\',\''+e.name.replace(/'/g,"\\'")+'\')" style="width:100%;padding:13px;border-radius:var(--rad-md);background:'+_inviteGrad+';border:none;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:0.3px;">' +
         '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>' +
@@ -6477,6 +6692,11 @@ function closeHangoutDetailModal() {
 window._eventInvites = window._eventInvites || {};
 
 function openEventInviteFriends(section, evName) {
+  var _ev0=_findEventBySectionName&&_findEventBySectionName(section,evName);
+  if(_ev0&&typeof _isEventStillActive==='function'&&!_isEventStillActive(_ev0)){
+    if(typeof _prettyAlert==='function')_prettyAlert('This event has already happened — you can no longer invite friends.');else alert('This event has already happened.');
+    return;
+  }
   var key = section + '|' + evName;
   _eventInvites[key] = _eventInvites[key] || {};
   var friends = (typeof _friendsForPicker === 'function') ? _friendsForPicker() : [];
@@ -6692,11 +6912,87 @@ function _isMyOwnEvent(e) {
 }
 
 // Still active = its date/time hasn't passed yet. Unparseable dates count as active.
+// Look an event up the way the detail modal does, by section + name.
+function _findEventBySectionName(section, name){
+  var all=(typeof HANGOUT_EVENTS!=='undefined'?HANGOUT_EVENTS:[]).concat(
+    typeof OTHER_UNI_EVENTS!=='undefined'?OTHER_UNI_EVENTS:[], window._userCreatedEvents||[]);
+  for(var i=0;i<all.length;i++){
+    if(all[i] && all[i].section===section && all[i].name===name) return all[i];
+  }
+  return null;
+}
+// Flag colours per country code, used to build each language chip's underline
+// as a gradient of its flag (Mexico goes green -> white -> red). Two or three
+// stops each; _obFlagLine turns them into the linear-gradient.
+var _FLAG_COLORS={
+  us:['#B22234','#FFFFFF','#3C3B6E'], gb:['#012169','#FFFFFF','#C8102E'], ca:['#FF0000','#FFFFFF','#FF0000'],
+  au:['#00008B','#FFFFFF','#FF0000'], mx:['#006847','#FFFFFF','#CE1126'], es:['#AA151B','#F1BF00','#AA151B'],
+  ar:['#74ACDF','#FFFFFF','#74ACDF'], co:['#FCD116','#003893','#CE1126'], fr:['#0055A4','#FFFFFF','#EF4135'],
+  de:['#000000','#DD0000','#FFCE00'], it:['#009246','#FFFFFF','#CE2B37'], br:['#009C3B','#FFDF00','#002776'],
+  pt:['#046A38','#FFFFFF','#DA291C'], cn:['#DE2910','#FFDE00','#DE2910'], hk:['#DE2910','#FFFFFF','#DE2910'],
+  jp:['#FFFFFF','#BC002D','#FFFFFF'], kr:['#FFFFFF','#CD2E3A','#0047A0'], vn:['#DA251D','#FFFF00','#DA251D'],
+  sa:['#006C35','#FFFFFF','#006C35'], ru:['#FFFFFF','#0039A6','#D52B1E'], ua:['#005BBB','#FFD500','#005BBB'],
+  tr:['#E30A17','#FFFFFF','#E30A17'], gr:['#0D5EAF','#FFFFFF','#0D5EAF'], in:['#FF9933','#FFFFFF','#138808'],
+  pk:['#01411C','#FFFFFF','#01411C'], bd:['#006A4E','#F42A41','#006A4E'], nl:['#AE1C28','#FFFFFF','#21468B'],
+  se:['#006AA7','#FECC00','#006AA7'], no:['#BA0C2F','#FFFFFF','#00205B'], dk:['#C60C30','#FFFFFF','#C60C30'],
+  fi:['#FFFFFF','#003580','#FFFFFF'], pl:['#FFFFFF','#DC143C','#DC143C'], cz:['#11457E','#FFFFFF','#D7141A'],
+  ph:['#0038A8','#FFFFFF','#CE1126'], id:['#FF0000','#FFFFFF','#FF0000'], my:['#010066','#FFFFFF','#CC0001'],
+  th:['#A51931','#FFFFFF','#2D2A4A'], il:['#FFFFFF','#0038B8','#FFFFFF'], ir:['#239F40','#FFFFFF','#DA0000']
+};
+function _obFlagLine(code){
+  var c=_FLAG_COLORS[code]||['#3d7bff','#3d7bff'];
+  return 'linear-gradient(90deg,'+c.join(',')+')';
+}
+// The glow can only take one colour, so it picks the stop that actually reads on
+// a black background: not white (washes out) and not black (invisible — the
+// German flag starts on black). Falls back to the brightest stop available.
+function _obFlagGlow(code){
+  var c=_FLAG_COLORS[code]||['#3d7bff'];
+  var best=null,bestLum=-1;
+  for(var i=0;i<c.length;i++){
+    var h=c[i].replace('#','');
+    var r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
+    var lum=(r*299+g*587+b*114)/1000;
+    if(lum>240||lum<28)continue;              // skip near-white and near-black
+    if(lum>bestLum){bestLum=lum;best=c[i];}
+  }
+  return best||'#3d7bff';
+}
+// How long past its start time an event that never filled up stays joinable.
+// Without a ceiling a half-empty event from last month would sit in the list
+// forever claiming to be happening right now.
+var _EV_LIVE_WINDOW_MS = 12 * 3600000;
+
+// Where an event sits on its own clock:
+//   'upcoming' — its start time has not arrived.
+//   'live'     — the start time passed but it never filled, so there is still a
+//                spot for you. The card says "Active right now" instead of a date.
+//   'over'     — past the live window. It drops out of every list.
+// Capacity is deliberately NOT part of this: someone who already joined a full
+// event still needs to see it in Joined Events. Filling up removes an event from
+// the browse list only — see _evBrowsable below.
+function _evLiveState(e) {
+  if (!e) return 'over';
+  var d = (typeof _parseEventDate === 'function') ? _parseEventDate(e) : null;
+  var ended = (typeof _evCountdown === 'function') && _evCountdown(e) === 'ENDED';
+  var now = new Date().getTime();
+  var started = ended || (d && d.getTime() < now);
+  if (!started) return 'upcoming';
+  if (d && (now - d.getTime()) > _EV_LIVE_WINDOW_MS) return 'over';
+  return 'live';
+}
+
 function _isEventStillActive(e) {
-  if (!e) return false;
-  if (typeof _evCountdown === 'function' && _evCountdown(e) === 'ENDED') return false;
-  var d = _parseEventDate(e);
-  return !d || d.getTime() >= new Date().getTime();
+  return _evLiveState(e) !== 'over';
+}
+
+// What Hangouts is allowed to offer you. On top of the clock: an event with no
+// spots left cannot be joined, so it stops being browsable the moment it fills.
+// Nothing is deleted — Profile > Activity keeps the whole history either way.
+function _evBrowsable(e) {
+  if (!_isEventStillActive(e)) return false;
+  var cap = e && e.cap || 0;
+  return !(cap > 0 && (e.spots || 0) >= cap);
 }
 
 // Find one of my events by id or name, across every list it can live in.
@@ -7043,6 +7339,8 @@ function renderHangouts(){
   evs = evs.filter(function(e) {
     if (_isMyOwnEvent(e)) return false;
     if (joinedHangouts[(e.section || '') + '|' + (e.name || '')]) return false;
+    // Over, or full — either way there is nothing here for you to join.
+    if (typeof _evBrowsable === 'function' && !_evBrowsable(e)) return false;
     return true;
   });
   // Hide gender-restricted events the user can't attend.
@@ -7147,6 +7445,13 @@ async function fetchAndRenderHangouts() {
 }
 
 function joinHangoutEv(section,name,restriction,btn){
+  // Guard at the source: the detail modal already hides the button for past
+  // events, but a stale card elsewhere could still call this.
+  var _ev0=_findEventBySectionName&&_findEventBySectionName(section,name);
+  if(_ev0&&typeof _isEventStillActive==='function'&&!_isEventStillActive(_ev0)){
+    if(typeof _prettyAlert==='function')_prettyAlert('This event has already happened.');else alert('This event has already happened.');
+    return;
+  }
   var key=section+'|'+name;
   var isJoined=!!joinedHangouts[key];
   
@@ -7404,7 +7709,7 @@ function renderEvGenderRatio(){
       // Pins only make sense with all three genders in play: with two, pinning
       // one fixes the other by arithmetic, and with one it is always 100%. So
       // below three the button is not rendered at all.
-      (showPins?'<button type="button" id="lockbtn-'+k+'" onclick="evToggleLock(\''+k+'\')" title="'+(locked?'Unlock':'Lock this percentage')+'" style="background:'+(locked?m.c:'rgba(255,255,255,0.06)')+';border:1px solid '+(locked?m.c:'var(--gbdl)')+';border-radius:var(--rad-xs);width:30px;height:30px;cursor:pointer;flex-shrink:0;color:#fff;display:inline-flex;align-items:center;justify-content:center;opacity:'+(locked?'1':'0.7')+';">'+icon('thumbtack',15)+'</button>':'')+
+      (showPins?'<button type="button" id="lockbtn-'+k+'" onclick="evToggleLock(\''+k+'\')" title="'+(locked?'Unlock':'Lock this percentage')+'" style="background:transparent;border:none;width:30px;height:30px;cursor:pointer;flex-shrink:0;color:'+(locked?m.c:'rgba(255,255,255,0.45)')+';display:inline-flex;align-items:center;justify-content:center;opacity:'+(locked?'1':'0.7')+';">'+icon('thumbtack',15)+'</button>':'')+
     '</div>';
   }).join('');
   box.innerHTML=
@@ -7949,7 +8254,9 @@ function renderActivityLog() {
   var evWrap = document.createElement('div');
   evWrap.innerHTML = _actEventsHtml();
   var evBlock = evWrap.firstChild;
-  if (evBlock) panel.prepend(evBlock);
+  // append, not prepend: #act-stats is declared in the markup and has to stay on
+  // top as the summary of everything the list below spells out.
+  if (evBlock) panel.appendChild(evBlock);
 }
 
 function addToActivity(txt){
@@ -9069,8 +9376,7 @@ function buildHingeStackHtml(p,opts){
   // ── Build content blocks, then interleave with photos: picture, section, picture, section … ──
   var _reply=function(key){return '<button class="crush-reply" onclick="replyToSection(\''+p.name.replace(/'/g,"\\'")+'\',\''+key+'\')">'+icon('chat',16)+' Reply</button>';};
   var blocks=[];
-  var bBlind='',bQuick='',bMatched='',bGreen='',bTot='',bLifestyle='',bWingmate='',bSecret='',bFromGreek='',bLikes='',bSpeaks='',bEthnicity='',bReligion='',bClubs='',bBucket='';
-  (function(){var bucket=isSelf?((typeof userPro!=='undefined'&&userPro.bucketList)||[]):((typeof _profileBucket==='function')?_profileBucket(p):[]);if(bucket&&bucket.length){bBucket='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">✅ Senior bucket list</div>'+bucket.map(function(it,_i){var _last=(_i===bucket.length-1);var t=(typeof _bucketText==='function')?_bucketText(it):((it&&it.t)||it);var done=(typeof _bucketDone==='function')?_bucketDone(it):!!(it&&it.done);return '<div style="font-size:var(--fs-sm);color:#fff;padding:4px 0;'+(_last?'':'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);')+'display:flex;align-items:center;gap:7px;"><span>✅</span><span style="flex:1;'+(done?'text-decoration:line-through;opacity:0.6;':'')+'">'+t+'</span>'+(done?'<span style="color:#4ade80;font-weight:600;">✓</span>':'')+'</div>';}).join('')+'</div>';}})();
+  var bBlind='',bQuick='',bMatched='',bGreen='',bTot='',bLifestyle='',bWingmate='',bSecret='',bFromGreek='',bLikes='',bSpeaks='',bEthnicity='',bReligion='',bClubs='';
   if(blindHide)bBlind='<div class="crush-info-block" style="text-align:center;"><div style="font-size:var(--fs-xl);">🕯️</div><div style="font-size:var(--fs-base);font-weight:700;color:#a9c4ff;">Blind date</div><div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.5;">Photos hidden — match on personality.<br>You\'ll both reveal after a few messages.</div></div>';
   // ── Quick facts: all the badges that used to crowd the photo, now a clean chip row below it ──
   (function(){
@@ -9209,7 +9515,6 @@ function buildHingeStackHtml(p,opts){
   _add(bLikes);       // Likes
   _add(bClubs);       // Clubs (with likes)
   _add(bLifestyle);   // Lifestyle
-  _add(bBucket);      // Senior bucket list
   // Voice prompt removed from all cards per request
   promptBlocks.forEach(_add); // …then the rest of the prompts
   var details = '';
@@ -10964,9 +11269,9 @@ function _likedSubRow(){
   // in here; it reuses the flame that tab carried.
   var flameSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>';
   return '<div style="display:flex;gap:6px;padding:10px var(--s) 12px;margin-bottom:4px;">' +
-    b('foryou', 'For you', flameSvg) +
     b('likes', 'Likes Sent', sendSvg) +
-    b('saw', 'Secret Admirers', hatGlassesSvg) +
+    b('foryou', 'For you', flameSvg) +
+    b('saw', 'Admirers', hatGlassesSvg) +
     '</div>';
 }
 
@@ -11048,21 +11353,35 @@ function _likedSawHtml(pool,unlimited){
   var n = pool.length;
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
   
-  var banner='<div style="background:#800614;border-radius:var(--rad-xl);padding:18px;margin:0 var(--s) 14px;display:flex;align-items:center;gap:14px;border:1.5px solid rgba(240,62,90,0.7);position:relative;overflow:hidden;">'+
-    '<div style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,0.18);color:#fff;flex-shrink:0;">'+hatGlassesSvg+'</div>'+
-    '<div style="flex:1;">'+
-      '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;letter-spacing:-0.2px;">🔥 '+n+' Secret Admirers</div>'+
-      '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.9);margin-top:2px;font-weight:500;">Descubre quién te está observando en secreto en tu universidad.</div>'+
+  // Redrawn: the old banner was a solid maroon slab with an orange button, the
+  // last block in the app still built that way. Now it follows the house
+  // language — black card, the wine hue carried by a lit underline, the count as
+  // the loud element, and one full-width CTA on the shared _gradSkin recipe.
+  var _wine = '#b0243a';
+  var _cta = (typeof _gradSkin === 'function')
+    ? _gradSkin(_wine, true, { radius: 'var(--rad-pill)', dim: 82, bare: true })
+    : 'background:' + _wine + ';border:none;border-radius:var(--rad-pill);color:#fff;';
+  var banner='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid rgba(176,36,58,0.4);border-radius:var(--rad-xl);padding:16px 18px 18px;margin:0 var(--s) 14px;">'+
+    // The lit 2px line every other section in the app uses to carry its hue
+    '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_wine+',#800614);box-shadow:0 0 10px rgba(176,36,58,0.85);"></div>'+
+    '<div style="display:flex;align-items:center;gap:13px;">'+
+      '<span style="color:'+_wine+';flex-shrink:0;display:flex;">'+hatGlassesSvg+'</span>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="display:flex;align-items:baseline;gap:7px;">'+
+          '<span style="font-size:var(--fs-2xl);font-weight:900;color:'+_wine+';line-height:1;letter-spacing:-1.2px;">'+n+'</span>'+
+          '<span style="font-size:var(--fs-base);font-weight:800;color:#fff;letter-spacing:-0.2px;">Secret Admirers</span>'+
+        '</div>'+
+        '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;font-weight:500;line-height:1.4;">Descubre quién te está observando en secreto en tu universidad.</div>'+
+      '</div>'+
     '</div>'+
-    '<button onclick="if(typeof revealWhoViewed===\'function\')revealWhoViewed()" style="background:linear-gradient(135deg,#f59e0b,#800614);border:none;color:#ffffff;font-size:var(--fs-xs);font-weight:700;padding:9px 14px;border-radius:var(--rad-md);box-shadow:var(--glow-primary);cursor:pointer;white-space:nowrap;letter-spacing:0.5px;">⚡ VER TODOS</button>'+
+    '<button onclick="if(typeof revealWhoViewed===\'function\')revealWhoViewed()" style="'+_cta+'width:100%;margin-top:14px;padding:11px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.7px;cursor:pointer;">⚡ VER TODOS</button>'+
   '</div>';
 
   if(!pool.length)return banner+'<div style="text-align:center;padding:35px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">Sin admiradores secretos aún 🕵️<br><span style="font-size:var(--fs-xs);color:#7aa5ff;">¡Mantén actualizado tu perfil para recibir más visitas!</span></div>';
 
-  // Merged tab keeps the more generous of the two unlock rules: Admirers used to
-  // give one free reveal while Secret Admirers locked everything, so free users
-  // don't lose the reveal they already had.
-  var freeReveals = unlimited ? pool.length : 1;
+  // Every profile stays hidden without A+ — there is no free reveal any more,
+  // not even the first row. `unlimited` is the A+ flag the caller passes in.
+  var freeReveals = unlimited ? pool.length : 0;
 
   var cards=pool.map(function(p, idx){
     var unlocked = idx < freeReveals;
@@ -12080,9 +12399,9 @@ function groupSetMemberNickname(chatId, handle) {
 function groupInviteMembers(chatId) {
   var meta = _getGroupMeta(chatId);
   var friends = (typeof _friendsForPicker === 'function') ? _friendsForPicker() : [
-    { name: 'Ana Garcia', sub: 'Student', color: '#e91e63', init: 'A' },
-    { name: 'Carlos Mendez', sub: 'Student', color: '#3b82f6', init: 'C' },
-    { name: 'Sofia Torres', sub: 'Student', color: '#10b981', init: 'S' }
+    { name: 'Ana Garcia', sub: _uniAcronymOf(null), color: '#e91e63', init: 'A' },
+    { name: 'Carlos Mendez', sub: _uniAcronymOf(null), color: '#3b82f6', init: 'C' },
+    { name: 'Sofia Torres', sub: _uniAcronymOf(null), color: '#10b981', init: 'S' }
   ];
 
   var m = document.getElementById('group-invite-modal');
@@ -13742,10 +14061,9 @@ function _applyPlanLocks(){try{document.body.classList.toggle('aplus-on',curPlan
 function _viewRevealLeft(){try{var last=parseInt(localStorage.getItem('ugz_viewreveal_last')||'0');if(!last)return 0;var d=(Date.now()-last)/86400000;return Math.max(0,Math.ceil(5-d));}catch(e){return 0;}}
 function revealWhoViewed(){
   if(curPlan==='aplus'){openWhoViewed(true);return;}
-  var left=_viewRevealLeft();
-  if(left>0){if(confirm('🔓 Your free reveal recharges in '+left+' day'+(left>1?'s':'')+'.\n\nGet unlimited reveals with A+ Student — see plans?'))sw('premium','Plans');return;}
-  try{localStorage.setItem('ugz_viewreveal_last',String(Date.now()));}catch(e){}
-  openWhoViewed(true);
+  // No free reveals any more: admirers stay hidden until you have A+. Non-A+
+  // users get the locked sheet, which carries the upgrade CTA.
+  openWhoViewed(false);
 }
 function openWhoViewed(revealed){
   var isA=(curPlan==='aplus')||revealed===true;
@@ -14045,8 +14363,8 @@ function _megaCompat(p){
 }
 // ✨ MY VIBE EDITOR — user sets their own this-or-that, green flags, zodiac visibility
 var MY_GF_MAX=3;
-function _vibeLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_vibe'));if(s){if(s.tot)userPro.tot=s.tot;if(s.greenFlags)userPro.greenFlags=s.greenFlags;if(typeof s.zodiacShow==='boolean')userPro.zodiacShow=s.zodiacShow;if(s.zodiac&&!userPro.zodiac){userPro.zodiac=s.zodiac;userPro.zodiacEmoji=s.zodiacEmoji;}if(s.loveLanguage)userPro.loveLanguage=s.loveLanguage;if(s.workout)userPro.workout=s.workout;if(s.diet)userPro.diet=s.diet;if(s.anthem)userPro.anthem=s.anthem;if(typeof s.freeWeekend==='boolean')userPro.freeWeekend=s.freeWeekend;if(s.height)userPro.height=s.height;if(s.living)userPro.living=s.living;if(s.quiz)userPro.quiz=s.quiz;if(s.faith)userPro.faith=s.faith;if(s.greekStatus)userPro.greekStatus=s.greekStatus;if(s.greekType)userPro.greekType=s.greekType;if(s.org&&!userPro.org)userPro.org=s.org;if(s.identityTags)userPro.identityTags=s.identityTags.filter(function(k){return k!=='firstgen';});if(typeof s.kindness==='number')userPro.kindness=s.kindness;if(s.hotTakes)userPro.hotTakes=s.hotTakes;if(s.secretPrompt)userPro.secretPrompt=s.secretPrompt;if(s.wingmate)userPro.wingmate=s.wingmate;if(s.yearStyle)userPro.yearStyle=s.yearStyle;if(s.helpClasses)userPro.helpClasses=s.helpClasses;if(s.lookingFor)userPro.lookingFor=s.lookingFor;if(s.politics)userPro.politics=s.politics;if(s.drinking)userPro.drinking=s.drinking;if(s.smoking)userPro.smoking=s.smoking;if(s.customTots)userPro.customTots=s.customTots;if(s.rushInterest)userPro.rushInterest=s.rushInterest;if(s.bucketList)userPro.bucketList=s.bucketList;if(s.cardStyle)userPro.cardStyle=s.cardStyle;if(s.status)userPro.status=s.status;if(s.campus)userPro.campus=s.campus;if(s.customPalettes)userPro.customPalettes=s.customPalettes;if(s.prompts)userPro.prompts=s.prompts;if(s.bMonth){userPro.bMonth=s.bMonth;userPro.bDay=s.bDay;}if(s.building)userPro.building=s.building;if(typeof s.buildingShow==='boolean')userPro.buildingShow=s.buildingShow;if(s.pronouns)userPro.pronouns=s.pronouns;if(s.orientation)userPro.orientation=s.orientation;if(s.genderIdentity)userPro.genderIdentity=s.genderIdentity;if(s.gender)userPro.gender=s.gender;if(typeof s.hideIdentityLife==='boolean')userPro.hideIdentityLife=s.hideIdentityLife;if(s.transferFrom)userPro.transferFrom=s.transferFrom;if(typeof s.crossover==='boolean')userPro.crossover=s.crossover;if(typeof s.backOnCampus==='boolean')userPro.backOnCampus=s.backOnCampus;if(typeof s.badgeColor==='string')userPro.badgeColor=s.badgeColor;if(typeof s.athlete==='boolean')userPro.athlete=s.athlete;if(s.sports)userPro.sports=s.sports;if(s.greekHouse)userPro.greekHouse=s.greekHouse;if(s.accentText)userPro.accentText=s.accentText;}}catch(e){}}
-function _vibeSave(){try{localStorage.setItem('ugz_vibe',JSON.stringify({tot:userPro.tot||{},greenFlags:userPro.greenFlags||[],zodiacShow:userPro.zodiacShow!==false,zodiac:userPro.zodiac||null,zodiacEmoji:userPro.zodiacEmoji||null,loveLanguage:userPro.loveLanguage||null,workout:userPro.workout||null,diet:userPro.diet||null,anthem:userPro.anthem||null,freeWeekend:userPro.freeWeekend===true,height:userPro.height||null,living:userPro.living||null,quiz:userPro.quiz||null,faith:userPro.faith||null,greekStatus:userPro.greekStatus||null,greekType:userPro.greekType||null,org:userPro.org||null,identityTags:userPro.identityTags||null,kindness:(typeof userPro.kindness==='number'?userPro.kindness:null),hotTakes:userPro.hotTakes||null,secretPrompt:userPro.secretPrompt||null,wingmate:userPro.wingmate||null,yearStyle:userPro.yearStyle||null,helpClasses:userPro.helpClasses||null,lookingFor:userPro.lookingFor||null,politics:userPro.politics||null,drinking:userPro.drinking||null,smoking:userPro.smoking||null,customTots:userPro.customTots||null,workout:userPro.workout||null,rushInterest:userPro.rushInterest||null,bucketList:userPro.bucketList||null,cardStyle:userPro.cardStyle||null,status:userPro.status||null,campus:userPro.campus||null,customPalettes:userPro.customPalettes||null,prompts:userPro.prompts||null,bMonth:userPro.bMonth||null,bDay:userPro.bDay||null,building:userPro.building||null,buildingShow:userPro.buildingShow!==false,pronouns:userPro.pronouns||null,orientation:userPro.orientation||null,genderIdentity:userPro.genderIdentity||null,gender:userPro.gender||null,hideIdentityLife:userPro.hideIdentityLife===true,transferFrom:userPro.transferFrom||null,crossover:userPro.crossover===true,backOnCampus:userPro.backOnCampus===true,badgeColor:userPro.badgeColor||'',athlete:userPro.athlete===true,sports:userPro.sports||null,greekHouse:userPro.greekHouse||'',accentText:userPro.accentText||'auto'}));}catch(e){}}
+function _vibeLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_vibe'));if(s){if(s.tot)userPro.tot=s.tot;if(s.greenFlags)userPro.greenFlags=s.greenFlags;if(typeof s.zodiacShow==='boolean')userPro.zodiacShow=s.zodiacShow;if(s.zodiac&&!userPro.zodiac){userPro.zodiac=s.zodiac;userPro.zodiacEmoji=s.zodiacEmoji;}if(s.loveLanguage)userPro.loveLanguage=s.loveLanguage;if(s.workout)userPro.workout=s.workout;if(s.diet)userPro.diet=s.diet;if(s.anthem)userPro.anthem=s.anthem;if(typeof s.freeWeekend==='boolean')userPro.freeWeekend=s.freeWeekend;if(s.height)userPro.height=s.height;if(s.living)userPro.living=s.living;if(s.quiz)userPro.quiz=s.quiz;if(s.faith)userPro.faith=s.faith;if(s.greekStatus)userPro.greekStatus=s.greekStatus;if(s.greekType)userPro.greekType=s.greekType;if(s.org&&!userPro.org)userPro.org=s.org;if(s.identityTags)userPro.identityTags=s.identityTags.filter(function(k){return k!=='firstgen';});if(typeof s.kindness==='number')userPro.kindness=s.kindness;if(s.hotTakes)userPro.hotTakes=s.hotTakes;if(s.secretPrompt)userPro.secretPrompt=s.secretPrompt;if(s.wingmate)userPro.wingmate=s.wingmate;if(s.yearStyle)userPro.yearStyle=s.yearStyle;if(s.helpClasses)userPro.helpClasses=s.helpClasses;if(s.lookingFor)userPro.lookingFor=s.lookingFor;if(s.politics)userPro.politics=s.politics;if(s.drinking)userPro.drinking=s.drinking;if(s.smoking)userPro.smoking=s.smoking;if(s.customTots)userPro.customTots=s.customTots;if(s.rushInterest)userPro.rushInterest=s.rushInterest;if(s.cardStyle)userPro.cardStyle=s.cardStyle;if(s.status)userPro.status=s.status;if(s.campus)userPro.campus=s.campus;if(s.customPalettes)userPro.customPalettes=s.customPalettes;if(s.prompts)userPro.prompts=s.prompts;if(s.bMonth){userPro.bMonth=s.bMonth;userPro.bDay=s.bDay;}if(s.building)userPro.building=s.building;if(typeof s.buildingShow==='boolean')userPro.buildingShow=s.buildingShow;if(s.pronouns)userPro.pronouns=s.pronouns;if(s.orientation)userPro.orientation=s.orientation;if(s.genderIdentity)userPro.genderIdentity=s.genderIdentity;if(s.gender)userPro.gender=s.gender;if(typeof s.hideIdentityLife==='boolean')userPro.hideIdentityLife=s.hideIdentityLife;if(s.transferFrom)userPro.transferFrom=s.transferFrom;if(typeof s.crossover==='boolean')userPro.crossover=s.crossover;if(typeof s.backOnCampus==='boolean')userPro.backOnCampus=s.backOnCampus;if(typeof s.badgeColor==='string')userPro.badgeColor=s.badgeColor;if(typeof s.athlete==='boolean')userPro.athlete=s.athlete;if(s.sports)userPro.sports=s.sports;if(s.greekHouse)userPro.greekHouse=s.greekHouse;if(s.accentText)userPro.accentText=s.accentText;if(s.appTheme)userPro.appTheme=s.appTheme;}}catch(e){}}
+function _vibeSave(){try{localStorage.setItem('ugz_vibe',JSON.stringify({tot:userPro.tot||{},greenFlags:userPro.greenFlags||[],zodiacShow:userPro.zodiacShow!==false,zodiac:userPro.zodiac||null,zodiacEmoji:userPro.zodiacEmoji||null,loveLanguage:userPro.loveLanguage||null,workout:userPro.workout||null,diet:userPro.diet||null,anthem:userPro.anthem||null,freeWeekend:userPro.freeWeekend===true,height:userPro.height||null,living:userPro.living||null,quiz:userPro.quiz||null,faith:userPro.faith||null,greekStatus:userPro.greekStatus||null,greekType:userPro.greekType||null,org:userPro.org||null,identityTags:userPro.identityTags||null,kindness:(typeof userPro.kindness==='number'?userPro.kindness:null),hotTakes:userPro.hotTakes||null,secretPrompt:userPro.secretPrompt||null,wingmate:userPro.wingmate||null,yearStyle:userPro.yearStyle||null,helpClasses:userPro.helpClasses||null,lookingFor:userPro.lookingFor||null,politics:userPro.politics||null,drinking:userPro.drinking||null,smoking:userPro.smoking||null,customTots:userPro.customTots||null,workout:userPro.workout||null,rushInterest:userPro.rushInterest||null,cardStyle:userPro.cardStyle||null,status:userPro.status||null,campus:userPro.campus||null,customPalettes:userPro.customPalettes||null,prompts:userPro.prompts||null,bMonth:userPro.bMonth||null,bDay:userPro.bDay||null,building:userPro.building||null,buildingShow:userPro.buildingShow!==false,pronouns:userPro.pronouns||null,orientation:userPro.orientation||null,genderIdentity:userPro.genderIdentity||null,gender:userPro.gender||null,hideIdentityLife:userPro.hideIdentityLife===true,transferFrom:userPro.transferFrom||null,crossover:userPro.crossover===true,backOnCampus:userPro.backOnCampus===true,badgeColor:userPro.badgeColor||'',athlete:userPro.athlete===true,sports:userPro.sports||null,greekHouse:userPro.greekHouse||'',accentText:userPro.accentText||'auto',appTheme:userPro.appTheme||'undrgradz'}));}catch(e){}}
 function openVibeEditor(){
   userPro.tot=userPro.tot||{};userPro.greenFlags=userPro.greenFlags||[];
   var tots=_totPolls();
@@ -14406,33 +14724,8 @@ function renderSeniorSendoff(){
   box.innerHTML='<div style="margin:6px var(--s) 2px;border-radius:var(--rad-md);padding:14px;background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(61,123,255,0.08));border:1px solid rgba(245,158,11,0.35);">'+
     '<div style="display:flex;align-items:center;justify-content:space-between;"><div style="font-size:var(--fs-base);font-weight:700;color:#fbbf24;">🎓 Senior Send-Off</div><div style="font-size:var(--fs-xs);font-weight:600;color:#fff;">'+days+' days left</div></div>'+
     '<div style="font-size:var(--fs-sm);color:var(--fg);margin:6px 0 10px;line-height:1.45;">Make these last months count — meet people before everyone scatters 🌍</div>'+
-    '<div style="display:flex;gap:8px;"><button onclick="_seniorBucket()" style="flex:1;background:var(--p);border:none;border-radius:var(--rad-sm);padding:10px;color:#fff;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">✅ Bucket list</button></div>'+
   '</div>';
 }
-var BUCKET_SUGGESTIONS=['Go to a game I\'ve never been to','Hit the restaurant everyone raves about','One spontaneous road trip','Tell my crush before graduation','Take cap & gown photos early','Pull an all-nighter just for fun','Visit every coffee shop near campus','Throw one last big party'];
-function _bucketLoad(){if(!Array.isArray(userPro.bucketList)){try{var s=JSON.parse(localStorage.getItem('ugz_bucket'));userPro.bucketList=Array.isArray(s)?s:[];}catch(e){userPro.bucketList=[];}}}
-function _bucketSave(){try{localStorage.setItem('ugz_bucket',JSON.stringify(userPro.bucketList||[]));}catch(e){}if(typeof _vibeSave==='function')try{_vibeSave();}catch(e){}}
-function _profileBucket(p){if(!p)return [];if(p===userPro||p.isSelf){_bucketLoad();return userPro.bucketList||[];}if(_yearInSchoolFromGrad(p.grad)!=='Senior')return [];if(p._bucket)return p._bucket;var h=_strHash((p.name||'')+'bucket');var n=2+(h%3);var out=[];for(var i=0;i<n;i++){var v=BUCKET_SUGGESTIONS[(h+i*7)%BUCKET_SUGGESTIONS.length];if(out.indexOf(v)<0)out.push(v);}p._bucket=out;return out;}
-function _seniorBucket(){
-  _bucketLoad();
-  var m=document.getElementById('bucket-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='bucket-modal';m.className='mov open';m.style.zIndex='10002';
-  var items=userPro.bucketList.map(function(it,i){var t=_bucketText(it),done=_bucketDone(it);return '<div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;margin-bottom:7px;"><span onclick="_bucketToggle('+i+')" title="Mark done" style="cursor:pointer;width:22px;height:22px;border-radius:var(--rad-xs);border:2px solid '+(done?'#4ade80':'var(--gbdl)')+';background:'+(done?'#4ade80':'transparent')+';display:flex;align-items:center;justify-content:center;color:#000000;font-weight:700;font-size:var(--fs-base);flex-shrink:0;">'+(done?'✓':'')+'</span><span style="flex:1;font-size:var(--fs-base);color:#fff;'+(done?'text-decoration:line-through;opacity:0.55;':'')+'">'+t+'</span><span onclick="_bucketRemove('+i+')" style="cursor:pointer;color:var(--fg3);flex-shrink:0;">✕</span></div>';}).join('')||'<div style="font-size:var(--fs-sm);color:var(--fg3);text-align:center;padding:10px;">No items yet — add your first below.</div>';
-  var sugg=(userPro.bucketList.length>=5)?'':BUCKET_SUGGESTIONS.filter(function(s){return !userPro.bucketList.some(function(it){return _bucketText(it)===s;});}).slice(0,4).map(function(s){return '<div onclick="_bucketAdd(\''+s.replace(/'/g,"\\'")+'\')" style="cursor:pointer;font-size:var(--fs-xs);padding:6px 10px;border-radius:var(--rad-md);border:1px dashed var(--gbdl);color:var(--fg2);">＋ '+s+'</div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">✅</div><div class="t-title">My Senior Bucket List</div><div class="t-sub">Shows on your Crush card so fellow seniors can join you.</div></div>'+
-    items+
-    '<div style="display:flex;gap:6px;margin:10px 0;"><input id="bucket-inp" placeholder="Add something to do before graduation…" maxlength="60" style="flex:1;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);color:#fff;font-size:var(--fs-base);padding:10px 12px;"/><button onclick="_bucketAddFromInput()" style="background:var(--p);border:none;border-radius:var(--rad-sm);padding:0 16px;color:#fff;font-weight:600;cursor:pointer;">Add</button></div>'+
-    (sugg?'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">'+sugg+'</div>':'')+
-    '<button class="gbtn-ghost" onclick="document.getElementById(\'bucket-modal\').remove()">Done</button></div>';
-  document.body.appendChild(m);
-}
-// Bucket items can be plain strings (legacy/sample) or {t:text,done:bool}
-function _bucketText(it){return (it&&typeof it==='object')?(it.t||''):String(it||'');}
-function _bucketDone(it){return !!(it&&typeof it==='object'&&it.done);}
-function _bucketAdd(v){_bucketLoad();v=String(v||'').trim();if(!v)return;if(userPro.bucketList.length>=5){alert('Up to 5 bucket-list items.');return;}if(!userPro.bucketList.some(function(it){return _bucketText(it)===v;}))userPro.bucketList.push({t:v,done:false});_bucketSave();_seniorBucket();if(typeof renderCrushPreview==='function')try{renderCrushPreview();}catch(e){}}
-function _bucketAddFromInput(){var inp=document.getElementById('bucket-inp');if(inp)_bucketAdd(inp.value);}
-function _bucketToggle(i){_bucketLoad();var it=userPro.bucketList[i];if(typeof it==='string')it=userPro.bucketList[i]={t:it,done:false};it.done=!it.done;_bucketSave();_seniorBucket();if(typeof renderCrushPreview==='function')try{renderCrushPreview();}catch(e){}}
-function _bucketRemove(i){_bucketLoad();userPro.bucketList.splice(i,1);_bucketSave();_seniorBucket();if(typeof renderCrushPreview==='function')try{renderCrushPreview();}catch(e){}}
 // ══════════ 📷 24h MOMENTS — story row of matches/nearby ══════════
 var MOMENT_CAPTIONS=['gym then tacos 🌮','library grind 📚','game night 🎮','coffee run ☕','sunset walk 🌇','study break 😮‍💨','frat row tonight 🎉','new playlist 🎧','match day ⚽','art project 🎨','road trip 🚗','finals szn 💀'];
 var _momentsViewed={};var _momentQueue=[];var _momentIdx=0;var _momentTimer=null;
@@ -15199,6 +15492,15 @@ function _gradSkin(color, on, opts) {
     var fill = opts.grad || ('linear-gradient(135deg,'
       + ' color-mix(in srgb, ' + color + ' ' + dim + '%, #000) 0%,'
       + ' color-mix(in srgb, ' + color + ' ' + Math.round(dim * 0.4) + '%, #000) 100%)');
+    // opts.bare: just the fill. The lit edge ends in color-mix(hue, #fff), which
+    // on a big button reads as a pale outline rather than as a glow, so the
+    // border, the halo and the text-shadow all come off.
+    // The border stays, transparent: keeping it means a button that toggles
+    // between the two skins never changes size.
+    if (opts.bare) {
+      return 'border-radius:' + radius + ';border:1.5px solid transparent;'
+        + 'background:' + fill + ';color:#fff;box-shadow:none;text-shadow:none;';
+    }
     return 'border-radius:' + radius + ';border:1.5px solid transparent;'
       + 'background:' + fill + ' padding-box,'
       + ' linear-gradient(135deg, ' + color + ', color-mix(in srgb, ' + color + ' 35%, #fff)) border-box;'
@@ -15419,8 +15721,75 @@ function sendFriendRequestFromCard(){
 }
 
 // ── SETTINGS ──
-function _setEmail(){var e=prompt('New email address:',(typeof userPro!=='undefined'&&userPro.email)||'');if(e&&e.trim()){if(typeof userPro!=='undefined')userPro.email=e.trim();var el=document.getElementById('settings-email');if(el)el.textContent=e.trim();}}
-function _setPhone(){var p=prompt('New phone number:',(typeof userPro!=='undefined'&&userPro.phone)||'');if(p&&p.trim()){if(typeof userPro!=='undefined')userPro.phone=p.trim();var el=document.getElementById('settings-phone');if(el)el.textContent=p.trim();}}
+// Settings is readable by anyone holding your unlocked phone, so the address and
+// the number are printed with only enough left to recognise your own. The full
+// values are untouched in userPro — this is display only.
+function _dots(n){var s='';for(var i=0;i<n;i++)s+='•';return s;}
+function _maskEmail(e){
+  e=String(e||'').trim();if(!e)return '';
+  var at=e.indexOf('@');
+  if(at<1)return _dots(6);                 // no domain to anchor on: hide it whole
+  var user=e.slice(0,at);
+  var keep=Math.min(2,user.length);
+  return user.slice(0,keep)+_dots(Math.max(3,user.length-keep))+e.slice(at);
+}
+function _maskPhone(p){
+  var d=String(p||'').replace(/\D/g,'');
+  if(!d)return '';
+  if(d.length<=4)return _dots(d.length);
+  return _dots(d.length-4)+' '+d.slice(-4);
+}
+
+// Your email is what ties the account to a campus, so changing it is a transfer,
+// not an edit: you are asked to confirm that first, and the old address is
+// released for good. window.prompt/confirm are the ugzModal promises here — the
+// previous version called them synchronously and set the email to a Promise.
+function _setEmail(){
+  var cur=(typeof userPro!=='undefined'&&userPro.email)||'';
+  ugzConfirm({
+    type:'warning',
+    title:'✉️ Are you transferring?',
+    message:'Your email is how UndrGradz checks which campus you belong to, so it should only change if you are moving to another school.\n\nOnce you change it, '+(cur||'your current address')+' is released and you will NOT be able to go back to it.',
+    confirmText:'Yes, I am transferring',
+    cancelText:'Cancel'
+  }).then(function(ok){
+    if(!ok)return;
+    return ugzPrompt('Your new school email address:','').then(function(v){
+      v=(v==null?'':String(v)).trim();
+      if(!v)return;
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){
+        ugzAlert('That does not look like a valid email address.');return;
+      }
+      if(cur&&v.toLowerCase()===cur.toLowerCase()){
+        ugzAlert('That is the address you already have.');return;
+      }
+      return ugzConfirm({
+        type:'warning',
+        title:'This cannot be undone',
+        message:'Your account will move to '+v+'.\n\n'+(cur?cur+' is released and cannot be restored.':'')+'\n\nContinue?',
+        confirmText:'Change my email',
+        cancelText:'Go back'
+      }).then(function(sure){
+        if(!sure)return;
+        if(typeof userPro!=='undefined')userPro.email=v;
+        var el=document.getElementById('settings-email');
+        if(el)el.textContent=_maskEmail(v);
+        if(typeof saveProfile==='function')try{saveProfile();}catch(e){}
+        ugzAlert('✅ Your email is now '+v+'.');
+      });
+    });
+  });
+}
+function _setPhone(){
+  ugzPrompt('New phone number:',(typeof userPro!=='undefined'&&userPro.phone)||'').then(function(p){
+    p=(p==null?'':String(p)).trim();
+    if(!p)return;
+    if(typeof userPro!=='undefined')userPro.phone=p;
+    var el=document.getElementById('settings-phone');
+    if(el)el.textContent=_maskPhone(p);
+    if(typeof saveProfile==='function')try{saveProfile();}catch(e){}
+  });
+}
 function openPasswordSecurity(){alert('🔒 Password & Security\n\nChange your password, enable 2-factor authentication and review recent login activity. (Demo)');}
 function _changeLanguage(){
   var curLang = localStorage.getItem('ugz_lang') || 'en';
@@ -15994,7 +16363,11 @@ function initSettingsAccordion() {
 // Each settings card gets its own neon edge. Done in JS rather than CSS because
 // the .set-h section headers are <div> too, so a :nth-of-type() selector counts
 // them as cards and the hues drift out of step after the fourth section.
-var _SETTINGS_NEON = ['#fb923c', '#3d7bff', '#b0243a', '#c084fc', '#a3e635',
+// Index 3 (#14b8a6) belongs to the Appearance card, inserted between Campus &
+// Identity and Activity. It was added HERE rather than appended so every
+// section after it keeps the hue it already had — the assignment below runs off
+// a running index, so appending would have shifted all five of them.
+var _SETTINGS_NEON = ['#fb923c', '#3d7bff', '#b0243a', '#14b8a6', '#c084fc', '#a3e635',
                       '#22d3ee', '#ec4899', '#fde047', '#2dd4bf', '#818cf8'];
 function _paintSettingsNeon() {
   var cards = document.querySelectorAll('#settings-modal .set-card');
@@ -16002,7 +16375,12 @@ function _paintSettingsNeon() {
   for (var k = 0; k < cards.length; k++) {
     // The Log Out card keeps the wine treatment set in styles.css.
     if (cards[k].querySelector('#set-logout-title')) continue;
-    cards[k].style.setProperty('--sec-neon', _SETTINGS_NEON[i % _SETTINGS_NEON.length]);
+    var hue = _SETTINGS_NEON[i % _SETTINGS_NEON.length];
+    cards[k].style.setProperty('--sec-neon', hue);
+    // The Change / Verify / Switch buttons fill with this same hue, so they need
+    // ink that survives it: black on the light ones (#fde047, #a3e635, #22d3ee),
+    // white on the rest. CSS can't work this out on its own.
+    cards[k].style.setProperty('--sec-ink', (_hexLuma(hue) > 0.55) ? '#000' : '#fff');
     i++;
   }
 }
@@ -16010,11 +16388,12 @@ function _paintSettingsNeon() {
 function openSettings(){
   if(typeof renderSeasonPicker==='function')try{renderSeasonPicker();}catch(e){}
   try{ _paintSettingsNeon(); }catch(e){}
-  var h=document.getElementById('settings-handle');if(h)h.textContent=userPro.handle||'@user';var _hs=document.getElementById('settings-handle-sub');if(_hs)_hs.textContent=userPro.handle||'@user';var _nm=document.getElementById('settings-name');if(_nm)_nm.textContent=userPro.name||'Your Name';var _ai=document.getElementById('settings-avatar-inner');if(_ai)_ai.textContent=(userPro.name||'A').charAt(0).toUpperCase();var _mj=document.getElementById('settings-major');if(_mj&&userPro.major)_mj.textContent=userPro.major;var _em=document.getElementById('settings-email');if(_em&&userPro.email)_em.textContent=userPro.email;var _ph=document.getElementById('settings-phone');if(_ph&&userPro.phone)_ph.textContent=userPro.phone;var _cy=document.getElementById('settings-classyear');if(_cy&&userPro.grad)_cy.textContent=(userPro.year?userPro.year+' ':'')+'('+String(userPro.grad).replace(/[^0-9]/g,'')+')';
+  var h=document.getElementById('settings-handle');if(h)h.textContent=userPro.handle||'@user';var _hs=document.getElementById('settings-handle-sub');if(_hs)_hs.textContent=userPro.handle||'@user';var _nm=document.getElementById('settings-name');if(_nm)_nm.textContent=userPro.name||'Your Name';var _ai=document.getElementById('settings-avatar-inner');if(_ai)_ai.textContent=(userPro.name||'A').charAt(0).toUpperCase();var _mj=document.getElementById('settings-major');if(_mj&&userPro.major)_mj.textContent=userPro.major;var _em=document.getElementById('settings-email');if(_em&&userPro.email)_em.textContent=_maskEmail(userPro.email);var _ph=document.getElementById('settings-phone');if(_ph&&userPro.phone)_ph.textContent=_maskPhone(userPro.phone);var _cy=document.getElementById('settings-classyear');if(_cy&&userPro.grad)_cy.textContent=(userPro.year?userPro.year+' ':'')+'('+String(userPro.grad).replace(/[^0-9]/g,'')+')';
   var su=document.getElementById('settings-uni');if(su)su.textContent=(uni&&uni.name)||'Not set';
   var sp=document.getElementById('settings-passport');if(sp)sp.textContent=userPro.passport?('✈️ Active at '+userPro.passport.uni):'Drop into another campus — study abroad or visiting';
   var sx=document.getElementById('sw-crossover');if(sx)sx.classList.toggle('on',!!(userPro&&userPro.crossover));var _at=(userPro&&userPro.accentText)||'auto';var _atb=document.getElementById('accent-text-chips');if(_atb)_atb.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',c.textContent.trim().toLowerCase()===_at);});var _gr=document.getElementById('settings-grad-row');if(_gr)_gr.style.display=((obMode||userMode)==='alumni')?'none':'';
   var sl=document.getElementById('settings-lang');if(sl)sl.textContent=window.currentLang==='es'?'Español':'English';
+  try{ _paintAppThemeBtns(); }catch(e){}
   initSettingsAccordion();
   var m=document.getElementById('settings-modal');if(m)m.classList.add('open');
 }
@@ -16263,16 +16642,31 @@ function detectUni(v){
     document.documentElement.style.setProperty('--p2',u.p2);
     document.documentElement.style.setProperty('--uni-p',u.p);
     document.documentElement.style.setProperty('--uni-p2',u.p2);
+    // <body> too. applyColors() writes --p to BOTH the root and the body, and
+    // an inline value on <body> shadows the root one for everything inside it.
+    // Writing only the root here left the whole page reading the stale body
+    // value — the school's colour reached :root and stopped there.
+    document.body.style.setProperty('--p',u.p);
+    document.body.style.setProperty('--p2',u.p2);
+    // Escuelas con brandDefault (SMU) dejan el GRADZ y el CONTINUE del registro
+    // en su rojo por defecto en vez de tomar el primario. Se hace con una clase
+    // y no dejando de escribir --uni-p porque esa variable alimenta otros 12
+    // sitios del registro (barra de progreso, halos) que si deben seguir a la
+    // escuela.
+    document.documentElement.classList.toggle('brand-default', !!u.brandDefault);
     var ud=document.getElementById('ud');if(ud)ud.style.background=u.p;
     var unl=document.getElementById('un-lbl');if(unl)unl.textContent='✅ '+u.name+' detected';
     var ucl=document.getElementById('uc-lbl');if(ucl){ucl.textContent=u.name;ucl.style.color='#4ade80';}
   } else {
     uni=null;
+    document.documentElement.classList.remove('brand-default');
     if(el)el.style.display='none';
     document.documentElement.style.setProperty('--p','#3d7bff');
     document.documentElement.style.setProperty('--p2','#3d7bff');
     document.documentElement.style.setProperty('--uni-p','#e04155');
     document.documentElement.style.setProperty('--uni-p2','#3d7bff');
+    document.body.style.setProperty('--p','#3d7bff');
+    document.body.style.setProperty('--p2','#3d7bff');
   }
   if(typeof _ob4UpdateUniTheme==='function')try{_ob4UpdateUniTheme();}catch(e){}
 }
@@ -16528,24 +16922,40 @@ function commitClubInput(){
 }
 function toggleB5(el,act,color){var cnt=selectedHobbies.length;if(!el.classList.contains('on')&&cnt>=MAX_HOBBIES){alert('Free plan: '+MAX_HOBBIES+' hobbies max. Upgrade for unlimited!');return;}el.classList.toggle('on');if(el.classList.contains('on')){el.style.background=color+'22';el.style.borderColor=color;el.style.color='#fff';if(selectedHobbies.indexOf(act)===-1)selectedHobbies.push(act);}else{el.style.background='';el.style.borderColor='';el.style.color='';selectedHobbies=selectedHobbies.filter(function(h){return h!==act;});}var cnt2=document.getElementById('b5-count');if(cnt2)cnt2.textContent=selectedHobbies.length;}
 // ── EDIT INTERESTS FROM PROFILE ──
+// The same UI as the sign-up interests step: category chips carrying their own
+// underline hue, a search box, and the three-up grid of .ob4-int cells. It calls
+// _ob4RenderInt / _ob4ToggleInt directly rather than copying them, so the two
+// screens cannot drift apart again. It used to draw BIG5 as collapsible bars
+// with a solid-colour title, which stopped matching sign-up once that step was
+// redrawn in the underline language.
 function editInterests(){
+  // selectedHobbies is the working array BOTH screens edit, but nothing refills
+  // it from userPro.interests after a reload. Without this seed, opening the
+  // editor showed nothing selected and saving wiped every interest.
+  if(typeof userPro!=='undefined'&&userPro&&Array.isArray(userPro.interests)&&!selectedHobbies.length){
+    selectedHobbies=userPro.interests.slice();
+  }
+  _ob4Cat='All';_ob4Query='';
   var modal=document.getElementById('edit-interests-modal');if(modal)modal.remove();
   modal=document.createElement('div');modal.id='edit-interests-modal';modal.className='mov open';
-  var big5Html=BIG5.map(function(sec){
-    var chips=sec.acts.map(function(a){
-      var on=selectedHobbies.indexOf(a)>-1;
-      var st=on?(' style="background:'+sec.color+'22;border-color:'+sec.color+';color:#fff;"'):'';
-      return '<div class="b5c'+(on?' on':'')+'"'+st+' onclick="toggleB5(this,\''+a.replace(/'/g,"\\'")+'\',\''+sec.color+'\')">'+a+'</div>';
-    }).join('');
-    return '<div class="b5s collapsed"><div class="b5-title" style="background:'+sec.color+';color:#fff;" onclick="this.parentNode.classList.toggle(\'collapsed\')">'+sec.name+'</div><div class="b5-chips no-deemoji">'+chips+'</div></div>';
+  var es=(window.currentLang==='es');
+  var cats=INTERESTS4_CATS.map(function(c){
+    return '<div class="ob4-catchip'+(_ob4Cat===c?' on':'')+'" data-cat="'+c+'" onclick="_ob4CatSel(this,\''+c+'\')">'+c+'</div>';
   }).join('');
-  modal.innerHTML='<div class="msheet" style="max-height:88%;overflow-y:auto;"><div class="mhnd"></div>'+
-    '<div class="mtitle">Edit Interests</div>'+
-    '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:12px;">Tap to add or remove · <span id="b5-count" style="color:var(--p);font-weight:600;">'+selectedHobbies.length+'</span>/'+MAX_HOBBIES+'</div>'+
-    big5Html+
-    '<button class="gbtn" style="background:var(--p);margin-top:10px;" onclick="saveInterestsEdit()">Save Interests</button>'+
-    '<button class="gbtn-ghost" onclick="document.getElementById(\'edit-interests-modal\').remove()">Cancel</button></div>';
+  // --ob-hue on the sheet: .ob4-flabel takes its underline from that variable and
+  // _ob4PaintLabels only reaches inside #ob4-content, which does not exist here.
+  modal.innerHTML='<div class="msheet" style="max-height:88%;overflow-y:auto;--ob-hue:#3d7bff;"><div class="mhnd"></div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">'+
+      '<div class="mtitle" style="margin:0;">'+(es?'Editar intereses':'Edit Interests')+'</div>'+
+      '<div style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);white-space:nowrap;">'+(es?'Elegidos':'Selected')+': <span id="ob4-intcount" style="color:#fff;">'+selectedHobbies.length+'</span>/'+MAX_HOBBIES+'</div>'+
+    '</div>'+
+    '<div style="display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;">'+cats+'</div>'+
+    '<input id="ob4-intq" oninput="_ob4Query=this.value;_ob4RenderInt()" placeholder="'+(es?'Buscar intereses…':'Search interests…')+'" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin:6px 0 4px;"/>'+
+    '<div id="ob4-intgrid"></div>'+
+    '<button class="gbtn" style="background:var(--p);margin-top:14px;" onclick="saveInterestsEdit()">'+(es?'Guardar':'Save Interests')+'</button>'+
+    '<button class="gbtn-ghost" onclick="document.getElementById(\'edit-interests-modal\').remove()">'+(es?'Cancelar':'Cancel')+'</button></div>';
   document.body.appendChild(modal);
+  _ob4RenderInt();
 }
 function saveInterestsEdit(){
   userPro.interests=selectedHobbies.slice(0,MAX_HOBBIES);
@@ -16901,7 +17311,6 @@ function saveProfile(){
       crossover: userPro.crossover || false,
       interests: data.interests,
       prompts: userPro.prompts || [],
-      bucketList: userPro.bucketList || [],
       lifestyle: {
         drinking: userPro.drinking || '',
         smoking: userPro.smoking || '',
@@ -16935,6 +17344,7 @@ function saveProfile(){
       },
       customization: {
         accentText: userPro.accentText || '',
+        appTheme: userPro.appTheme || 'undrgradz',
         anthem: userPro.anthem || '',
         badgeColor: userPro.badgeColor || '',
         cardStyle: userPro.cardStyle || '',
@@ -18860,7 +19270,7 @@ function openStudyPartners(classId){
   var seed=_strHash(classId);
   var src=pool.slice().sort(function(a,b){return ((_strHash(a.name)+seed)%97)-((_strHash(b.name)+seed)%97);}).slice(0,6);
   var rows=src.map(function(s){var safe=s.name.replace(/'/g,"");
-    return '<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><div style="width:40px;height:40px;border-radius:50%;background:'+s.bg+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;">'+s.init+'</div><div style="flex:1;min-width:0;"><div class="t-body-strong">'+s.name+'</div><div class="t-meta">'+(s.major||'Student')+' · same section</div></div><button onclick="_studyMessage(\''+safe+'\',\''+s.bg+'\',\''+s.init+'\',\''+c.code+' '+c.num+'\')" style="background:#3b82f6;border:none;border-radius:var(--rad-xs);padding:7px 13px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;flex-shrink:0;">Message</button></div>';
+    return '<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><div style="width:40px;height:40px;border-radius:50%;background:'+s.bg+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;">'+s.init+'</div><div style="flex:1;min-width:0;"><div class="t-body-strong">'+s.name+'</div><div class="t-meta">'+(s.major||_uniAcronymOf(s))+' · same section</div></div><button onclick="_studyMessage(\''+safe+'\',\''+s.bg+'\',\''+s.init+'\',\''+c.code+' '+c.num+'\')" style="background:#3b82f6;border:none;border-radius:var(--rad-xs);padding:7px 13px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;flex-shrink:0;">Message</button></div>';
   }).join('');
   var m=document.getElementById('studypartners-modal');if(m)m.remove();
   m=document.createElement('div');m.id='studypartners-modal';m.className='mov open';m.style.zIndex='10001';
@@ -20598,8 +21008,8 @@ function _renderSearchStudentCard(p) {
   var photoUrl = (p.photos && p.photos[0]) ? p.photos[0] : (p.photo || '');
   var init = (p.name || 'S').charAt(0).toUpperCase();
   var bg = p.bg || '#3d7bff';
-  var major = p.major || 'Student';
-  var acronym = (p.uni && p.uni.acronym) || (typeof uni !== 'undefined' && uni && uni.acronym) || 'UTNC';
+  var acronym = (p.uni && p.uni.acronym) || _uniAcronymOf(p) || 'UTNC';
+  var major = p.major || acronym;
   var handle = p.handle || (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   var fullName = p.name || 'Student';
 
@@ -20755,7 +21165,7 @@ async function handleCrushSearch(query) {
           return {
             name: u.firstName + ' ' + (u.lastName || ''),
             handle: u.handle,
-            major: (u.profile && u.profile.major) || 'Student',
+            major: (u.profile && u.profile.major) || _uniAcronymOf(u),
             photo: (u.photos && u.photos[0] && u.photos[0].url) || null,
             photos: (u.photos && u.photos.map(function(p){ return p.url; })) || [],
             uni: { name: (u.profile && u.profile.university) || myUniName, acronym: myUniAcronym }
