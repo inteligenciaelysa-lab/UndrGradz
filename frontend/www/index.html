@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Undrgradz</title>
+<link rel="icon" href="logo.ico" type="image/x-icon">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<!-- <link rel="stylesheet" href="responsivePC.css"> -->
+</head>
+<body>
+
+<!-- SPLASH -->
+<div class="screen active" id="splash" style="position:fixed;z-index:999;">
+  <div class="spl">
+    <div class="spl-logo" id="spl-logo"><img class="ugz-logo-img" id="spl-logo-img" alt="UndrGradz" src="image (1).png"></div>
+    <!-- <div class="spl-sub" id="spl-sub">The real college experience</div>
+    <div class="spl-bar"><div class="spl-fill" id="spl-fill"></div></div> -->
+  </div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div class="screen" id="authscreen">
+  <!-- Floating College Motifs Background Layer -->
+  <!-- Floating College Student Credentials Background Layer -->
+  <!-- UNDRGRADZ STUDENT ID / CAMPUS PASS ABSTRACT BACKGROUND SYSTEM -->
+  <div class="auth-bg-decor" id="auth-pass-decor">
+    <div class="pass-ambient-glow pass-glow-magenta"></div>
+    <div class="pass-ambient-glow pass-glow-blue"></div>
+    <div class="pass-ambient-glow pass-glow-violet"></div>
+    
+    <!-- 3D Perspective Stage for Abstract Student ID Cards -->
+    <div class="pass-cards-stage">
+      <!-- Card 1: Top-Right Foreground (Horizontal Format, Vibrant Magenta/Purple Accent) -->
+      <div class="pass-card pass-pos-top-right pass-layer-fg">
+        <div class="pass-header">
+          <span class="pass-brand">UNDR<span>GRADZ</span></span>
+          <span class="pass-chip">CAMPUS ID</span>
+        </div>
+        <div class="pass-body">
+          <div class="pass-avatar-circle"><span>◉</span></div>
+          <div class="pass-lines-wrap">
+            <div class="pass-line-bar w-80"></div>
+            <div class="pass-line-bar w-50 muted"></div>
+            <div class="pass-line-bar w-65 cyan"></div>
+          </div>
+          <div class="pass-qr-abstract">▦</div>
+        </div>
+      </div>
+
+      <!-- Card 2: Top-Left Foreground (Vertical Format, Electric Blue/Cyan Glow) -->
+      <div class="pass-card pass-card-vert pass-pos-top-left pass-layer-fg">
+        <div class="pass-header">
+          <span class="pass-brand">UNDR<span>PASS</span></span>
+          <span class="pass-chip cyan">DIGITAL</span>
+        </div>
+        <div class="pass-body-vert">
+          <div class="pass-avatar-circle large"><span>◉</span></div>
+          <div class="pass-line-bar w-90"></div>
+          <div class="pass-line-bar w-60 muted"></div>
+          <div class="pass-qr-abstract">▦</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Mid-Right Depth (Horizontal Minimalist, Purple Accent) -->
+      <div class="pass-card pass-pos-mid-right pass-layer-mg">
+        <div class="pass-header">
+          <span class="pass-brand">STUDENT<span>ID</span></span>
+          <span class="pass-chip violet">2026</span>
+        </div>
+        <div class="pass-body">
+          <div class="pass-avatar-circle"><span>◉</span></div>
+          <div class="pass-lines-wrap">
+            <div class="pass-line-bar w-70"></div>
+            <div class="pass-line-bar w-40 muted"></div>
+          </div>
+          <div class="pass-qr-abstract">▦</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Mid-Left Depth (Horizontal Format, Magenta/Pink Accent) -->
+      <div class="pass-card pass-pos-mid-left pass-layer-mg">
+        <div class="pass-header">
+          <span class="pass-brand">CAMPUS<span>PASS</span></span>
+          <span class="pass-chip magenta">VERIFIED</span>
+        </div>
+        <div class="pass-body">
+          <div class="pass-avatar-circle"><span>◉</span></div>
+          <div class="pass-lines-wrap">
+            <div class="pass-line-bar w-85"></div>
+            <div class="pass-line-bar w-55 muted"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Bottom-Right Far Background (Minimalist Out-of-Focus Card) -->
+      <div class="pass-card pass-pos-bot-right pass-layer-bg">
+        <div class="pass-header">
+          <span class="pass-brand">UGZ<span>CARD</span></span>
+        </div>
+        <div class="pass-body">
+          <div class="pass-avatar-circle sm"><span>◉</span></div>
+          <div class="pass-lines-wrap">
+            <div class="pass-line-bar w-60"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Bottom-Left Far Background (Minimalist Out-of-Focus Card) -->
+      <div class="pass-card pass-pos-bot-left pass-layer-bg">
+        <div class="pass-header">
+          <span class="pass-brand">UNDR<span>ID</span></span>
+        </div>
+        <div class="pass-body">
+          <div class="pass-avatar-circle sm"><span>◉</span></div>
+          <div class="pass-lines-wrap">
+            <div class="pass-line-bar w-50"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-container-wrap">
+    <div class="auth-logo-text"><span class="logo-undr">UNDR</span><span class="logo-gradz">GRADZ</span></div>
+    <div class="auth-subtitle">The real college experience</div>
+    
+    <!-- Main Card -->
+    <div class="auth-main-card">
+      <!-- Tabs -->
+      <div class="auth-tabs-bar">
+        <button id="auth-tab-su-btn" class="auth-tab-btn" onclick="switchAuthTab('signup')">Sign Up</button>
+        <button id="auth-tab-li-btn" class="auth-tab-btn active" onclick="switchAuthTab('login')" style="background:#dc2626; color:#fff; box-shadow:0 0 12px rgba(220,38,38,0.5);">Log In</button>
+      </div>
+
+      <!-- SIGN UP PANEL -->
+      <div id="auth-signup-panel" style="display:none;width:100%;">
+        <div id="su-choice-title" style="font-size:var(--fs-sm);font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:16px;">Who are you joining as?</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div onclick="_ob4Begin('student')" class="auth-option-card">
+            <div style="font-size:34px;">🎓</div>
+            <div style="flex:1;">
+              <div id="su-choice-student-title" style="font-size:var(--fs-lg);font-weight:900;color:#fff;">Student</div>
+              <div id="su-choice-student-desc" style="font-size:var(--fs-base);color:rgba(255,255,255,0.7);margin-top:2px;">Currently enrolled at a university</div>
+            </div>
+            <span style="color:rgba(255,255,255,0.5);font-size:var(--fs-xl);font-weight:800;">›</span>
+          </div>
+          <div onclick="_ob4Begin('alumni')" class="auth-option-card">
+            <div style="font-size:34px;">💼</div>
+            <div style="flex:1;">
+              <div id="su-choice-alumni-title" style="font-size:var(--fs-lg);font-weight:900;color:#fff;">Alumni</div>
+              <div id="su-choice-alumni-desc" style="font-size:var(--fs-base);color:rgba(255,255,255,0.7);margin-top:2px;">Graduated — join the network</div>
+            </div>
+            <span style="color:rgba(255,255,255,0.5);font-size:var(--fs-xl);font-weight:800;">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOG IN PANEL -->
+      <div id="auth-login-panel" style="display:block;width:100%;">
+        <div class="field" style="margin-bottom:16px;">
+          <label id="li-email-label" style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;display:block;">School email or @username</label>
+          <input class="gi auth-input-field" type="text" id="li-email" placeholder="you@school.edu  or  @username"/>
+        </div>
+        <div id="li-forgot-creds" style="text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 16px;cursor:pointer;" onclick="forgotEmailUsername()">Forgot email or username?</div>
+        
+        <div class="field" style="margin-bottom:16px;">
+          <label id="li-password-label" style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;display:block;">Password</label>
+          <div style="position:relative;">
+            <input class="gi auth-input-field" type="password" id="li-pass" placeholder="Your password" style="padding-right:54px !important;"/>
+            <div onclick="togglePwVis('li-pass','li-pass-eye')" id="ob-pass-eye-login" style="position:absolute;right:0;top:0;bottom:0;width:50px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:var(--fs-md);color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.04);border-radius:0 18px 18px 0;border-left:1px solid rgba(255,255,255,0.12);">👁</div>
+          </div>
+        </div>
+        <div id="li-forgot-pass" style="text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 20px;cursor:pointer;" onclick="forgotPassword()">Forgot password?</div>
+        
+        <button class="gbtn auth-submit-btn" id="do-login-btn" onclick="doLoginAuth()">Log In ›</button>
+        <div id="li-no-acct" style="text-align:center;font-size:var(--fs-base);color:rgba(255,255,255,0.6);margin-top:16px;cursor:pointer;" onclick="switchAuthTab('signup')">Don't have an account? <span style="color:#38bdf8;font-weight:700;">Sign Up</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="screen" id="onboarding">
+  <div class="ob-wrap">
+    <div class="ob-logo"><span class="logo-undr">Undr</span><span class="logo-gradz">gradz</span></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <button onclick="obBack()" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid var(--gbdl);color:#fff;font-size:var(--fs-lg);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">←</button>
+      <div style="flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,0.12);overflow:hidden;"><div id="ob-prog" style="height:100%;border-radius:2px;background:var(--p);width:20%;transition:width 0.4s;"></div></div>
+    </div>
+    <div class="ob-tag" id="ob-tag">Create your account</div>
+    <div id="ob-steps"></div>
+    <div id="ob-step-content" style="flex:1;overflow-y:auto;padding:4px 0 24px;"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="screen" id="app">
+  <div class="app-scroll" id="app-scroll">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <div id="tb-mode-icon" style="font-size:var(--fs-xl);line-height:1;color:#fff;">🎓</div>
+        <div class="tb-title" id="tb-title"><span class="tb-logo-undr">Undr</span><span class="tb-logo-gradz">gradz</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="tbi" id="tb-notif" onclick="openNotifications()" style="position:relative;font-size:var(--fs-md);display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-bell" style="font-size:var(--fs-md);"></i><span id="notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:var(--rad-xs);background:#e91e63;border:1.5px solid #120a23;font-size:var(--fs-2xs);font-weight:700;color:#fff;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span></button>
+        <div class="tbi" onclick="openSettings()" style="cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></div>
+      </div>
+    </div>
+
+    <!-- HANGOUTS -->
+    <div class="section active" id="sec-hangouts">
+      <button class="app-fab" id="hangouts-fab" onclick="toggleEventDropdown(event)" title="Event options" aria-label="Event options">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-fading-plus"><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 8v8"/><path d="M16 12H8"/><path d="M2.5 8.875a10 10 0 0 0-.5 3"/><path d="M2.83 16a10 10 0 0 0 2.43 3.4"/><path d="M4.636 5.235a10 10 0 0 1 .891-.857"/><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"/></svg>
+      </button>
+      <div class="ev-panel active" id="evp-nearby">
+        <div style="padding:6px var(--s) 4px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;" id="ev-section-row">
+          <div class="evsec-chip" data-sec="all" onclick="setHangoutSection('all')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list-icon lucide-list"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>
+            
+            All
+          </div>
+          <div class="evsec-chip on" data-sec="nightlife" onclick="setHangoutSection('nightlife')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-beer-icon lucide-beer"><path d="M17 11h1a3 3 0 0 1 0 6h-1"/><path d="M9 12v6"/><path d="M13 12v6"/><path d="M14 7.5c-1 0-1.44.5-3 .5s-2-.5-3-.5-1.72.5-2.5.5a2.5 2.5 0 0 1 0-5c.78 0 1.57.5 2.5.5S9.44 2 11 2s2 1.5 3 1.5 1.72-.5 2.5-.5a2.5 2.5 0 0 1 0 5c-.78 0-1.5-.5-2.5-.5Z"/><path d="M5 8v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/></svg>
+            Nightlife
+          </div>
+          <div class="evsec-chip" data-sec="study" onclick="setHangoutSection('study')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-text-icon lucide-book-text"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/><path d="M8 11h8"/><path d="M8 7h6"/></svg>
+            Study
+          </div>
+          <div class="evsec-chip" data-sec="sports" onclick="setHangoutSection('sports')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-volleyball-icon lucide-volleyball"><path d="M11 7a16 16 20 0 1 10.98 4.362"/><path d="M12 12a13 13 0 0 1-8.66 5"/><path d="M16.83 13.634a16 16 20 0 1-9.267 7.328"/><path d="M20.66 17A13 13 0 0 0 12 12a13 13 0 0 1 0-10"/><path d="M8.17 15.366a16 16 20 0 1-1.713-11.69"/><circle cx="12" cy="12" r="10"/></svg>
+            Sports
+          </div>
+          <div class="evsec-chip" data-sec="dorm" onclick="setHangoutSection('dorm')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-school-icon lucide-school"><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M18 4.933V21"/><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"/><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"/><path d="M6 4.933V21"/><circle cx="12" cy="9" r="2"/></svg>
+            Dorm
+          </div>
+          <div class="evsec-chip" data-sec="greek" onclick="setHangoutSection('greek')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark-icon lucide-landmark"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>
+            Greek Life
+          </div>
+          <div class="evsec-chip" data-sec="abroad" onclick="setHangoutSection('abroad')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plane-icon lucide-plane"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+            Abroad
+          </div>
+          <div class="evsec-chip" data-sec="campus" onclick="setHangoutSection('campus')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-university-icon lucide-university"><path d="M14 21v-3a2 2 0 0 0-4 0v3"/><path d="M18 12h.01"/><path d="M18 16h.01"/><path d="M22 7a1 1 0 0 0-1-1h-2a2 2 0 0 1-1.143-.359L13.143 2.36a2 2 0 0 0-2.286-.001L6.143 5.64A2 2 0 0 1 5 6H3a1 1 0 0 0-1 1v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"/><path d="M6 12h.01"/><path d="M6 16h.01"/><circle cx="12" cy="10" r="2"/></svg>
+            Campus
+          </div>
+        </div>
+        <div id="hangout-uniscope" style="padding: 2% 3%;"></div>
+        <div style="padding:4px var(--s) 6px;display:flex;align-items:center;gap:8px;">
+          <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;flex-shrink:0;display:none;">Filter</div>
+          <select class="gi" id="ev-filter-sel" onchange="renderHangouts()" style="flex:1;padding:7px 10px;font-size:var(--fs-sm);border-radius:var(--rad-lg);" data-tfmark="1">
+            <option value="compat">🎯 Most compatible with you</option>
+            <option value="trending">🔥 Top trending</option>
+            <option value="newest">🆕 Newest</option>
+            <option value="spots">👥 Most spots open</option>
+            <option value="soon">⏰ Happening soon</option>
+            <option value="near">📍 Nearby</option>
+          </select>
+        </div>
+        <div id="trending-events"></div>
+        <div id="campus-poll"></div>
+        <div id="hangout-events-list" class="stagger" style="padding: 1% 3%;"></div>
+      </div>
+      <div class="ev-panel" id="evp-my">
+        <div class="empty-state" id="my-events-empty"><div class="es-ico"><svg class="ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div><div class="es-title">No events yet</div><div class="es-body">Host something and your campus will see it here.</div><button class="es-cta" onclick="switchEvTab('create')">+ Create an event</button></div>
+      </div>
+      <div class="ev-panel" id="evp-joined">
+        <div class="empty-state" id="joined-events-empty"><div class="es-ico"><svg class="ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/></svg></div><div class="es-title">No joined events</div><div class="es-body">Events you join land here with their group chat, until they are over.</div><button class="es-cta" onclick="switchEvTab('nearby')">Explore hangouts</button></div>
+      </div>
+      <div class="ev-panel ev-create-tight" id="evp-create">
+        <div class="gc"><div class="ev-inner">
+          <div class="eh-head">
+            <div style="font-size:var(--fs-xl);font-weight:900;letter-spacing:0.5px;">CREATE <span style="background:#800614;-webkit-background-clip:text;background-clip:text;color:transparent;">HANGOUT</span> ✨</div>
+            <div style="font-size:var(--fs-base);color:var(--fg2);margin-top:3px;">Plan something awesome. People will join.</div>
+          </div>
+          <div class="ehcard" data-step="1"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">1</span><span class="ehic">📋</span><span class="ehtitle">The Basics</span></div><div class="field"><label>Event Name</label><div style="position:relative;"><input class="gi" type="text" id="ev-nm" maxlength="40" placeholder="Game Night, Girl's Night, Study Group…" oninput="var c=document.getElementById('ev-nm-c');if(c)c.textContent=this.value.length+'/40';" style="padding-right:52px;"/><span id="ev-nm-c" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);color:var(--fg3);pointer-events:none;">0/40</span></div></div>
+          <div class="field"><label>Section</label>
+            <select class="gi" id="ev-section" onchange="onEvSectionChange(this.value)">
+              <option value="nightlife">🌙 Nightlife — events outside the university</option>
+              <option value="gaming">🎮 Gaming — Tournaments, LAN & casual gaming</option>
+              <option value="study">📚 Study — group study for a class or project</option>
+              <option value="sports">⚽ Sports — matches, meetups, workouts</option>
+              <option value="dorm">🏠 Dorm — events inside a dorm</option>
+              <option value="greek">🏛️ Greek Life — mixers, philanthropy, chapter events</option>
+              <option value="abroad">✈️ Study Abroad — meet others going abroad</option>
+              <option value="campus">🎓 Campus — grab a meal, gym buddy, walk to class</option>
+              <option value="networking" id="ev-opt-networking">🤝 Networking — alumni-hosted (career & connections)</option>
+            </select>
+          </div>
+          <div id="ev-greek-cohost" style="margin-top:10px;"></div>
+          <div class="field" id="ev-networking-extras" style="display:none;"><label>Target majors <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(1 free · more = A+ Student)</span></label><select class="gi" id="ev-major-pick" onchange="_evAddMajor(this.value)"><option value="">Add a major…</option></select><div id="ev-major-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;"></div></div><div id="ev-abroad-extras" style="display:none;">
+            <div class="g2">
+              <div class="field"><label>Country</label><input class="gi" type="text" id="ev-abroad-country" placeholder="e.g. Spain"/></div>
+              <div class="field"><label>City</label><input class="gi" type="text" id="ev-abroad-city" placeholder="e.g. Barcelona"/></div>
+            </div>
+            <div class="g2">
+              <div class="field"><label>Semester</label><select class="gi" id="ev-abroad-sem"><option>Spring</option><option>Summer</option><option>Fall</option><option>May term</option><option>Jan Term</option></select></div>
+              <div class="field"><label>Year</label><select class="gi" id="ev-abroad-year"><option>2026</option><option>2027</option><option>2028</option><option>2029</option><option>2030</option></select></div>
+            </div>
+          </div>
+          <div id="ev-study-extras" style="display:none;">
+            <div class="field"><label>Course / Class Code <span style="font-weight:400;color:var(--fg3);text-transform:none;letter-spacing:0;">(optional)</span></label>
+              <input class="gi" type="text" id="ev-study-course" placeholder="e.g. CS 3340 or PSYC 2301"/>
+            </div>
+            <div class="field"><label>Teacher / Professor <span style="font-weight:400;color:var(--fg3);text-transform:none;letter-spacing:0;">(optional)</span></label>
+              <input class="gi" type="text" id="ev-study-teacher" placeholder="e.g. Dr. Rivera"/>
+            </div>
+          </div>
+          <div class="field"><label>Description (optional)</label><textarea class="gi" id="ev-desc" rows="2" placeholder="Tell people what this is about…"></textarea></div>
+          <div id="ev-greek-cohost"></div>
+          <div class="ehtip"><span class="ehtip-i">✨</span><div><b>Tip:</b> Add details that make people excited to join! <span style="color:var(--fg2);">Ex: Snacks, music, games, good vibes…</span></div></div></div>
+          
+          <div class="ehcard collapsed" data-step="2"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">2</span><span class="ehic">📅</span><span class="ehtitle">Date & Time</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;position:relative;">
+              <div class="field" style="flex:1;min-width:0;margin-bottom:0;"><label>Date</label>
+                <div id="ev-cal-display" onclick="toggleEvCal()" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:var(--rx);padding:10px 10px;cursor:pointer;font-size:var(--fs-sm);font-weight:500;color:#fff;height:44px;box-sizing:border-box;">
+                  <span style="font-size:var(--fs-base);flex-shrink:0;">📅</span>
+                  <span id="ev-cal-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Select date</span>
+                </div>
+                <div id="ev-cal-wrap" style="display:none;position:absolute;left:0;top:100%;z-index:9999;margin-top:6px;width:270px;background:rgba(13,13,17,0.98);border:1.5px solid rgba(255,255,255,0.18);border-radius:var(--rad-md);padding:10px;overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,0.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <button type="button" onclick="evCalNav(-1)" style="background:rgba(255,255,255,0.08);border:none;border-radius:var(--rad-xs);color:#fff;font-size:var(--fs-md);font-weight:700;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;">‹</button>
+                    <div id="ev-cal-month-lbl" style="font-size:var(--fs-base);font-weight:700;color:#fff;"></div>
+                    <button type="button" onclick="evCalNav(1)" style="background:rgba(255,255,255,0.08);border:none;border-radius:var(--rad-xs);color:#fff;font-size:var(--fs-md);font-weight:700;width:32px;height:32px;cursor:pointer;display:flex;align-items:center;justify-content:center;">›</button>
+                  </div>
+                  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">Su</div>
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">Mo</div>
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">Tu</div>
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">We</div>
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">Th</div>
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">Fr</div>
+                    <div style="text-align:center;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);padding:2px 0;">Sa</div>
+                  </div>
+                  <div id="ev-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+                </div>
+                <input type="hidden" id="ev-date-val" value=""/>
+                <input type="hidden" id="ev-month" value=""/>
+                <input type="hidden" id="ev-day" value=""/>
+                <input type="hidden" id="ev-year" value=""/>
+              </div>
+              <div class="field" style="flex:1;min-width:0;margin-bottom:0;"><label>Time</label>
+                <div style="display:flex;gap:3px;align-items:center;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);border-radius:var(--rx);padding:3px 6px;height:44px;box-sizing:border-box;">
+                  <input class="gi" type="text" id="ev-hour" placeholder="08" maxlength="2" style="width:34px;text-align:center;font-size:var(--fs-base);font-weight:600;padding:5px 2px;background:transparent;border:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value > 12) this.value = '12';"/>
+                  <span style="color:rgba(255,255,255,0.6);font-weight:700;font-size:var(--fs-base);">:</span>
+                  <input class="gi" type="text" id="ev-min" placeholder="00" maxlength="2" style="width:34px;text-align:center;font-size:var(--fs-base);font-weight:600;padding:5px 2px;background:transparent;border:none;" oninput="this.value=this.value.replace(/[^0-9]/g,'');if(this.value > 59) this.value = '59';"/>
+                  <select class="gi" id="ev-ampm" style="flex:1;min-width:44px;padding:5px 2px;font-size:var(--fs-sm);font-weight:600;background:transparent;border:none;color:#a9c4ff;cursor:pointer;">
+                    <option style="background:#120a23;color:#fff;">PM</option>
+                    <option style="background:#120a23;color:#fff;">AM</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="ehcard collapsed" data-step="3"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">3</span><span class="ehic">📍</span><span class="ehtitle">Location</span></div>
+            <div class="ehtoggle">
+              <button type="button" class="ehtog on" id="ehtog-inperson" onclick="_evLocMode(this,'inperson')">📍 In-person</button>
+              <button type="button" class="ehtog" id="ehtog-online" style="display:none;" onclick="_evLocMode(this,'online')">🌐 Online</button>
+            </div>
+            <div class="field"><label>Address / Location</label>
+              <input class="gi" type="text" id="ev-addr" placeholder="123 Campus Dr or Building A Room 204"/>
+            </div>
+          </div>
+          
+          <div class="ehcard collapsed" data-step="4"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">4</span><span class="ehic">⚙️</span><span class="ehtitle">Details & Settings</span></div><div class="field"><label>Max Spots</label><div class="ehstep"><button type="button" class="ehstepb" onclick="_evCapStep(-1)">−</button><input class="gi" type="number" id="ev-cap" value="10" min="2" max="150"
+               style="flex:1;font-size:var(--fs-md);font-weight:600;text-align:center;padding:9px 6px;height:44px;"
+               oninput="_clampEvCap(this)"/><button type="button" class="ehstepb" id="ev-cap-plus-btn" onclick="_evCapStep(1)">+</button></div><div style="font-size:var(--fs-xs);color:#fbbf24;margin-top:4px;font-weight:500;">You count as 1 — event starts at 1/<span id="ev-cap-echo">10</span>.</div></div><div class="field"><label>Age Restriction</label>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(251,191,36,0.06);border:1.5px solid transparent;border-radius:var(--rx);cursor:pointer;transition:all 0.22s;" id="ev-21-toggle" onclick="toggle21Plus()">
+              <span class="no-deemoji" style="font-size:var(--fs-xl);">🍺</span>
+              <div style="flex:1;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">21+ Only</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Restrict to 21 and over</div></div>
+              <div class="sw" id="ev-21-sw" style="pointer-events:none;"></div>
+            </div>
+            <input type="hidden" id="ev-age-restrict" value="all"/>
+          </div>
+          <div class="field"><label>Join Mode</label>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div id="jm-auto" onclick="setEvJoinMode('auto')" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rx);border:1.5px solid var(--p);background:rgba(61,123,255,0.07);cursor:pointer;transition:all 0.2s;">
+                <div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--p);background:var(--p);display:flex;align-items:center;justify-content:center;" id="jm-auto-dot"><div style="width:8px;height:8px;border-radius:50%;background:#fff;"></div></div>
+                <div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">⚡ Auto Join</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Anyone can join instantly. Chat opens when full.</div></div>
+              </div>
+              <div id="jm-req" onclick="setEvJoinMode('request')" style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rx);border:1.5px solid var(--gbdl);background:transparent;cursor:pointer;transition:all 0.2s;">
+                <div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--gbdl);" id="jm-req-dot"></div>
+                <div><div class="no-deemoji" style="font-size:var(--fs-base);font-weight:600;color:#fff;">💬 Request to Join</div><div style="font-size:var(--fs-xs);color:var(--fg2);">You approve or reject each request.</div></div>
+              </div>
+              <div id="jm-msg-row" style="display:none;padding:10px 12px;background:rgba(255,255,255,0.05);border-radius:var(--rx);border:1px solid var(--gbdl);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div class="sw" id="jm-msg-sw" onclick="this.classList.toggle('on')"></div>
+                  <div style="font-size:var(--fs-sm);font-weight:500;color:#fff;">Require a message to join</div>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="ev-join-mode" value="auto"/>
+          </div>
+          </div><div class="ehcard collapsed" data-step="5"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">5</span><span class="ehic">👥</span><span class="ehtitle">Who Can Join?</span></div><div class="field"><label>Allowed Genders <span style="font-weight:400;color:var(--fg3);text-transform:none;letter-spacing:0;">(pick 1, 2 or all 3)</span></label>
+            <div style="display:flex;gap:6px;margin-bottom:10px;" id="ev-gender-allow-row">
+              <button type="button" class="gallow on" data-g="female" onclick="toggleGenderAllow('female')" style="flex:1;padding:9px 6px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">♀ Female</button>
+              <button type="button" class="gallow on" data-g="male" onclick="toggleGenderAllow('male')" style="flex:1;padding:9px 6px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">♂ Male</button>
+              <button type="button" class="gallow on" data-g="other" onclick="toggleGenderAllow('other')" style="flex:1;padding:9px 6px;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">⚧ Other</button>
+            </div>
+            <input type="hidden" id="ev-gender-restrict" value="all"/><div class="field" style="margin-top:10px;"><label>Who can join?</label><div style="display:flex;flex-wrap:wrap;gap:6px;" id="ev-year-chips"><div class="yr-chip on" data-yt="all" onclick="_evYearTarget(this)" style="display:none;">Everyone</div><div class="yr-chip" data-yt="freshman" onclick="_evYearTarget(this)">Freshmen</div><div class="yr-chip" data-yt="sophomore" onclick="_evYearTarget(this)">Sophomores</div><div class="yr-chip" data-yt="junior" onclick="_evYearTarget(this)">Juniors</div><div class="yr-chip" data-yt="senior" onclick="_evYearTarget(this)">Seniors</div></div></div>
+            <div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Target Ratio</div>
+            <div id="ev-ratio-rows"></div>
+            <!-- Invite friends portion -->
+            <div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.25);border-radius:var(--rs);cursor:pointer;" onclick="toggleInviteFriends()">
+              <div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">👥 Invite Friends</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Reserve some spots for friends — fill the rest with new people</div></div>
+              <div class="sw" id="ev-friends-sw"></div>
+            </div>
+            <div id="ev-friends-portion" style="display:none;margin-top:10px;padding:11px 13px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rs);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+                <div style="font-size:var(--fs-sm);font-weight:500;color:#fff;">Friends portion</div>
+                <div style="font-size:var(--fs-sm);font-weight:600;color:#fbbf24;"><span id="ev-friends-pct">40</span>%</div>
+              </div>
+              <input type="range" min="0" max="40" step="10" value="40" id="ev-friends-sl" oninput="updateInviteFriends(this.value)" style="width:100%;accent-color:#fbbf24;"/>
+              <div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:7px;line-height:1.4;"><span id="ev-friends-echo" style="color:#fbbf24;font-weight:600;">40%</span> of your <span id="ev-friends-cap">10</span> spots (<span id="ev-friends-count">4</span>) will be friends — the rest go to new people you haven't met.</div>
+            </div>
+            <!-- Legacy hidden fields kept for compatibility -->
+            <input type="hidden" id="gender-ratio-sl" value="50"/>
+            <span id="gf-c" style="display:none;">50%</span><span id="gm-c" style="display:none;">50%</span><span id="glg-c" style="display:none;">0%</span>
+            <span id="gfb-c" style="display:none;"></span><span id="gmb-c" style="display:none;"></span><span id="glgb-c" style="display:none;"></span>
+            <span id="glg-c-wrap" style="display:none;"></span>
+          </div>
+          </div><div class="ehcard collapsed" data-step="6"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">6</span><span class="ehic">◉</span><span class="ehtitle">Additional Filters</span></div><div class="field"><div style="display:none;"><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;" id="ev-invite-chips">
+              <div class="yr-chip on" data-inv="all" onclick="handleInviteChip(this)">All Students</div>
+              <div class="yr-chip" data-inv="freshman" onclick="handleInviteChip(this)">Freshman</div>
+              <div class="yr-chip" data-inv="sophomore" onclick="handleInviteChip(this)">Sophomore</div>
+              <div class="yr-chip" data-inv="junior" onclick="handleInviteChip(this)">Junior</div>
+              <div class="yr-chip" data-inv="senior" onclick="handleInviteChip(this)">Senior</div>
+            </div></div>
+            <div class="evfilt collapsed" style="margin-top:8px;">
+              <div class="evfilt-h" onclick="_evFiltToggle(this)" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;"><span style="color:#fff;">🏫</span> Type of University</div>
+                <div class="filter-lock-badge" style="font-size:var(--fs-2xs);background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;padding:2px 7px;border-radius:var(--rad-lg);">A+ Student</div>
+              </div>
+              <div id="ev-schooltype-chips" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 var(--s) 12px;"><div class="yr-chip on" style="font-size:var(--fs-xs);" onclick="_setSchoolType('ev','all',this)">All</div><div class="yr-chip" style="font-size:var(--fs-xs);" onclick="_setSchoolType('ev','public',this)">Public</div><div class="yr-chip" style="font-size:var(--fs-xs);" onclick="_setSchoolType('ev','private',this)">Private</div></div>
+            </div>
+            <div class="evfilt collapsed" style="margin-top:8px;position:relative;">
+              <div class="evfilt-h" onclick="_evFiltToggle(this)" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;"><span style="color:#fff;">🏫</span> University</div>
+                <div class="filter-lock-badge" style="font-size:var(--fs-2xs);background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;padding:2px 7px;border-radius:var(--rad-lg);">A+ Student</div>
+              </div>
+              <div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.4;margin-bottom:7px;">🏫 <b style="color:#fff;">A+ Student</b> members can include 2–10 universities. Your university is always included.</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" id="ev-uni-scope">
+                <div class="yr-chip on" data-scope="mine" onclick="_uniScopeSel(this,'ev')">🎓 My University</div>
+                <div class="yr-chip" data-scope="near" onclick="_uniScopeSel(this,'ev')">📍 Nearby</div>
+                <div class="yr-chip" data-scope="pick" onclick="_uniScopeSel(this,'ev')">🏫 Other Universities</div>
+              </div>
+              <div id="ev-uni-chooser" style="display:none;">
+                <div id="ev-uni-counter" style="font-size:var(--fs-2xs);font-weight:600;color:var(--p);margin-bottom:6px;">Your university + 0 selected (1/10)</div>
+                <input class="gi" id="ev-uni-search" placeholder="🔎 Search universities…" oninput="_uniListFilter('ev-uni-choose-chips')" style="margin-bottom:7px;font-size:var(--fs-sm);padding:8px 11px;"/>
+                <div style="display:flex;gap:6px;margin-bottom:7px;">
+                  <select class="gi" id="ev-uni-country" onchange="_uniCountryChange('ev')" style="flex:1;font-size:var(--fs-sm);padding:8px 9px;"><option value="">🌎</option><option value="US">🇺🇸</option><option value="MX">🇲🇽</option><option value="CA">🇨🇦</option></select>
+                  <select class="gi" id="ev-uni-state" onchange="_uniListFilter('ev-uni-choose-chips')" style="flex:1;font-size:var(--fs-sm);padding:8px 9px;"><option value="">All states</option></select>
+                </div>
+                <div class="uni-chips-box" data-pfx="ev" style="display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto;" id="ev-uni-choose-chips"></div>
+              </div>
+            </div>
+            <div class="evfilt collapsed" style="margin-top:8px;">
+              <div class="evfilt-h" onclick="_evFiltToggle(this)" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;">Filter by Ethnicity</div>
+                <div class="filter-lock-badge" style="font-size:var(--fs-2xs);background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;padding:2px 7px;border-radius:var(--rad-lg);">A+ Student</div>
+              </div>
+              <div id="ev-ethnic-chips" style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0;">
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">White/Caucasian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Black/African American</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Hispanic/Latino</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Asian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Middle Eastern</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Native American</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Pacific Islander</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Mixed</div>
+              </div>
+            </div>
+            <div class="evfilt collapsed" style="margin-top:8px;">
+              <div class="evfilt-h" onclick="_evFiltToggle(this)" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;">🗳️ Political Affiliation</div>
+                <div class="filter-lock-badge" style="font-size:var(--fs-2xs);background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;padding:2px 7px;border-radius:var(--rad-lg);">A+ Student</div>
+              </div>
+              <div id="ev-politics-chips" style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0;">
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Liberal</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Conservative</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Moderate</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Progressive</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Libertarian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">Apolitical</div>
+              </div>
+            </div>
+            <div class="evfilt collapsed" style="margin-top:8px;">
+              <div class="evfilt-h" onclick="_evFiltToggle(this)" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;">Greek Organizations</div>
+                <div class="filter-lock-badge" style="font-size:var(--fs-2xs);background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;padding:2px 7px;border-radius:var(--rad-lg);">A+ Student</div>
+              </div>
+              <div style="max-height:120px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:5px;padding:4px 0;" id="ev-greek-chips"><div class="yr-chip" style="font-size:var(--fs-xs);" onclick="crushFilterChip(this)">Fraternity</div><div class="yr-chip" style="font-size:var(--fs-xs);" onclick="crushFilterChip(this)">Sorority</div><div class="yr-chip" style="font-size:var(--fs-xs);" onclick="crushFilterChip(this)">Rushing</div><div class="yr-chip" style="font-size:var(--fs-xs);" onclick="crushFilterChip(this)">None</div>
+              </div>
+            </div>
+            <div class="evfilt collapsed" style="margin-top:8px;">
+              <div class="evfilt-h" onclick="_evFiltToggle(this)" style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+                <div class="no-deemoji" style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;">🌐 Filter by Language</div>
+                <div class="filter-lock-badge" style="font-size:var(--fs-2xs);background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:600;padding:2px 7px;border-radius:var(--rad-lg);">A+ Student</div>
+              </div>
+              <div id="ev-lang-chips" style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0;max-height:130px;overflow-y:auto;">
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇺🇸 English</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇲🇽 Spanish</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇫🇷 French</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇧🇷 Portuguese</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇩🇪 German</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇮🇹 Italian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇳🇱 Dutch</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇸🇪 Swedish</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇳🇴 Norwegian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇩🇰 Danish</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇵🇱 Polish</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇬🇷 Greek</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇷🇺 Russian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇺🇦 Ukrainian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇹🇷 Turkish</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇯🇵 Japanese</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇰🇷 Korean</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇨🇳 Mandarin</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇭🇰 Cantonese</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇻🇳 Vietnamese</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇹🇭 Thai</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇮🇩 Indonesian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇵🇭 Tagalog</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇮🇳 Hindi</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇵🇰 Urdu</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇧🇩 Bengali</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇸🇦 Arabic</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇮🇱 Hebrew</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🇮🇷 Persian</div>
+                <div class="yr-chip" style="font-size:var(--fs-2xs);opacity:0.6;" onclick="crushFilterChip(this)">🤟 ASL</div>
+              </div>
+            </div>
+          </div>
+          </div><div class="ehcard collapsed" data-step="7"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">7</span><span class="ehic">🖼️</span><span class="ehtitle">Event Cover Photo</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">
+              <span style="font-size:var(--fs-sm);color:var(--fg2);">Choose a stock photo matching your event theme:</span>
+              <span style="font-size:var(--fs-2xs);color:var(--p);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;animation:pulse-arrow 1.5s infinite;display:inline-flex;align-items:center;flex-shrink:0;">Swipe ➜</span>
+            </div>
+            <input type="file" id="ev-custom-cover-input" accept="image/*" style="display:none;" onchange="_evHandleCustomCover(this)"/>
+            <div class="ev-stock-picker-wrapper" style="position:relative;">
+              <div id="ev-stock-picker-grid" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:4px 2px;margin-bottom:8px;">
+                <!-- Stock photo choices populated dynamically -->
+              </div>
+              <div class="ev-stock-fade-right" style="position:absolute;top:0;right:-2px;bottom:0;width:35px;background:linear-gradient(90deg, transparent, rgba(14, 10, 26, 0.95));pointer-events:none;border-radius:0 14px 14px 0;"></div>
+            </div>
+          </div><div class="ehcard collapsed" data-step="8"><div class="ehsec" onclick="_ehCardToggle(this)"><span class="ehnum">8</span><span class="ehic">👁️</span><span class="ehtitle">Review & Publish</span></div><div class="ehprev"><div class="ehprev-thumb" id="ev-prev-thumb" style="cursor:pointer;" onclick="_evPickThumb()">🌟</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-md);font-weight:700;color:#fff;" id="ev-prev-title">Your hangout</div><div style="font-size:var(--fs-sm);color:var(--fg2);margin:2px 0 6px;" id="ev-prev-sec">Nightlife — events outside the university</div><div style="font-size:var(--fs-sm);color:#a9c4ff;" id="ev-prev-when">📅 Pick a date & time</div><div style="font-size:var(--fs-sm);color:#a9c4ff;" id="ev-prev-where">📍 Add a location</div></div></div><div class="ehprev-meta" id="ev-prev-meta"><span>👥 <span id="ev-prev-cap">10</span> Spots</span><span>⚡ Auto Join</span></div><button class="jbtn" id="ev-publish-btn" style="background:var(--p);" onclick="createEv()">Publish Event 🎉</button></div>
+        </div></div>
+      </div>
+    </div>
+
+    <!-- CHATS -->
+    <div class="section" id="sec-chats"><button class="chat-fab" onclick="_openChatCreateMenu()" title="New chat" aria-label="New chat">+</button>
+      
+      <!-- User search -->
+      <div style="padding:0 var(--s) 6px;position:relative;">
+        <input class="gi" type="text" id="chat-search" placeholder="🔍 Search chats, events or users…" oninput="_chatSearchInput(this.value)" onfocus="_chatSearchFocus()" onblur="setTimeout(_chatSearchBlur,200)" autocomplete="off" style="border-radius:var(--rad-xl);padding:10px 14px;"/>
+        <div id="chat-search-results-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:rgba(13,13,17,0.98);border:1px solid var(--gbdl);border-radius:0 0 16px 16px;max-height:240px;overflow-y:auto;"></div>
+      </div>
+      <!-- Chat sections (4 main tabs) -->
+      <div style="padding:4px var(--s) 8px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;" id="chat-section-row">
+        <div class="chatsec-chip on" data-sec="all" onclick="setChatSection('all')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg><span class="csl">All</span></div>
+        <div class="chatsec-chip" data-sec="friends" onclick="setChatSection('friends')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg><span class="csl">Friends</span></div>
+        <div class="chatsec-chip" data-sec="matches" onclick="setChatSection('matches')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg><span class="csl">Matches</span></div>
+        <div class="chatsec-chip" data-sec="events" onclick="setChatSection('events')"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg><span class="csl">Events</span></div>
+      </div>
+      
+      <div id="chats-match-banner" data-seed-count="0" style="display:none;position:relative;background:linear-gradient(135deg,rgba(240,62,90,0.18),rgba(61,123,255,0.18));border:1.5px solid rgba(240,62,90,0.6);border-radius:var(--rad-lg);padding:12px 14px;margin:6px var(--s) 12px;align-items:center;justify-content:space-between;box-shadow:0 0 20px rgba(240,62,90,0.3);backdrop-filter:blur(10px);">
+        <button onclick="dismissMatchBanner()" style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:#800614;border:2px solid #000000;color:#fff;font-size:var(--fs-sm);font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 0 10px rgba(240,62,90,0.8);z-index:5;">✕</button>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:38px;height:38px;border-radius:50%;background:#800614;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);box-shadow:0 0 12px rgba(240,62,90,0.6);color:#fff;flex-shrink:0;">🔥</div>
+          <div>
+            <div style="font-size:var(--fs-base);font-weight:700;color:#fff;" id="match-banner-count">0 Matches waiting for your message</div>
+            <div style="font-size:var(--fs-xs);color:#d6e4ff;font-weight:500;margin-top:1px;">Say hi before their chat expires!</div>
+          </div>
+        </div>
+        <button onclick="sw('unicrush','Crush')" style="background:#800614;border:none;color:#fff;font-size:var(--fs-2xs);font-weight:700;padding:7px 12px;border-radius:var(--rad-md);box-shadow:0 0 12px rgba(240,62,90,0.5);cursor:pointer;white-space:nowrap;">💬 SAY HI</button>
+      </div>
+      <div id="chat-list">
+        <div class="chat-grp-hdr" id="chat-hdr-dm" style="display:none;">Direct Messages</div>
+        <div id="chat-dm-container"></div>
+      </div>
+      <div id="chat-empty-section" style="display:none;text-align:center;padding:36px var(--s);"><div style="width:70px;height:70px;border-radius:50%;background:rgba(43,95,217,0.12);border:1px solid rgba(43,95,217,0.3);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;">💬</div><div style="font-size:var(--fs-md);font-weight:700;color:#fff;margin-bottom:4px;">Sin conversaciones todavía</div><div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.5;max-width:230px;margin:0 auto 14px;">Explora la app o haz match con otros estudiantes para iniciar un chat.</div><button class="gbtn" onclick="sw('hangouts','Hangouts')" style="background:var(--p);width:auto;padding:9px 22px;display:inline-block;" >Explorar eventos</button></div>
+      <div id="study-panel" style="display:none;padding:0 var(--s);"></div>
+    </div>
+
+    <!-- MAIN FEED -->
+    <div class="section" id="sec-main">
+      <div style="padding:8px var(--s) 6px;">
+        <div style="position:relative;">
+          <input class="gi" type="text" id="main-search" placeholder="🔍 Search users…" oninput="liveSearch(this.value)" style="border-radius:var(--rad-xl);padding:10px 14px 10px 14px;"/>
+          <div id="search-results-drop" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:100;background:rgba(13,13,17,0.98);border:1px solid var(--gbdl);border-radius:0 0 16px 16px;max-height:240px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="compose-w">
+        <div class="gc comp-i">
+          <textarea class="cta" id="compose-ta" rows="2" placeholder="What's happening on campus?"></textarea>
+          <img id="compose-img-preview" class="post-img-preview" style="display:none;" alt=""/>
+          <div id="compose-photos-row" style="display:none;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
+          <div id="poll-box" style="display:none;" class="poll-box">
+            <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">Poll</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><span style="font-size:var(--fs-sm);color:var(--fg2);font-weight:500;min-width:14px;">A</span><input type="text" id="poll-a" class="poll-inp" placeholder="Option A"/></div>
+            <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:var(--fs-sm);color:var(--fg2);font-weight:500;min-width:14px;">B</span><input type="text" id="poll-b" class="poll-inp" placeholder="Option B"/></div>
+          </div>
+          <div class="compose-extras">
+            <button class="cex-label" id="btn-poll" onclick="togglePoll(this)">Polls</button>
+            <button class="cex-label" onclick="openLayoutPicker()">Photo</button>
+            <button class="cex-label" id="btn-comments" onclick="toggleCommentMode(this)">Comments On</button>
+            <button class="cex-label" id="anon-btn" onclick="toggleAnon()" style="position:relative;">🕵️ Anon<div id="anon-tooltip" style="display:none;position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;font-size:var(--fs-2xs);padding:4px 8px;border-radius:var(--rad-xs);white-space:nowrap;z-index:10;">Anonymous mode on</div></button>
+          </div>
+          <input type="file" id="post-img-file" accept="image/*" style="display:none;" onchange="previewPostImg(this)"/>
+          <div class="cfoot" style="display:flex;justify-content:flex-end;align-items:center;gap:8px;">
+            <button class="pbtn" id="post-btn" onclick="doPost()" style="background:var(--p);">Post</button>
+          </div>
+        </div>
+      </div>
+      <div id="feed">
+        <div class="gc fp"><div style="background:var(--p);border-radius:var(--r) var(--r) 0 0;"><div class="pt"><div class="pav" style="background:rgba(255,255,255,0.25);" onclick="openUserPopup({handle:'@mariag',name:'María G.',major:'MKT',grad:'May 26',bio:'',interests:[]})">M</div><div style="flex:1;"><div class="pn">@mariag</div><div class="pt2">2h ago</div></div><span class="tag" style="border-color:rgba(255,255,255,0.3);color:#fff;background:rgba(255,255,255,0.15);">Marketing</span></div><div class="pb" style="color:#fff;padding:0 13px 12px;">Prof. López is amazing! Professor of the semester 🙌</div></div><div class="pacts"><button class="pa" onclick="votePost(this,1)">▲ 12</button><button class="pa" onclick="votePost(this,-1)">▼ 2</button><button class="pa" onclick="toggleCommentBox(this)">💬 Comment</button><button class="pa" onclick="showShareModal(this)">↗️ Share</button></div><div class="comments-section" style="display:none;"><div class="comment-input-row"><input class="comment-input" type="text" placeholder="Write a comment…" onkeydown="if(event.key==='Enter')postComment(this)"/><button class="comment-send" onclick="postComment(this.previousElementSibling)">↑</button></div></div></div>
+        <div class="gc fp"><div class="pt"><div class="pav" style="background:#374151;">😎</div><div style="flex:1;"><div class="pn">Anonymous</div><div class="pt2">5h ago</div></div><span class="tag">Engineering</span></div><div class="pb" style="color:#fff;">The Networks midterm didn't match the syllabus 😤</div><div class="pacts"><button class="pa" onclick="votePost(this,1)">▲ 51</button><button class="pa" onclick="votePost(this,-1)">▼ 3</button><button class="pa" onclick="toggleCommentBox(this)">💬 19</button><button class="pa" onclick="showShareModal(this)">↗️ Share</button></div><div class="comments-section" style="display:none;"><div class="comment-input-row"><input class="comment-input" type="text" placeholder="Write a comment…" onkeydown="if(event.key==='Enter')postComment(this)"/><button class="comment-send" onclick="postComment(this.previousElementSibling)">↑</button></div></div></div>
+      </div>
+    </div>
+
+    <!-- EVENTS (Go-Outs/Deals) -->
+    <div class="section" id="sec-events">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px var(--s) 0;">
+        <div class="sh" style="padding:0;">Bars &amp; Nightclubs</div>
+        <button id="biz-create-event-btn" onclick="openBizEventCreate()" style="display:none;background:var(--p);border:none;border-radius:var(--rad-xs);padding:5px 11px;color:#fff;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">+ Create</button>
+      </div>
+      <div class="biz-banner" onclick="showEventDetail('Eclipse Bar &amp; Lounge','1234 Commerce St, Dallas TX','20% off all drinks Thursdays with student ID 🍺','18+','0.4 mi')">
+          <div class="biz-img" style="background:linear-gradient(135deg,#1a0a2e,#3a0d2e);">🍺</div>
+          <div class="biz-ov">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;">
+              <div style="font-size:var(--fs-2xs);font-weight:500;color:rgba(255,255,255,0.55);text-transform:uppercase;">Bar · Sponsored</div>
+              <div style="width:14px;height:14px;border-radius:50%;background:#1d9bf0;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" width="8" height="8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <div class="biz-title-txt">Eclipse Bar &amp; Lounge</div>
+            <div class="biz-disc">20% off Thursdays · 📍 0.4 mi · <span style="color:#e04155;font-weight:600;font-size:var(--fs-2xs);">18+</span></div>
+          </div>
+          <div class="biz-badge">Ad</div>
+        </div>
+      <div class="biz-banner" onclick="ugzAlert('Free entry before midnight!')"><div class="biz-img" style="background:linear-gradient(135deg,#0a0a2a,#1a0a3a);">🎶</div><div class="biz-ov"><div style="font-size:var(--fs-2xs);font-weight:500;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:2px;">Nightclub · Sponsored</div><div class="biz-title-txt">PRISM Nightclub</div><div class="biz-disc">Free entry before midnight with .edu</div></div><div class="biz-badge">Ad</div></div>
+      <div class="sh">Weekend Activities</div>
+      <div class="biz-banner" onclick="ugzAlert('40% student discount!')"><div class="biz-img" style="background:linear-gradient(135deg,#0a2a1a,#1a3a0a);">🎢</div><div class="biz-ov"><div style="font-size:var(--fs-2xs);font-weight:500;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:2px;">Activity · Sponsored</div><div class="biz-title-txt">Six Flags Group Rate</div><div class="biz-disc">40% student discount</div></div><div class="biz-badge">Ad</div></div>
+      <div class="sh">Restaurants</div>
+      <div class="biz-banner" onclick="ugzAlert('10% student discount!')"><div class="biz-img" style="background:linear-gradient(135deg,#2a1a0a,#3a2a0a);">🌮</div><div class="biz-ov"><div style="font-size:var(--fs-2xs);font-weight:500;color:rgba(255,255,255,0.55);text-transform:uppercase;margin-bottom:2px;">Restaurant · Sponsored</div><div class="biz-title-txt">Taco Loco Campus</div><div class="biz-disc">10% student discount all day</div></div><div class="biz-badge">Ad</div></div>
+      <div class="sh">🎓 University Events & Scholarships</div>
+      <div class="gc"><div class="ev-inner">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;"><div style="font-size:var(--fs-xl);">🎓</div><div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Merit Scholarship — $5,000</div><div style="font-size:var(--fs-sm);color:var(--fg2);">Apply at registrar. GPA 3.5+ required.</div></div></div>
+      </div></div>
+      <div class="gc"><div class="ev-inner">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;"><div style="font-size:var(--fs-xl);">🏫</div><div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Campus Services</div><div style="font-size:var(--fs-sm);color:var(--fg2);">Library hours extended through finals.</div></div></div>
+      </div></div>
+      <div class="gc"><div class="ev-inner">
+        <div class="ev-title">Spring Fest 🎉</div>
+        <div class="ev-meta">📍 Main Campus · April 20 · Institution</div>
+        <div style="font-size:var(--fs-base);color:var(--fg);margin:8px 0;line-height:1.5;">Live music, food trucks &amp; activities. Free entry with student ID!</div>
+      </div></div>
+    </div>
+
+    <!-- UNICRUSH -->
+    <div id="sec-unicrush" style="position:relative;">
+      <div class="age-wall" id="unicrush-age-wall" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(0,0,0,0.97);flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;">
+        <div style="font-size:52px;margin-bottom:16px;">🔞</div>
+        <div style="font-size:var(--fs-xl);font-weight:900;color:#fff;margin-bottom:8px;font-family:var(--font-serif);">Crush is 18+</div>
+        <div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.6;max-width:280px;">You must be 18 or older. Come back on your birthday! 🎂</div>
+      </div>
+      
+      <!-- DISCOVER -->
+      <!-- FOR YOU — discovery widgets -->
+      <div class="crush-tab-panel" id="cpanel-foryou">
+        <div id="season-banner"></div>
+        <div id="campus-wrapped"></div>
+        <div id="senior-sendoff"></div>
+        <div id="crush-spotlight"></div>
+      </div>
+      <!-- DISCOVER — the swipe deck -->
+      <div class="crush-tab-panel active" id="cpanel-swipe">
+        
+        <div id="single-sex-banner"></div><div class="crush-card-wrap" id="crush-card-wrap">
+          <div class="crush-card" id="crush-card">
+            <div class="swipe-overlay" id="swipe-overlay-reject"></div>
+            <div class="swipe-overlay" id="swipe-overlay-like"></div>
+            <div class="swipe-overlay" id="swipe-overlay-maybe"></div>
+          </div>
+          <div class="crush-actions no-deemoji" id="deck-action-bar">
+            <button class="crb crb-neon-undo" style="position:relative;" onclick="swipeBack()" title="Go Back — undo last left swipe" id="swipe-back-btn">
+              <svg class="crb-svg crb-undo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
+              <span id="swipe-back-count" style="position:absolute;top:-4px;right:-4px;background:#f59e0b;color:#000;font-size:var(--fs-2xs);font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;line-height:1;">0</span>
+            </button>
+            <button class="crb crb-neon-x" onclick="swipe('nope')" title="Pass">
+              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <button class="crb crb-neon-star" onclick="swipe('maybe')" title="Super Like">
+              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
+            </button>
+            <button class="crb crb-neon-heart" onclick="swipe('like')" title="Like">
+              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            </button>
+            <button class="crb crb-neon-rose" style="position:relative;" onclick="superLike()" title="Rose — your weekly Super Like" id="rose-btn">
+              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M17 10h-1a4 4 0 1 1 4-4v.534"/><path d="M17 6h1a4 4 0 0 1 1.42 7.74l-2.29.87a6 6 0 0 1-5.339-10.68l2.069-1.31"/><path d="M4.5 17c2.8-.5 4.4 0 5.5.8s1.8 2.2 2.3 3.7c-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2"/><path d="M9.77 12C4 15 2 22 2 22"/><circle cx="17" cy="8" r="2"/></svg>
+              <span id="rose-count" style="position:absolute;top:-4px;right:-4px;background:#800614;color:#fff;font-size:var(--fs-2xs);font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;line-height:1;">1</span>
+            </button>
+          </div>
+        </div>
+        <div id="crush-empty" style="display:none;text-align:center;padding:36px var(--s);">
+          <div style="font-size:44px;margin-bottom:10px;">💘</div>
+          <div style="font-size:var(--fs-lg);font-weight:900;color:#fff;margin-bottom:5px;">You're all caught up!</div><div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:2px;">New students join all the time — check back tonight 🌙</div>
+          <button class="gbtn" style="background:var(--p);margin-top:14px;width:auto;padding:11px 26px;display:inline-block;" onclick="resetCrush()">See more</button>
+        </div>
+      </div>
+      <!-- WHO LIKED YOU — unified card -->
+      <div class="crush-tab-panel" id="cpanel-liked">
+        <div style="text-align:center;padding:14px var(--s) 10px;">
+          <div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Your Uni-admirers 💘</div>
+          <div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:4px;">Subscribe to see who liked you</div>
+        </div>
+        <div class="liked-card">
+          <div class="liked-card-blur">
+            <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;gap:12px;align-items:center;"><div style="width:52px;height:52px;border-radius:50%;background:#e91e63;"></div><div><div style="width:100px;height:14px;background:#fff;border-radius:4px;"></div><div style="width:80px;height:10px;background:rgba(255,255,255,0.3);border-radius:4px;margin-top:5px;"></div></div></div>
+              <div style="display:flex;gap:12px;align-items:center;"><div style="width:52px;height:52px;border-radius:50%;background:#3b82f6;"></div><div><div style="width:110px;height:14px;background:#fff;border-radius:4px;"></div><div style="width:90px;height:10px;background:rgba(255,255,255,0.3);border-radius:4px;margin-top:5px;"></div></div></div>
+            </div>
+          </div>
+          <div class="liked-lock-overlay">
+            <div style="font-size:32px;">💘</div>
+            <div style="font-size:var(--fs-md);font-weight:700;color:#fff;text-align:center;">See who liked you</div>
+            <div style="font-size:var(--fs-base);color:var(--fg2);text-align:center;max-width:250px;line-height:1.5;">Reveal <b style="color:#fff;">1 free every 5 days</b> — or go A+ for unlimited.</div>
+            <button onclick="revealLikedYou()" style="width:200px;height:50px;border-radius:var(--rad-sm);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;">🔓 Reveal free</button>
+            <button onclick="premAlert()" style="width:200px;height:42px;border-radius:var(--rad-sm);border:1px solid var(--gbdl);background:rgba(255,255,255,0.06);color:var(--fg);font-family:var(--font);font-size:var(--fs-sm);font-weight:500;cursor:pointer;">A+ · unlimited reveals</button>
+          </div>
+        </div>
+      </div>
+      <!-- SEARCH PANEL -->
+      <div class="crush-tab-panel" id="cpanel-search">
+        <div style="padding:14px var(--s);">
+          <div style="position:relative;margin-bottom:16px;">
+            <input type="text" id="crush-search-input" placeholder="Search students... 🎓" oninput="handleCrushSearch(this.value)"/>
+            
+          </div>
+          <div id="crush-search-results" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+      </div>
+      <!-- SENT LIKES -->
+      <div class="crush-tab-panel" id="cpanel-sent"><div id="sent-likes-list" style="display:none;"></div></div>
+      <!-- UNICRUSH CHATS -->
+      <div class="crush-tab-panel" id="cpanel-uchats">
+        <div id="uc-chat-list" style="padding:0 var(--s) 12px;">
+          <div id="uc-chat-empty" style="text-align:center;padding:36px 0;font-size:var(--fs-base);color:var(--fg2);">No matches yet 💘<br><button class="gbtn" style="background:var(--p);width:auto;padding:9px 22px;display:inline-block;margin-top:12px;" onclick="sw('unicrush','Crush')">Find your Crush →</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISCOVER -->
+    <div class="section" id="sec-discover">
+      <div class="crush-top" id="discover-tabs" style="margin:0 var(--s);display:flex;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;"><button class="crush-tab" id="ctab-search" onclick="switchCrushTab('search')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg><span class="tab-lbl">Search</span></button><button class="crush-tab" id="ctab-swipe" onclick="switchCrushTab(&#39;swipe&#39;)"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg><span class="tab-lbl">Crush</span></button><button class="crush-tab active" id="ctab-liked" onclick="switchCrushTab('liked')"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg><span class="tab-lbl">Discover</span></button></div>
+      <div id="discover-panels"></div>
+    </div>
+
+    <!-- NETWORK -->
+    <div class="section" id="sec-network">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px var(--s) 4px;">
+        <div class="sh" style="padding:0;">Network</div>
+        <button onclick="openNetCreate()" id="net-create-btn" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:5px 11px;color:#fff;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">+ Create</button>
+      </div>
+      <div style="padding:4px var(--s) 8px;">
+        <input class="gi" type="text" id="network-search" placeholder="🔍 Search alumni, businesses, or grad year…" oninput="searchNetwork(this.value)" style="border-radius:var(--rad-xl);padding:10px 14px;"/>
+        <div id="network-search-results" style="margin-top:8px;"></div>
+      </div>
+      <div id="net-my-events"></div>
+      <div id="network-cards"></div>
+      <div class="net-card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:9px;"><div style="width:44px;height:44px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:var(--fs-lg);color:#fff;">C</div><div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Carlos M. <span class="tag gold" style="font-size:var(--fs-2xs);">Alumni '21</span></div><div style="font-size:var(--fs-sm);color:var(--fg2);">MBA · StartupMX CEO</div></div></div><div style="font-size:var(--fs-base);color:var(--fg);line-height:1.5;margin-bottom:10px;">Founded two startups. Happy to connect with students interested in entrepreneurship.</div><button class="abtn" style="background:var(--p);" onclick="openNetConnect(this,'Carlos M.','@carlosm')">Connect</button></div>
+      <div class="net-card"><div style="display:flex;gap:10px;align-items:center;margin-bottom:9px;"><div style="width:44px;height:44px;border-radius:50%;background:#3d7bff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:var(--fs-lg);color:#fff;">L</div><div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Laura V. <span class="tag blue" style="font-size:var(--fs-2xs);">Alumni '19</span></div><div style="font-size:var(--fs-sm);color:var(--fg2);">JD · Attorney</div></div></div><div style="font-size:var(--fs-base);color:var(--fg);line-height:1.5;margin-bottom:10px;">Open to mentoring pre-law students.</div><button class="abtn" style="background:#3d7bff;" onclick="openNetConnect(this,'Laura V.','@laurav')">Connect</button></div>
+    </div>
+
+
+    <!-- ALUMNI HUB -->
+    <div class="section" id="sec-alumnihub">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px var(--s) 6px;">
+        <div style="display:flex;align-items:center;gap:11px;"><div style="font-size:var(--fs-2xl);">🎓</div><div><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;letter-spacing:.3px;">ALUMNI CONNECT</div><div style="font-size:var(--fs-sm);color:var(--fg2);">Learn from those who made it.</div></div></div>
+        <div onclick="openNotifications()" style="position:relative;cursor:pointer;font-size:var(--fs-xl);">🔔<span style="position:absolute;top:-4px;right:-6px;background:#c9243b;color:#fff;font-size:var(--fs-2xs);font-weight:700;border-radius:var(--rad-sm);padding:1px 5px;">6</span></div>
+      </div>
+      <!-- Hero -->
+      <div style="margin:4px var(--s) 14px;border-radius:var(--rad-xl);overflow:hidden;position:relative;background:linear-gradient(120deg,#241053,#12275c 55%,#2b5fd9);">
+        <div style="position:absolute;right:-40px;top:8px;width:190px;height:190px;border-radius:50%;border:2px solid rgba(196,181,253,0.35);"></div>
+        <div style="position:absolute;right:-10px;top:34px;width:130px;height:130px;border-radius:50%;border:2px solid rgba(240,62,90,0.3);"></div>
+        <div style="position:relative;padding:20px 18px;">
+          <div style="font-size:var(--fs-2xl);font-weight:900;color:#fff;line-height:1.12;">Meet alumni.</div>
+          <div style="font-size:var(--fs-2xl);font-weight:900;color:#a9c4ff;line-height:1.12;margin-bottom:16px;">Build your future.</div>
+          <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+            <div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;">👤 2,348</div><div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.8);">Alumni</div></div>
+            <div style="border-left:1px solid rgba(255,255,255,0.2);padding-left:16px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;">📅 183</div><div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.8);">Upcoming events</div></div>
+            <div style="border-left:1px solid rgba(255,255,255,0.2);padding-left:16px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;">👥 1,026</div><div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.8);max-width:90px;">Students joined this week</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:9px;"><div style="display:flex;"><img src="https://randomuser.me/api/portraits/men/32.jpg" style="width:30px;height:30px;border-radius:50%;border:2px solid #2a1758;margin-left:0;object-fit:cover;"/><img src="https://randomuser.me/api/portraits/women/44.jpg" style="width:30px;height:30px;border-radius:50%;border:2px solid #2a1758;margin-left:-10px;object-fit:cover;"/><img src="https://randomuser.me/api/portraits/men/12.jpg" style="width:30px;height:30px;border-radius:50%;border:2px solid #2a1758;margin-left:-10px;object-fit:cover;"/><img src="https://randomuser.me/api/portraits/women/68.jpg" style="width:30px;height:30px;border-radius:50%;border:2px solid #2a1758;margin-left:-10px;object-fit:cover;"/></div><div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.9);line-height:1.3;"><b>+1.5K students</b><br>already connected</div></div>
+        </div>
+      </div>
+      <!-- Category tabs -->
+      <div class="ah-tabs" id="ah-evtype-chips"><div class="ah-tab on" onclick="_setAlumniEvType('all',this)"><div class="ah-tab-ic">📅</div><div class="ah-tab-l">All Events</div></div><div class="ah-tab" onclick="_setAlumniEvType('networking',this)"><div class="ah-tab-ic">👥</div><div class="ah-tab-l">Networking</div></div><div class="ah-tab" onclick="_setAlumniEvType('coffee',this)"><div class="ah-tab-ic">☕</div><div class="ah-tab-l">Coffee Chat</div></div><div class="ah-tab" onclick="_setAlumniEvType('resume',this)"><div class="ah-tab-ic">📄</div><div class="ah-tab-l">Resume Review</div></div><div class="ah-tab" onclick="_setAlumniEvType('interview',this)"><div class="ah-tab-ic">💼</div><div class="ah-tab-l">Mock Interview</div></div><div class="ah-tab" onclick="_setAlumniEvType('startup',this)"><div class="ah-tab-ic">🚀</div><div class="ah-tab-l">Startup</div></div><div class="ah-tab" onclick="_setAlumniEvType('more',this)"><div class="ah-tab-ic">•••</div><div class="ah-tab-l">More</div></div></div>
+      <!-- Upcoming this week -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px var(--s) 8px;"><div style="font-size:var(--fs-base);font-weight:700;color:#3d7bff;letter-spacing:.5px;">UPCOMING THIS WEEK</div><span style="font-size:var(--fs-xs);font-weight:500;color:var(--fg2);cursor:pointer;">See calendar 📅</span></div>
+      <div class="ah-week"><div class="ah-day"><div class="ah-day-d">MON</div><div class="ah-day-n">20</div><div class="ah-day-c">2 events</div></div><div class="ah-day"><div class="ah-day-d">TUE</div><div class="ah-day-n">21</div><div class="ah-day-c">3 events</div></div><div class="ah-day on"><div class="ah-day-d">WED</div><div class="ah-day-n">22</div><div class="ah-day-c">4 events</div></div><div class="ah-day"><div class="ah-day-d">THU</div><div class="ah-day-n">23</div><div class="ah-day-c">2 events</div></div><div class="ah-day"><div class="ah-day-d">FRI</div><div class="ah-day-n">24</div><div class="ah-day-c">3 events</div></div><div class="ah-day"><div class="ah-day-d">SAT</div><div class="ah-day-n">25</div><div class="ah-day-c">1 event</div></div><div class="ah-day"><div class="ah-day-d">SUN</div><div class="ah-day-n">26</div><div class="ah-day-c">1 event</div></div></div>
+      <!-- All events -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px var(--s) 8px;"><div style="font-size:var(--fs-base);font-weight:700;color:#3d7bff;letter-spacing:.5px;">ALL EVENTS</div><span style="font-size:var(--fs-xs);font-weight:500;color:var(--fg2);cursor:pointer;">Sort: Upcoming ⌄</span></div>
+      <div id="alumni-hub-events" style="padding:0 var(--s);"></div>
+      <div id="ah-back-wrap" style="display:none;padding:0 var(--s);"><label style="display:flex;align-items:center;gap:9px;padding:10px 12px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.35);border-radius:var(--rad-sm);margin:10px 0;cursor:pointer;"><input type="checkbox" id="ah-back-me" onchange="_ahSetBackMe(this.checked)" style="accent-color:#60a5fa;width:17px;height:17px;"/><div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">🔙 I'm back on campus</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Homecoming or visiting? Let other alumni know you're around.</div></div></label></div>
+      <div style="text-align:center;padding:14px;color:var(--fg2);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">View more events ⌄</div>
+    </div>
+    <!-- PROFILE -->
+    <div class="section" id="sec-profile" style="padding-bottom:90px;">
+      <!-- Profile header (photo-forward) -->
+      <div id="prof-hero" style="position:relative;">
+        <div id="prof-cover" style="background-image:linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.75)),url('images/unidad-deportiva-uadec.jpg');background-size:cover;background-position:center;position:relative; padding: 150px 18px 30px 18px; margin-top: -60px;border-radius: 0 0 16px 16px;">
+          <!-- <div style="position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,0.85));"></div> -->
+        <div style="text-align:center;margin-top:-57px;position:relative;z-index:2;padding:0 18px;">
+          <div id="prof-avatar-circle" onclick="editProfileAvatar()" title="Tap to change" style="width:92px;height:92px;border-radius:50%;margin:0 auto;border:3px solid rgba(255,255,255,0.9);background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#fff;cursor:pointer;position:relative;box-shadow:0 6px 20px rgba(0,0,0,0.45);">
+            <img id="prof-avatar-img" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;"/>
+            <span id="prof-pic-txt" style="position:relative;z-index:1;">A</span>
+            <div style="position:absolute;right:0;bottom:0;width:26px;height:26px;border-radius:50%;background:var(--p);border:2px solid #000000;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);color:#fff;"><i class="fa-solid fa-pencil"></i></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:9px;"><div id="prof-handle-big" style="font-size:var(--fs-lg);font-weight:900;color:#fff;font-family:var(--font-serif);">@user</div><div class="vbadge" id="vbadge" style="display:none;position:static;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+          <div id="prof-name-el" style="font-size:var(--fs-base);color:var(--fg2);margin-top:2px;"></div>
+          <div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:3px;">🎓 <span id="prof-uni-nm">University</span></div>
+          <div id="prof-status-el" style="display:none;font-size:var(--fs-sm);font-weight:500;color:#fff;background:rgba(255,255,255,0.14);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:3px 12px;margin:8px auto 0;width:fit-content;"></div>
+          <span id="pgrad" style="display:none;"></span><span id="page" style="display:none;"></span>
+          <!-- The Friends / Matches / Events Joined strip used to sit here, over
+               the cover photo. It moved into Profile > Activity, which is where
+               the rest of your activity now lives. -->
+        </div>
+      </div>
+      </div>
+      <!-- Referral card -->
+      
+      <!-- My Vibe (zodiac / this-or-that / green flags) -->
+      <!-- Theme presets removed per request -->
+
+      <!-- Status card and Card Studio removed per request -->
+      <!-- Tabs: Crush / Activity / Safety / Filters -->
+      <div id="prof-tabs" style="display:flex;background:rgba(18,10,36,0.85);border-radius:var(--rad-lg);padding:5px;margin:14px 18px 16px;border:1.5px solid rgba(61,123,255,0.5);gap:5px;box-shadow:0 0 20px rgba(61,123,255,0.25);backdrop-filter:blur(12px);">
+        <button class="prof-tab active" id="ptab-crush" onclick="switchProfTab('crush')">💖 My Card</button>
+        <button class="prof-tab" id="ptab-activity" onclick="switchProfTab('activity')">⚡ Activity</button>
+        <button class="prof-tab" id="ptab-safety" onclick="switchProfTab('safety')">🛡️ Safety</button>
+        <button class="prof-tab" id="ptab-filters" onclick="switchProfTab('filters')">⚙️ Filters</button>
+      </div>
+      <!-- Activity panel -->
+      <!-- renderActivityLog() fills this with the Events Created / Joined block.
+           The "No activity yet" notice that used to sit here was removed: it is
+           the events list that speaks for itself now. -->
+      <div id="ptab-panel-activity" style="display:none;padding:0 18px 32px;">
+        <!-- Moved out of the profile hero: the strip belongs with your activity,
+             not on top of the cover photo. The ids are unchanged, so
+             updateProfileHeader() keeps filling it exactly as before. -->
+        <div class="v-stats prof-stats act-stats" id="act-stats">
+          <div class="v-stat">
+            <div class="v-stat-num" id="prof-stat-friends">0</div>
+            <div class="v-stat-lbl">Friends</div>
+          </div>
+          <div class="v-stat">
+            <div class="v-stat-num" id="prof-stat-matches">0</div>
+            <div class="v-stat-lbl">Matches</div>
+          </div>
+          <div class="v-stat">
+            <div class="v-stat-num" id="prof-stat-events">0</div>
+            <div class="v-stat-lbl">Events Joined</div>
+          </div>
+        </div>
+      </div>
+      <!-- Safety panel -->
+      <div id="ptab-panel-safety" style="display:none;padding:0 18px 32px;"></div>
+      <!-- Filters panel -->
+      <div id="ptab-panel-filters" style="display:none;padding:0 18px 32px;">
+        <!-- Match filters live here and only here. They used to be declared
+             inside My Card and moved back and forth by switchProfTab, which is
+             why they kept reappearing on My Card. -->
+        <div id="match-filters-wrap" style="padding:0;margin:0 0 16px;">
+          <!-- FOMO Banner on Filters -->
+          <div style="background:linear-gradient(135deg,rgba(240,62,90,0.2),rgba(61,123,255,0.2));border:1.5px solid rgba(240,62,90,0.6);border-radius:var(--rad-lg);padding:14px;margin:0 0 16px;box-shadow:0 0 22px rgba(240,62,90,0.3);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#800614,#f59e0b);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);color:#fff;box-shadow:0 0 12px rgba(240,62,90,0.6);flex-shrink:0;">🔥</div>
+              <div>
+                <div style="font-size:var(--fs-base);font-weight:700;color:#fff;">48 Estudiantes coinciden con tus filtros</div>
+                <div style="font-size:var(--fs-xs);color:#d6e4ff;font-weight:500;margin-top:1px;">En tu campus y universidades cercanas</div>
+              </div>
+            </div>
+            <button onclick="sw('unicrush','Crush')" style="background:#800614;border:none;color:#fff;font-size:var(--fs-2xs);font-weight:700;padding:8px 13px;border-radius:var(--rad-md);box-shadow:0 0 12px rgba(240,62,90,0.5);cursor:pointer;white-space:nowrap;">⚡ VER MATCHES</button>
+          </div>
+          <div style="font-size:var(--fs-2xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;padding-top:4px;">Match Filters</div>
+          <div class="love-filter-section">
+            <div class="love-filter-title">📍 Distance</div>
+            <div id="uc-loc-detail">
+              <div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:5px;"><span>Within</span><span><span id="uc-mile-val" style="color:#38bdf8;font-weight:700;text-shadow:0 0 8px rgba(56,189,248,0.5);">10</span> mi</span></div>
+              <input type="range" id="uc-mile-sl" min="1" max="50" value="10" oninput="onUcMilesChange(this.value)" style="width:100%;accent-color:#e04155;"/>
+              <div style="display:flex;justify-content:space-between;font-size:var(--fs-2xs);color:var(--fg3);margin-top:2px;"><span>1 mi</span><span>50 mi</span></div>
+              <div style="margin-top:10px;font-size:var(--fs-xs);color:var(--fg2);">Showing users within <span id="uc-mile-echo" style="color:#38bdf8;font-weight:700;">10</span> miles of <span id="uc-loc-where" style="color:#fff;font-weight:500;">your location</span>.</div>
+            </div>
+            <div id="uc-loc-needs-perm" style="display:none;font-size:var(--fs-xs);color:#fbbf24;margin-top:4px;">Location not enabled — turn it on from Settings to use this filter.</div>
+          </div>
+          <div class="love-filter-section">
+            <div class="love-filter-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>🎂 Age Range</span><span class="age-range-pill"><span id="crush-age-min-lbl">18</span><span style="opacity:0.85;">–</span><span id="crush-age-max-lbl">30</span></span></div>
+            <div class="age-slider-wrap">
+              <div class="age-slider-track"></div>
+              <div class="age-slider-fill" id="crush-age-fill"></div>
+              <input type="range" min="18" max="40" value="18" id="crush-age-min" oninput="updateAgeRange()"/>
+              <input type="range" min="18" max="40" value="30" id="crush-age-max" oninput="updateAgeRange()"/>
+            </div>
+          </div>
+          <div class="love-filter-section" id="crush-int-section">
+            <div class="love-filter-title">❤️ Interested In</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;" id="crush-int-chips">
+              <div class="yr-chip on" onclick="selectSingleChip(this)">♀ Female</div>
+              <div class="yr-chip" onclick="selectSingleChip(this)">♂ Male</div>
+              <div class="yr-chip" onclick="selectSingleChip(this)">⚧ Other</div>
+            </div>
+          </div>
+          <div class="love-filter-section">
+            <div class="love-filter-title">🏋️ Workout &amp; 🥗 Diet <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(pick any)</span></div>
+            <div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" id="crush-workout-chips"></div>
+            <div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-diet-chips"></div>
+          </div>
+          <div class="love-filter-section">
+            <div class="love-filter-title">🏠 Living Situation <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(pick any)</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-living-chips"></div>
+          </div>
+          <div class="love-filter-section">
+            <div class="love-filter-title">🎓 Year in School <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(pick any)</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-year-chips">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Freshman</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Sophomore</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Junior</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Senior</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Alumni</div>
+            </div>
+          </div>
+          <div class="love-filter-section">
+            <div class="love-filter-title">🍻 Drinking Preference <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(pick any)</span></div>
+            <div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-drink-chips">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Non-drinker</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Social drinker</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Regular drinker</div>
+            </div>
+          </div>
+          <div class="love-filter-section">
+            <div class="love-filter-title">🚬 Smoking Preference <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(pick any)</span></div>
+            <div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-smoke-chips">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Non-smoker</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Socially</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Regularly</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Vaper/Juul</div>
+            </div>
+          </div>
+          <div class="love-filter-section"><div class="love-filter-title">🏫 School Type <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-schooltype-chips"><div class="yr-chip on" onclick="_setSchoolType('crush','all',this)">All</div><div class="yr-chip" onclick="_setSchoolType('crush','public',this)">🏛️ Public</div><div class="yr-chip" onclick="_setSchoolType('crush','private',this)">🎓 Private</div></div></div><div class="love-filter-section"><div class="love-filter-title">🎓 Alumni Degree <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-degree-chips"><div class="yr-chip on" onclick="_setDegree('all',this)">All</div><div class="yr-chip" onclick="_setDegree('phd',this)">PhD</div><div class="yr-chip" onclick="_setDegree('masters',this)">Master's</div><div class="yr-chip" onclick="_setDegree('none',this)">None</div></div></div>
+          <div class="love-filter-section" style="position:relative;">
+            <div class="love-filter-title">🗳️ Politics <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-politics-chips">
+              <div class="yr-chip" onclick="crushFilterChip(this)">Liberal</div>
+              <div class="yr-chip" onclick="crushFilterChip(this)">Moderate</div>
+              <div class="yr-chip" onclick="crushFilterChip(this)">Conservative</div>
+              <div class="yr-chip" onclick="crushFilterChip(this)">Apolitical</div>
+            </div>
+          </div>
+          <div class="love-filter-section" style="position:relative;">
+            <div class="love-filter-title">🏫 University <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;" id="crush-uni-scope">
+              <div class="yr-chip on" data-scope="mine" onclick="_uniScopeSel(this,'crush')">🎓 My University</div>
+              <div class="yr-chip" data-scope="near" onclick="_uniScopeSel(this,'crush')">📍 Nearby</div>
+              <div class="yr-chip" data-scope="pick" onclick="_uniScopeSel(this,'crush')">🏫 Other Universities</div>
+            </div>
+            <div style="font-size:var(--fs-2xs);color:var(--fg3);margin-bottom:7px;">Your university is always included. Pick 2–10 (A+ Student).</div>
+            <div id="crush-uni-chooser" style="display:none;">
+              <div id="crush-uni-counter" style="font-size:var(--fs-2xs);font-weight:600;color:var(--p);margin-bottom:6px;">Your university + 0 selected (1/10)</div>
+              <input class="gi" id="crush-uni-search" placeholder="🔎 Search universities…" oninput="_uniListFilter('crush-uni-chips')" style="margin-bottom:7px;font-size:var(--fs-sm);padding:8px 11px;"/>
+              <div style="display:flex;gap:6px;margin-bottom:7px;">
+                <select class="gi" id="crush-uni-country" onchange="_uniCountryChange('crush')" style="flex:1;font-size:var(--fs-sm);padding:8px 9px;"><option value="">🌎</option><option value="US">🇺🇸</option><option value="MX">🇲🇽</option><option value="CA">🇨🇦</option></select>
+                <select class="gi" id="crush-uni-state" onchange="_uniListFilter('crush-uni-chips')" style="flex:1;font-size:var(--fs-sm);padding:8px 9px;"><option value="">All states</option></select>
+              </div>
+              <div class="uni-chips-box" data-pfx="crush" style="display:flex;flex-wrap:wrap;gap:5px;max-height:200px;overflow-y:auto;" id="crush-uni-chips"></div>
+            </div>
+          </div>
+          <div class="love-filter-section" style="position:relative;">
+            <div class="love-filter-title">🗣️ Languages <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;max-height:200px;overflow-y:auto;" id="crush-lang-chips">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇺🇸 English</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇬🇧 English</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇲🇽 Spanish</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇪🇸 Spanish</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇦🇷 Spanish</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇨🇴 Spanish</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇫🇷 French</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇩🇪 German</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇮🇹 Italian</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇧🇷 Portuguese</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇵🇹 Portuguese</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇨🇳 Mandarin</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇯🇵 Japanese</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇰🇷 Korean</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇸🇦 Arabic</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇷🇺 Russian</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇮🇳 Hindi</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇳🇱 Dutch</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">🇸🇪 Swedish</div>
+            </div>
+          </div>
+          <div class="love-filter-section" style="position:relative;">
+            <div class="love-filter-title">🌎 Ethnicity <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-ethnicity-chips">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">White</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Latino / Hispanic</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Black / African American</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Asian</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Middle Eastern</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Native American</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Pacific Islander</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Mixed / Biracial</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Other</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Prefer not to say</div>
+            </div>
+          </div>
+          <div class="love-filter-section" style="position:relative;">
+            <div class="love-filter-title">🙏 Religion <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-religion-chips">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Atheist</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Agnostic</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Christian</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Catholic</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Jewish</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Muslim</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Hindu</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Buddhist</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Spiritual</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Other</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Prefer not to say</div>
+            </div>
+          </div>
+          <div class="love-filter-section" style="position:relative;">
+            <div class="love-filter-title">🏛️ Greek life <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>
+            <div id="crush-frat-chips" style="display:flex;flex-wrap:wrap;gap:6px;">
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Fraternity</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Sorority</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Rushing</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">None</div>
+            </div>
+          </div>
+          <button class="gbtn" style="background:var(--p);margin-top:6px;" onclick="applyCrushFilters()">Apply Filters 💘</button>
+        </div>
+      </div>
+      <!-- Crush panel — Photos + Filters -->
+      <div id="ptab-panel-crush" style="padding:0 18px 32px;">
+        <!-- Profile completeness. Lives inside this panel rather than above the
+             tab row, so it shows on My Card only instead of on all four tabs. -->
+        <div id="prof-completeness" style="margin:0 0 16px;"></div>
+        <!-- CARD 0: Edit details -->
+        <div style="margin:0 0 16px;padding:20px 18px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(61,123,255,0.5);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;box-shadow:0 0 22px rgba(61,123,255,0.2);backdrop-filter:blur(12px);">
+          <div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:6px;"><span>✏️</span><span>Edit details</span></div>
+          <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Bio</label><textarea class="gi" id="pf-bio" rows="2" maxlength="160" placeholder="Tell people about yourself…" oninput="if(typeof userPro!=='undefined'){userPro.bio=this.value.slice(0,160);_pfLiveSave();}"></textarea></div>
+          <div class="g2"><div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Major</label><select class="gi" id="pf-major" onchange="if(typeof userPro!=='undefined'){userPro.major=this.value;_pfLiveSave();}"><option value="">Select major…</option></select></div>
+          <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Minor</label><select class="gi" id="pf-minor" onchange="if(typeof userPro!=='undefined'){userPro.minor=this.value;_pfLiveSave();}"><option value="">None</option></select></div></div>
+          <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">University name on card</label><div class="seg2"><button type="button" class="seg2-half" id="uns-full-pf" onclick="setUniNameStylePf('full')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Full name</button><button type="button" class="seg2-half" id="uns-acr-pf" onclick="setUniNameStylePf('acronym')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Acronym</button></div></div>
+          <div class="field" style="margin-bottom:0;"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Year on card</label><div class="seg2"><button type="button" class="seg2-half" id="ys-full-pf" onclick="setYearStylePf('full')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Full (Senior)</button><button type="button" class="seg2-half" id="ys-acr-pf" onclick="setYearStylePf('acronym')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Acronym (SR)</button></div></div>
+          <div class="field" style="margin-top:14px;margin-bottom:0;"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Prompts</label><button type="button" class="act-btn" data-hue="blue" onclick="openPromptsEditor()" style="width:100%;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;"><span class="act-ico">💬</span><span>Edit your prompts</span></button></div><div class="field" style="margin-bottom:0;"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">More</label><div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;"><button type="button" class="act-btn" data-hue="cyan" onclick="document.getElementById('edit-modal').classList.remove('open');editInterests()" style="width:100%;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;"><span class="act-ico">🎯</span><span>Edit interests</span></button></div></div>
+        </div>
+        <!-- CARD 1: Add Your Photos -->
+        <div style="margin:0 0 16px;padding:20px 18px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(6,182,212,0.5);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;box-shadow:0 0 22px rgba(6,182,212,0.2);backdrop-filter:blur(12px);">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+            <div style="font-size:var(--fs-base);font-weight:700;color:#fff;">💘 Your Photos</div>
+            <div style="font-size:var(--fs-xs);font-weight:700;color:#38bdf8;background:rgba(6,182,212,0.2);padding:2px 8px;border-radius:var(--rad-sm);border:1px solid rgba(6,182,212,0.5);" id="prof-photo-count-lbl">0 / 6</div>
+          </div>
+          <div style="font-size:var(--fs-xs);color:#a9c4ff;margin-bottom:12px;line-height:1.4;font-weight:500;">Your <b style="color:#e04155;">first photo</b> is the cover — it's what shows on friend requests and inside group chats. Drag any photo to reorder · tap to edit · 6 max.</div>
+          <div class="pgrid" id="prof-photos" style="padding:0;"><div class="pgcell add" onclick="pickCrushPhoto()">+</div></div>
+        </div>
+        <!-- CARD 2: Preview -->
+        <div style="margin:0 0 16px;padding:20px 18px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(251,191,36,0.5);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;box-shadow:0 0 22px rgba(251,191,36,0.2);backdrop-filter:blur(12px);">
+          <div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">👁 Preview</div>
+          <div style="font-size:var(--fs-xs);color:#fde68a;margin-bottom:12px;font-weight:500;">How others see your Crush card. Swipe or tap left/right to flip through your photos.</div>
+          <div id="crush-profile-preview" style="display:flex;justify-content:center;"></div>
+        </div>
+        
+        <!-- Verification. Moved inside My Card: it used to sit outside all four
+       panels, so it painted on Activity, Safety and Filters too. -->
+        <div class="sep"></div>
+      <div class="psec">Verification</div>
+      <div class="gc" style="margin:0 var(--s) 11px;width:calc(100% - var(--s)*2);"><div style="padding:12px;">
+        <div id="pv-get-verified-desc" style="font-size:var(--fs-base);color:var(--fg);margin-bottom:11px;">Obtén tu insignia oficial verificando tu credencial estudiantil.</div>
+        <div class="id-box" id="verify-box" onclick="doVerify()" style="margin-bottom:0;">
+          📸 Upload Student ID → <svg viewBox="0 0 24 24" width="16" height="16" style="background:#1d9bf0;border-radius:50%;padding:2px;vertical-align:middle;display:inline-block;" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Blue Badge
+        </div>
+      </div></div>
+      </div>
+      
+      
+      <div id="referral-card" style="margin:14px var(--s) 22px;"></div>
+    </div>
+
+    <!-- WELLNESS -->
+    <div class="section" id="sec-wellness">
+      <div id="wellness-content" style="padding-bottom:20px;"></div>
+    </div>
+
+    <!-- PREMIUM — Student plans -->
+    <div class="section" id="sec-premium">
+      <div id="plans-content"></div>
+    </div>
+
+    <!-- BUSINESS PROFILE -->
+    <div class="section" id="sec-biz-profile">
+      <div style="padding:16px var(--s) 8px;">
+        <div style="font-size:var(--fs-2xl);font-weight:900;color:#fff;font-family:var(--font-serif);" id="biz-prof-name">My Business</div>
+        <div style="font-size:var(--fs-base);color:var(--fg2);margin-top:3px;" id="biz-prof-cat">Category · Business</div>
+        <div style="margin-top:10px;display:flex;gap:8px;">
+          <button class="abtn" style="background:var(--p);flex:1;" onclick="openSettings()">⚙️ Settings</button>
+          <button class="abtn" style="background:rgba(255,255,255,0.1);border:1px solid var(--gbdl);flex:1;" onclick="openEdit()">✏️ Edit</button>
+        </div>
+      </div>
+      <div class="sep" style="margin:4px var(--s);"></div>
+      <div style="padding:10px var(--s) 6px;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.9px;">Phone (Reservations)</div>
+      <div style="padding:0 var(--s) 8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="gi" type="tel" id="biz-phone" placeholder="(555) 123-4567" style="flex:1;"/>
+          <div class="sw" id="biz-phone-public-sw" onclick="this.classList.toggle('on')" style="flex-shrink:0;"></div>
+          <span style="font-size:var(--fs-xs);color:var(--fg2);">Public</span>
+        </div>
+      </div>
+      <div class="sep" style="margin:4px var(--s);"></div>
+      <div style="padding:10px var(--s) 6px;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.9px;">Website</div>
+      <div style="padding:0 var(--s) 12px;" id="biz-web-link"><span style="font-size:var(--fs-base);color:var(--fg2);">No website added</span></div>
+      <div class="sep" style="margin:0 var(--s);"></div>
+      <!-- Google Maps embed placeholder -->
+      <div style="padding:12px var(--s) 0;"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.9px;margin-bottom:8px;">Location</div>
+      <div style="width:100%;height:160px;border-radius:var(--r);overflow:hidden;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;" id="biz-map-wrap">
+        <div style="font-size:var(--fs-2xl);">📍</div>
+        <div style="font-size:var(--fs-sm);color:var(--fg2);" id="biz-addr-display">Add address in settings</div>
+      </div></div>
+      <div class="sep" style="margin:12px var(--s) 0;"></div>
+      <div style="padding:10px var(--s) 6px;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.9px;">Events</div>
+      <div id="biz-events-list" style="padding:0 var(--s);">
+        <div style="text-align:center;padding:16px 0;font-size:var(--fs-base);color:var(--fg2);">No events created yet.</div>
+      </div>
+      <div class="sep" style="margin:8px var(--s) 0;"></div>
+      <div style="padding:10px var(--s) 6px;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.9px;">Posts &amp; Activity</div>
+      <div style="padding:0 var(--s) 8px;">
+        <button class="epb" onclick="switchEvTab('create');sw('events','Events');" style="margin-bottom:0;">+ Create Post / Event</button>
+      </div>
+      <div id="biz-posts-list" style="padding:0 var(--s);">
+        <div style="margin-bottom:8px;">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+            <button class="epb" onclick="bizCreatePost()" style="flex:1;margin:0;">📸 Create Post</button>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:var(--fs-xs);color:var(--fg2);">Comments</span>
+              <div class="sw on" id="biz-comments-sw" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+        </div>
+        <div id="biz-feed" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:16px 0;font-size:var(--fs-base);color:var(--fg2);">No posts yet. Share photos and updates!</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end app-scroll -->
+  <div class="bot-nav"><div class="bot-inner" id="bot-inner"></div></div>
+</div><!-- end app -->
+
+<!-- CHAT WINDOW -->
+<div class="cwin" id="cwin">
+  <div class="cwbg" id="cwbg">
+    <!-- UNDRGRADZ FLOW DEFAULT CHAT BACKGROUND SYSTEM -->
+    <div class="chat-flow-bg" id="chat-flow-bg" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;">
+      <!-- Capa 1 & 2: Background Ambient Glow Orbs -->
+      <div class="chat-flow-glow chat-glow-magenta"></div>
+      <div class="chat-flow-glow chat-glow-blue"></div>
+      <div class="chat-flow-glow chat-glow-violet"></div>
+      <div class="chat-flow-glow chat-glow-center" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle, rgba(61,123,255,0.35) 0%, rgba(240,62,90,0.22) 45%, transparent 70%);filter:blur(70px);pointer-events:none;z-index:0;"></div>
+      
+      <!-- Capa 3, 4 & 5: SVG Flow Lines + Digital Micro Connection Particles -->
+      <svg class="chat-flow-svg" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block;">
+        <defs>
+          <!-- Dynamic Chat Energy Stream Gradients -->
+          <linearGradient id="chatFlowGradMain" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#e04155" stop-opacity="0.95"/>
+            <stop offset="35%" stop-color="#e04155" stop-opacity="0.9"/>
+            <stop offset="70%" stop-color="#3d7bff" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#2563eb" stop-opacity="0.95"/>
+          </linearGradient>
+
+          <linearGradient id="chatFlowGradSec" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.95"/>
+            <stop offset="45%" stop-color="#3b82f6" stop-opacity="0.9"/>
+            <stop offset="85%" stop-color="#4d84ff" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#e04155" stop-opacity="0.95"/>
+          </linearGradient>
+
+          <linearGradient id="chatFlowGradSubtle" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+            <stop offset="50%" stop-color="#6b9bff" stop-opacity="0.85"/>
+            <stop offset="100%" stop-color="#e04155" stop-opacity="0.8"/>
+          </linearGradient>
+
+          <filter id="chatSoftGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <filter id="chatDeepBlur" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="14" />
+          </filter>
+        </defs>
+
+        <!-- Layer 4: Secondary Muted Out-of-Focus Flows (Distributed Background Depth) -->
+        <g class="chat-flow-layer chat-layer-bg-deep" filter="url(#chatDeepBlur)">
+          <path d="M-120,180 Q720,80 1600,240" fill="none" stroke="url(#chatFlowGradMain)" stroke-width="15" opacity="0.35"/>
+          <path d="M-120,480 Q720,380 1600,520" fill="none" stroke="url(#chatFlowGradSec)" stroke-width="14" opacity="0.3"/>
+          <path d="M-120,750 Q720,850 1600,680" fill="none" stroke="url(#chatFlowGradMain)" stroke-width="15" opacity="0.35"/>
+        </g>
+
+        <!-- Layer 3: Main Interweaving Flow Lines (Evenly Distributed Across Screen) -->
+        <g class="chat-flow-layer chat-layer-main" filter="url(#chatSoftGlow)">
+          <!-- Top Screen Flow (Y ~ 120-220) -->
+          <path d="M-100,120 C420,240 1020,90 1540,200" fill="none" stroke="url(#chatFlowGradMain)" stroke-width="2.6" opacity="0.82"/>
+          <path d="M1540,160 C1080,60 480,220 -100,140" fill="none" stroke="url(#chatFlowGradSec)" stroke-width="2.0" opacity="0.75"/>
+
+          <!-- Upper-Middle Screen Flow (Y ~ 280-360) -->
+          <path d="M-100,310 C380,210 980,410 1540,290" fill="none" stroke="url(#chatFlowGradSec)" stroke-width="2.6" opacity="0.85"/>
+
+          <!-- Center Screen Flow (Single Clean Line, Y ~ 480-520) -->
+          <path d="M-100,500 C450,420 990,560 1540,470" fill="none" stroke="url(#chatFlowGradMain)" stroke-width="2.8" opacity="0.88"/>
+
+          <!-- Lower-Middle Screen Flow (Y ~ 620-700) -->
+          <path d="M1540,640 C1060,740 450,570 -100,660" fill="none" stroke="url(#chatFlowGradSec)" stroke-width="2.6" opacity="0.82"/>
+
+          <!-- Bottom Screen Flow (Y ~ 760-840) -->
+          <path d="M-100,800 C400,700 950,860 1540,760" fill="none" stroke="url(#chatFlowGradMain)" stroke-width="2.4" opacity="0.8"/>
+        </g>
+
+        <!-- Layer 3 Fine: Secondary Fine Flow Threads (Filling Intermediate Gaps) -->
+        <g class="chat-flow-layer chat-layer-threads" filter="url(#chatSoftGlow)">
+          <path d="M-80,240 C460,340 1020,180 1540,260" fill="none" stroke="url(#chatFlowGradSubtle)" stroke-width="1.6" opacity="0.72"/>
+          <path d="M1540,410 C1080,480 440,350 -80,430" fill="none" stroke="url(#chatFlowGradSubtle)" stroke-width="1.6" opacity="0.75"/>
+          <path d="M-80,600 C480,520 1040,680 1540,590" fill="none" stroke="url(#chatFlowGradSubtle)" stroke-width="1.6" opacity="0.72"/>
+          <path d="M1540,730 C1100,810 460,670 -80,750" fill="none" stroke="url(#chatFlowGradSubtle)" stroke-width="1.5" opacity="0.7"/>
+        </g>
+
+        <!-- Layer 5: Micro Digital Connection Particles (Distributed Node Dots) -->
+        <g class="chat-flow-layer chat-layer-particles">
+          <circle cx="220" cy="160" r="2.5" fill="#e04155" opacity="0.85" filter="url(#chatSoftGlow)"/>
+          <circle cx="1240" cy="240" r="3" fill="#3b82f6" opacity="0.8" filter="url(#chatSoftGlow)"/>
+          <circle cx="480" cy="320" r="2.5" fill="#06b6d4" opacity="0.8" filter="url(#chatSoftGlow)"/>
+          <circle cx="980" cy="420" r="3" fill="#3d7bff" opacity="0.85" filter="url(#chatSoftGlow)"/>
+          <circle cx="720" cy="500" r="3.5" fill="#e04155" opacity="0.9" filter="url(#chatSoftGlow)"/>
+          <circle cx="340" cy="620" r="2.5" fill="#e04155" opacity="0.8" filter="url(#chatSoftGlow)"/>
+          <circle cx="1180" cy="710" r="3" fill="#38bdf8" opacity="0.85" filter="url(#chatSoftGlow)"/>
+          <circle cx="580" cy="800" r="2.5" fill="#3d7bff" opacity="0.8" filter="url(#chatSoftGlow)"/>
+        </g>
+      </svg>
+    </div>
+  </div><div class="cwbgo"></div>
+  <div class="cwtb"><button class="cwbk" onclick="closeChat()" aria-label="Volver"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-chevron-left-icon lucide-circle-chevron-left"><circle cx="12" cy="12" r="10"/><path d="m14 16-4-4 4-4"/></svg></button><div class="cwav" id="cwav" onclick="openCurChatUnicrush()" style="cursor:pointer;"><span id="cwav-txt">A</span></div><div style="flex:1;cursor:pointer;" onclick="openCurChatUnicrush()"><div class="cwnm" id="cwnm">Chat</div><div class="cwsub" id="cwsub">Online</div></div><button class="cw-bg-btn" onclick="openChatSettings()" aria-label="Ajustes de chat"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+  <div id="cw-eventhead" style="display:none;position:relative;z-index:2;"><div id="cw-eventcover" style="height:116px;position:relative;background:linear-gradient(150deg,#16a34a,#052e16);"><div style="position:absolute;inset:0;background:linear-gradient(transparent 42%,rgba(0,0,0,0.72));"></div><div id="cw-eventavs" style="position:absolute;left:12px;bottom:9px;display:flex;align-items:center;"></div></div></div>
+  <div class="cmsgs" id="cmsgs"></div>
+  <div id="icebreaker-bar" style="display:none;"></div>
+  <div class="cbar">
+    <div class="cbar-capsule">
+      <button type="button" class="cbar-btn-ic" onclick="openStickerPicker(event,'chat')" title="Stickers & Emojis" aria-label="Stickers & Emojis">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9"/>
+          <line x1="15" y1="9" x2="15.01" y2="9"/>
+        </svg>
+      </button>
+      
+      <input class="cinp" type="text" id="cinp" placeholder="Mensaje" onkeydown="if(event.key==='Enter')_handleChatActionClick()" oninput="_handleCinpInput()"/>
+      
+      <button type="button" class="cbar-btn-ic" onclick="_openChatAttachmentPicker()" title="Attach file" aria-label="Attach file">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
+
+      <button type="button" class="cbar-btn-ic" onclick="chatSendPhoto()" title="Camera" aria-label="Camera">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+          <circle cx="12" cy="13" r="3"/>
+        </svg>
+      </button>
+
+      <button type="button" class="cbar-btn-ic" onclick="openChatGame()" title="Quick action" aria-label="Quick action">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gamepad2-icon lucide-gamepad-2"><line x1="6" x2="10" y1="11" y2="11"/><line x1="8" x2="8" y1="9" y2="13"/><line x1="15" x2="15.01" y1="12" y2="12"/><line x1="18" x2="18.01" y1="10" y2="10"/><path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z"/></svg>
+      </button>
+    </div>
+
+    <button type="button" class="chat-standalone-btn" id="chat-action-btn" onclick="_handleChatActionClick()" title="Send or Voice note" aria-label="Send or Voice note">
+      <svg class="chat-act-svg" id="chat-action-svg-mic" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+        <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+      </svg>
+      <svg class="chat-act-svg" id="chat-action-svg-send" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" style="display:none;margin-left:2px;">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+  <div class="bg-sheet" id="bg-sheet" style="padding: 16px; min-height: auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div style="font-size:var(--fs-md); font-weight:700; color:#fff; font-family:var(--font-serif);">Chat Background</div>
+      <div onclick="toggleBgSheet()" style="cursor:pointer; color:var(--fg2); font-size:var(--fs-lg);">✕</div>
+    </div>
+    
+    <div style="display:flex; gap:16px; margin-bottom:12px; justify-content:center;">
+      <div class="bg-main-opt" id="bg-main-opt-default" onclick="selectMainBg('default')">
+        <div class="bg-preview-circle" style="background:linear-gradient(135deg,#1a0a2e,#0d1a3a);"></div>
+        <div class="bg-label">Default</div>
+      </div>
+      <div class="bg-main-opt" id="bg-main-opt-black" onclick="selectMainBg('black')">
+        <div class="bg-preview-circle" style="background:#050505; border:1px solid rgba(255,255,255,0.2);"></div>
+        <div class="bg-label">Deep Black</div>
+      </div>
+      <div class="bg-main-opt" id="bg-main-opt-uni" onclick="selectMainBg('uni')">
+        <div class="bg-preview-circle" id="bg-preview-circle-uni"></div>
+        <div class="bg-label">University</div>
+      </div>
+    </div>
+    
+    <div id="uni-sub-section" style="display:none; border-top:1px solid var(--gbdl); padding-top:12px; margin-top:12px;">
+      <div style="font-size:var(--fs-xs); font-weight:600; color:var(--fg2); margin-bottom:8px; text-transform: uppercase; letter-spacing: 0.5px;">Select University Design:</div>
+      <div id="uni-designs-list">
+        <!-- 10 designs generated here -->
+      </div>
+    </div>
+    
+    <button class="gbtn" onclick="toggleBgSheet()" style="margin-top:16px; width:100%; border-radius:var(--rad-sm); padding:10px; background:var(--p); color:#fff; font-weight:600; border:none; cursor:pointer;">Done</button>
+  </div>
+</div>
+
+<!-- GROUP MODAL -->
+<div class="mov" id="grp-modal"><div class="msheet" style="max-height:92vh;overflow-y:auto;">
+  <div class="mhnd"></div>
+  <div style="text-align:center;margin-bottom:6px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">New Group</div><div style="font-size:var(--fs-sm);color:var(--fg2);">Create a space for you and your friends.</div></div>
+  <!-- Cover -->
+  <div style="display:flex;justify-content:center;margin:14px 0 6px;"><div style="position:relative;"><div id="grp-cover-prev" style="width:90px;height:90px;border-radius:50%;background:rgba(43,95,217,0.15);border:2px solid rgba(43,95,217,0.6);display:flex;align-items:center;justify-content:center;font-size:34px;">👥</div><div style="position:absolute;right:-2px;bottom:2px;width:30px;height:30px;border-radius:50%;background:#1a1030;border:1px solid var(--gbdl);display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);cursor:pointer;">📷</div></div></div>
+  <div style="display:flex;gap:10px;justify-content:center;margin-bottom:6px;"><div class="grp-cover-color on" style="background:#2b5fd9;" onclick="setGrpCover('color','#2b5fd9',this)"></div><div class="grp-cover-color" style="background:#3b82f6;" onclick="setGrpCover('color','#3b82f6',this)"></div><div class="grp-cover-color" style="background:#f59e0b;" onclick="setGrpCover('color','#f59e0b',this)"></div><div class="grp-cover-color" style="background:#22c55e;" onclick="setGrpCover('color','#22c55e',this)"></div></div>
+  <div style="display:flex;gap:10px;justify-content:center;margin-bottom:16px;flex-wrap:wrap;"><div class="grp-emoji" onclick="setGrpCover('emoji','🎓',this)">🎓</div><div class="grp-emoji" onclick="setGrpCover('emoji','📚',this)">📚</div><div class="grp-emoji" onclick="setGrpCover('emoji','💰',this)">💰</div><div class="grp-emoji" onclick="setGrpCover('emoji','🔥',this)">🔥</div><div class="grp-emoji" onclick="setGrpCover('emoji','🎉',this)">🎉</div></div>
+  <!-- 1. Name -->
+  <div style="font-size:var(--fs-xs);font-weight:700;color:#3d7bff;letter-spacing:.6px;margin-bottom:7px;">1. GROUP NAME</div>
+  <div style="position:relative;margin-bottom:16px;"><input class="gi" type="text" id="grp-nm" maxlength="30" placeholder="Study Finance 📚" oninput="var c=document.getElementById('grp-nm-c');if(c)c.textContent=this.value.length+'/30';" style="padding-right:52px;"/><span id="grp-nm-c" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);color:var(--fg3);">0/30</span></div>
+  <!-- 2. Category -->
+  <div style="font-size:var(--fs-xs);font-weight:700;color:#3d7bff;letter-spacing:.6px;margin-bottom:7px;">2. CHOOSE A CATEGORY</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;" id="grp-section-chips">
+    <div class="yr-chip on" data-grpsec="nightlife" onclick="setGrpSection('nightlife',this)">🌙 Nightlife</div>
+    <div class="yr-chip" data-grpsec="study" onclick="setGrpSection('study',this)">📚 Study</div>
+    <div class="yr-chip" data-grpsec="dorm" onclick="setGrpSection('dorm',this)">🏠 Dorm</div>
+    <div class="yr-chip" data-grpsec="sports" onclick="setGrpSection('sports',this)">🏈 Sports</div>
+    <div class="yr-chip" data-grpsec="greek" onclick="setGrpSection('greek',this)">🏛️ Greek Life</div>
+    <div class="yr-chip" data-grpsec="abroad" onclick="setGrpSection('abroad',this)">✈️ Abroad</div>
+    <div class="yr-chip" data-grpsec="campus" onclick="setGrpSection('campus',this)">🎓 Campus</div>
+  </div>
+  <div style="font-size:var(--fs-xs);color:#a9c4ff;margin-bottom:16px;">✨ This helps others find your group.</div>
+  <!-- Quick templates -->
+  <div style="font-size:var(--fs-xs);font-weight:700;color:#3d7bff;letter-spacing:.6px;margin-bottom:7px;">QUICK TEMPLATES</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;"><div class="grp-tpl" onclick="_grpTemplate('Study Session','📚','study')">📚 Study Session</div><div class="grp-tpl" onclick="_grpTemplate('Friday Party','🎉','nightlife')">🎉 Friday Party</div><div class="grp-tpl" onclick="_grpTemplate('Soccer Match','⚽','sports')">⚽ Soccer Match</div><div class="grp-tpl" onclick="_grpTemplate('Gaming Night','🎮','nightlife')">🎮 Gaming Night</div><div class="grp-tpl" onclick="_grpTemplate('Dinner Plans','🍕','campus')">🍕 Dinner Plans</div><div class="grp-tpl" onclick="document.getElementById('grp-nm').focus()">＋ Custom</div></div>
+  <!-- 3. Description -->
+  <div style="font-size:var(--fs-xs);font-weight:700;color:#3d7bff;letter-spacing:.6px;margin-bottom:7px;">3. ADD DESCRIPTION (OPTIONAL)</div>
+  <div style="position:relative;margin-bottom:16px;"><textarea class="gi" id="grp-desc" rows="2" maxlength="120" placeholder="What's this group about?" oninput="var c=document.getElementById('grp-desc-c');if(c)c.textContent=this.value.length+'/120';"></textarea><span id="grp-desc-c" style="position:absolute;right:12px;bottom:8px;font-size:var(--fs-xs);color:var(--fg3);">0/120</span></div>
+  <!-- 4. Invite -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#3d7bff;letter-spacing:.6px;">4. INVITE FRIENDS</div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);"><span id="grp-invite-count" style="color:#fff;">3</span> of 10 selected</span><div style="width:54px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;"><div id="grp-sel-bar" style="height:100%;width:30%;background:linear-gradient(90deg,#2b5fd9,#3d7bff);"></div></div></div></div>
+  <div id="grp-sel-chips" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;"></div>
+  <input id="grp-fr-search" oninput="_grpFilterFriends(this.value)" placeholder="🔍 Search friends" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin-bottom:6px;"/>
+  <div id="fr-rows"><div class="frr sel" data-nm="Ana M." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#e91e63;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">A</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Ana M.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Computer Science · Junior</div></div><span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;white-space:nowrap;">● Online</span></div><div class="frr" data-nm="Miguel R." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#3b82f6;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">M</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Miguel R.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Business · Sophomore</div></div><span style="font-size:var(--fs-2xs);color:#a9c4ff;font-style:italic;text-align:right;line-height:1.25;">Joined 2 events<br>with you</span></div><div class="frr sel" data-nm="Sofía T." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#3d7bff;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">S</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Sofía T.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Economics · Senior</div></div><span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;white-space:nowrap;">● Online</span></div><div class="frr sel" data-nm="Carlos M." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#f59e0b;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">C</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Carlos M.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Finance · Junior</div></div><span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;white-space:nowrap;">● Online</span></div><div class="frr" data-nm="Valeria S." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#14b8a6;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">V</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Valeria S.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Marketing · Sophomore</div></div><span style="font-size:var(--fs-xs);color:var(--fg3);white-space:nowrap;">Active 1h ago</span></div><div class="frr" data-nm="Jessica M." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#800614;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">J</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Jessica M.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Psychology · Junior</div></div><span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;white-space:nowrap;">● Online</span></div><div class="frr" data-nm="Laura V." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#16a34a;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">L</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Laura V.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Pre-Law · Senior</div></div><span style="font-size:var(--fs-xs);color:var(--fg3);white-space:nowrap;">Active 3h ago</span></div><div class="frr" data-nm="Ryan K." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#2b5fd9;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">R</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Ryan K.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Mechanical Eng · Sophomore</div></div><span style="font-size:var(--fs-2xs);color:#a9c4ff;font-style:italic;text-align:right;line-height:1.25;">Joined 1 event<br>with you</span></div><div class="frr" data-nm="Noah B." onclick="toggleGrpFriend(this)"><div class="frchk">✓</div><div style="width:38px;height:38px;border-radius:50%;background:#0891b2;display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">N</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-base);font-weight:600;color:#fff;">Noah B.</div><div style="font-size:var(--fs-xs);color:var(--fg2);">Biology · Freshman</div></div><span style="font-size:var(--fs-xs);color:var(--fg3);white-space:nowrap;">Active 2h ago</span></div></div>
+  <div style="display:flex;gap:10px;margin-top:16px;">
+    <button class="gbtn-ghost" style="flex:1;margin:0;" onclick="document.getElementById('grp-modal').classList.remove('open')">Cancel</button>
+    <button class="gbtn" style="flex:2;margin:0;background:#800614;" onclick="createGroup()">👥 Create Group</button>
+  </div>
+</div></div>
+
+<!-- EDIT PROFILE MODAL -->
+<div class="mov" id="edit-modal"><div class="msheet">
+  <div class="mhnd"></div><div class="mtitle">Edit Profile</div>
+  <div class="field"><label>Bio</label><textarea class="gi" id="ed-bio" rows="2" placeholder="Tell people about yourself…"></textarea></div>
+  <div class="field"><label>Major</label>
+    <select class="gi" id="ed-major"><option value="">Select major…</option></select>
+  </div>
+  <div class="field"><label>Minor</label><select class="gi" id="ed-minor"><option value="">None</option></select></div>
+  <div class="field"><label>Photos</label>
+    <button type="button" onclick="document.getElementById('edit-modal').classList.remove('open');switchProfTab('crush');setTimeout(function(){var el=document.getElementById('crush-profile-preview');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},120);" style="width:100%;padding:11px;border-radius:var(--rs);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;">📸 Manage Photos</button>
+  </div>
+  <div class="field"><label>University name on card</label>
+    <div style="display:flex;gap:6px;">
+      <button type="button" id="uns-full-ed" onclick="setUniNameStyleEd('full')" style="flex:1;padding:9px 6px;border:none;border-radius:var(--rad-sm);font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Full name</button>
+      <button type="button" id="uns-acr-ed" onclick="setUniNameStyleEd('acronym')" style="flex:1;padding:9px 6px;border:none;border-radius:var(--rad-sm);font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Acronym</button>
+    </div>
+  </div>
+  <div class="field"><label>Year on card</label>
+    <div style="display:flex;gap:6px;">
+      <button type="button" id="ys-full-ed" onclick="setYearStyleEd('full')" style="flex:1;padding:9px 6px;border:none;border-radius:var(--rad-sm);font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Full (Senior)</button>
+      <button type="button" id="ys-acr-ed" onclick="setYearStyleEd('acronym')" style="flex:1;padding:9px 6px;border:none;border-radius:var(--rad-sm);font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Acronym (SR)</button>
+    </div>
+  </div>
+  <button class="gbtn" style="background:var(--p);" onclick="saveEdit()">Save Profile</button>
+  <button class="gbtn-ghost" onclick="document.getElementById('edit-modal').classList.remove('open')">Cancel</button>
+</div></div>
+
+<!-- SETTINGS MODAL -->
+<div class="mov" id="settings-modal"><div class="msheet" style="max-height:94vh;overflow-y:auto;"><div class="mhnd"></div><span id="settings-plan" style="display:none;">Free</span><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div onclick="document.getElementById('settings-modal').classList.remove('open')" style="cursor:pointer;font-size:var(--fs-xl);color:#fff;">←</div><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);flex:1;">Settings</div></div><div onclick="document.getElementById('settings-modal').classList.remove('open');sw('premium','Plans');" style="background:#000;border:1.5px solid var(--p);border-radius:var(--rad-lg);padding:16px;margin-bottom:8px;display:flex;align-items:center;gap:13px;cursor:pointer;"><div style="flex:1;"><div style="font-size:var(--fs-md);font-weight:700;color:#fff;" id="set-premium-banner-title">✨ Go Premium</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.85);line-height:1.4;" id="set-premium-banner-desc">Unlock exclusive features and get more from UndrGradz.</div></div><div style="display:flex;flex-direction:column;align-items:center;gap:8px;"><div style="width:56px;height:56px;border-radius:50%;background:color-mix(in srgb, var(--p) 22%, #000);border:1.5px solid var(--p);display:flex;align-items:center;justify-content:center;font-size:var(--fs-2xl);">👑</div><span style="background:linear-gradient(135deg, var(--p), color-mix(in srgb, var(--p) 45%, #000));border-radius:var(--rad-md);padding:6px 16px;font-size:var(--fs-sm);font-weight:700;color:#fff;" id="set-premium-banner-btn">Upgrade</span></div></div><div onclick="document.getElementById('settings-modal').classList.remove('open');sw('premium','Plans');if(typeof _plansTabSet==='function')_plansTabSet('invite');" class="set-card" style="display:flex;align-items:center;gap:13px;padding:14px;margin-bottom:8px;cursor:pointer;"><div class="set-ic" style="background:linear-gradient(135deg, var(--sec-neon), color-mix(in srgb, var(--sec-neon) 42%, #000));">🎉</div><div style="flex:1;"><div class="set-t" id="set-invite-title">Invite & Earn</div><div class="set-s" id="set-invite-desc">Invite friends, unlock rewards & likes</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-h">Account</div><div class="set-card"><div class="set-row" style="cursor:pointer;" onclick="pickPic()"><div class="set-ic" style="background:linear-gradient(135deg,#3d7bff,#2b5fd9);">📷</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-photo-title">Profile Photo</div><div class="set-s" id="set-photo-desc">Update your profile picture</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#800614,#c9243b);">👤</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-uname-title">Username</div><div class="set-s"><span id="settings-handle-sub">@user</span></div></div><button class="set-chg" onclick="changeUsername()">Change</button></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#22c55e,#16a34a);">✉️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-email-title">Email</div><div class="set-s"><span id="settings-email">an••••••@uanl.edu</span></div></div><button class="set-chg" onclick="_setEmail()">Change</button></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">📞</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-phone-title">Phone Number</div><div class="set-s"><span id="settings-phone">•••••••• 5678</span></div></div><button class="set-chg" onclick="_setPhone()">Change</button></div><div class="set-row" style="cursor:pointer;" onclick="openPasswordSecurity()"><div class="set-ic" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🔒</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-pwd-title">Password & Security</div><div class="set-s" id="set-pwd-desc">Update your password</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div></div><div class="set-h">Campus &amp; Identity</div><div class="set-card"><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#c9243b,#a01a2e);">🏫</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-uni-title">My University</div><div class="set-s"><span id="settings-uni">—</span></div></div><button class="set-chg" onclick="openTransferUni()">Change</button></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">📅</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-class-title">Class Year</div><div class="set-s"><span id="settings-classyear">Junior (2026)</span></div></div><button class="set-chg" onclick="_editProfileField()">Change</button></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#22c55e,#16a34a);">📖</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-major-title">Major</div><div class="set-s"><span id="settings-major">Business Administration</span></div></div><button class="set-chg" onclick="_editProfileField()">Change</button></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#14b8a6,#0d9488);">✅</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-pv-title">Photo Verification</div><div class="set-s"><span id="settings-photoverify">Get a verified badge</span></div></div><button id="settings-pv-btn" class="set-chg" onclick="openPhotoVerify()">Verify</button></div><div class="set-row" id="settings-grad-row"><div class="set-ic" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🎓</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-grad-title">Graduating?</div><div class="set-s" id="set-grad-desc">Switch to an Alumni account</div></div><button class="set-chg" style="border-color:rgba(251,191,36,0.4);background:rgba(251,191,36,0.14);color:#fbbf24;" onclick="switchToAlumni()">Switch</button></div></div><div class="set-h" id="set-h-appearance">Appearance</div><div class="set-card" id="set-card-appearance"><div class="set-row" style="flex-direction:column;align-items:stretch;gap:11px;"><div style="display:flex;align-items:center;gap:12px;"><div class="set-ic" style="background:linear-gradient(135deg, var(--sec-neon), color-mix(in srgb, var(--sec-neon) 42%, #000));">🎨</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-apptheme-title">App Theme</div><div class="set-s" id="set-apptheme-desc">How the whole app is coloured</div></div></div><div id="apptheme-row"><button type="button" id="apptheme-undrgradz" onclick="_setAppTheme('undrgradz')"><div style="display:flex;gap:3px;flex-shrink:0;"><span style="width:9px;height:9px;border-radius:50%;background:#ec4899;display:block;"></span><span style="width:9px;height:9px;border-radius:50%;background:#22d3ee;display:block;"></span><span style="width:9px;height:9px;border-radius:50%;background:#a3e635;display:block;"></span></div><div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;"><span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Undrgradz</span><span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Black + neon</span></div></button><button type="button" id="apptheme-university" onclick="_setAppTheme('university')"><div style="display:flex;gap:3px;flex-shrink:0;"><span style="width:9px;height:9px;border-radius:50%;background:var(--p);display:block;"></span><span style="width:9px;height:9px;border-radius:50%;background:var(--p2);display:block;"></span></div><div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;"><span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">University</span><span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Your school colours</span></div></button></div></div></div><div class="set-h">Activity</div><div class="set-card" style="padding:14px;"><div style="display:flex;gap:8px;text-align:center;margin-bottom:12px;"><div style="flex:1;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">💬 48</div><div style="font-size:var(--fs-2xs);color:var(--fg2);" id="set-chats-stat">Chats</div></div><div style="flex:1;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">👥 12</div><div style="font-size:var(--fs-2xs);color:var(--fg2);" id="set-hangouts-stat">Hangouts</div></div><div style="flex:1;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">❤️ 27</div><div style="font-size:var(--fs-2xs);color:var(--fg2);" id="set-crushes-stat">Crushes</div></div><div style="flex:1;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">👁️ 84</div><div style="font-size:var(--fs-2xs);color:var(--fg2);" id="set-views-stat">Profile Views</div></div></div><div onclick="ugzAlert('📊 Your data & insights (Demo)')" style="display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);cursor:pointer;"><div class="set-ic" style="background:linear-gradient(135deg,#3d7bff,#4f46e5);">📊</div><div style="flex:1;"><div class="set-t" id="set-data-title">View Your Data</div><div class="set-s" id="set-data-desc">See your activity and insights</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div></div><div class="set-h">Preferences</div><div class="set-card"><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#3d7bff,#4f46e5);">🔒</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-private-title">Private Profile</div><div class="set-s" id="set-private-desc">Only friends can see posts & activity</div></div><div class="sw" id="sw-private" onclick="this.classList.toggle('on')"></div></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">✉️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-friendmsg-title">Require message with friend request</div><div class="set-s" id="set-friendmsg-desc">People must write a message to add you</div></div><div class="sw" id="sw-friend-msg" onclick="this.classList.toggle('on')"></div></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#3d7bff,#2b5fd9);">🏛️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-showcampus-title">Show me on Campus</div><div class="set-s" id="set-showcampus-desc">Appear in Campus feed and discovery</div></div><div class="sw on" id="sw-campus" onclick="this.classList.toggle('on')"></div></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#800614,#c9243b);">❤️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-showcrush-title">Friends can see my Crush</div><div class="set-s" id="set-showcrush-desc">Let friends see who your Crush is</div></div><div class="sw on" id="sw-unicrush-public" onclick="this.classList.toggle('on');if(typeof userPro!=='undefined')userPro.unicrushPublic=this.classList.contains('on');"></div></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#14b8a6,#0d9488);">👁️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-activitystatus-title">Activity Status</div><div class="set-s">Show when you're active</div></div><select class="gi" style="width:auto;padding:6px 10px;font-size:var(--fs-sm);"><option>Everyone</option><option>Friends</option><option>Nobody</option></select></div><div class="set-row" style="cursor:pointer;" onclick="openBlockedUsers()"><div class="set-ic" style="background:linear-gradient(135deg,#64748b,#475569);">🚫</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-blocked-title">Blocked Users</div><div class="set-s" id="set-blocked-desc">Manage people you've blocked</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div></div><div class="set-h">🔔 Notifications</div><div class="set-card"><div class="set-row" style="cursor:pointer;" onclick="ugzAlert('📱 Push notification settings (Demo)')"><div class="set-ic" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">📱</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-pushnotif-title">Push Notifications</div><div class="set-s" id="set-pushnotif-desc">Receive notifications on your device</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-row" style="cursor:pointer;" onclick="ugzAlert('💬 In-App notification settings (Demo)')"><div class="set-ic" style="background:linear-gradient(135deg,#3d7bff,#2b5fd9);">💬</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-appnotif-title">In-App Notifications</div><div class="set-s" id="set-appnotif-desc">Manage in-app notification settings</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#22c55e,#16a34a);">✉️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-emailnotif-title">Email Notifications</div><div class="set-s" id="set-emailnotif-desc">Receive updates via email</div></div><div class="sw on" id="sw-emailnotif" onclick="this.classList.toggle('on')"></div></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#f59e0b,#d97706);">📅</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-weeklynotif-title">Weekly Summary</div><div class="set-s" id="set-weeklynotif-desc">Get a weekly recap of your activity</div></div><div class="sw" id="sw-weekly" onclick="this.classList.toggle('on')"></div></div></div><div class="set-h">Undrgradz</div><div class="set-card"><div class="set-row" style="cursor:pointer;" onclick="document.getElementById('settings-modal').classList.remove('open');if(typeof editInterests==='function')editInterests();"><div class="set-ic" style="background:linear-gradient(135deg,#800614,#c9243b);">❤️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-interests-title">Interests</div><div class="set-s" id="set-interests-desc">Customize your interests</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-row"><div class="set-ic" style="background:linear-gradient(135deg,#800614,#c9243b);">❤️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-discocrush-title">Discoverable in Crush</div><div class="set-s" id="set-discocrush-desc">Let others find you in Crush</div></div><div class="sw on" id="sw-discoverable" onclick="this.classList.toggle('on')"></div></div></div><div class="set-h">❓ Support &amp; About</div><div class="set-card"><div class="set-row" style="cursor:pointer;" onclick="ugzAlert('❓ Help Center — FAQs and support (Demo)')"><div class="set-ic" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);">❓</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-help-title">Help Center</div><div class="set-s" id="set-help-desc">FAQs and support</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-row" style="cursor:pointer;" onclick="_giveFeedback()"><div class="set-ic" style="background:linear-gradient(135deg,#22c55e,#16a34a);">✉️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-feedback-title">Give Feedback</div><div class="set-s" id="set-feedback-desc">Help us improve UndrGradz</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div><div class="set-row" style="cursor:pointer;" onclick="ugzAlert('UndrGradz v2.4.1 — built for students & alumni ❤️')"><div class="set-ic" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">ℹ️</div><div style="flex:1;min-width:0;"><div class="set-t" id="set-about-title">About UndrGradz</div><div class="set-s">Version 2.4.1</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div></div><div class="set-card" style="margin-top:12px;"><div class="set-row" style="cursor:pointer;" onclick="_logOut()"><div style="flex:1;"><div class="set-t" id="set-logout-title" style="color:#fff;">Log Out</div><div class="set-s" id="set-logout-desc">Sign out of your account</div></div><span style="color:#fff;font-size:var(--fs-lg);">›</span></div></div></div></div>
+
+<!-- LOGO COLORS MODAL -->
+<div class="mov" id="logo-modal"><div class="msheet">
+  <div class="mhnd"></div>
+  <div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);margin-bottom:4px;">Logo Colors 🛡️</div>
+  <div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:12px;">Make the UndrGradz logo yours.</div>
+  <div id="logo-studio-body"></div>
+  <button class="gbtn-ghost" onclick="document.getElementById('logo-modal').classList.remove('open')" style="margin-top:16px;">Done</button>
+</div></div>
+
+<!-- PAYMENT MODAL -->
+<div class="mov" id="payment-modal"><div class="msheet" style="max-height:94vh;overflow-y:auto;background:linear-gradient(160deg,#16102b,#0c081b);border:1px solid rgba(255,255,255,0.12);"><div class="mhnd"></div><div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:16px;"><div id="pay-badge" style="width:60px;height:60px;border-radius:var(--rad-md);background:linear-gradient(160deg,#2b5fd9,#12275c);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 6px 20px rgba(43,95,217,0.4);">A+</div><div style="flex:1;min-width:0;"><div id="pay-hd-title" style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Welcome to A+</div><div id="pay-hd-sub" style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.4;margin-top:3px;">Unlock exclusive features and take your campus experience to the next level.</div></div><div onclick="document.getElementById('payment-modal').classList.remove('open')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;flex-shrink:0;">✕</div></div><div id="pay-plan-card"></div><div style="display:flex;justify-content:space-between;gap:6px;margin:14px 2px;font-size:var(--fs-xs);color:var(--fg2);text-align:center;"><span id="pay-cancel-anytime">🛡️ Cancel anytime</span><span id="pay-secure-payment">🔒 Secure payment</span><span id="pay-instant-activation">⚡ Instant activation</span></div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-bottom:10px;" id="pay-with-label">Pay with</div><div id="pay-method-row" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 0 16px;margin-bottom:6px;box-sizing:border-box;"><div class="pay-method pay-card sel" id="pct-card" onclick="selectPayMethod('card', this)" title="Card"><i class="fa-regular fa-credit-card"></i></div><div class="pay-method pay-visa" id="pct-visa" onclick="selectPayMethod('visa', this)" title="Visa"><i class="fa-brands fa-cc-visa"></i></div><div class="pay-method pay-mastercard" id="pct-mastercard" onclick="selectPayMethod('mastercard', this)" title="Mastercard"><i class="fa-brands fa-cc-mastercard"></i></div><div class="pay-method pay-amex" id="pct-amex" onclick="selectPayMethod('amex', this)" title="Amex"><i class="fa-brands fa-cc-amex"></i></div><div class="pay-method pay-apple" id="pct-apple" onclick="selectPayMethod('apple', this)" title="Apple Pay"><i class="fa-brands fa-apple-pay"></i></div><div class="pay-method pay-google" id="pct-google" onclick="selectPayMethod('google', this)" title="Google Pay"><i class="fa-brands fa-google-pay"></i></div></div><div id="pay-card-fields-wrap"><input class="pay-input" type="text" placeholder="Card number" id="pay-num" maxlength="19" oninput="var v=this.value.replace(/\D/g,'').slice(0,16);this.value=v.replace(/(.{4})/g,'$1 ').trim()"/><div id="pay-exp-cvv-group" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><input class="pay-input" type="text" placeholder="MM / YY" id="pay-exp" maxlength="7" oninput="formatPayExpInput(this)"/><input class="pay-input" type="password" placeholder="CVV" id="pay-cvv" maxlength="4" inputmode="numeric" oninput="this.value=this.value.replace(/\D/g,'').slice(0,4)"/></div><input class="pay-input" type="text" placeholder="Cardholder name" id="pay-name" maxlength="40"/></div><button class="gbtn" id="pay-cta" style="background:linear-gradient(90deg,#c9243b,#800614 55%,#fb923c);font-size:var(--fs-md);font-weight:700;margin-top:8px;" onclick="processPayment()">🔒 Unlock A+ Now</button><button class="gbtn-ghost" id="pay-not-now" onclick="document.getElementById('payment-modal').classList.remove('open')">Not now</button><div style="text-align:center;font-size:var(--fs-2xs);color:var(--fg3);margin-top:10px;" id="pay-ssl-footer">🔒 SSL Encrypted · Powered by Stripe</div></div></div>
+
+<!-- NETWORK CONNECT MODAL -->
+<div class="mov" id="net-connect-modal"><div class="msheet">
+  <div class="mhnd"></div>
+  <div id="net-connect-title" style="font-size:var(--fs-lg);font-weight:900;color:#fff;margin-bottom:6px;">Connect Request</div>
+  <div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:14px;" id="net-connect-to">To: </div>
+  <div class="field"><label id="net-connect-msg-label">Message <span style="color:var(--fg3);font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+    <textarea class="gi" id="net-connect-msg" rows="3" placeholder="I'd love to connect…" maxlength="300"></textarea>
+  </div>
+  <button class="gbtn" id="net-connect-send-btn" style="background:var(--p);" onclick="sendNetConnect()">Send Request</button>
+  <button class="gbtn-ghost" id="net-connect-cancel-btn" onclick="document.getElementById('net-connect-modal').classList.remove('open')">Cancel</button>
+</div></div>
+
+<!-- FRIEND REQUEST MODAL -->
+<div class="mov" id="friend-req-modal"><div class="msheet">
+  <div class="mhnd"></div>
+  <div id="friend-req-title" style="font-size:var(--fs-lg);font-weight:900;color:#fff;margin-bottom:10px;">Send Friend Request</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+    <div id="freq-my-av" style="width:44px;height:44px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:900;color:#fff;flex-shrink:0;background-size:cover;background-position:center;">U</div>
+    <div style="flex:1;"><div id="friend-req-from-label" style="font-size:var(--fs-sm);color:var(--fg2);">From</div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;" id="freq-my-handle">@you</div></div>
+    <div style="font-size:var(--fs-xl);color:var(--fg3);">→</div>
+    <div style="flex:1;text-align:right;"><div id="friend-req-to-label" style="font-size:var(--fs-sm);color:var(--fg2);">To</div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;" id="friend-req-to">@user</div></div>
+  </div>
+  <div class="field"><label id="friend-req-msg-label">Message</label>
+    <textarea class="gi" id="friend-req-msg" rows="3" placeholder="Hey! I'd like to connect…" maxlength="200"></textarea>
+  </div>
+  <button class="gbtn" id="friend-req-send-btn" style="background:var(--p);" onclick="sendFriendRequest()">Send Request</button>
+  <button class="gbtn-ghost" id="friend-req-cancel-btn" onclick="document.getElementById('friend-req-modal').classList.remove('open')">Cancel</button>
+</div></div>
+
+<!-- USER PROFILE POPUP -->
+<div class="mov" id="user-profile-modal"><div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;">
+  <div class="mhnd"></div>
+  <div style="height:90px;border-radius:var(--rad-md);overflow:hidden;position:relative;margin-bottom:-28px;"><div id="popup-banner-bg" style="position:absolute;inset:0;background:linear-gradient(135deg,var(--p),var(--p2));"></div></div>
+  <div style="padding:0 var(--s);display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:8px;">
+    <div id="popup-av" style="width:58px;height:58px;border-radius:50%;border:3px solid rgba(16,16,28,0.97);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);font-weight:800;color:#fff;background:var(--p);">A</div>
+    <div style="display:flex;gap:8px;padding-bottom:4px;">
+      <button id="popup-friend-btn" onclick="addFriendPopup()" style="padding:8px 16px;border-radius:var(--rad-lg);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;">Add Friend +</button>
+      <button title="View Crush" onclick="viewUserUnicrush(popupCurrentUser&&popupCurrentUser.handle,popupCurrentUser&&popupCurrentUser.name,'')" style="padding:8px 14px;border-radius:var(--rad-lg);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;">💘</button>
+      <button onclick="msgPopup()" style="padding:8px 14px;border-radius:var(--rad-lg);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;">💬</button>
+    </div>
+  </div>
+  <div style="padding:0 var(--s) 12px;">
+    <div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);" id="popup-handle">@username</div>
+    <div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:5px;" id="popup-fullname"></div>
+    <div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:8px;" id="popup-details"></div>
+    <div style="font-size:var(--fs-base);color:var(--fg);line-height:1.55;margin-bottom:10px;" id="popup-bio"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;" id="popup-chips"></div>
+  </div>
+  <div class="sep" style="margin:8px var(--s);"></div>
+  <div style="padding:0 var(--s);"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.9px;margin-bottom:8px;">Interests</div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="popup-interests"></div></div>
+  <div style="padding:16px var(--s) 0;"><button class="gbtn-ghost" onclick="document.getElementById('user-profile-modal').classList.remove('open')">Close</button></div>
+</div></div>
+
+<!-- View another user's Crush card (from search / profile popup) -->
+<div class="mov" id="user-crush-modal"><div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;padding-top:0;display:flex;flex-direction:column;position:relative;background:#000000;">
+  <button onclick="document.getElementById('user-crush-modal').classList.remove('open')" style="position:absolute;top:16px;right:16px;z-index:100;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:50%;width:34px;height:34px;color:#fff;font-size:var(--fs-lg);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:transform 0.15s ease;">×</button>
+  <div id="user-crush-title" style="display:none;"></div>
+  <div style="display:none;">
+    <button id="uc-tab-crush"></button>
+    <button id="uc-tab-events"></button>
+    <button id="uc-addfriend"></button>
+  </div>
+  <div id="user-crush-body" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow-y:auto;padding:52px var(--s) 14px;position:relative;"></div>
+  <div id="uc-action-bar" class="crush-actions" style="display:flex;justify-content:center;align-items:center;gap:18px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000000;flex-shrink:0;">
+    <button class="crb crb-neon-x" onclick="_ucPass()" title="Pass">
+      <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+    <button class="crb crb-neon-star" onclick="_ucSuperLike()" title="Super Like">
+      <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
+    </button>
+    <button class="crb crb-neon-heart" onclick="_ucLike()" title="Like">
+      <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+    </button>
+  </div>
+</div></div>
+
+<!-- Detailed Profile Sheet for Swipe Deck -->
+<div class="mov" id="crush-details-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 24px 0 0; max-height:85%; height:auto; display:flex; flex-direction:column; padding:16px 0 calc(16px + env(safe-area-inset-bottom)); border:none;">
+    <div class="mhnd" onclick="closeCrushDetailsModal()" style="cursor:pointer; margin-bottom:8px;"></div>
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:0 var(--s) 10px; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:14px;">
+      <div id="crush-details-title" style="font-size:var(--fs-md); font-weight:700; color:#fff; font-family:var(--font-serif);">About</div>
+      <button onclick="closeCrushDetailsModal()" style="background:rgba(255,255,255,0.1); border:none; border-radius:50%; width:30px; height:30px; color:#fff; font-size:var(--fs-md); cursor:pointer;">×</button>
+    </div>
+    <div id="crush-details-content" class="crush-scroll" style="flex:1; overflow-y:auto; padding:0 var(--s) 10px;"></div>
+  </div>
+</div>
+
+<!-- HANGOUT DETAIL MODAL -->
+<div class="mov" id="hangout-detail-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 26px 0 0; max-height:94vh; overflow-y:auto; padding:0 0 calc(24px + env(safe-area-inset-bottom)); border:1px solid rgba(255,255,255,0.15); background:#000000; position:relative;">
+    <div id="hangout-detail-body"></div>
+  </div>
+</div>
+
+<!-- 1. STUBHUB TICKET DETAIL MODAL -->
+<div class="mov" id="ticket-detail-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 24px 0 0; max-height:92vh; overflow-y:auto; padding:16px var(--s) calc(20px + env(safe-area-inset-bottom)); border:none;">
+    <div class="mhnd" onclick="document.getElementById('ticket-detail-modal').classList.remove('open')" style="cursor:pointer; margin-bottom:10px;"></div>
+    <div id="ticket-detail-body"></div>
+  </div>
+</div>
+
+<!-- 2. CREATE TICKET MODAL (VENDER BOLETOS) -->
+<div class="mov" id="create-ticket-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 24px 0 0; max-height:92vh; overflow-y:auto; padding:18px var(--s) calc(20px + env(safe-area-inset-bottom)); border:none;">
+    <div class="mhnd" onclick="document.getElementById('create-ticket-modal').classList.remove('open')" style="cursor:pointer; margin-bottom:12px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:var(--fs-lg);font-weight:900;color:#fff;font-family:var(--font-serif);display:flex;align-items:center;gap:8px;">🎟️ Vender Boletos</div>
+      <button onclick="document.getElementById('create-ticket-modal').classList.remove('open')" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:var(--fs-md);cursor:pointer;">✕</button>
+    </div>
+    <form onsubmit="submitCreateTicket(event)">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Nombre del Evento *</label>
+        <input type="text" id="tkt-inp-title" placeholder="Ej: Concierto: Mora, Clásico Regio..." required style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Fecha y Hora *</label>
+          <input type="text" id="tkt-inp-date" placeholder="31 de Ags, 21:00 hrs" required style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Lugar / Recinto *</label>
+          <input type="text" id="tkt-inp-venue" placeholder="Arena Monterrey..." required style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Boletos</label>
+          <input type="number" id="tkt-inp-count" value="2" min="1" max="10" style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Fila</label>
+          <input type="text" id="tkt-inp-row" placeholder="Fila 4" style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+        </div>
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Precio c/u ($)</label>
+          <input type="number" id="tkt-inp-price" placeholder="480" required style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Zona / Sección</label>
+        <input type="text" id="tkt-inp-section" placeholder="Sección Preferente B, Asientos 12 y 13" style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Detalles de la entrega / Garantía</label>
+        <textarea id="tkt-inp-notes" rows="2" placeholder="Tengo los boletos digitales PDF / entrega presencial en campus..." style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;resize:none;"></textarea>
+      </div>
+      <button type="submit" style="width:100%;padding:13px;border-radius:var(--rad-md);border:none;background:linear-gradient(135deg,#3d7bff,#3d7bff);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;box-shadow:0 0 16px rgba(61,123,255,0.4);">Publicar Boletos en StubHub Campus</button>
+    </form>
+  </div>
+</div>
+
+<!-- 3. FACEBOOK MARKETPLACE PRODUCT DETAIL MODAL -->
+<div class="mov" id="product-detail-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 24px 0 0; max-height:92vh; overflow-y:auto; padding:16px var(--s) calc(20px + env(safe-area-inset-bottom)); border:none;">
+    <div class="mhnd" onclick="document.getElementById('product-detail-modal').classList.remove('open')" style="cursor:pointer; margin-bottom:10px;"></div>
+    <div id="product-detail-body"></div>
+  </div>
+</div>
+
+<!-- 4. CREATE PRODUCT MODAL (SUBIR PRODUCTO) -->
+<div class="mov" id="create-product-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 24px 0 0; max-height:92vh; overflow-y:auto; padding:18px var(--s) calc(20px + env(safe-area-inset-bottom)); border:none;">
+    <div class="mhnd" onclick="document.getElementById('create-product-modal').classList.remove('open')" style="cursor:pointer; margin-bottom:12px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:var(--fs-lg);font-weight:900;color:#fff;font-family:var(--font-serif);display:flex;align-items:center;gap:8px;">📦 Subir Producto a Marketplace</div>
+      <button onclick="document.getElementById('create-product-modal').classList.remove('open')" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:var(--fs-md);cursor:pointer;">✕</button>
+    </div>
+    <form onsubmit="submitCreateProduct(event)">
+      <div style="margin-bottom:12px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Título del Producto *</label>
+        <input type="text" id="prd-inp-title" placeholder="Ej: Libro Anatomía Latarjet, Balón Adidas..." required style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Categoría *</label>
+          <select id="prd-inp-cat" required style="width:100%;padding:10px;background:rgba(13,13,17,0.95);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;">
+            <option value="Libros">📖 Libros</option>
+            <option value="Tecnología">💻 Tecnología</option>
+            <option value="Muebles">💺 Muebles</option>
+            <option value="Moda">👗 Moda</option>
+            <option value="Deportes">⚽ Deportes</option>
+            <option value="Herramientas">🔧 Herramientas</option>
+            <option value="Utensilios">🍳 Utensilios</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Precio ($ MXN) *</label>
+          <input type="number" id="prd-inp-price" placeholder="550" required style="width:100%;padding:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Método de Entrega *</label>
+        <select id="prd-inp-delivery" required style="width:100%;padding:10px;background:rgba(13,13,17,0.95);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;">
+          <option value="Entrego en persona">🤝 Entrego en persona</option>
+          <option value="Hago envíos">🚚 Hago envíos</option>
+          <option value="Punto medio en campus">📍 Punto medio en campus</option>
+        </select>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Ubicación / Punto de entrega</label>
+        <input type="text" id="prd-inp-loc" placeholder="Ej: UTNC Cafetería principal, San Nicolás..." style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;" />
+      </div>
+      <div style="margin-bottom:16px;">
+        <label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);display:block;margin-bottom:4px;">Descripción detallada</label>
+        <textarea id="prd-inp-desc" rows="3" placeholder="Estado del producto, detalles, uso, accesorios incluidos..." style="width:100%;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);outline:none;resize:none;"></textarea>
+      </div>
+      <button type="submit" style="width:100%;padding:13px;border-radius:var(--rad-md);border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;box-shadow:0 0 16px rgba(34,197,94,0.4);">Publicar Producto en Marketplace</button>
+    </form>
+  </div>
+</div>
+
+<!-- 5. MY PRODUCTS MODAL (MIS PRODUCTOS) -->
+<div class="mov" id="my-products-modal">
+  <div class="msheet" style="border-radius:var(--rad-xl) 24px 0 0; max-height:92vh; overflow-y:auto; padding:18px var(--s) calc(20px + env(safe-area-inset-bottom)); border:none;">
+    <div class="mhnd" onclick="document.getElementById('my-products-modal').classList.remove('open')" style="cursor:pointer; margin-bottom:12px;"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div style="font-size:var(--fs-lg);font-weight:900;color:#fff;font-family:var(--font-serif);display:flex;align-items:center;gap:8px;">📋 Mis Productos Publicados</div>
+      <button onclick="document.getElementById('my-products-modal').classList.remove('open')" style="background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:var(--fs-md);cursor:pointer;">✕</button>
+    </div>
+    <div id="my-products-list"></div>
+  </div>
+</div>
+
+<!-- AGE BLOCK -->
+<div class="age-modal" id="age-block-modal">
+  <div style="background:rgba(20,5,40,0.97);border:1px solid rgba(255,255,255,0.15);border-radius:var(--rad-xl);padding:28px 22px;max-width:340px;text-align:center;">
+    <div style="font-size:52px;margin-bottom:12px;">🎒</div>
+    <div style="font-size:var(--fs-xl);font-weight:900;color:#fff;margin-bottom:8px;font-family:var(--font-serif);">Not yet!</div>
+    <div style="font-size:var(--fs-md);color:rgba(255,255,255,0.75);line-height:1.6;margin-bottom:20px;">Graduate high school first and then come back!<br><br>You must be 17+ with a valid university email (.edu).</div>
+    <button onclick="document.getElementById('age-block-modal').classList.remove('open')" style="background:var(--p);border:none;border-radius:var(--rad-md);padding:13px 28px;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;width:100%;">Got it 👍</button>
+  </div>
+</div>
+
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="api-client.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

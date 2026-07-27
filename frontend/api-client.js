@@ -22,17 +22,26 @@ const IS_LOCAL =
 
 const API_HOST = HOST || 'localhost'; // file:// deja hostname vacío -> localhost
 
-// Túnel público (efímero de trycloudflare) — reemplázalo por tu URL vigente si
-// vuelves a exponer el backend hacia afuera.
-const REMOTE_URL = 'https://ward-gabriel-either-exams.trycloudflare.com';
+// Detección segura del entorno móvil nativo Capacitor (Android/iOS)
+const IS_CAPACITOR = !!(
+  (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
+  (window.Capacitor && window.Capacitor.platform && window.Capacitor.platform !== 'web') ||
+  window.location.protocol === 'capacitor:'
+);
 
-const BASE_URL = IS_LOCAL
-  ? `http://${API_HOST}:3000/api/v1`
-  : `${REMOTE_URL}/api/v1`;
+// Túnel público o URL remota de producción
+const REMOTE_URL = 'https://flour-nyc-plug-alike.trycloudflare.com';
 
-const SOCKET_URL = IS_LOCAL
-  ? `http://${API_HOST}:3000`
-  : REMOTE_URL;
+// En App Android Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
+// En Web Local se utiliza el puerto 3000 local del host.
+// En Web Producción se utiliza la URL remota.
+const BASE_URL = IS_CAPACITOR
+  ? `${REMOTE_URL}/api/v1`
+  : (IS_LOCAL ? `http://${API_HOST}:3000/api/v1` : `${REMOTE_URL}/api/v1`);
+
+const SOCKET_URL = IS_CAPACITOR
+  ? REMOTE_URL
+  : (IS_LOCAL ? `http://${API_HOST}:3000` : REMOTE_URL);
 
 console.log("BASE_URL:", BASE_URL);
 console.log("SOCKET_URL:", SOCKET_URL);
