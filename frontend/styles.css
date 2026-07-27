@@ -8,23 +8,23 @@
   /* Varsity palette — collegiate blue / red / white. Bright enough to still
      read as neon on a near-black ground, but institutional rather than club. */
   --p: #3d7bff;        /* varsity blue — primary */
-  --p2: #800614;       /* varsity red — deep crimson accent */
+  --p2: #791515;       /* varsity red — deep crimson accent */
   --p-rgb: 61, 123, 255;
   --varsity-blue: #3d7bff;
   /* Red used three ways, because one deep crimson can't do all jobs on black:
        --red-fill  solid fills with white text on top  (contrast 10.7 ✓)
        --red-ink   red text / icons / borders ON dark   (fill is only 1.8 — unreadable)
        --red-deep  the darker stop for red gradients */
-  --varsity-red: #800614;
-  --red-fill: #800614;
-  --red-ink: #e04155;
-  --red-deep: #5c040e;
+  --varsity-red: #791515;
+  --red-fill: #791515;
+  --red-ink: #dc2626;
+  --red-deep: #580f0f;
   /* Wine scale — reads burgundy, not pink. --wine is the darkest that still
      works as text/border on dark (~2.9); --wine-fill is for solid backgrounds
      with white text; --wine-glow the halo tint. */
-  --wine: #b0243a;
-  --wine-fill: #800614;
-  --wine-deep: #5c040e;
+  --wine: #dc2626;
+  --wine-fill: #791515;
+  --wine-deep: #580f0f;
   --varsity-navy: #0f1b3d;   /* deep field for panels */
   --varsity-chalk: #ffffff;
   --gbd: rgba(255, 255, 255, 0.3);
@@ -84,7 +84,7 @@
      Cálido→cálido, so it never passes through magenta. White text sits on the
      mid/wine zone where it stays legible. */
   --accent: #f59e0b;        /* amber — start of the warm gradient */
-  --accent-deep: #800614;   /* wine — end */
+  --accent-deep: #791515;   /* wine — end */
   --accent-light: #fbbf24;  /* hover / detail */
   --fw-reg: 400;
   --fw-med: 600;
@@ -101,7 +101,7 @@
   /* semantic colors */
   --c-success: #34d399;
   --c-warning: #fbbf24;
-  --c-danger: #e04155;
+  --c-danger: #dc2626;
   --c-info: #60a5fa;
   --c-accent: var(--p);
   --c-success-bg: rgba(52, 211, 153, 0.12);
@@ -130,18 +130,18 @@
 /* ── NEON DESIGN LAYER (reskin — palette, gradients, glows, category colors) ── */
 :root {
   /* neon accent palette */
-  --neon-pink: #3d7bff;
-  --neon-magenta: #e04155;
-  --neon-purple: #3d7bff;
-  --neon-violet: #2b5fd9;
-  --neon-blue: #3b82f6;
-  --neon-cyan: #22d3ee;
-  --neon-green: #22c55e;
-  --neon-lime: #a3e635;
-  --neon-orange: #fb923c;
-  --neon-amber: #f59e0b;
-  --neon-gold: #fbbf24;
-  --neon-red: #e04155;
+  --neon-pink: var(--c-blue);
+  --neon-magenta: var(--c-red-ink);
+  --neon-purple: var(--c-blue);
+  --neon-violet: var(--c-blue-navy);
+  --neon-blue: var(--c-blue-deep);
+  --neon-cyan: var(--c-cyan);
+  --neon-green: var(--c-green);
+  --neon-lime: var(--c-lime);
+  --neon-orange: var(--c-orange);
+  --neon-amber: var(--c-amber-deep);
+  --neon-gold: var(--c-amber);
+  --neon-red: var(--c-red-ink);
   /* category colors (from reference key) */
   --cat-nightlife: #ff4d8d;
   --cat-study: #4d84ff;
@@ -155,9 +155,9 @@
   --cat-business: #22c55e;
   --cat-tech: #3b82f6;
   /* signature gradients */
-  --grad-primary: linear-gradient(135deg, #f59e0b, #800614); /* pink→orange CTA */
-  --grad-purple: linear-gradient(135deg, #f59e0b, #800614); /* purple→pink */
-  --grad-brand: linear-gradient(135deg, #f59e0b, #800614);
+  --grad-primary: linear-gradient(135deg, #f59e0b, #791515); /* pink→orange CTA */
+  --grad-purple: linear-gradient(135deg, #f59e0b, #791515); /* purple→pink */
+  --grad-brand: linear-gradient(135deg, #f59e0b, #791515);
   --grad-cyan: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
   --grad-gold: linear-gradient(135deg, #fbbf24 0%, #fb923c 100%);
   /* neon glows */
@@ -971,11 +971,11 @@ textarea.gi {
 .gender-chip.female {
   background: rgba(240, 62, 90, 0.12);
   border-color: rgba(240, 62, 90, 0.3);
-  color: #e04155;
+  color: #dc2626;
 }
 .gender-chip.female.on {
-  background: #800614;
-  border-color: #e04155;
+  background: #791515;
+  border-color: #dc2626;
   color: #fff;
 }
 .gender-chip.other {
@@ -1243,7 +1243,7 @@ textarea.gi {
   display: flex;
 }
 .gf {
-  background: linear-gradient(90deg, #e91e8c, #800614);
+  background: linear-gradient(90deg, #e91e8c, #791515);
   transition: width 0.3s;
 }
 .gm {
@@ -2594,8 +2594,8 @@ textarea.gi {
 }
 /* Neon Pink Flower (Rose) */
 .crb-neon-rose {
-  border: 2.5px solid #e04155 !important;
-  color: #e04155 !important;
+  border: 2.5px solid #dc2626 !important;
+  color: #dc2626 !important;
   
 }
 .crb-neon-rose:hover {
@@ -2640,8 +2640,8 @@ textarea.gi {
 #swipe-overlay-reject {
   top: 30px !important;
   right: 20px !important;
-  border-color: #e04155 !important;
-  color: #e04155 !important;
+  border-color: #dc2626 !important;
+  color: #dc2626 !important;
   transform: rotate(15deg) scale(0.85) !important;
 }
 
@@ -4218,7 +4218,7 @@ svg {
    which caps at 1000px (card 6 is taller than that) and would clip the date
    picker popup in card 2. */
 #evp-create .ehcard {
-  --step-hue: #3d7bff;
+  --step-hue: var(--c-blue);
   position: relative;
   z-index: 1;
   background: #000;
@@ -4229,14 +4229,14 @@ svg {
   box-shadow: inset 0 0 12px color-mix(in srgb, var(--step-hue) 8%, transparent);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-#evp-create .ehcard[data-step="1"] { --step-hue: #3d7bff; } /* blue   */
-#evp-create .ehcard[data-step="2"] { --step-hue: #22d3ee; } /* cyan   */
-#evp-create .ehcard[data-step="3"] { --step-hue: #e04155; } /* red    */
-#evp-create .ehcard[data-step="4"] { --step-hue: #a3e635; } /* lime   */
-#evp-create .ehcard[data-step="5"] { --step-hue: #ec4899; } /* pink   */
-#evp-create .ehcard[data-step="6"] { --step-hue: #c084fc; } /* purple */
-#evp-create .ehcard[data-step="7"] { --step-hue: #fbbf24; } /* amber  */
-#evp-create .ehcard[data-step="8"] { --step-hue: #22c55e; } /* green  */
+#evp-create .ehcard[data-step="1"] { --step-hue: var(--c-blue); } /* blue   */
+#evp-create .ehcard[data-step="2"] { --step-hue: var(--c-cyan); } /* cyan   */
+#evp-create .ehcard[data-step="3"] { --step-hue: var(--c-red-ink); } /* red    */
+#evp-create .ehcard[data-step="4"] { --step-hue: var(--c-lime); } /* lime   */
+#evp-create .ehcard[data-step="5"] { --step-hue: var(--c-pink); } /* pink   */
+#evp-create .ehcard[data-step="6"] { --step-hue: var(--c-violet); } /* purple */
+#evp-create .ehcard[data-step="7"] { --step-hue: var(--c-amber); } /* amber  */
+#evp-create .ehcard[data-step="8"] { --step-hue: var(--c-green); } /* green  */
 
 /* The step number and the title follow the card. The inline colours these
    titles used to carry are gone from index.html, or they would win over this. */
@@ -4287,7 +4287,7 @@ svg {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #800614;
+  background: #791515;
   color: #fff;
   display: inline-flex;
   align-items: center;
@@ -4358,7 +4358,7 @@ svg {
 }
 #evp-create .ehtog.on {
   background: rgba(240, 62, 90, 0.16);
-  color: #e04155;
+  color: #dc2626;
   box-shadow: inset 0 0 0 1px rgba(240, 62, 90, 0.4);
 }
 #evp-create .ehmini {
@@ -4404,7 +4404,7 @@ svg {
   width: 78px;
   height: 78px;
   border-radius:var(--rad-sm);
-  background: #800614;
+  background: #791515;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4436,7 +4436,7 @@ svg {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #800614;
+  background: #791515;
   border-radius:var(--rad-lg);
   padding: 16px 18px;
   margin-bottom: 16px;
@@ -4523,7 +4523,7 @@ svg {
   margin-top: 1px;
 }
 #plans-content .pu-single .pu-count {
-  color: #e04155;
+  color: #dc2626;
 }
 #plans-content .pu-badge {
   position: absolute;
@@ -4737,24 +4737,24 @@ svg {
 /* Section hues — ordered so neighbours in the chip row never share a family:
    green → rose → blue → orange → purple → amber → cyan → pink. No two sections
    share a colour, and none sits next to the purple ⊕ button. */
-.chatsec-chip[data-sec="all"],        .evsec-chip[data-sec="all"]        { --chip: #34d399; } /* emerald */
+.chatsec-chip[data-sec="all"],        .evsec-chip[data-sec="all"]        { --chip: var(--c-emerald); } /* emerald */
 .chatsec-chip[data-sec="nightlife"],  .evsec-chip[data-sec="nightlife"]  { --chip: var(--wine); } /* wine */
-.chatsec-chip[data-sec="study"],      .evsec-chip[data-sec="study"]      { --chip: #60a5fa; } /* blue    */
-.chatsec-chip[data-sec="sports"],     .evsec-chip[data-sec="sports"]     { --chip: #a3e635; } /* lime — same green as campus, by request */
-.chatsec-chip[data-sec="dorm"],       .evsec-chip[data-sec="dorm"]       { --chip: #c084fc; } /* purple — was #6b9bff, which was actually blue despite this comment */
-.chatsec-chip[data-sec="greek"],      .evsec-chip[data-sec="greek"]      { --chip: #fbbf24; } /* amber   */
-.chatsec-chip[data-sec="abroad"],     .evsec-chip[data-sec="abroad"]     { --chip: #2dd4bf; } /* turquoise */
-.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: #d946ef; } /* magenta — lime moved to sports, so this stays unique */
-.chatsec-chip[data-sec="gaming"],     .evsec-chip[data-sec="gaming"]     { --chip: #3d7bff; } /* violet  */
-.chatsec-chip[data-sec="networking"], .evsec-chip[data-sec="networking"] { --chip: #818cf8; } /* indigo  */
-.chatsec-chip[data-sec="clubs"],      .evsec-chip.evsec-clubs            { --chip: #2dd4bf; } /* teal    */
-.chatsec-chip[data-sec="alumni"],     .evsec-chip.evsec-alumni           { --chip: #a3e635; } /* lime    */
+.chatsec-chip[data-sec="study"],      .evsec-chip[data-sec="study"]      { --chip: var(--c-blue-soft); } /* blue    */
+.chatsec-chip[data-sec="sports"],     .evsec-chip[data-sec="sports"]     { --chip: var(--c-lime); } /* lime — same green as campus, by request */
+.chatsec-chip[data-sec="dorm"],       .evsec-chip[data-sec="dorm"]       { --chip: var(--c-violet); } /* purple — was #6b9bff, which was actually blue despite this comment */
+.chatsec-chip[data-sec="greek"],      .evsec-chip[data-sec="greek"]      { --chip: var(--c-amber); } /* amber   */
+.chatsec-chip[data-sec="abroad"],     .evsec-chip[data-sec="abroad"]     { --chip: var(--c-teal); } /* turquoise */
+.chatsec-chip[data-sec="campus"],     .evsec-chip[data-sec="campus"]     { --chip: var(--c-fuchsia); } /* magenta — lime moved to sports, so this stays unique */
+.chatsec-chip[data-sec="gaming"],     .evsec-chip[data-sec="gaming"]     { --chip: var(--c-blue); } /* violet  */
+.chatsec-chip[data-sec="networking"], .evsec-chip[data-sec="networking"] { --chip: var(--c-indigo); } /* indigo  */
+.chatsec-chip[data-sec="clubs"],      .evsec-chip.evsec-clubs            { --chip: var(--c-teal); } /* teal    */
+.chatsec-chip[data-sec="alumni"],     .evsec-chip.evsec-alumni           { --chip: var(--c-lime); } /* lime    */
 
 /* Chats-only chips */
 .chatsec-chip[data-sec="individuals"],
-.chatsec-chip[data-sec="friends"]     { --chip: #f97316; } /* orange */
+.chatsec-chip[data-sec="friends"]     { --chip: var(--c-orange-deep); } /* orange */
 .chatsec-chip[data-sec="matches"]     { --chip: var(--wine); } /* wine */
-.chatsec-chip[data-sec="events"]      { --chip: #38bdf8; } /* sky    */
+.chatsec-chip[data-sec="events"]      { --chip: var(--c-sky); } /* sky    */
 
 /* Idle */
 #sec-chats .chatsec-chip,
@@ -4923,14 +4923,14 @@ svg {
   white-space: nowrap;
 }
 .ah-tab.on {
-  border-bottom-color: #c9243b;
+  border-bottom-color: #9e1b1b;
 }
 .ah-tab.on .ah-tab-ic {
   filter: none;
   opacity: 1;
 }
 .ah-tab.on .ah-tab-l {
-  color: #e04155;
+  color: #dc2626;
 }
 .ah-week {
   display: flex;
@@ -4969,8 +4969,8 @@ svg {
   color: var(--fg3);
 }
 .ah-day.on {
-  background: linear-gradient(160deg, #c9243b, #b91c4a);
-  border-color: #c9243b;
+  background: linear-gradient(160deg, #9e1b1b, #b91c4a);
+  border-color: #9e1b1b;
 }
 .ah-day.on .ah-day-d,
 .ah-day.on .ah-day-c {
@@ -5057,8 +5057,8 @@ svg {
   cursor: pointer;
 }
 .cm-tab.on {
-  border-color: #c9243b;
-  color: #e04155;
+  border-color: #9e1b1b;
+  color: #dc2626;
   background: rgba(225, 29, 72, 0.08);
 }
 .cmc {
@@ -5452,7 +5452,7 @@ svg {
 }
 
 .citem-act-close {
-  background: #800614 !important;
+  background: #791515 !important;
   
 }
 .cav img {
@@ -5527,14 +5527,14 @@ svg {
   color: var(--fg2);
 }
 .ob4-step.cur .ob4-dot {
-  background: #c9243b;
-  border-color: #c9243b;
+  background: #9e1b1b;
+  border-color: #9e1b1b;
   color: #fff;
   box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.18);
 }
 .ob4-step.done .ob4-dot {
-  background: #c9243b;
-  border-color: #c9243b;
+  background: #9e1b1b;
+  border-color: #9e1b1b;
   color: #fff;
 }
 .ob4-lbl {
@@ -5554,7 +5554,7 @@ svg {
   margin-bottom: 20px;
 }
 .ob4-line.on {
-  background: #c9243b;
+  background: #9e1b1b;
 }
 .ob4-title {
   font-size:var(--fs-xl);
@@ -5590,8 +5590,8 @@ svg {
   cursor: pointer;
 }
 .ob4-chip.on {
-  background: linear-gradient(135deg, #c9243b, #a01a2e);
-  border-color: #c9243b;
+  background: linear-gradient(135deg, #9e1b1b, #791515);
+  border-color: #9e1b1b;
 }
 .ob4-cta {
   width: 100%;
@@ -6300,16 +6300,26 @@ html.light-secondary #ev-publish-btn {
    black gradient with the hue on the edge and the label, selected fills with the
    hue at 72% strength and gains a gradient edge plus a halo.
    One hue variable per tab collapses what used to be two duplicated .on blocks. */
-.adm-sub-btn[data-sub="likes"] { --sub-hue: #06b6d4; }
-.adm-sub-btn[data-sub="saw"]   { --sub-hue: #fb923c; }
+/* Azul, amarillo y rojo, en el orden en que salen en pantalla. Antes eran cian,
+   rosa y naranja; el naranja sobre el relleno degradado salía marrón. */
+.adm-sub-btn[data-sub="likes"]  { --sub-hue: var(--c-orange-deep); } /* Likes Sent */
+.adm-sub-btn[data-sub="foryou"] { --sub-hue: var(--c-lime); }        /* For you    */
+.adm-sub-btn[data-sub="saw"]    { --sub-hue: var(--c-violet); }      /* Admirers   */
 /* Tab 2 (Admirers) was merged into Secret Admirers; its rules are gone. */
 
+/* Subrayado, no pastilla. El relleno degradado del tono hacia negro ensuciaba el
+   color — el naranja de Admirers acababa marrón. Es la misma receta que ya usan
+   .nfchip, .evsec-chip, .ob4-catchip y las barras de pestañas: sin caja, etiqueta
+   blanca y el tono en una línea de 3px debajo, apagada al 30% y encendida en la
+   seleccionada. */
 .adm-sub-btn {
-  --sub-hue: #3d7bff;
+  --sub-hue: var(--c-blue);
+  position: relative;
   flex: 1;
   text-align: center;
-  padding: 10px 4px;
-  border-radius: var(--rad-md);
+  /* hueco abajo para la línea */
+  padding: 9px 4px 11px;
+  border-radius: 0;
   cursor: pointer;
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -6317,25 +6327,35 @@ html.light-secondary #ev-publish-btn {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  transition: all var(--dur) ease-in-out;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--sub-hue) 22%, #000) 0%, #000 100%);
-  border: 1px solid color-mix(in srgb, var(--sub-hue) 40%, transparent);
-  color: var(--sub-hue);
+  transition: color var(--dur) var(--ease);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: rgba(255, 255, 255, 0.72);
 }
-/* Just the fill. The lit border-box edge used to end in
-   color-mix(hue, #fff) — at this size that pale ring read as an outline drawn
-   around the tab rather than as a glow, so the border, the halo and the
-   text-shadow are all gone. */
 .adm-sub-btn.on {
-  /* transparent, not none: the idle state carries a 1px border, and dropping it
-     here would make the selected tab 2px shorter than its neighbours. */
-  border: 1px solid transparent;
-  background: linear-gradient(135deg,
-                color-mix(in srgb, var(--sub-hue) 72%, #000) 0%,
-                color-mix(in srgb, var(--sub-hue) 29%, #000) 100%);
-  color: #fff;
+  background: transparent;
+  border: none;
   box-shadow: none;
   text-shadow: none;
+  color: #fff;
+}
+.adm-sub-btn::after {
+  content: "";
+  position: absolute;
+  left: 7px; right: 7px; bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--sub-hue);
+  /* En reposo la línea está, apagada y sin brillo. El brillo vive en .on. */
+  opacity: 0.3;
+  box-shadow: none;
+  transition: opacity var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  pointer-events: none;
+}
+.adm-sub-btn.on::after {
+  opacity: 1;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--sub-hue) 65%, transparent);
 }
 /* The icon inherits currentColor in both states. It used to be pinned to the
    hue, which on the selected tab is the colour of its own fill. */
@@ -6822,7 +6842,7 @@ button.jbtn {
   
 }
 .gf {
-  background: #800614;
+  background: #791515;
 }
 .gm {
   background: linear-gradient(90deg, #3b82f6, #22d3ee);
@@ -7307,7 +7327,7 @@ button.jbtn {
   letter-spacing: 0.5px;
 }
 .ly-page-nav-indicator:hover {
-  color: #e04155;
+  color: #dc2626;
   transform: scale(1.05);
 }
 .ly-page-nav-next {
@@ -7367,7 +7387,7 @@ button.jbtn {
 .ly-reveal-card.card-selected {
   transform: translateY(-10px) scale(1.04) !important;
   box-shadow:var(--el-3);
-  border-color: #e04155 !important;
+  border-color: #dc2626 !important;
   z-index: 100;
 }
 
@@ -7519,7 +7539,7 @@ button.jbtn {
 .ly-match-title {
   font-size: 36px;
   font-weight: 900;
-  color: #e04155;
+  color: #dc2626;
   text-transform: uppercase;
   letter-spacing: 2px;
   text-shadow: 0 0 25px rgba(240, 62, 90, 0.7);
@@ -7543,7 +7563,7 @@ button.jbtn {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  border: 3px solid #e04155;
+  border: 3px solid #dc2626;
   
   object-fit: cover;
 }
@@ -7571,7 +7591,7 @@ button.jbtn {
 /* Particle heart items */
 .ly-heart-particle {
   position: absolute;
-  color: #e04155;
+  color: #dc2626;
   font-size:var(--fs-xl);
   pointer-events: none;
   animation: lyParticleFly 2s ease-out forwards;
@@ -7928,8 +7948,8 @@ input, textarea, [contenteditable="true"] {
 }
 
 .crb-neon-rose {
-  border: 2px solid #e04155 !important;
-  color: #e04155 !important;
+  border: 2px solid #dc2626 !important;
+  color: #dc2626 !important;
   background: rgba(240, 62, 90, 0.12) !important;
   
 }
@@ -8050,7 +8070,7 @@ input, textarea, [contenteditable="true"] {
 
 .fomo-locked-card:hover {
   transform: translateY(-4px) scale(1.03) !important;
-  border-color: #e04155 !important;
+  border-color: #dc2626 !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7), 0 0 30px rgba(240, 62, 90, 0.8) !important;
 }
 
@@ -8092,7 +8112,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 .cunrd {
-  background: linear-gradient(135deg, #800614, #a01a2e) !important;
+  background: linear-gradient(135deg, #791515, #791515) !important;
   
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8128,7 +8148,7 @@ input, textarea, [contenteditable="true"] {
 .prof-tab.active {
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--tab-accent, #3d7bff) 78%, #000000),
-    var(--tab-accent, #800614)) !important;
+    var(--tab-accent, #791515)) !important;
   box-shadow: 0 0 12px color-mix(in srgb, var(--tab-accent, #3d7bff) 60%, transparent) !important;
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8172,15 +8192,15 @@ input, textarea, [contenteditable="true"] {
 }
 
 .yr-chip.on {
-  background: #800614 !important;
-  border: 1.5px solid #e04155 !important;
+  background: #791515 !important;
+  border: 1.5px solid #dc2626 !important;
   color: #ffffff !important;
   font-weight:700 !important;
   box-shadow: 0 0 12px rgba(240, 62, 90, 0.5) !important;
 }
 
 .age-range-pill {
-  background: linear-gradient(135deg, #800614, #a01a2e) !important;
+  background: linear-gradient(135deg, #791515, #791515) !important;
   
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8208,7 +8228,7 @@ input, textarea, [contenteditable="true"] {
   font-size: 34px;
   font-weight: 1000;
   letter-spacing: -1.5px;
-  background: linear-gradient(135deg, #ffffff 0%, var(--uni-p, var(--p, #800614)) 45%, var(--uni-p2, var(--p2, #4d84ff)) 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--uni-p, var(--p, #791515)) 45%, var(--uni-p2, var(--p2, #4d84ff)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-left: 2px;
@@ -8291,14 +8311,14 @@ input, textarea, [contenteditable="true"] {
   transition: all 0.3s ease;
 }
 .ob4-line.on {
-  background: linear-gradient(90deg, var(--uni-p, #800614), var(--uni-p2, #4d84ff)) !important;
+  background: linear-gradient(90deg, var(--uni-p, #791515), var(--uni-p2, #4d84ff)) !important;
   box-shadow: 0 0 12px var(--uni-p, rgba(240, 62, 90, 0.7)) !important;
 }
 
 /* Neon CTA Button */
 .ob4-cta {
   width: 100% !important;
-  background: linear-gradient(135deg, var(--uni-p, #3d7bff), #800614 50%, var(--uni-p2, #3d7bff)) !important;
+  background: linear-gradient(135deg, var(--uni-p, #3d7bff), #791515 50%, var(--uni-p2, #3d7bff)) !important;
   color: #ffffff !important;
   font-family: 'Outfit', 'Inter', sans-serif !important;
   font-weight: 1000 !important;
@@ -8339,7 +8359,7 @@ input, textarea, [contenteditable="true"] {
   gap: 6px !important;
 }
 .ob4-chip.on {
-  background: linear-gradient(135deg, var(--uni-p, #800614), var(--uni-p2, #3d7bff)) !important;
+  background: linear-gradient(135deg, var(--uni-p, #791515), var(--uni-p2, #3d7bff)) !important;
   border: 1.5px solid #ffffff !important;
   color: #ffffff !important;
   font-weight:700 !important;
@@ -8517,7 +8537,7 @@ input, textarea, [contenteditable="true"] {
 }
 
 .pass-brand span {
-  color: #e04155;
+  color: #dc2626;
 }
 
 .pass-chip {
@@ -9043,7 +9063,7 @@ input, textarea, [contenteditable="true"] {
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(220, 38, 38, 0.4));
   border: 1.5px solid rgba(239, 68, 68, 0.6);
   
-  color: #e04155;
+  color: #dc2626;
 }
 .ugz-modal-card.type-warning .ugz-modal-badge {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.4));
@@ -9061,7 +9081,7 @@ input, textarea, [contenteditable="true"] {
   background: linear-gradient(135deg, rgba(240, 62, 90, 0.25), rgba(61, 123, 255, 0.4));
   border: 1.5px solid rgba(240, 62, 90, 0.6);
   
-  color: #e04155;
+  color: #dc2626;
 }
 .ugz-modal-card.type-premium .ugz-modal-badge {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(240, 62, 90, 0.3));
@@ -9101,7 +9121,7 @@ input, textarea, [contenteditable="true"] {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .ugz-modal-input:focus {
-  border-color: #e04155;
+  border-color: #dc2626;
   box-shadow: 0 0 12px rgba(240, 62, 90, 0.45);
 }
 .ugz-modal-actions {
@@ -9138,7 +9158,7 @@ input, textarea, [contenteditable="true"] {
   color: #fff;
 }
 .ugz-btn-confirm {
-  background: #800614;
+  background: #791515;
   color: #ffffff;
   box-shadow:var(--el-2);
 }
@@ -9163,7 +9183,7 @@ input, textarea, [contenteditable="true"] {
   box-shadow:var(--el-2);
 }
 .type-premium .ugz-btn-confirm {
-  background: linear-gradient(135deg, #f59e0b, #800614);
+  background: linear-gradient(135deg, #f59e0b, #791515);
   box-shadow:var(--el-2);
 }
 .ugz-modal-card.type-cheat .ugz-modal-badge {
@@ -9173,7 +9193,7 @@ input, textarea, [contenteditable="true"] {
   color: #38bdf8;
 }
 .type-cheat .ugz-btn-confirm {
-  background: #800614;
+  background: #791515;
   box-shadow:var(--el-2);
 }
 
@@ -9617,7 +9637,7 @@ select:-webkit-autofill {
    reserved for .on, so a screen full of these reads as a set of frames with one
    of them lit, instead of a wall of competing light. */
 .neon-card {
-  --neon: #3d7bff;
+  --neon: var(--c-blue);
   background: #000;
   border: 1.5px solid var(--neon);
   border-radius: var(--rad-md);
@@ -9653,12 +9673,12 @@ select:-webkit-autofill {
    These are single-select (one category at a time), so exactly one line is lit.
    The row lives at body level in the notifications sheet, so the #sec-scoped
    copies of this recipe never reach it and it needs its own. */
-.nfchip[data-nf="all"]      { --chip: #22d3ee; } /* cyan    */
-.nfchip[data-nf="social"]   { --chip: #ec4899; } /* pink    */
-.nfchip[data-nf="campus"]   { --chip: #a3e635; } /* lime    */
-.nfchip[data-nf="events"]   { --chip: #c084fc; } /* purple  */
-.nfchip[data-nf="requests"] { --chip: #fb923c; } /* orange  */
-.nfchip[data-nf="system"]   { --chip: #fde047; } /* neon yellow, by request */
+.nfchip[data-nf="all"]      { --chip: var(--c-cyan); } /* cyan    */
+.nfchip[data-nf="social"]   { --chip: var(--c-pink); } /* pink    */
+.nfchip[data-nf="campus"]   { --chip: var(--c-lime); } /* lime    */
+.nfchip[data-nf="events"]   { --chip: var(--c-violet); } /* purple  */
+.nfchip[data-nf="requests"] { --chip: var(--c-orange); } /* orange  */
+.nfchip[data-nf="system"]   { --chip: var(--c-yellow); } /* neon yellow, by request */
 
 .nfchip {
   position: relative;
@@ -9707,7 +9727,7 @@ select:-webkit-autofill {
    so the border goes here. Beats the two earlier !important blocks that force a
    faint blue outline (~6589) and a flat black fill (~9468). */
 #settings-modal .set-card {
-  --sec-neon: #3d7bff;
+  --sec-neon: var(--c-blue);
   border: 1.5px solid color-mix(in srgb, var(--sec-neon) 62%, transparent) !important;
   box-shadow: 0 0 12px color-mix(in srgb, var(--sec-neon) 24%, transparent) !important;
 }
@@ -9749,7 +9769,7 @@ select:-webkit-autofill {
    later wins. The chevron is re-declared because that rule uses the `background`
    shorthand and resets background-image along with it. */
 #ev-filter-sel {
-  --sort-hue: #3d7bff;
+  --sort-hue: var(--c-blue);
   background-color: color-mix(in srgb, var(--sort-hue) 16%, #000) !important;
   border: 1.5px solid var(--sort-hue) !important;
   box-shadow: 0 0 12px color-mix(in srgb, var(--sort-hue) 38%, transparent) !important;
@@ -9758,12 +9778,12 @@ select:-webkit-autofill {
   background-repeat: no-repeat !important;
   background-position: right 14px center !important;
 }
-#ev-filter-sel[data-sort="compat"]   { --sort-hue: #ec4899; } /* pink   */
-#ev-filter-sel[data-sort="trending"] { --sort-hue: #f97316; } /* orange */
-#ev-filter-sel[data-sort="newest"]   { --sort-hue: #22d3ee; } /* cyan   */
-#ev-filter-sel[data-sort="spots"]    { --sort-hue: #a3e635; } /* lime   */
-#ev-filter-sel[data-sort="soon"]     { --sort-hue: #fbbf24; } /* amber  */
-#ev-filter-sel[data-sort="near"]     { --sort-hue: #f43f5e; } /* rose   */
+#ev-filter-sel[data-sort="compat"]   { --sort-hue: var(--c-pink); } /* pink   */
+#ev-filter-sel[data-sort="trending"] { --sort-hue: var(--c-orange-deep); } /* orange */
+#ev-filter-sel[data-sort="newest"]   { --sort-hue: var(--c-cyan); } /* cyan   */
+#ev-filter-sel[data-sort="spots"]    { --sort-hue: var(--c-lime); } /* lime   */
+#ev-filter-sel[data-sort="soon"]     { --sort-hue: var(--c-amber); } /* amber  */
+#ev-filter-sel[data-sort="near"]     { --sort-hue: var(--c-rose); } /* rose   */
 #ev-filter-sel:hover,
 #ev-filter-sel:focus {
   border-color: var(--sort-hue) !important;
@@ -9896,9 +9916,9 @@ select:-webkit-autofill {
   stroke: currentColor !important;
 }
 /* Each Campus tab owns a hue, so the underline means something here too. */
-#discover-tabs .crush-tab[id="ctab-search"] { --tab-hue: #22d3ee; }
-#discover-tabs .crush-tab[id="ctab-swipe"]  { --tab-hue: #ec4899; }
-#discover-tabs .crush-tab[id="ctab-liked"]  { --tab-hue: #fb923c; } /* Discover — kept the flame's orange from the old For you tab */
+#discover-tabs .crush-tab[id="ctab-search"] { --tab-hue: var(--c-cyan); }
+#discover-tabs .crush-tab[id="ctab-swipe"]  { --tab-hue: var(--c-pink); }
+#discover-tabs .crush-tab[id="ctab-liked"]  { --tab-hue: var(--c-orange); } /* Discover — kept the flame's orange from the old For you tab */
 
 /* ── Profile: My Card · Activity · Safety · Filters ── */
 #prof-tabs {
@@ -9922,9 +9942,9 @@ select:-webkit-autofill {
   color: #fff !important;
 }
 #prof-tabs .prof-tab:nth-child(1) { --tab-hue: var(--wine); }
-#prof-tabs .prof-tab:nth-child(2) { --tab-hue: #fbbf24; }
-#prof-tabs .prof-tab:nth-child(3) { --tab-hue: #34d399; }
-#prof-tabs .prof-tab:nth-child(4) { --tab-hue: #3d7bff; }
+#prof-tabs .prof-tab:nth-child(2) { --tab-hue: var(--c-amber); }
+#prof-tabs .prof-tab:nth-child(3) { --tab-hue: var(--c-emerald); }
+#prof-tabs .prof-tab:nth-child(4) { --tab-hue: var(--c-blue); }
 
 /* ── The shared underline ── */
 #discover-tabs .crush-tab::after,
@@ -9981,23 +10001,23 @@ select:-webkit-autofill {
    Scoped to the filters panel rather than an explicit list of group ids: new
    groups (and the ones populated from JS, like Workout/Diet/Living) pick this up
    automatically, and .yr-chip keeps its pill everywhere else in the app. */
-#ptab-panel-filters #crush-int-chips        { --grp-hue: #e04155; } /* red     */
+#ptab-panel-filters #crush-int-chips        { --grp-hue: var(--c-red-ink); } /* red     */
 #ptab-panel-filters #crush-workout-chips,
-#ptab-panel-filters #crush-diet-chips       { --grp-hue: #22c55e; } /* green   */
-#ptab-panel-filters #crush-living-chips     { --grp-hue: #3d7bff; } /* blue    */
-#ptab-panel-filters #crush-year-chips       { --grp-hue: #fbbf24; } /* amber   */
-#ptab-panel-filters #crush-drink-chips      { --grp-hue: #fb923c; } /* orange  */
-#ptab-panel-filters #crush-smoke-chips      { --grp-hue: #94a3b8; } /* slate   */
-#ptab-panel-filters #crush-schooltype-chips { --grp-hue: #22d3ee; } /* cyan    */
-#ptab-panel-filters #crush-degree-chips     { --grp-hue: #a3e635; } /* lime    */
-#ptab-panel-filters #crush-politics-chips   { --grp-hue: #c084fc; } /* purple  */
-#ptab-panel-filters #crush-religion-chips   { --grp-hue: #f472b6; } /* pink    */
-#ptab-panel-filters #crush-ethnicity-chips  { --grp-hue: #2dd4bf; } /* teal    */
-#ptab-panel-filters #crush-lang-chips       { --grp-hue: #818cf8; } /* indigo  */
-#ptab-panel-filters #crush-frat-chips       { --grp-hue: #fde047; } /* yellow  */
-#ptab-panel-filters #crush-uni-chips        { --grp-hue: #ec4899; } /* magenta */
-#ptab-panel-filters #crush-greenflag-chips  { --grp-hue: #4ade80; } /* mint    */
-#ptab-panel-filters #crush-lovelang-chips   { --grp-hue: #f0abfc; } /* orchid  */
+#ptab-panel-filters #crush-diet-chips       { --grp-hue: var(--c-green); } /* green   */
+#ptab-panel-filters #crush-living-chips     { --grp-hue: var(--c-blue); } /* blue    */
+#ptab-panel-filters #crush-year-chips       { --grp-hue: var(--c-amber); } /* amber   */
+#ptab-panel-filters #crush-drink-chips      { --grp-hue: var(--c-orange); } /* orange  */
+#ptab-panel-filters #crush-smoke-chips      { --grp-hue: var(--c-slate); } /* slate   */
+#ptab-panel-filters #crush-schooltype-chips { --grp-hue: var(--c-cyan); } /* cyan    */
+#ptab-panel-filters #crush-degree-chips     { --grp-hue: var(--c-lime); } /* lime    */
+#ptab-panel-filters #crush-politics-chips   { --grp-hue: var(--c-violet); } /* purple  */
+#ptab-panel-filters #crush-religion-chips   { --grp-hue: var(--c-pink-soft); } /* pink    */
+#ptab-panel-filters #crush-ethnicity-chips  { --grp-hue: var(--c-teal); } /* teal    */
+#ptab-panel-filters #crush-lang-chips       { --grp-hue: var(--c-indigo); } /* indigo  */
+#ptab-panel-filters #crush-frat-chips       { --grp-hue: var(--c-yellow); } /* yellow  */
+#ptab-panel-filters #crush-uni-chips        { --grp-hue: var(--c-pink); } /* magenta */
+#ptab-panel-filters #crush-greenflag-chips  { --grp-hue: var(--c-green-soft); } /* mint    */
+#ptab-panel-filters #crush-lovelang-chips   { --grp-hue: var(--c-fuchsia-soft); } /* orchid  */
 
 #ptab-panel-filters .yr-chip,
 #match-filters-wrap .yr-chip {
@@ -10051,23 +10071,23 @@ select:-webkit-autofill {
    family. The heading's line is a fade-out gradient rather than the chips'
    solid bar — it marks the section, it is not a selection state, so the two
    never get confused. */
-#match-filters-wrap .love-filter-section:has(#crush-int-chips)        { --grp-hue: #e04155; } /* red     */
+#match-filters-wrap .love-filter-section:has(#crush-int-chips)        { --grp-hue: var(--c-red-ink); } /* red     */
 #match-filters-wrap .love-filter-section:has(#crush-workout-chips),
-#match-filters-wrap .love-filter-section:has(#crush-diet-chips)        { --grp-hue: #22c55e; } /* green   */
-#match-filters-wrap .love-filter-section:has(#crush-living-chips)      { --grp-hue: #3d7bff; } /* blue    */
-#match-filters-wrap .love-filter-section:has(#crush-year-chips)        { --grp-hue: #fbbf24; } /* amber   */
-#match-filters-wrap .love-filter-section:has(#crush-drink-chips)       { --grp-hue: #fb923c; } /* orange  */
-#match-filters-wrap .love-filter-section:has(#crush-smoke-chips)       { --grp-hue: #94a3b8; } /* slate   */
-#match-filters-wrap .love-filter-section:has(#crush-schooltype-chips)  { --grp-hue: #22d3ee; } /* cyan    */
-#match-filters-wrap .love-filter-section:has(#crush-degree-chips)      { --grp-hue: #a3e635; } /* lime    */
-#match-filters-wrap .love-filter-section:has(#crush-politics-chips)    { --grp-hue: #c084fc; } /* purple  */
-#match-filters-wrap .love-filter-section:has(#crush-religion-chips)    { --grp-hue: #f472b6; } /* pink    */
-#match-filters-wrap .love-filter-section:has(#crush-ethnicity-chips)   { --grp-hue: #2dd4bf; } /* teal    */
-#match-filters-wrap .love-filter-section:has(#crush-lang-chips)        { --grp-hue: #818cf8; } /* indigo  */
-#match-filters-wrap .love-filter-section:has(#crush-frat-chips)        { --grp-hue: #fde047; } /* yellow  */
-#match-filters-wrap .love-filter-section:has(#crush-uni-chips)         { --grp-hue: #ec4899; } /* magenta */
-#match-filters-wrap .love-filter-section:has(#uc-mile-sl)              { --grp-hue: #38bdf8; } /* sky     */
-#match-filters-wrap .love-filter-section:has(#crush-age-min)           { --grp-hue: #f97316; } /* tangerine */
+#match-filters-wrap .love-filter-section:has(#crush-diet-chips)        { --grp-hue: var(--c-green); } /* green   */
+#match-filters-wrap .love-filter-section:has(#crush-living-chips)      { --grp-hue: var(--c-blue); } /* blue    */
+#match-filters-wrap .love-filter-section:has(#crush-year-chips)        { --grp-hue: var(--c-amber); } /* amber   */
+#match-filters-wrap .love-filter-section:has(#crush-drink-chips)       { --grp-hue: var(--c-orange); } /* orange  */
+#match-filters-wrap .love-filter-section:has(#crush-smoke-chips)       { --grp-hue: var(--c-slate); } /* slate   */
+#match-filters-wrap .love-filter-section:has(#crush-schooltype-chips)  { --grp-hue: var(--c-cyan); } /* cyan    */
+#match-filters-wrap .love-filter-section:has(#crush-degree-chips)      { --grp-hue: var(--c-lime); } /* lime    */
+#match-filters-wrap .love-filter-section:has(#crush-politics-chips)    { --grp-hue: var(--c-violet); } /* purple  */
+#match-filters-wrap .love-filter-section:has(#crush-religion-chips)    { --grp-hue: var(--c-pink-soft); } /* pink    */
+#match-filters-wrap .love-filter-section:has(#crush-ethnicity-chips)   { --grp-hue: var(--c-teal); } /* teal    */
+#match-filters-wrap .love-filter-section:has(#crush-lang-chips)        { --grp-hue: var(--c-indigo); } /* indigo  */
+#match-filters-wrap .love-filter-section:has(#crush-frat-chips)        { --grp-hue: var(--c-yellow); } /* yellow  */
+#match-filters-wrap .love-filter-section:has(#crush-uni-chips)         { --grp-hue: var(--c-pink); } /* magenta */
+#match-filters-wrap .love-filter-section:has(#uc-mile-sl)              { --grp-hue: var(--c-sky); } /* sky     */
+#match-filters-wrap .love-filter-section:has(#crush-age-min)           { --grp-hue: var(--c-orange-deep); } /* tangerine */
 
 #match-filters-wrap .love-filter-title {
   position: relative;
@@ -10146,13 +10166,13 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
    app.js, which colours the ratio sliders and the stacked bar for the same three
    genders — a stylesheet cannot read a JS object, so the pair is kept in sync by
    hand and each side points at the other. */
-.gallow[data-g="female"] { --g-hue: #ec4899; } /* strong pink   */
-.gallow[data-g="male"]   { --g-hue: #2563eb; } /* strong blue   */
-.gallow[data-g="other"]  { --g-hue: #8b5cf6; } /* strong purple */
+.gallow[data-g="female"] { --g-hue: var(--c-pink); } /* strong pink   */
+.gallow[data-g="male"]   { --g-hue: var(--c-blue-royal); } /* strong blue   */
+.gallow[data-g="other"]  { --g-hue: var(--c-violet-deep); } /* strong purple */
 
 .gallow,
 #ev-year-chips .yr-chip {
-  --g-hue: #3d7bff;
+  --g-hue: var(--c-blue);
   position: relative;
   border-radius: var(--rad-pill) !important;
   background: linear-gradient(135deg, color-mix(in srgb, var(--g-hue) 22%, #000) 0%, #000 100%) !important;
@@ -10180,11 +10200,11 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 
 /* "Who can join?" gets one hue per year rather than a single colour for the
    group — same shape and states, only the colour changes. */
-#ev-year-chips .yr-chip[data-yt="freshman"]  { --g-hue: #e04155; } /* red    */
-#ev-year-chips .yr-chip[data-yt="sophomore"] { --g-hue: #3d7bff; } /* blue   */
-#ev-year-chips .yr-chip[data-yt="junior"]    { --g-hue: #22c55e; } /* green  */
-#ev-year-chips .yr-chip[data-yt="senior"]    { --g-hue: #fbbf24; } /* yellow */
-#ev-year-chips .yr-chip[data-yt="all"]       { --g-hue: #94a3b8; } /* slate — the hidden "Everyone" chip */
+#ev-year-chips .yr-chip[data-yt="freshman"]  { --g-hue: var(--c-red-ink); } /* red    */
+#ev-year-chips .yr-chip[data-yt="sophomore"] { --g-hue: var(--c-blue); } /* blue   */
+#ev-year-chips .yr-chip[data-yt="junior"]    { --g-hue: var(--c-green); } /* green  */
+#ev-year-chips .yr-chip[data-yt="senior"]    { --g-hue: var(--c-amber); } /* yellow */
+#ev-year-chips .yr-chip[data-yt="all"]       { --g-hue: var(--c-slate); } /* slate — the hidden "Everyone" chip */
 
 /* ══ HANGOUTS FILTERS (create-event card 6) AS UNDERLINE TABS ══
    Same language as the Crush filter groups: no pill, white label, a neon
@@ -10194,11 +10214,11 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
    keep their pill.
    Card 5 (allowed genders / who can join) deliberately stays as coloured pills:
    it sets who the event is for, it is not a filter over a list. */
-#ev-uni-choose-chips { --hg-hue: #ec4899; } /* magenta — matches the University filter */
-#ev-ethnic-chips     { --hg-hue: #2dd4bf; } /* teal    — matches Ethnicity  */
-#ev-politics-chips   { --hg-hue: #c084fc; } /* purple  — matches Politics   */
-#ev-greek-chips      { --hg-hue: #fde047; } /* yellow  — matches Greek life */
-#ev-lang-chips       { --hg-hue: #818cf8; } /* indigo  — matches Languages  */
+#ev-uni-choose-chips { --hg-hue: var(--c-pink); } /* magenta — matches the University filter */
+#ev-ethnic-chips     { --hg-hue: var(--c-teal); } /* teal    — matches Ethnicity  */
+#ev-politics-chips   { --hg-hue: var(--c-violet); } /* purple  — matches Politics   */
+#ev-greek-chips      { --hg-hue: var(--c-yellow); } /* yellow  — matches Greek life */
+#ev-lang-chips       { --hg-hue: var(--c-indigo); } /* indigo  — matches Languages  */
 
 #ev-uni-choose-chips .yr-chip,
 #ev-ethnic-chips .yr-chip,
@@ -10256,10 +10276,9 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
               0 0 18px color-mix(in srgb, var(--hg-hue, #3d7bff) 55%, transparent);
 }
 
-/* Discover's third sub-tab. 'saw' keeps the neon orange it was given by request
-   and 'likes' its cyan, so For you takes a warm rose — distinct from both of its
-   neighbours in the row while still reading with a flame. */
-.adm-sub-btn[data-sub="foryou"] { --sub-hue: #f43f5e; }
+/* El rosa de For you se retiró: los tres tonos de la fila se declaran juntos
+   arriba (~6303) como azul, amarillo y rojo. Esta regla venía DESPUÉS y con la
+   misma especificidad, así que ganaba y dejaba For you en rosa. */
 
 /* ══ PROFILE HEADER STATS ══
    The three-up strip over the cover photo, now on the shared .v-stats family
@@ -10289,8 +10308,8 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 /* Activity > Events created / joined. Reuses .adm-sub-btn (the app's sub-tab
    recipe) with its own two hues: gold when you are the host, blue when you are
    an attendee. */
-.adm-sub-btn[data-sub="act-created"] { --sub-hue: #fbbf24; }
-.adm-sub-btn[data-sub="act-joined"]  { --sub-hue: #3d7bff; }
+.adm-sub-btn[data-sub="act-created"] { --sub-hue: var(--c-amber); }
+.adm-sub-btn[data-sub="act-joined"]  { --sub-hue: var(--c-blue); }
 
 /* The sweep, on press only. */
 .gbtn:active::after,
@@ -10450,7 +10469,7 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 
 /* ── 1. Los chips de sign up ── */
 .ob4-chip {
-  --ob-hue: #e04155;
+  --ob-hue: #dc2626;
   position: relative;
   background: transparent !important;
   border: none !important;
@@ -10489,15 +10508,15 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 }
 
 /* ── 2. Las pestañas de categoría de intereses, un tono cada una ── */
-.ob4-catchip[data-cat="All"]      { --cat-hue: #3d7bff; }
-.ob4-catchip[data-cat="Lifestyle"]{ --cat-hue: #22c55e; }
-.ob4-catchip[data-cat="Hobbies"]  { --cat-hue: #c084fc; }
-.ob4-catchip[data-cat="Arts"]     { --cat-hue: #ec4899; }
-.ob4-catchip[data-cat="Sports"]   { --cat-hue: #a3e635; }
-.ob4-catchip[data-cat="Academic"] { --cat-hue: #22d3ee; }
-.ob4-catchip[data-cat="Social"]   { --cat-hue: #fbbf24; }
+.ob4-catchip[data-cat="All"]      { --cat-hue: var(--c-blue); }
+.ob4-catchip[data-cat="Lifestyle"]{ --cat-hue: var(--c-green); }
+.ob4-catchip[data-cat="Hobbies"]  { --cat-hue: var(--c-violet); }
+.ob4-catchip[data-cat="Arts"]     { --cat-hue: var(--c-pink); }
+.ob4-catchip[data-cat="Sports"]   { --cat-hue: var(--c-lime); }
+.ob4-catchip[data-cat="Academic"] { --cat-hue: var(--c-cyan); }
+.ob4-catchip[data-cat="Social"]   { --cat-hue: var(--c-amber); }
 .ob4-catchip {
-  --cat-hue: #3d7bff;
+  --cat-hue: var(--c-blue);
   position: relative;
   background: transparent !important;
   border: none !important;
@@ -10530,14 +10549,14 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 /* ── 3. Las tarjetas de interés heredan el tono de SU categoría ──
    data-cat comes from the third field of each INTERESTS4 entry, so an interest
    is always the colour of the category it belongs to, whichever tab you are on. */
-.ob4-int[data-cat="Lifestyle"] { --cat-hue: #22c55e; }
-.ob4-int[data-cat="Hobbies"]   { --cat-hue: #c084fc; }
-.ob4-int[data-cat="Arts"]      { --cat-hue: #ec4899; }
-.ob4-int[data-cat="Sports"]    { --cat-hue: #a3e635; }
-.ob4-int[data-cat="Academic"]  { --cat-hue: #22d3ee; }
-.ob4-int[data-cat="Social"]    { --cat-hue: #fbbf24; }
+.ob4-int[data-cat="Lifestyle"] { --cat-hue: var(--c-green); }
+.ob4-int[data-cat="Hobbies"]   { --cat-hue: var(--c-violet); }
+.ob4-int[data-cat="Arts"]      { --cat-hue: var(--c-pink); }
+.ob4-int[data-cat="Sports"]    { --cat-hue: var(--c-lime); }
+.ob4-int[data-cat="Academic"]  { --cat-hue: var(--c-cyan); }
+.ob4-int[data-cat="Social"]    { --cat-hue: var(--c-amber); }
 .ob4-int {
-  --cat-hue: #3d7bff;
+  --cat-hue: var(--c-blue);
   border: none !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -10585,8 +10604,8 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 /* ── Hangouts: Type of University / University chips a subrayado neón ──
    These two groups sit in card 6 and were still capsules. Cyan for the type,
    magenta for the university, matching their equivalents in the Crush filters. */
-#ev-schooltype-chips { --hg-hue: #22d3ee; }
-#ev-uni-scope        { --hg-hue: #ec4899; }
+#ev-schooltype-chips { --hg-hue: var(--c-cyan); }
+#ev-uni-scope        { --hg-hue: var(--c-pink); }
 #ev-schooltype-chips .yr-chip,
 #ev-uni-scope .yr-chip {
   position: relative !important;
@@ -10628,7 +10647,7 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
    the Match Filters headings use, so a heading never reads as a selection. */
 .ob4-flabel,
 #ob4-content .field > label {
-  --ob-hue: #e04155;
+  --ob-hue: #dc2626;
   position: relative;
   padding-bottom: 8px;
   margin-bottom: 10px;
@@ -10930,10 +10949,223 @@ html.brand-default .ob4-brand .logo-gradz {
   color: #dc2626 !important;
   -webkit-text-fill-color: #dc2626 !important;
 }
-/* :not(:disabled) matters: this selector outweighs .ob4-cta:disabled (~6954),
-   so without it an SMU user would get a red CONTINUE while it is still greyed
-   out and unclickable. */
-html.brand-default .ob4-cta:not(:disabled) {
-  background: #dc2626 !important;
+/* Aquí había un `html.brand-default .ob4-cta` que dejaba el CONTINUE de SMU en
+   rojo plano. Se retiró: el degradado va en las 30 escuelas, SMU incluida
+   — "solo el botón continue, no Gradz". La excepción sobrevive sólo en el logo,
+   arriba. */
+
+/* ══ PALETA · un token por color ═════════════════════════════════════════════
+   Los mismos 28 valores que ya estaban repartidos en 126 declaraciones de
+   --chip / --grp-hue / --cat-hue / --step-hue / --g-hue / --tab-hue /
+   --sort-hue / --hg-hue / --sub-hue / --sec-neon / --neon, ahora nombrados en
+   un solo sitio. Los valores sRGB son EXACTAMENTE los de antes: esto por si
+   solo no cambia un pixel. Existe para que el bloque P3 de mas abajo tenga
+   donde agarrarse. */
+:root {
+  --c-blue: #3d7bff;
+  --c-pink: #ec4899;
+  --c-amber: #fbbf24;
+  --c-cyan: #22d3ee;
+  --c-lime: #a3e635;
+  --c-violet: #c084fc;
+  --c-green: #22c55e;
+  --c-teal: #2dd4bf;
+  --c-orange: #fb923c;
+  --c-red-ink: #dc2626;
+  --c-indigo: #818cf8;
+  --c-yellow: #fde047;
+  --c-orange-deep: #f97316;
+  --c-slate: #94a3b8;
+  --c-emerald: #34d399;
+  --c-sky: #38bdf8;
+  --c-rose: #f43f5e;
+  --c-pink-soft: #f472b6;
+  --c-blue-soft: #60a5fa;
+  --c-fuchsia: #d946ef;
+  --c-cyan-deep: #06b6d4;
+  --c-green-soft: #4ade80;
+  --c-fuchsia-soft: #f0abfc;
+  --c-blue-royal: #2563eb;
+  --c-violet-deep: #8b5cf6;
+}
+
+/* ══ Los mismos colores, en Display P3 ═══════════════════════════════════════
+   Casi toda la paleta ya esta EN EL LIMITE de sRGB — el azul #3d7bff tiene
+   croma 0.207 y el maximo de sRGB en su tono es 0.207. En un monitor sRGB no
+   hay nada mas que sacar; en la pantalla P3 de un iPhone si, entre un 8% y un
+   46% mas. Por eso en el telefono se ven "apagados": no es un fallo, es que el
+   monitor los exagera y el telefono los pinta exactos.
+
+   Cada valor conserva la MISMA luminosidad y el MISMO tono; solo sube el croma
+   hasta donde P3 llega. Los neutros (--c-slate, croma 0.035) quedan fuera: al
+   maximo de P3 se convertirian en un azul saturado.
+
+   La doble reja importa. @supports comprueba que el navegador entienda P3 y
+   @media (color-gamut: p3) que la PANTALLA lo pueda mostrar. Un monitor sRGB
+   no entra aqui y sigue viendo los hex de arriba, byte por byte. */
+@supports (color: color(display-p3 1 0 0)) {
+  @media (color-gamut: p3) {
+    :root {
+    --c-blue: oklch(0.616 0.223 262.9);  /* #3d7bff +8% */
+    --c-pink: oklch(0.656 0.304 354.3);  /* #ec4899 +43% */
+    --c-amber: oklch(0.837 0.198 84.4);  /* #fbbf24 +20% */
+    --c-cyan: oklch(0.797 0.185 211.5);  /* #22d3ee +38% */
+    --c-lime: oklch(0.849 0.263 128.8);  /* #a3e635 +27% */
+    --c-violet: oklch(0.722 0.200 305.5);  /* #c084fc +13% */
+    --c-green: oklch(0.723 0.281 149.6);  /* #22c55e +46% */
+    --c-teal: oklch(0.785 0.191 181.9);  /* #2dd4bf +44% */
+    --c-orange: oklch(0.758 0.212 55.9);  /* #fb923c +33% */
+    --c-red-ink: oklch(0.577 0.266 27.3);  /* #dc2626 +41% */
+    --c-indigo: oklch(0.680 0.185 276.9);  /* #818cf8 +17% */
+    --c-yellow: oklch(0.905 0.211 98.1);  /* #fde047 +27% */
+    --c-orange-deep: oklch(0.705 0.220 47.6);  /* #f97316 +18% */
+    --c-emerald: oklch(0.773 0.229 163.2);  /* #34d399 +49% */
+    --c-sky: oklch(0.754 0.165 232.7);  /* #38bdf8 +19% */
+    --c-rose: oklch(0.645 0.292 16.4);  /* #f43f5e +35% */
+    --c-pink-soft: oklch(0.725 0.267 349.8);  /* #f472b6 +52% */
+    --c-blue-soft: oklch(0.714 0.165 254.6);  /* #60a5fa +15% */
+    --c-fuchsia: oklch(0.667 0.335 322.1);  /* #d946ef +29% */
+    --c-cyan-deep: oklch(0.715 0.168 215.2);  /* #06b6d4 +34% */
+    --c-green-soft: oklch(0.800 0.295 151.7);  /* #4ade80 +62% */
+    --c-fuchsia-soft: oklch(0.833 0.155 321.4);  /* #f0abfc +18% */
+    --c-blue-royal: oklch(0.546 0.269 262.9);  /* #2563eb +25% */
+    --c-violet-deep: oklch(0.606 0.255 292.7);  /* #8b5cf6 +17% */
+    }
+  }
+}
+
+/* ── color-scheme ──
+   Sin esto iOS pinta en claro los controles nativos (select, campos de fecha, la
+   barra de scroll) sobre una app que es negra entera. */
+:root {
+  color-scheme: dark;
+}
+
+/* ══ Los títulos de la tarjeta de Crush, subrayados ══════════════════════════
+   Cada bloque ya trae su título en color (azul en Idiomas, rojo en Lo que me
+   gusta, verde en Estilo de vida, azul en Clubs). La línea se saca con
+   `currentColor`, así que toma ese mismo color sin repetirlo — y funciona
+   aunque el color venga escrito de formas distintas: Clubs, por ejemplo, pone
+   `color:var(--fg2)` y luego `color:#3d7bff` en el mismo atributo.
+
+   Dos selectores porque hay dos formas de bloque: unos abren directo con el
+   título y otros lo envuelven en un <div style="margin-bottom:0;">. El
+   :not(:has(> div)) distingue el título (solo texto y spans) del envoltorio. */
+.crush-info-block > div:first-child:not(:has(> div)),
+.crush-info-block > div:first-child > div:first-child {
+  position: relative;
+  padding-bottom: 7px;
+}
+.crush-info-block > div:first-child:not(:has(> div))::after,
+.crush-info-block > div:first-child > div:first-child::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+/* ══ Sign up: el título toma el color de su línea ════════════════════════════
+   _ob4PaintLabels() ya reparte los 12 tonos de _OB4_LABEL_HUES en --ob-hue, que
+   hasta ahora solo pintaba el subrayado mientras el texto seguía gris. Ahora los
+   dos van del mismo color, igual que en la tarjeta de Crush. */
+.ob4-flabel {
+  color: var(--ob-hue, var(--fg2));
+}
+
+/* ══ Your University: la línea, en los colores de la escuela ═════════════════
+   Su subrayado y el del selector Full name / Acronym dejan el tono rotatorio y
+   toman un degradado del primario al secundario de la universidad. Como la línea
+   ya no es de un color, el título no puede "tomar el color de su línea" y se
+   queda en blanco. */
+.ob4-flabel--uni {
+  color: #fff !important;
+}
+.ob4-flabel--uni::after,
+.ob4-uniname-tog .ob4-chip::after {
+  background: linear-gradient(90deg, var(--uni-p, var(--p)) 0%, var(--uni-p2, var(--p2)) 100%) !important;
+  box-shadow: 0 0 9px color-mix(in srgb, var(--uni-p, var(--p)) 45%, transparent) !important;
+}
+
+/* ══ Escuelas con el color demasiado oscuro ══════════════════════════════════
+   html.uni-dark la pone _ob4UpdateUniTheme() cuando el primario baja de 2.2 de
+   contraste sobre negro — el azul de UTSA (#0C2340) da 1.33 y no se ve. Son 15
+   de las 30. --uni-grad lleva el degradado ya resuelto, incluido el caso de BYU
+   y UofL, cuyo secundario TAMBIÉN es oscuro y se abre hacia blanco.
+
+   Solo el logo del REGISTRO. El de la pantalla de login (.auth-logo-text
+   .logo-gradz, ~8798) sigue fijo en #dc2626 y no entra aquí. */
+html.uni-dark .ob4-brand .logo-gradz {
+  background: var(--uni-grad) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+}
+/* El CONTINUE, mismo degradado y sin borde. :disabled no entra: sigue gris. */
+html.uni-dark .ob4-cta:not(:disabled) {
+  background: var(--uni-grad) !important;
+  background-image: var(--uni-grad) !important;
+  border: none !important;
+}
+
+/* ══ El logo de la pantalla de LOGIN no sigue a la universidad ═══════════════
+   Se pidió que solo cambiara el GRADZ del registro. No era el caso: la regla
+   .auth-logo-text .logo-gradz (~8816) fija #dc2626, pero
+   `html.uni-set .logo-gradz` (~6013) pesa más — dos clases y un elemento contra
+   dos clases — y le ganaba, así que el logo del login venía tomando var(--p)
+   desde siempre. Con un correo de UofL salía #AD0000.
+
+   Esta regla añade el ancestro html para empatar en peso y ganar por posición,
+   y neutraliza también el degradado de las escuelas oscuras por si llegara. */
+html .auth-logo-text .logo-gradz,
+html.uni-set .auth-logo-text .logo-gradz,
+html.uni-dark .auth-logo-text .logo-gradz {
+  background: none !important;
   background-image: none !important;
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+}
+
+/* ── El CONTINUE, en degradado con TODAS las escuelas ──
+   Sustituye a la regla de html.uni-dark de más arriba: aquella solo cubría las
+   15 oscuras y esta llega a las 30. --cta-grad la calcula _ob4UpdateUniTheme()
+   con un criterio propio — que el texto blanco de encima se siga leyendo —, así
+   que no es la misma que --uni-grad, que es la del logo.
+   :disabled sigue fuera: gris, como estaba. */
+.ob4-cta:not(:disabled) {
+  background: var(--cta-grad, var(--uni-p, var(--p))) !important;
+  background-image: var(--cta-grad, none) !important;
+  border: none !important;
+}
+
+/* ══ La barra inferior, con el borde en degradado de la escuela ══════════════
+   Llevaba un azul fijo (rgba(61,123,255,0.2), ~6790) que no tenía nada que ver
+   con la universidad. Ahora el borde es un degradado del primario al secundario.
+
+   El relleno va como linear-gradient(#08080a,#08080a) y NO como color: en el
+   atajo `background` el color solo puede ir en la ÚLTIMA capa, así que ponerlo
+   el primero invalidaría la declaración entera. Ese #08080a es el negro que ya
+   fijaba la capa BLACK CANVAS (~9607), copiado aquí para no perderlo. */
+.bot-inner {
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(#08080a, #08080a) padding-box,
+    linear-gradient(100deg, var(--p), var(--p2)) border-box !important;
+}
+
+/* ══ La rosa de Crush, en rosa magenta ══════════════════════════════════════
+   Estaba en #dc2626, el mismo rojo que el botón X desde que se unificaron los
+   rojos, así que los dos se leían igual. */
+.crb-neon-rose {
+  border-color: var(--c-pink) !important;
+  color: var(--c-pink) !important;
+  background: color-mix(in srgb, var(--c-pink) 14%, transparent) !important;
+}
+.crb-neon-rose:hover {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--c-pink) 85%, transparent),
+              inset 0 0 12px color-mix(in srgb, var(--c-pink) 50%, transparent) !important;
 }
