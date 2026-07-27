@@ -111,6 +111,38 @@ class ApiClient {
     }
   }
 
+  get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'GET' });
+  }
+
+  post(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+  }
+
+  put(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(body)
+    });
+  }
+
+  patch(endpoint, body = {}, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PATCH',
+      body: JSON.stringify(body)
+    });
+  }
+
+  delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: 'DELETE' });
+  }
+
   /**
    * Refreshes the JWT Access Token using cookies or body payload fallback.
    */
@@ -568,6 +600,60 @@ class ApiClient {
           if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
           if (typeof renderCrushPreview === 'function') try { renderCrushPreview(); } catch(e){}
         }).catch(() => {});
+      }
+    });
+
+    this.socket.on('userVerificationUpdated', (data) => {
+      console.log('🎓 Received live userVerificationUpdated notification:', data);
+      if (data) {
+        if (typeof userPro !== 'undefined' && userPro) {
+          if (data.status === 'APPROVED') {
+            if (typeof verified !== 'undefined') verified = true;
+            userPro.isVerified = true;
+            userPro.badgeColor = data.badgeColor || '#1d9bf0';
+            var vb = document.getElementById('vbadge');
+            if (vb) {
+              vb.style.display = 'flex';
+              vb.style.background = '#1d9bf0';
+              vb.title = 'ID Verified (Blue Badge)';
+            }
+            var box = document.getElementById('verify-box');
+            if (box) {
+              box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
+            }
+          } else if (data.status === 'REJECTED') {
+            if (typeof verified !== 'undefined') verified = false;
+            userPro.isVerified = false;
+            var box = document.getElementById('verify-box');
+            if (box) {
+              box.innerHTML = '⚠️ Credencial Rechazada — ' + (data.message || 'Intenta subir una foto clara.');
+            }
+          }
+        }
+        if (typeof pushNotification === 'function') {
+          try {
+            pushNotification(data.message || (data.status === 'APPROVED' ? '🎓 ¡Tu credencial fue aprobada! Insignia azul (Blue Badge) otorgada.' : '⚠️ Solicitud de verificación no aprobada.'), data.status === 'APPROVED' ? 'success' : 'warning');
+          } catch(e){}
+        }
+
+        if (typeof notifData !== 'undefined' && Array.isArray(notifData)) {
+          notifData.unshift({
+            type: 'system',
+            from: 'Undrgradz Admin',
+            handle: '@system',
+            av: data.status === 'APPROVED' ? '💙' : '⚠️',
+            color: data.status === 'APPROVED' ? '#1d9bf0' : '#ef4444',
+            msg: data.message || (data.status === 'APPROVED' ? '¡Tu credencial ha sido aprobada! Has obtenido la Insignia Azul.' : 'Tu credencial no pudo ser validada.'),
+            time: 'now',
+            id: 'verif_' + Date.now()
+          });
+          if (typeof _updateNotifBadge === 'function') try { _updateNotifBadge(); } catch(e){}
+        }
+        if (typeof alert === 'function') {
+          alert((data.title || 'Actualización de Verificación') + '\n\n' + data.message);
+        }
+        if (typeof updateProfileUI === 'function') try { updateProfileUI(); } catch(e){}
+        if (typeof renderCrushPreview === 'function') try { renderCrushPreview(); } catch(e){}
       }
     });
   }

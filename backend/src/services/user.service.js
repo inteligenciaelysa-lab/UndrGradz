@@ -16,6 +16,10 @@ class UserService {
         birthDate: true,
         isEmailVerified: true,
         isPhoneVerified: true,
+        isVerified: true,
+        isCreatorVerified: true,
+        isAthleteVerified: true,
+        isGovtVerified: true,
         createdAt: true,
         profile: true,
         photos: {
@@ -277,14 +281,67 @@ class UserService {
           }
         },
         photos: {
-          orderBy: {
-            order: 'asc',
-          },
-          take: 1,
-        },
+          orderBy: { order: 'asc' },
+          take: 1
+        }
       },
-      take: 20,
+      take: 20
     });
+  }
+
+  /**
+   * Student ID Verification Request submission
+   */
+  async submitVerificationRequest(userId, { type = 'STUDENT_ID', documentUrl, credentialUrl, notes }) {
+    const credUrl = credentialUrl || documentUrl;
+    if (!credUrl) {
+      throw new AppError('Se requiere la foto o archivo de la credencial', 400);
+    }
+    const existing = await prisma.verificationRequest.findFirst({
+      where: { userId, type, status: 'PENDING' }
+    });
+
+    let requestRecord;
+    if (existing) {
+      requestRecord = await prisma.verificationRequest.update({
+        where: { id: existing.id },
+        data: {
+          credentialUrl: credUrl,
+          notes: notes || existing.notes || 'Subido por el estudiante',
+          createdAt: new Date()
+        }
+      });
+    } else {
+      requestRecord = await prisma.verificationRequest.create({
+        data: {
+          userId,
+          type,
+          status: 'PENDING',
+          credentialUrl: credUrl,
+          notes: notes || 'Solicitud enviada por el estudiante'
+        }
+      });
+    }
+
+    return requestRecord;
+  }
+
+  async getVerificationStatus(userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isVerified: true, isCreatorVerified: true, isAthleteVerified: true, isGovtVerified: true }
+    });
+
+    const latestRequest = await prisma.verificationRequest.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    return {
+      isVerified: !!user?.isVerified,
+      badges: user,
+      latestRequest
+    };
   }
 }
 

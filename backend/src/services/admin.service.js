@@ -1432,6 +1432,8 @@ class AdminService {
               handle: true,
               isVerified: true,
               isCreatorVerified: true,
+              isAthleteVerified: true,
+              isGovtVerified: true,
               profile: {
                 select: {
                   university: true,
@@ -1450,137 +1452,22 @@ class AdminService {
         orderBy: { createdAt: 'desc' }
       });
     } catch (e) {
-      console.warn("VerificationRequest table read error, generating dynamic queue:", e.message);
+      console.warn("VerificationRequest table read error:", e.message);
     }
 
-    // Seed synthetic dynamic verification queue if DB is empty
-    if (dbRequests.length === 0) {
-      const sampleUsers = await prisma.user.findMany({
-        take: 12,
-        where: { isDeleted: false },
-        include: {
-          profile: true,
-          photos: { take: 1, orderBy: { order: 'asc' } }
-        }
-      });
+    const allRequests = await prisma.verificationRequest.findMany({
+      select: { type: true, status: true }
+    }).catch(() => []);
 
-      const typesList = ['STUDENT_ID', 'CREATOR_BADGE', 'ATHLETE', 'STUDENT_GOVT'];
+    const totalCount = allRequests.length;
+    const pendingCount = allRequests.filter(r => r.status === 'PENDING').length;
+    const approvedCount = allRequests.filter(r => r.status === 'APPROVED').length;
+    const rejectedCount = allRequests.filter(r => r.status === 'REJECTED').length;
 
-      const synthetic = sampleUsers.map((u, idx) => {
-        const vType = typesList[idx % 4];
-        let socialLinks = null;
-        let creatorCategory = null;
-        let notes = '';
-        let credentialUrl = u.photos && u.photos[0] ? u.photos[0].url : 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=600';
-
-        // Additional Category-Specific Fields matching Reference Mockup
-        let studentId = null;
-        let docType = null;
-        let docName = 'Documento de Verificación';
-        let docSize = 'PDF · 1.5 MB';
-
-        let sport = null;
-        let team = null;
-        let athletePosition = null;
-        let athleteCategory = null;
-
-        let organization = null;
-        let govtPosition = null;
-        let faculty = null;
-        let period = null;
-
-        if (vType === 'STUDENT_ID') {
-          studentId = `A0${1234567 + idx * 89}`;
-          docType = idx % 2 === 0 ? 'Credencial Estudiantil' : 'Credencial ITESM';
-          docName = 'Credencial estudiantil';
-          docSize = 'PDF · 1.2 MB';
-          notes = 'Adjunto fotografía vigente de mi credencial universitaria física.';
-        } else if (vType === 'CREATOR_BADGE') {
-          socialLinks = {
-            instagram: `@${u.handle || u.firstName.toLowerCase()}`,
-            tiktok: `@${u.handle || u.firstName.toLowerCase()}_campus`,
-            youtube: `${u.firstName} Vlogs`,
-            followers: `${Math.floor(Math.random() * 40) + 5}k seguidores`
-          };
-          creatorCategory = ['Campus Vlogger 🎥', 'Gaming & Esports 🎮', 'Lifestyle & Fashion ✨', 'Study & Tech 📚'][idx % 4];
-          notes = 'Publico contenido semanal sobre vida universitaria, eventos y consejos de estudio.';
-        } else if (vType === 'ATHLETE') {
-          sport = ['Voleibol 🏐', 'Básquetbol 🏀', 'Fútbol ⚽', 'Natación 🏊‍♂️', 'Atletismo 🏃'][idx % 5];
-          team = ['UAdC Volleyball', 'ITESM Basketball', 'Lobos UAdC', 'Tigres UANL'][idx % 4];
-          athletePosition = ['Titular', 'Ala-Pívot', 'Capitán', 'Libero'][idx % 4];
-          athleteCategory = 'Universitaria';
-          docName = 'Constancia deportiva';
-          docSize = 'PDF · 2.4 MB';
-          notes = 'Adjunto constancia oficial del equipo representativo universitario y kárdex deportivo.';
-          credentialUrl = 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600';
-        } else if (vType === 'STUDENT_GOVT') {
-          organization = 'Consejo Estudiantil';
-          govtPosition = ['Representante de Facultad', 'Presidente de Consejo', 'Vicepresidente', 'Tesorero'][idx % 4];
-          faculty = ['Facultad de Derecho', 'Facultad de Medicina', 'Facultad de Ingeniería', 'Facultad de Comunicación'][idx % 4];
-          period = '2026 - 2027';
-          docName = 'Nombramiento oficial';
-          docSize = 'PDF · 1.8 MB';
-          notes = 'Adjunto nombramiento oficial emitido por la dirección de asuntos estudiantiles.';
-          credentialUrl = 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600';
-        }
-
-        return {
-          id: `req_${u.id}_${idx}`,
-          userId: u.id,
-          type: vType,
-          status: u.isVerified || u.isCreatorVerified || u.isAthleteVerified || u.isGovtVerified ? 'APPROVED' : (idx > 7 ? 'REJECTED' : 'PENDING'),
-          credentialUrl,
-          socialLinks,
-          creatorCategory,
-          notes,
-          studentId,
-          docType,
-          docName,
-          docSize,
-          sport,
-          team,
-          athletePosition,
-          athleteCategory,
-          organization,
-          govtPosition,
-          faculty,
-          period,
-          createdAt: u.createdAt,
-          user: {
-            id: u.id,
-            firstName: u.firstName,
-            lastName: u.lastName,
-            email: u.email,
-            handle: u.handle || `@${u.firstName.toLowerCase()}`,
-            isVerified: u.isVerified,
-            isCreatorVerified: u.isCreatorVerified,
-            isAthleteVerified: u.isAthleteVerified,
-            isGovtVerified: u.isGovtVerified,
-            profile: u.profile ? {
-              university: u.profile.university || 'Universidad Autónoma de Coahuila',
-              major: u.profile.major || 'Ingeniería Mecatrónica'
-            } : null,
-            photos: u.photos
-          }
-        };
-      });
-
-      dbRequests = synthetic.filter(r => {
-        if (type && type !== 'ALL' && r.type !== type) return false;
-        if (status && status !== 'ALL' && r.status !== status) return false;
-        return true;
-      });
-    }
-
-    const totalCount = dbRequests.length;
-    const pendingCount = dbRequests.filter(r => r.status === 'PENDING').length;
-    const approvedCount = dbRequests.filter(r => r.status === 'APPROVED').length;
-    const rejectedCount = dbRequests.filter(r => r.status === 'REJECTED').length;
-
-    const studentIdCount = dbRequests.filter(r => r.type === 'STUDENT_ID').length;
-    const creatorCount = dbRequests.filter(r => r.type === 'CREATOR_BADGE').length;
-    const athleteCount = dbRequests.filter(r => r.type === 'ATHLETE').length;
-    const govtCount = dbRequests.filter(r => r.type === 'STUDENT_GOVT').length;
+    const studentIdCount = allRequests.filter(r => r.type === 'STUDENT_ID').length;
+    const creatorCount = allRequests.filter(r => r.type === 'CREATOR_BADGE').length;
+    const athleteCount = allRequests.filter(r => r.type === 'ATHLETE').length;
+    const govtCount = allRequests.filter(r => r.type === 'STUDENT_GOVT').length;
 
     return {
       requests: dbRequests,
@@ -1676,6 +1563,23 @@ class AdminService {
         }
       }).catch(() => {});
 
+      // Broadcast WebSocket notification to student app for live badge update
+      try {
+        const { getIO } = require('../socket');
+        const io = getIO();
+        if (io) {
+          io.emit('userVerificationUpdated', {
+            userId: targetUserId,
+            isVerified: true,
+            badgeColor: '#1d9bf0',
+            status: 'APPROVED',
+            reqType,
+            title: notifTitle,
+            message: notifMsg
+          });
+        }
+      } catch (_) {}
+
       await this.createAuditLog({
         adminId,
         action: `VERIFICATION_APPROVED_${reqType}`,
@@ -1721,15 +1625,32 @@ class AdminService {
     }
 
     if (targetUserId) {
+      const rejectMsg = `Lo sentimos, no pudimos validar tu credencial estudiantil. Motivo: ${rejectionReason || 'La información adjunta no coincide o la credencial no es legible.'}`;
       await prisma.notification.create({
         data: {
           recipientId: targetUserId,
           senderId: adminId,
-          title: 'Actualización de Solicitud de Verificación',
-          message: `Tu solicitud de verificación fue revisada. Motivo: ${rejectionReason || 'La información adjunta no coincide o la credencial no es legible.'}`,
+          title: '⚠️ Solicitud de Verificación No Aprobada',
+          message: rejectMsg,
           type: 'WARNING'
         }
       }).catch(() => {});
+
+      // Broadcast WebSocket notification to student app
+      try {
+        const { getIO } = require('../socket');
+        const io = getIO();
+        if (io) {
+          io.emit('userVerificationUpdated', {
+            userId: targetUserId,
+            isVerified: false,
+            status: 'REJECTED',
+            reqType,
+            title: '⚠️ Solicitud de Verificación No Aprobada',
+            message: rejectMsg
+          });
+        }
+      } catch (_) {}
 
       await this.createAuditLog({
         adminId,

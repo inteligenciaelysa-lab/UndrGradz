@@ -17,5 +17,7 @@ router.patch('/me/location', userController.updateLocation);
 router.post('/me/photos', userController.addPhoto);
 router.delete('/me/photos/:photoId', userController.deletePhoto);
 router.patch('/me/ghost-mode', userController.updateGhostMode);
+router.post('/me/verification-request', userController.submitVerificationRequest);
+router.get('/me/verification-request', userController.getVerificationStatus);
 
 module.exports = router;

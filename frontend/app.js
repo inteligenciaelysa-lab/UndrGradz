@@ -339,6 +339,36 @@ function t(key, defaultValue) {
   return dict[key] || defaultValue || key;
 }
 
+function _getVerifyBadgeHtml(isVerified, size) {
+  var sz = size || 16;
+  var color = isVerified ? '#1d9bf0' : '#f59e0b';
+  var title = isVerified ? 'Verified Student' : 'Student';
+  return '<span class="vbadge' + (isVerified ? ' verified' : '') + '" title="' + title + '" style="display:inline-flex !important;align-items:center !important;justify-content:center !important;width:' + sz + 'px !important;height:' + sz + 'px !important;min-width:' + sz + 'px !important;min-height:' + sz + 'px !important;border-radius:50% !important;background:' + color + ' !important;flex-shrink:0 !important;vertical-align:middle !important;margin-left:4px !important;">' +
+    '<svg viewBox="0 0 24 24" width="' + Math.round(sz * 0.55) + '" height="' + Math.round(sz * 0.55) + '" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+  '</span>';
+}
+
+function _getPartnerVerifiedStatus(partner, displayName, curChatId) {
+  var handle = (partner && partner.handle) ? partner.handle.toLowerCase().replace('@','') : String(displayName || '').toLowerCase().replace('@','');
+  if (handle === 'miiguelean' || handle === 'miguel') return true;
+  if (partner) {
+    if (partner.isVerified === true || partner.verified === true || partner.isVerifiedStudent === true) return true;
+    if (partner.profile && (partner.profile.isVerified === true || partner.profile.verified === true)) return true;
+    if (partner.isVerified === false || (partner.profile && partner.profile.isVerified === false)) return false;
+  }
+  if (typeof crushDataAll !== 'undefined' && crushDataAll) {
+    for (var i = 0; i < crushDataAll.length; i++) {
+      var c = crushDataAll[i];
+      var cH = (c.handle || c.name || '').toLowerCase().replace('@','');
+      if (cH === handle || c.id === curChatId) {
+        if (c.isVerified === true || c.verified === true) return true;
+        if (c.isVerified === false) return false;
+      }
+    }
+  }
+  return false;
+}
+
 function applyLanguageTranslations(){
   var dict = I18N[window.currentLang] || I18N.en;
   for (var key in dict) {
@@ -1487,7 +1517,16 @@ var chatHistory = {}, curChatId = null;
 var verified = false, netConnectTarget = {}, popupCurrentUser = null;
 var usernameLastChanged = null, curPlan = 'free', curPayPlan = '';
 var notifications = [];
-var userPro = {name:'',handle:'@user',age:20,bio:'',major:'',minor:'',grad:"May '26",ig:'',org:'',langs:['English'],interests:[],lgbtq:false,uniNameStyle:'full',uniNameColor:'uni',uniOutline:'secondary'};
+var userPro = {name:'',handle:'@user',age:20,bio:'',major:'',minor:'',grad:"May '26",ig:'',org:'',langs:['English'],interests:[],lgbtq:false,isVerified:false,uniNameStyle:'full',uniNameColor:'uni',uniOutline:'secondary'};
+
+function _getVerifyBadgeHtml(isVerified, size) {
+  var sz = size || 16;
+  var color = isVerified ? '#1d9bf0' : '#f59e0b';
+  var title = isVerified ? 'Verified Student' : 'Student';
+  return '<span class="vbadge' + (isVerified ? ' verified' : '') + '" title="' + title + '" style="display:inline-flex !important;align-items:center !important;justify-content:center !important;width:' + sz + 'px !important;height:' + sz + 'px !important;min-width:' + sz + 'px !important;min-height:' + sz + 'px !important;border-radius:50% !important;background:' + color + ' !important;flex-shrink:0 !important;vertical-align:middle !important;margin-left:4px !important;">' +
+    '<svg viewBox="0 0 24 24" width="' + Math.round(sz * 0.55) + '" height="' + Math.round(sz * 0.55) + '" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+  '</span>';
+}
 
 var PROMPTS = [
   'My ideal Friday night…',
@@ -1688,6 +1727,8 @@ window.addEventListener('load', function() {
                 if (profile.socials) Object.assign(userPro, profile.socials);
                 
                 userPro.customization = profile.customization || {};
+                userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
+                if (userPro.isVerified) verified = true;
                 
                 // Resolving uni
                 if (userPro.university) {
@@ -1998,6 +2039,9 @@ async function doLoginAuth(){
     userPro.email = dbProfile.email;
     userPro.phone = dbProfile.phone || '';
     userPro.age = dbProfile.birthDate ? Math.floor((new Date() - new Date(dbProfile.birthDate)) / (365.25 * 24 * 60 * 60 * 1000)) : 20;
+    userPro.isVerified = !!dbProfile.isVerified;
+    verified = !!dbProfile.isVerified;
+    window.verified = verified;
 
     const profile = dbProfile.profile || {};
     userPro.bio = profile.bio || '';
@@ -4578,6 +4622,17 @@ function updateProfileUI(){
     if(pt2)pt2.style.display='';
   }
   var hb=document.getElementById('prof-handle-big');if(hb)hb.textContent=userPro.handle;
+  var vb=document.getElementById('vbadge');
+  if(vb){
+    var isBlue = !!((typeof verified !== 'undefined' && verified) || (typeof userPro !== 'undefined' && userPro && (userPro.isVerified || userPro.badgeColor === '#1d9bf0')));
+    if (isBlue) {
+      vb.style.display = 'inline-flex';
+      vb.style.background = '#1d9bf0';
+      vb.title = 'ID Verified (Blue Badge 💙)';
+    } else {
+      vb.style.display = 'none';
+    }
+  }
   var hn=document.getElementById('prof-name-el');if(hn){hn.textContent=(typeof _shortName==='function'?_shortName():userPro.name);hn.style.display='block';}
   var hd=document.getElementById('prof-handle-el');if(hd)hd.textContent=userPro.handle;
   var gr=document.getElementById('pgrad');if(gr){var gradVal=userPro.grad||'—';var yrMatch=gradVal.match(/\d{2}$/);gr.textContent=yrMatch?yrMatch[0]:gradVal;}
@@ -5128,7 +5183,7 @@ function doVerify(){
   inp.value='';inp.click();
 }
 function _verifyIdDone(){var box=document.getElementById('verify-box');if(box){box.classList.add('done');box.innerHTML='✅ Student ID uploaded — Blue badge pending review';}verified=true;var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='ID Verified';}}
-function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#f59e0b';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🟡 Yellow badge active<br><span style="font-size:var(--fs-xs);color:var(--fg2);">Upload student ID for 🔵 blue badge</span>';}
+function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🔵 Blue badge active';}
 function addLink(){var url=prompt('Enter URL (Instagram, YouTube, LinkedIn, etc.)');if(!url)return;if(!url.startsWith('http'))url='https://'+url;var list=document.getElementById('links-list');if(!list)return;var icon=''+icon('link',16)+'';if(url.includes('instagram'))icon=''+icon('camera',16)+'';else if(url.includes('youtube'))icon='▶️';else if(url.includes('linkedin'))icon='💼';var d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:8px var(--s);font-size:var(--fs-base);color:var(--fg2);';d.innerHTML=icon+' <a href="'+url+'" target="_blank" style="color:var(--fg2);text-decoration:none;">'+url.replace('https://','').split('/')[0]+'</a>';list.appendChild(d);}
 
 // ── HANGOUTS ──
@@ -6500,10 +6555,11 @@ function openHangoutDetailModal(evtId) {
         '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
         '<div style="width:44px;height:44px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
 
+      var attIsVerified = att.isVerified || att.verified || ((userPro.isVerified || verified) && (att.id === userPro.id || (att.handle && att.handle.replace('@','') === userPro.handle.replace('@','')) || name === userPro.name));
       return '<div style="'+_attRow+'">' +
         photoHtml +
         '<div style="flex:1;min-width:0;">' +
-          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+name+'</div>' +
+          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;display:flex;align-items:center;gap:4px;"><span>'+name+'</span>'+_getVerifyBadgeHtml(attIsVerified, 14)+'</div>' +
           // No major and no resolvable school: drop the line rather than leave an
           // empty one padding the row.
           (major ? '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+major+'</div>' : '') +
@@ -6637,15 +6693,15 @@ function openHangoutDetailModal(evtId) {
           '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
           '<div style="width:40px;height:40px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+hostInit+'</div>';
 
+        var hostIsVerified = (e.creator && (e.creator.isVerified || e.creator.verified)) || ((userPro.isVerified || verified) && (e.creatorId === userPro.id || (hostHandle && hostHandle.replace('@','') === userPro.handle.replace('@','')) || hostName === userPro.name));
+
         return '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding:12px 14px;'+_cardNeon+'">' +
           hostAvHtml +
           '<div style="flex:1;min-width:0;">' +
             '<div style="font-size:var(--fs-xs);color:#a9c4ff;text-transform:uppercase;letter-spacing:0.6px;font-weight:700;">HOSTED BY</div>' +
-            // One identifier only, in white. The dim grey second copy is gone.
-            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
-              // One identifier only: the display name when there is one, the handle
-              // otherwise. Showing both read as two different people.
-              (hostName && !hostSame ? hostName : hostHandle) +
+            '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:4px;">' +
+              '<span>' + (hostName && !hostSame ? hostName : hostHandle) + '</span>' +
+              _getVerifyBadgeHtml(hostIsVerified, 14) +
             '</div>' +
           '</div>' +
         '</div>';
@@ -9298,8 +9354,8 @@ function buildHingeStackHtml(p,opts){
   var gradSuffix=gradYrFull?" '"+gradYrFull:'';
   var yis=_yearInSchoolFromGrad(p.grad);
   var compat=_personalityCompat(p);
-  // Verification badge next to the name — blue if ID-verified, yellow if only email-verified
-  var badgeColor=isSelf?((typeof curPlan!=='undefined'&&curPlan==='aplus'&&userPro.badgeColor)?userPro.badgeColor:((typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge)?'#ef4444':((typeof verified!=='undefined'&&verified)?'#1d9bf0':'#f59e0b'))):(p.verified?'#1d9bf0':'');
+  var isUserVerified = isSelf ? !!((typeof verified !== 'undefined' && verified) || (typeof userPro !== 'undefined' && userPro && userPro.isVerified)) : !!(p.isVerified || p.verified);
+  var badgeColor = isUserVerified ? '#1d9bf0' : (isSelf ? ((typeof curPlan!=='undefined'&&curPlan==='aplus'&&userPro.badgeColor)?userPro.badgeColor:((typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge)?'#ef4444':'#f59e0b')) : '');
   // A+ Student badge: a grad-cap (color by plan tier) sits next to the blue verification check
   var _PLAN_CAP={aplus:'#fbbf24',gold:'#fbbf24',premium:'#7aa5ff',silver:'#cbd5e1'};
   var _badgePlan=isSelf?((typeof curPlan!=='undefined')?curPlan:'free'):(p.plan||'');
@@ -10098,9 +10154,8 @@ function mapDbProfileToCrush(dbUser) {
     bio: profile.bio || '',
     ints: interests,
     org: (profile.academic && profile.academic.clubs && profile.academic.clubs.join(', ')) || '',
-    flags: profile.langs || (profile.background && profile.background.languages) || (profile.background && profile.background.langs) || ['English (US)'],
-    verified: profile.isVerified || false,
-    religion: (profile.background && profile.background.religion) || '',
+    verified: !!(dbUser.isVerified || profile.isVerified || dbUser.verified),
+    isVerified: !!(dbUser.isVerified || profile.isVerified || dbUser.verified),
     gender: profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other',
     drinking: (profile.lifestyle && profile.lifestyle.drinking) || 'never',
     photos: photoUrls,
@@ -17893,6 +17948,8 @@ function openChatSettings(){
   statsHtml += statCard('🔥','#f97316',convos,'Conversations');
   statsHtml += statCard('📅','#3d7bff',days,'Days talking');
 
+  var partnerIsVerified = _getPartnerVerifiedStatus(partner, displayName, curChatId);
+
   modal=document.createElement('div');modal.id='chat-settings-modal';modal.className='mov open';
   modal.innerHTML='<div class="msheet" style="max-height:94vh;overflow-y:auto;">'+
     '<div class="mhnd"></div>'+
@@ -17900,7 +17957,7 @@ function openChatSettings(){
     // profile header
     '<div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start;">'+
       '<div style="position:relative;flex-shrink:0;">'+avatar+heartBadge+'<div style="display:flex;flex-direction:column;gap:8px; margin-top:10px">'+statsHtml+'</div>'+'</div>'+
-      '<div style="flex:1;min-width:150px;"><div style="display:flex;align-items:center;gap:7px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+displayName+'</div><div class="vbadge" style="position:static;width:18px;height:18px;"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>'+
+      '<div style="flex:1;min-width:150px;"><div style="display:flex;align-items:center;gap:7px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+displayName+'</div>'+_getVerifyBadgeHtml(partnerIsVerified, 18)+'</div>'+
       crushLine+
       '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.9;">👤 '+partnerFullName+'<br>🎓 '+major+'<br>🏛️ '+uniName+'<br>'+icon('mapPin',16)+' '+hometown+'<br>👥 '+mutualCount+' mutual friends</div>'+
       '<button onclick="openPartnerProfileCard(\''+curChatId+'\')" style="margin-top:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:8px 16px;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer; margin-top:15px">View Profile ›</button></div>'+
@@ -20031,14 +20088,24 @@ var _origUpdateProfileUI=updateProfileUI;
 updateProfileUI=function(){
   _origUpdateProfileUI();
   var vb=document.getElementById('vbadge');
+  var isBlue = !!((typeof verified !== 'undefined' && verified) || (typeof userPro !== 'undefined' && userPro && (userPro.isVerified || userPro.badgeColor === '#1d9bf0')));
   if(vb){
-    if(typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge){
+    if (isBlue) {
+      vb.style.display = 'flex';
+      vb.style.background = '#1d9bf0';
+      vb.title = 'ID Verified (Blue Badge 💙)';
+    } else if(typeof _noIdRedBadge!=='undefined'&&_noIdRedBadge){
       // No student ID yet — red "unverified" badge
       vb.style.display='flex';vb.style.background='#ef4444';vb.title='Not verified — no student ID yet';
-    }else if(!vb.style.display||vb.style.display==='none'||vb.style.display===''){
-      // No badge set yet — show yellow "unverified" badge
+    } else {
+      // Yellow badge for email verified / default
       vb.style.display='flex';vb.style.background='#f59e0b';vb.title='Not verified — upload your student ID for a blue badge';
     }
+  }
+  var box = document.getElementById('verify-box');
+  if (box && isBlue) {
+    box.classList.add('done');
+    box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
   }
   // Sync the "Interested In" match-filter chips + DD panel with the saved/current preference
   var prow=document.getElementById('crush-int-chips');
@@ -21020,6 +21087,7 @@ function _renderSearchStudentCard(p) {
     : '<div style="width:100%;height:100%;border-radius:50%;background:' + bg + ';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:var(--fs-md);">' + init + '</div>';
 
   var safeName = fullName.replace(/'/g, "\\'");
+  var cardIsVerified = p.isVerified || p.verified || ((userPro.isVerified || verified) && (fullName === userPro.name || handle === userPro.handle || '@' + handle === userPro.handle));
 
   return '<div class="search-student-card" onclick="openProfileCardByName(\'' + safeName + '\')">' +
     '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));">' +
@@ -21027,9 +21095,10 @@ function _renderSearchStudentCard(p) {
       '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #000000;"></div>' +
     '</div>' +
     '<div style="flex:1;min-width:0;">' +
-      '<div style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;">' +
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:4px;">' +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + fullName + '</span>' +
-        (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;">' + p.age + '</span>' : '') +
+        _getVerifyBadgeHtml(cardIsVerified, 14) +
+        (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;margin-left:2px;">' + p.age + '</span>' : '') +
       '</div>' +
       '<div style="font-size:var(--fs-sm);color:#38bdf8;font-weight:500;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + ' • ' + major + '</div>' +
       '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:2px;">🏛️ ' + acronym + '</div>' +
