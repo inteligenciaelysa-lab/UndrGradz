@@ -104,6 +104,9 @@ async function runFullE2ETest() {
   // 12. Analytics
   const analyticsRes = await apiRequest('/api/v1/admin/analytics', 'GET', null, token);
   console.log(`✅ 12. Analytics & KPIs API HTTP ${analyticsRes.status}: Total Users KPI = ${analyticsRes.data.data.kpis.totalUsers}`);
+  console.log(`   └─ Academic Areas Data: Men=[${analyticsRes.data.data.academicAreas.men}], Women=[${analyticsRes.data.data.academicAreas.women}]`);
+  console.log(`   └─ Devices & Platforms Data: ${JSON.stringify(analyticsRes.data.data.devices)}`);
+  console.log(`   └─ Hourly Traffic Data: Labels=[${analyticsRes.data.data.hourlyTraffic.labels.join(', ')}], Counts=[${analyticsRes.data.data.hourlyTraffic.counts.join(', ')}]`);
 
   // 13. Verifications
   const verifRes = await apiRequest('/api/v1/admin/verifications?type=ALL&status=ALL', 'GET', null, token);
