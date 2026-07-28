@@ -1,5 +1,14 @@
 {
   "appId": "com.undrgradz.app",
   "appName": "UndrGradz",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false,
+      "launchFadeOutDuration": 350,
+      "backgroundColor": "#0a0520",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
+  }
 }

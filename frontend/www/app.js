@@ -1638,7 +1638,17 @@ function _bootRestoredApp(){
   try{if(typeof _saveSessionState==='function')_saveSessionState();}catch(e){}
   try{setTimeout(function(){if(typeof _showEntryPoll==='function')_showEntryPoll();},700);}catch(e){}
 }
-// ── SPLASH ──
+// ── SPLASH / APP INIT ──
+function _hideNativeSplashScreen() {
+  try {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+      window.Capacitor.Plugins.SplashScreen.hide({ fadeOutDuration: 350 });
+    }
+  } catch(e) {
+    console.warn("Could not hide native splash screen:", e);
+  }
+}
+
 window.addEventListener('load', function() {
   try{if(typeof applyLanguageTranslations==='function')applyLanguageTranslations();}catch(e){}
   try{_logoColorsLoad();_applyLogoColors();}catch(e){}
@@ -1651,114 +1661,126 @@ window.addEventListener('load', function() {
     }
   });
 
+  // Failsafe safety net: Ensure native splash hides even if network or JS encounters an unhandled error
+  setTimeout(_hideNativeSplashScreen, 3500);
+
   // Upfront session validity check
   var sessionCheckPromise = Promise.resolve(null);
   if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
-    sessionCheckPromise = apiClient.getMe().catch(function() {
+    sessionCheckPromise = Promise.race([
+      apiClient.getMe(),
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Timeout')); }, 2500); })
+    ]).catch(function(err) {
+      console.warn("Session check failed or timed out:", err);
       return null;
     });
   }
 
-  setTimeout(function() {
-    var logo=document.getElementById('spl-logo'),sub=document.getElementById('spl-sub'),fill=document.getElementById('spl-fill'),bar=document.querySelector('.spl-bar');
-    if(logo){logo.style.opacity='1';logo.style.transform='scale(1)';}
-    if(sub)sub.style.opacity='1';if(bar)bar.style.opacity='1';
-    setTimeout(function(){if(fill){fill.style.background='var(--p)';fill.style.width='100%';}},80);
-    setTimeout(function(){
-      var _restored=false;try{_restored=(typeof _restoreSession==='function')&&_restoreSession();}catch(e){}
-      var sp=document.getElementById('splash');if(sp){sp.style.opacity='0';sp.style.transition='opacity 0.55s';}
-      
-      sessionCheckPromise.then(function(user) {
-        setTimeout(function(){
-          if(sp)sp.style.display='none';
-          if(_restored){
-            if (user) {
-              try {
-                userPro.id = user.id;
-                userPro.name = user.firstName + ' ' + (user.lastName || '');
-                userPro.handle = user.handle ? (user.handle.startsWith('@') ? user.handle : '@' + user.handle) : '@you';
-                userPro.email = user.email;
-                userPro.phone = user.phone || '';
-                
-                var profile = user.profile || {};
-                userPro.bio = profile.bio || '';
-                userPro.university = profile.university || '';
-                userPro.major = profile.major || '';
-                userPro.grad = profile.grad || '';
-                userPro.crossover = profile.crossover || false;
-                userPro.isGhostMode = profile.isGhostMode || false;
-                userPro.subscriptionTier = profile.subscriptionTier || 'FREE';
-                if (profile.gender) {
-                  userPro.gender = profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other';
-                  userGender = userPro.gender;
-                }
-                if (profile.interestedIn) {
-                  userPro.interestedIn = profile.interestedIn === 'WOMAN' ? 'female' : profile.interestedIn === 'MAN' ? 'male' : 'any';
-                  crushGenderPref = userPro.interestedIn;
-                }
-                userPro.interests = profile.interests || [];
-                userPro.prompts = profile.prompts || [];
-                userPro.identityTags = profile.identityTags || [];
-                userPro.lookingForTags = profile.lookingForTags || [];
-                
-                if (profile.lifestyle) Object.assign(userPro, profile.lifestyle);
-                if (profile.academic) Object.assign(userPro, profile.academic);
-                if (profile.background) Object.assign(userPro, profile.background);
-                if (profile.customization) {
-                  userPro.customization = profile.customization;
-                  Object.assign(userPro, profile.customization);
-                  if (profile.customization.chatBackgrounds) {
-                    userPro.chatBackgrounds = profile.customization.chatBackgrounds;
-                  }
-                }
-                if (profile.socials) Object.assign(userPro, profile.socials);
-                
-                userPro.customization = profile.customization || {};
-                userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
-                if (userPro.isVerified) verified = true;
-                
-                // Resolving uni
-                if (userPro.university) {
-                  uni = _resolveUserUniversity(userPro.university);
-                  if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
-                }
-                
-                // Map & render database photos in UI grid on session restore
-                var grid = document.getElementById('prof-photos');
-                if (grid) {
-                  grid.querySelectorAll('.pgcell:not(.add)').forEach(function(c){c.remove();});
-                  const dbPhotos = user.photos || [];
-                  dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
-                  dbPhotos.forEach(p => {
-                    if (typeof crushPhotoCell === 'function') {
-                      var d = crushPhotoCell(p.url, 'center');
-                      d.dataset.photoId = p.id;
-                      grid.insertBefore(d, grid.lastChild);
-                    }
-                  });
-                  if (dbPhotos.length > 0) {
-                    _profilePicUrl = dbPhotos[0].url;
-                  } else {
-                    _profilePicUrl = '';
-                  }
-                  if (typeof _syncFirstCrushPhoto === 'function') {
-                    _syncFirstCrushPhoto();
-                  }
-                }
-              } catch (mapErr) {
-                console.error("Error syncing profile on restore:", mapErr);
-              }
-            }
-            var app=document.getElementById('app');if(app)app.classList.add('active');
-            setTimeout(_bootRestoredApp,20);
-          }else{
-            var as=document.getElementById('authscreen');if(as)as.classList.add('active');
-            if(typeof switchAuthTab==='function')switchAuthTab('login');
+  // Restore session from localStorage if available
+  var savedUserPro = null;
+  try {
+    var stored = localStorage.getItem('userPro');
+    if (stored) {
+      savedUserPro = JSON.parse(stored);
+    }
+  } catch(e) {}
+
+  sessionCheckPromise.then(function(user) {
+    var activeUser = user || savedUserPro;
+    if (activeUser) {
+      if (user) {
+        try {
+          userPro.id = user.id;
+          userPro.name = user.firstName + ' ' + (user.lastName || '');
+          userPro.handle = user.handle ? (user.handle.startsWith('@') ? user.handle : '@' + user.handle) : '@you';
+          userPro.email = user.email;
+          userPro.phone = user.phone || '';
+          
+          var profile = user.profile || {};
+          userPro.bio = profile.bio || '';
+          userPro.university = profile.university || '';
+          userPro.major = profile.major || '';
+          userPro.grad = profile.grad || '';
+          userPro.crossover = profile.crossover || false;
+          userPro.isGhostMode = profile.isGhostMode || false;
+          userPro.subscriptionTier = profile.subscriptionTier || 'FREE';
+          if (profile.gender) {
+            userPro.gender = profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other';
+            userGender = userPro.gender;
           }
-        },560);
-      });
-    },2400);
-  },60);
+          if (profile.interestedIn) {
+            userPro.interestedIn = profile.interestedIn === 'WOMAN' ? 'female' : profile.interestedIn === 'MAN' ? 'male' : 'any';
+            crushGenderPref = userPro.interestedIn;
+          }
+          userPro.interests = profile.interests || [];
+          userPro.prompts = profile.prompts || [];
+          userPro.identityTags = profile.identityTags || [];
+          userPro.lookingForTags = profile.lookingForTags || [];
+          
+          if (profile.lifestyle) Object.assign(userPro, profile.lifestyle);
+          if (profile.academic) Object.assign(userPro, profile.academic);
+          if (profile.background) Object.assign(userPro, profile.background);
+          if (profile.customization) {
+            userPro.customization = profile.customization;
+            Object.assign(userPro, profile.customization);
+            if (profile.customization.chatBackgrounds) {
+              userPro.chatBackgrounds = profile.customization.chatBackgrounds;
+            }
+          }
+          if (profile.socials) Object.assign(userPro, profile.socials);
+          
+          userPro.customization = profile.customization || {};
+          userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
+          if (userPro.isVerified) verified = true;
+          
+          if (userPro.university) {
+            uni = _resolveUserUniversity(userPro.university);
+            if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
+          }
+          
+          var grid = document.getElementById('prof-photos');
+          if (grid) {
+            grid.querySelectorAll('.pgcell:not(.add)').forEach(function(c){c.remove();});
+            const dbPhotos = user.photos || [];
+            dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
+            dbPhotos.forEach(p => {
+              if (typeof crushPhotoCell === 'function') {
+                var d = crushPhotoCell(p.url, 'center');
+                d.dataset.photoId = p.id;
+                grid.insertBefore(d, grid.lastChild);
+              }
+            });
+            if (dbPhotos.length > 0) {
+              _profilePicUrl = dbPhotos[0].url;
+            } else {
+              _profilePicUrl = '';
+            }
+            if (typeof _syncFirstCrushPhoto === 'function') {
+              _syncFirstCrushPhoto();
+            }
+          }
+        } catch (mapErr) {
+          console.error("Error syncing profile on restore:", mapErr);
+        }
+      }
+      var app = document.getElementById('app');
+      if (app) app.classList.add('active');
+      if (typeof _bootRestoredApp === 'function') {
+        setTimeout(_bootRestoredApp, 20);
+      }
+    } else {
+      var as = document.getElementById('authscreen');
+      if (as) as.classList.add('active');
+      if (typeof switchAuthTab === 'function') switchAuthTab('login');
+    }
+  }).catch(function(e) {
+    console.error("Initialization error:", e);
+    var as = document.getElementById('authscreen');
+    if (as) as.classList.add('active');
+    if (typeof switchAuthTab === 'function') switchAuthTab('login');
+  }).finally(function() {
+    _hideNativeSplashScreen();
+  });
 });
 
 // ── AUTH ──
@@ -12499,7 +12521,7 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
   var bgContainer = document.getElementById('cwbg');
   if (bgContainer) {
     if (chatBgStyle) {
-      // The saved value is a design id ('uni-aurora', 'black', ...), not a CSS
+      // The saved value is a design id ('uni-silk', 'black', ...), not a CSS
       // value — it has to go through the renderer or the chosen background is
       // silently lost every time the chat is reopened.
       renderChatBackground(chatBgStyle);
@@ -13311,85 +13333,160 @@ function _injectBgStyles() {
        down ONLY while a University background is mounted — Default/Black never\
        get this class, so their look is untouched. */\
     .cwin.ugz-uni-bg .cwbgo { background: rgba(4,2,10,0.20) !important; }\
-    /* ── Energy Lines: drift lives on wrapper divs (compositor-only), not on the\
-       SVG itself, so the GPU just moves an already-rasterized bitmap. ── */\
-    .ugz-eline {\
+    /* ── Motion, the one rule that applies to all 7 ─────────────────────────\
+       Only transform and opacity are ever animated, and always on a wrapper\
+       div, never on the SVG itself — the GPU then just moves a bitmap that is\
+       already rasterized instead of repainting it every frame.\
+       Corollary that bit during calibration: a layer with will-change is\
+       rasterized ONCE, at its authored size, so any scale above 1 magnifies\
+       that bitmap and softens it. Every scale here therefore ends at 1 and\
+       starts below it, except Depth Grid, where the softening is the point. */\
+\
+    /* ── 1 · Constellation: a spark travels the link. ── */\
+    .ugz-cn-layer {\
       position: absolute; inset: 0; will-change: transform;\
-      animation: ugzDriftX linear infinite;\
+      animation: ugzCnDrift linear infinite;\
     }\
-    .ugz-eline-1 { animation-duration: 52s; }\
-    .ugz-eline-2 { animation-duration: 64s; animation-delay: -18s; }\
-    .ugz-eline-3 { animation-duration: 44s; animation-delay: -31s; }\
-    @keyframes ugzDriftX {\
-      0%   { transform: translate3d(-14px, 0, 0); }\
-      50%  { transform: translate3d(14px, 0, 0); }\
-      100% { transform: translate3d(-14px, 0, 0); }\
+    .ugz-cn-layer-1 { animation-duration: 38s; }\
+    .ugz-cn-layer-2 { animation-duration: 46s; animation-delay: -15s; }\
+    @keyframes ugzCnDrift {\
+      0%   { transform: translate3d(-8px, 0, 0); }\
+      50%  { transform: translate3d(8px, 0, 0); }\
+      100% { transform: translate3d(-8px, 0, 0); }\
     }\
-    .ugz-edot { animation: ugzTwinkle 9s ease-in-out infinite alternate; }\
-    .ugz-edot-b { animation-duration: 13s; animation-delay: -4s; }\
-    .ugz-edot-c { animation-duration: 17s; animation-delay: -9s; }\
-    @keyframes ugzTwinkle {\
-      0%   { opacity: 0.30; }\
-      100% { opacity: 0.72; }\
+    /* The spark is the only element in the whole set that travels a measured\
+       vector; --dx/--dy carry the link direction, set inline per spark. */\
+    .ugz-cn-spark {\
+      position: absolute; width: 3px; height: 3px; border-radius: 50%;\
+      pointer-events: none; will-change: transform, opacity;\
+      animation: ugzSpark linear infinite;\
     }\
-    /* ── Floating Orbs: no filter:blur() — the radial gradient IS the blur and it\
-       is free, plus it stays stable under animation. Transform only. ── */\
-    .ugz-orb {\
+    @keyframes ugzSpark {\
+      0%   { transform: translate3d(0, 0, 0); opacity: 0; }\
+      14%  { opacity: 1; }\
+      82%  { opacity: 1; }\
+      100% { transform: translate3d(var(--dx), var(--dy), 0); opacity: 0; }\
+    }\
+\
+    /* ── 2 · Light Rays: the fan sways, and a specular pass crosses it. ── */\
+    .ugz-lr-fan {\
+      position: absolute; inset: 0; will-change: transform;\
+      transform-origin: -10% -7%;\
+      animation: ugzLrSway 34s ease-in-out infinite;\
+    }\
+    @keyframes ugzLrSway {\
+      0%   { transform: rotate(-2.2deg); }\
+      50%  { transform: rotate(2.2deg); }\
+      100% { transform: rotate(-2.2deg); }\
+    }\
+    /* ease-in-out with both ends parked off-canvas: the sweep is quick where it\
+       is visible and dawdles where it is not, so it reads as a flash with a\
+       long gap rather than a bar sliding back and forth. */\
+    .ugz-lr-sweep {\
+      position: absolute; top: -25%; bottom: -25%; left: -85%; width: 62%;\
+      pointer-events: none; will-change: transform;\
+      animation: ugzLrSweep 26s ease-in-out infinite;\
+    }\
+    @keyframes ugzLrSweep {\
+      0%   { transform: translate3d(0, 0, 0); }\
+      100% { transform: translate3d(340%, 0, 0); }\
+    }\
+\
+    /* ── 3 · Depth Grid: the horizontals flow out of the vanishing point. ──\
+       The rungs sit at geometrically spaced distances (ratio UGZ_DG_S), so\
+       scaling the layer by exactly that ratio maps the set onto itself and the\
+       loop is seamless. Radial lines live in a separate STATIC layer: a ray\
+       through the origin is invariant under this scale, so animating it would\
+       only thicken it for no gain. */\
+    .ugz-dg-run {\
+      position: absolute; inset: 0; pointer-events: none;\
+      transform-origin: 50% 44%;\
+      animation: ugzDgFlow 30s linear infinite;\
+    }\
+    .ugz-dg-run-2 { animation-delay: -10s; }\
+    .ugz-dg-run-3 { animation-delay: -20s; }\
+    @keyframes ugzDgFlow {\
+      0%   { transform: scale(1);    opacity: 0; }\
+      16%  { opacity: 1; }\
+      72%  { opacity: 1; }\
+      100% { transform: scale(2.40); opacity: 0; }\
+    }\
+\
+    /* ── 4 · Ripple: rings are born, expand and die. ──\
+       Sized at their FINAL diameter and scaled up to 1, never past it, so the\
+       raster is always the sharp one. */\
+    .ugz-rp {\
       position: absolute; border-radius: 50%; pointer-events: none;\
-      will-change: transform;\
-      animation: ugzOrbA 72s linear infinite;\
+      will-change: transform, opacity;\
+      animation: ugzRipple linear infinite;\
     }\
-    .ugz-orb-ring {\
-      position: absolute; top: 29%; left: 29%; width: 42%; height: 42%;\
-      border-radius: 50%; pointer-events: none;\
+    @keyframes ugzRipple {\
+      0%   { transform: scale(0.30); opacity: 0; }\
+      14%  { opacity: 1; }\
+      100% { transform: scale(1);    opacity: 0; }\
     }\
-    .ugz-orb-1 { animation-name: ugzOrbA; animation-duration: 72s; }\
-    .ugz-orb-2 { animation-name: ugzOrbB; animation-duration: 96s; animation-delay: -23s; }\
-    .ugz-orb-3 { animation-name: ugzOrbC; animation-duration: 60s; animation-delay: -41s; }\
-    .ugz-orb-4 { animation-name: ugzOrbB; animation-duration: 84s; animation-delay: -12s; }\
-    .ugz-orb-5 { animation-name: ugzOrbA; animation-duration: 66s; animation-delay: -50s; }\
-    @keyframes ugzOrbA {\
-      0%   { transform: translate3d(0, 0, 0); }\
-      50%  { transform: translate3d(22px, -30px, 0); }\
-      100% { transform: translate3d(0, 0, 0); }\
+\
+    /* ── 5 · Silk: five bands slide out of phase. ──\
+       Staggered lateral offsets across parallel curves read as one wave\
+       travelling through the field; no strand has to bend for that to work. */\
+    .ugz-sk {\
+      position: absolute; inset: 0; will-change: transform;\
+      animation: ugzSilk ease-in-out infinite alternate;\
     }\
-    @keyframes ugzOrbB {\
-      0%   { transform: translate3d(0, 0, 0); }\
-      50%  { transform: translate3d(-26px, 18px, 0); }\
-      100% { transform: translate3d(0, 0, 0); }\
+    .ugz-sk-1 { animation-duration: 28s; }\
+    .ugz-sk-2 { animation-duration: 32s; animation-delay: -6s;  animation-name: ugzSilkB; }\
+    .ugz-sk-3 { animation-duration: 36s; animation-delay: -13s; }\
+    .ugz-sk-4 { animation-duration: 40s; animation-delay: -21s; animation-name: ugzSilkB; }\
+    .ugz-sk-5 { animation-duration: 44s; animation-delay: -30s; }\
+    @keyframes ugzSilk {\
+      from { transform: translate3d(-16px, 0, 0); }\
+      to   { transform: translate3d(16px, 0, 0); }\
     }\
-    @keyframes ugzOrbC {\
-      0%   { transform: translate3d(0, 0, 0); }\
-      50%  { transform: translate3d(14px, 26px, 0); }\
-      100% { transform: translate3d(0, 0, 0); }\
+    @keyframes ugzSilkB {\
+      from { transform: translate3d(-13px, 0, 0) scaleY(0.96); }\
+      to   { transform: translate3d(13px, 0, 0) scaleY(1); }\
     }\
-    /* ── Liquid Flow: deform WITHOUT touching a paint property. Two nested\
-       transforms at incommensurate periods never visibly repeat. ── */\
-    .ugz-liq-wrap {\
-      position: absolute; pointer-events: none;\
-      animation: ugzLiquidOrbit linear infinite;\
+\
+    /* ── 6 · Embers: they rise, and the bokeh behind rises slower. ──\
+       That speed gap is the whole depth cue; --dx is the per-ember sideways\
+       drift so the field never climbs in lockstep. */\
+    .ugz-em {\
+      position: absolute; border-radius: 50%; pointer-events: none;\
+      will-change: transform, opacity;\
+      animation: ugzRise linear infinite;\
     }\
-    .ugz-liq-shape {\
-      position: absolute; inset: 0; border-radius: 50%; pointer-events: none;\
-      will-change: transform;\
-      animation: ugzLiquidBreathe ease-in-out infinite alternate;\
+    @keyframes ugzRise {\
+      0%   { transform: translate3d(0, 0, 0); opacity: 0; }\
+      14%  { opacity: 1; }\
+      78%  { opacity: 0.9; }\
+      100% { transform: translate3d(var(--dx), -1020px, 0); opacity: 0; }\
     }\
-    .ugz-liq-1 { width: 128%; height: 70%; top: -8%; left: -20%; animation-duration: 78s; }\
-    .ugz-liq-1 .ugz-liq-shape { animation-duration: 46s; }\
-    .ugz-liq-2 { width: 112%; height: 78%; bottom: -14%; right: -18%; animation-duration: 94s; animation-delay: -30s; }\
-    .ugz-liq-2 .ugz-liq-shape { animation-duration: 58s; animation-delay: -19s; }\
-    .ugz-liq-3 { width: 96%; height: 62%; top: 26%; left: -6%; animation-duration: 66s; animation-delay: -47s; }\
-    .ugz-liq-3 .ugz-liq-shape { animation-duration: 52s; animation-delay: -33s; }\
-    @keyframes ugzLiquidOrbit {\
-      from { transform: rotate(0deg); }\
-      to   { transform: rotate(360deg); }\
+\
+    /* ── 7 · Prism: nothing looks like it moves. ──\
+       Plain alpha, no mix-blend-mode: translucent fills already accumulate\
+       where they cross, and blending would force a composite every frame. The\
+       overlaps brighten and dim, so the colour of the screen breathes. */\
+    .ugz-pr {\
+      position: absolute; inset: 0; pointer-events: none; will-change: transform;\
+      animation: ugzPrismA ease-in-out infinite alternate;\
     }\
-    @keyframes ugzLiquidBreathe {\
-      from { transform: scale(1, 1); }\
-      to   { transform: scale(1.20, 0.84); }\
+    .ugz-pr-1 { animation-duration: 29s; animation-name: ugzPrismA; }\
+    .ugz-pr-2 { animation-duration: 32s; animation-name: ugzPrismB; animation-delay: -8s; }\
+    .ugz-pr-3 { animation-duration: 38s; animation-name: ugzPrismC; animation-delay: -17s; }\
+    .ugz-pr-4 { animation-duration: 41s; animation-name: ugzPrismB; animation-delay: -26s; }\
+    .ugz-pr-5 { animation-duration: 44s; animation-name: ugzPrismC; animation-delay: -35s; }\
+    @keyframes ugzPrismA {\
+      from { transform: translate3d(-10px, -6px, 0) rotate(-1.4deg); }\
+      to   { transform: translate3d(10px, 8px, 0) rotate(1.4deg); }\
     }\
-    /* Particle Wave tiles — dot field shaped by mask, set inline per layer. */\
-    .ugz-pw-layer { position: absolute; inset: 0; pointer-events: none; }\
+    @keyframes ugzPrismB {\
+      from { transform: translate3d(12px, 7px, 0) rotate(1.1deg); }\
+      to   { transform: translate3d(-9px, -10px, 0) rotate(-1.2deg); }\
+    }\
+    @keyframes ugzPrismC {\
+      from { transform: translate3d(-7px, 11px, 0) rotate(0.9deg); }\
+      to   { transform: translate3d(11px, -8px, 0) rotate(-1.3deg); }\
+    }\
     @media (prefers-reduced-motion: reduce) {\
       .ugz-custom-bg-container * { animation: none !important; }\
     }\
@@ -13486,301 +13583,423 @@ function getUniColors() {
 
 var UGZ_VB = '0 0 400 880';
 
-// Energy Lines is the reference design: every other motif is calibrated to sit
+// The seven are told apart by their VERB, not by their shape. A set reads as
+// varied only when no two things move the same way: two motifs drawn very
+// differently but drifting identically get grouped by the eye anyway.
+//   1 Constellation  a spark TRAVELS a link
+//   2 Light Rays     the fan SWAYS while a highlight SWEEPS across it
+//   3 Depth Grid     the floor ADVANCES, forever, in one direction
+//   4 Ripple         rings are BORN, grow, and DIE
+//   5 Silk           a PHASE wave crosses a field of parallel strands
+//   6 Embers         particles RISE, at two speeds
+//   7 Prism          planes OVERLAP; the colour of the screen breathes
+//
+// Constellation is the reference design: every other motif is calibrated to sit
 // at the same perceived intensity (alpha x sqrt(coverage) ~= 0.08-0.10).
-function getEnergyLinesBgHtml(c1, c2) {
-  c1 = _ugzBrighten(c1, 0.34);
-  c2 = _ugzBrighten(c2, 0.34);
 
-  // Very shallow curves (max ~40 units of deviation over 520 of run) are what
-  // make these read as energy lines rather than waves.
-  var lines = [
-    { d: 'M -60,150 Q 200,118 460,162', c: c1, a: 0.55, w: 1.2 },
-    { d: 'M -60,300 Q 200,338 460,286', c: c2, a: 0.45, w: 1.0 },
-    { d: 'M -60,452 Q 200,414 460,470', c: c1, a: 0.55, w: 1.3 },
-    { d: 'M -60,606 Q 200,644 460,598', c: c2, a: 0.45, w: 1.0 },
-    { d: 'M -60,752 Q 200,722 460,778', c: c1, a: 0.50, w: 1.2 }
-  ];
-  // Dots sit on the lines; the wide companion circle is their glow.
-  var dots = [
-    { x: 96,  y: 138, r: 1.8, c: c1, cls: '' },
-    { x: 262, y: 140, r: 1.4, c: c1, cls: ' ugz-edot-b' },
-    { x: 158, y: 320, r: 2.0, c: c2, cls: ' ugz-edot-c' },
-    { x: 320, y: 300, r: 1.5, c: c2, cls: '' },
-    { x: 128, y: 436, r: 2.2, c: c1, cls: ' ugz-edot-b' },
-    { x: 288, y: 626, r: 1.7, c: c2, cls: ' ugz-edot-c' },
-    { x: 186, y: 742, r: 1.6, c: c1, cls: '' }
-  ];
-
-  function grad(id, col, alpha) {
-    return '<linearGradient id="' + id + '" x1="0%" y1="0%" x2="100%" y2="0%">' +
-      '<stop offset="0%" stop-color="' + col + '" stop-opacity="0"/>' +
-      '<stop offset="25%" stop-color="' + col + '" stop-opacity="' + alpha + '"/>' +
-      '<stop offset="72%" stop-color="' + col + '" stop-opacity="' + alpha + '"/>' +
-      '<stop offset="100%" stop-color="' + col + '" stop-opacity="0"/>' +
-    '</linearGradient>';
-  }
-
-  // Split across 3 wrappers so the drift animation runs on plain divs
-  // (compositor-only) instead of transforming the SVG every frame.
-  var groups = [[0, 1], [2, 3], [4]];
-  var html = '';
-  for (var g = 0; g < groups.length; g++) {
-    var paths = '';
-    for (var i = 0; i < groups[g].length; i++) {
-      var L = lines[groups[g][i]];
-      var isC1 = (L.c === c1);
-      paths +=
-        '<path d="' + L.d + '" stroke="' + hexToRgba(L.c, 0.09) + '" stroke-width="' + (L.w + 2.4) +
-          '" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
-        '<path d="' + L.d + '" stroke="url(#ugzELc' + (isC1 ? '1' : '2') + ')" stroke-width="' + L.w +
-          '" fill="none" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
-    }
-    html += '<div class="ugz-eline ugz-eline-' + (g + 1) + '">' +
-      '<svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
-        (g === 0 ? '<defs>' + grad('ugzELc1', c1, 0.55) + grad('ugzELc2', c2, 0.45) + '</defs>' : '') +
-        paths +
-      '</svg>' +
-    '</div>';
-  }
-
-  var dotSvg = '';
-  for (var k = 0; k < dots.length; k++) {
-    var D = dots[k];
-    dotSvg += '<g class="ugz-edot' + D.cls + '">' +
-      '<circle cx="' + D.x + '" cy="' + D.y + '" r="5" fill="' + hexToRgba(D.c, 0.10) + '"/>' +
-      '<circle cx="' + D.x + '" cy="' + D.y + '" r="' + D.r + '" fill="' + hexToRgba(D.c, 0.60) + '"/>' +
-    '</g>';
-  }
-  html += '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="' + UGZ_VB +
-    '" preserveAspectRatio="xMidYMid slice">' + dotSvg + '</svg>';
-
-  return _ugzBgFrame(c1, c2, html);
+// Deterministic stand-in for a RNG. Same output every render, so a background
+// never reshuffles itself between two openings of the same chat.
+function _ugzRnd(i) {
+  var x = Math.sin(i * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
 }
 
-function getTopographicBgHtml(c1, c2) {
+// viewBox units -> CSS px. The SVGs are 400x880 sliced into a ~412x915 box, so
+// one unit is a hair over one pixel; spark vectors have to carry that or they
+// land short of the node they were aimed at.
+var UGZ_U2PX = 1.04;
+
+// ── 1 · Constellation ────────────────────────────────────────────────────────
+// Three loose clusters, and links drawn only between nodes that are actually
+// close. Deriving the edges from distance instead of hand-drawing them is what
+// makes it look computed rather than decorated.
+function getConstellationBgHtml(c1, c2) {
   c1 = _ugzBrighten(c1, 0.34);
   c2 = _ugzBrighten(c2, 0.34);
 
-  // Elongated nested loops whose ends run off-canvas: reads as contour rings
-  // sliced by the frame, futuristic rather than a literal map.
-  var islands = [
-    { cy: 196, x0: -90, x1: 490, h0: 24, step: 15, n: 6, skew: -18 },
-    { cy: 508, x0: -70, x1: 470, h0: 20, step: 14, n: 6, skew: 22 },
-    { cy: 782, x0: -100, x1: 500, h0: 18, score: 0, step: 13, n: 5, skew: -12 }
+  var nodes = [
+    [58, 120], [128, 86], [96, 182], [170, 148], [44, 214],
+    [300, 330], [352, 272], [256, 392], [330, 430], [390, 360],
+    [120, 620], [188, 690], [74, 712], [160, 796], [236, 640], [98, 560]
   ];
+  // Three long bridges by hand: without them the clusters read as three
+  // unrelated pictures instead of one network.
+  var bridges = [[3, 7], [7, 14], [5, 6]];
 
-  function ring(is, h) {
-    var cy = is.cy, a = is.x0, b = is.x1, s = is.skew;
-    var c1x = a + (b - a) * 0.22, c2x = a + (b - a) * 0.72;
-    return 'M ' + a + ',' + cy +
-      ' C ' + c1x + ',' + (cy - h + s) + ' ' + c2x + ',' + (cy - h - s) + ' ' + b + ',' + cy +
-      ' C ' + c2x + ',' + (cy + h - s) + ' ' + c1x + ',' + (cy + h + s) + ' ' + a + ',' + cy + ' Z';
-  }
-
-  var paths = '', pts = '';
-  for (var i = 0; i < islands.length; i++) {
-    var is = islands[i];
-    // Exactly two rings per island get the bright double-stroke treatment;
-    // that restraint is what keeps this minimal instead of busy.
-    var accentA = 1, accentB = is.n - 2;
-    for (var j = 0; j < is.n; j++) {
-      var h = is.h0 + j * is.step;
-      var d = ring(is, h);
-      if (j === accentA || j === accentB) {
-        paths += '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.10) + '" stroke-width="3.2" fill="none" vector-effect="non-scaling-stroke"/>' +
-                 '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.52) + '" stroke-width="1.1" fill="none" vector-effect="non-scaling-stroke"/>';
-      } else if (j % 2 === 0) {
-        paths += '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.34) + '" stroke-width="1.1" fill="none" vector-effect="non-scaling-stroke"/>';
-      } else {
-        paths += '<path d="' + d + '" stroke="' + hexToRgba(c2, 0.24) + '" stroke-width="0.8" fill="none" vector-effect="non-scaling-stroke"/>';
-      }
-    }
-    // Survey points — the technical cue, and a deliberate rhyme with the dots
-    // in Energy Lines.
-    var sx = [72, 214, 336];
-    for (var p = 0; p < sx.length; p++) {
-      var oy = is.cy + (p - 1) * (is.h0 + is.step * 2);
-      pts += '<circle cx="' + sx[p] + '" cy="' + oy + '" r="1.1" fill="' + hexToRgba(p === 1 ? c2 : c1, 0.50) + '"/>';
+  var links = [], i, j;
+  for (i = 0; i < nodes.length; i++) {
+    for (j = i + 1; j < nodes.length; j++) {
+      var dx = nodes[j][0] - nodes[i][0], dy = nodes[j][1] - nodes[i][1];
+      if (dx * dx + dy * dy < 150 * 150) links.push([i, j]);
     }
   }
+  for (i = 0; i < bridges.length; i++) links.push(bridges[i]);
 
-  var html = '<svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
-    paths + pts + '</svg>';
-  return _ugzBgFrame(c1, c2, html);
-}
-
-function getParticleWaveBgHtml(c1, c2) {
-  c1 = _ugzBrighten(c1, 0.34);
-  c2 = _ugzBrighten(c2, 0.34);
-
-  // Three tiled radial-gradient dot fields at different scales, each shaped by a
-  // mask of three elliptical crests. ~5000 dots for zero DOM nodes and zero JS —
-  // and, unlike canvas, it renders correctly even when the chat window has no
-  // measured size yet.
-  var layers = [
-    { col: c1, a: 0.42, r: 0.7, tile: 11, off: '0px 0px',  shift: 0 },
-    { col: c1, a: 0.55, r: 0.9, tile: 17, off: '5px 3px',  shift: 5 },
-    { col: c2, a: 0.62, r: 1.2, tile: 29, off: '9px 11px', shift: 10 }
-  ];
-
-  var html = '';
-  for (var i = 0; i < layers.length; i++) {
-    var L = layers[i];
-    var col = hexToRgba(L.col, L.a);
-    // Two identical stops then transparent gives a crisp dot with a controlled
-    // antialias edge instead of a fuzzy blob.
-    var dot = 'radial-gradient(circle at 50% 50%, ' + col + ' 0px, ' + col + ' ' + L.r + 'px, transparent ' + (L.r * 2) + 'px)';
-    // Crests shift down per layer — that offset is the parallax that reads as depth.
-    var mask =
-      'radial-gradient(ellipse 140% 26% at 22% ' + (26 + L.shift) + '%, #000 0%, rgba(0,0,0,0.55) 42%, transparent 78%),' +
-      'radial-gradient(ellipse 150% 24% at 76% ' + (54 + L.shift) + '%, #000 0%, rgba(0,0,0,0.50) 44%, transparent 80%),' +
-      'radial-gradient(ellipse 130% 22% at 38% ' + (82 + L.shift) + '%, #000 0%, rgba(0,0,0,0.45) 40%, transparent 76%)';
-    html += '<div class="ugz-pw-layer" style="' +
-      'background-image:' + dot + ';' +
-      'background-size:' + L.tile + 'px ' + L.tile + 'px;' +
-      'background-position:' + L.off + ';' +
-      '-webkit-mask-image:' + mask + ';mask-image:' + mask + ';' +
-      '-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;"></div>';
+  var edge = '';
+  for (i = 0; i < links.length; i++) {
+    var a = nodes[links[i][0]], b = nodes[links[i][1]];
+    edge += '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] +
+      '" stroke="' + hexToRgba(i % 5 === 0 ? c2 : c1, 0.16) + '" stroke-width="0.8" vector-effect="non-scaling-stroke"/>';
   }
 
-  // Family signature: two hairlines tracing the top crests.
-  html += '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
-    '<path d="M -60,250 Q 150,196 460,244" stroke="' + hexToRgba(c1, 0.22) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>' +
-    '<path d="M -60,512 Q 250,462 460,506" stroke="' + hexToRgba(c2, 0.18) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>' +
-  '</svg>';
-
-  return _ugzBgFrame(c1, c2, html);
-}
-
-function getAuroraBgHtml(c1, c2) {
-  c1 = _ugzBrighten(c1, 0.34);
-  c2 = _ugzBrighten(c2, 0.34);
-
-  // Pure CSS: an elongated radial IS the blur, so no filter is needed. Peak
-  // alpha 0.16 (the old version stacked 0.35 fills under 0.88 SVG strokes,
-  // which is why it read as a saturated generic wallpaper).
-  function band(top, h, col, alpha, rot) {
-    return '<div style="position:absolute;left:-30%;right:-30%;top:' + top + '%;height:' + h + '%;' +
-      'transform:rotate(' + rot + 'deg);background:radial-gradient(ellipse 60% 50% at 50% 50%, ' +
-      hexToRgba(col, alpha) + ' 0%, ' + hexToRgba(col, alpha * 0.38) + ' 45%, transparent 72%);"></div>';
+  // Halo under a bright core: this family's way of making a point glow without
+  // ever reaching for an SVG filter.
+  var dot = '';
+  for (i = 0; i < nodes.length; i++) {
+    var col = (i % 4 === 1) ? c2 : c1;
+    dot += '<circle cx="' + nodes[i][0] + '" cy="' + nodes[i][1] + '" r="4" fill="' + hexToRgba(col, 0.10) + '"/>' +
+           '<circle cx="' + nodes[i][0] + '" cy="' + nodes[i][1] + '" r="1.4" fill="' + hexToRgba(col, 0.58) + '"/>';
   }
-  // 1px crests are the family's thin-luminous-line signature applied to Aurora:
-  // they turn a soft wash into something composed.
-  function crest(top, rot, colA, colB) {
-    return '<div style="position:absolute;left:-24%;right:-24%;top:' + top + '%;height:1px;' +
-      'transform:rotate(' + rot + 'deg);filter:blur(0.5px);background:linear-gradient(90deg, transparent 0%, ' +
-      hexToRgba(colA, 0.52) + ' 28%, ' + hexToRgba(colB, 0.42) + ' 62%, transparent 100%);"></div>';
+
+  // A far field of dimmer stars on its own layer, drifting at a different rate.
+  var far = '';
+  for (i = 0; i < 26; i++) {
+    far += '<circle cx="' + (_ugzRnd(i) * 400).toFixed(1) + '" cy="' + (_ugzRnd(i + 40) * 880).toFixed(1) +
+      '" r="0.7" fill="' + hexToRgba(i % 3 === 0 ? c2 : c1, 0.22) + '"/>';
+  }
+
+  // The sparks live INSIDE the graph layer, so they inherit its drift. Kept
+  // outside it they would slide up to 16px out of register with their own link.
+  var sparkLinks = [links[0], links[3], links[7], bridges[0], bridges[1], bridges[2]];
+  var dur = [24, 27, 31, 34, 22, 29];
+  var spark = '';
+  for (i = 0; i < sparkLinks.length; i++) {
+    var p = nodes[sparkLinks[i][0]], q = nodes[sparkLinks[i][1]];
+    spark += '<div class="ugz-cn-spark" style="' +
+      'left:' + (p[0] / 400 * 100).toFixed(2) + '%;top:' + (p[1] / 880 * 100).toFixed(2) + '%;' +
+      '--dx:' + ((q[0] - p[0]) * UGZ_U2PX).toFixed(1) + 'px;--dy:' + ((q[1] - p[1]) * UGZ_U2PX).toFixed(1) + 'px;' +
+      'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c2, 0.85) + ' 0%, ' + hexToRgba(c2, 0.28) + ' 45%, transparent 72%);' +
+      'animation-duration:' + dur[i] + 's;animation-delay:-' + (dur[i] * 0.37 * (i + 1)).toFixed(0) + 's;"></div>';
   }
 
   var html =
-    band(14, 34, c1, 0.30, -11) +
-    band(44, 32, c2, 0.25, 7) +
-    band(68, 30, c1, 0.17, -5) +
-    crest(16, -11, c1, c2) +
-    crest(46, 7, c2, c1);
+    '<div class="ugz-cn-layer ugz-cn-layer-2"><svg class="ugz-bg-svg" viewBox="' + UGZ_VB +
+      '" preserveAspectRatio="xMidYMid slice">' + far + '</svg></div>' +
+    '<div class="ugz-cn-layer ugz-cn-layer-1"><svg class="ugz-bg-svg" viewBox="' + UGZ_VB +
+      '" preserveAspectRatio="xMidYMid slice">' + edge + dot + '</svg>' + spark + '</div>';
 
   return _ugzBgFrame(c1, c2, html);
 }
 
-function getNebulaBgHtml(c1, c2) {
+// ── 2 · Light Rays ───────────────────────────────────────────────────────────
+// Beams from a point off the top-left corner. Two gradient defs serve all seven
+// beams: objectBoundingBox 0,0 -> 1,1 runs apex-to-far-corner on every one of
+// them, because they all point the same way.
+function getLightRaysBgHtml(c1, c2) {
   c1 = _ugzBrighten(c1, 0.34);
   c2 = _ugzBrighten(c2, 0.34);
 
-  // Only three clouds, centres far apart. The old version stacked four
-  // full-viewport blurred divs that averaged c1 and c2 into flat mud.
-  // Each cloud is nucleus + halo — that two-stop falloff is the difference
-  // between a cloud and a wash.
-  function cloud(at, size, col, a) {
-    return '<div style="position:absolute;inset:0;background:radial-gradient(ellipse ' + size + ' at ' + at + ', ' +
-      hexToRgba(col, a) + ' 0%, ' + hexToRgba(col, a * 0.42) + ' 33%, transparent 57%);"></div>';
+  var ax = -40, ay = -60, R = 1500;
+  var beams = [
+    { t: 22, w: 2.6, c: 1 }, { t: 31, w: 1.5, c: 2 }, { t: 39, w: 3.1, c: 1 },
+    { t: 48, w: 1.8, c: 2 }, { t: 56, w: 2.9, c: 1 }, { t: 65, w: 1.4, c: 1 },
+    { t: 74, w: 2.4, c: 2 }
+  ];
+
+  function pt(deg) {
+    var r = deg * Math.PI / 180;
+    return (ax + R * Math.cos(r)).toFixed(1) + ',' + (ay + R * Math.sin(r)).toFixed(1);
+  }
+
+  var poly = '', line = '';
+  for (var i = 0; i < beams.length; i++) {
+    var b = beams[i];
+    poly += '<polygon points="' + ax + ',' + ay + ' ' + pt(b.t - b.w) + ' ' + pt(b.t + b.w) +
+      '" fill="url(#ugzLr' + b.c + ')"/>';
+    // Only the leading edge is stroked. Both edges would read as a wireframe.
+    line += '<line x1="' + ax + '" y1="' + ay + '" x2="' + pt(b.t - b.w).split(',')[0] + '" y2="' +
+      pt(b.t - b.w).split(',')[1] + '" stroke="' + hexToRgba(b.c === 1 ? c1 : c2, 0.34) +
+      '" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+  }
+
+  // Halved from the 0.15/0.07 the other motifs use: seven beams fanned across
+  // the whole canvas overlap far more than a count of seven suggests, and at
+  // face value this design measured 16% hotter than the rest of the set.
+  function grad(id, col) {
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="' + hexToRgba(col, 0.063) + '"/>' +
+      '<stop offset="46%" stop-color="' + hexToRgba(col, 0.029) + '"/>' +
+      '<stop offset="100%" stop-color="' + hexToRgba(col, 0) + '"/></linearGradient>';
   }
 
   var html =
-    cloud('22% 18%', '78% 52%', c1, 0.32) +
-    cloud('84% 62%', '70% 48%', c2, 0.28) +
-    cloud('46% 92%', '96% 40%', c1, 0.16);
-
-  // Dust motes + one thin arc give it structure at close range.
-  var motes = [
-    [78, 128], [132, 96], [166, 176], [104, 212], [58, 178], [198, 132], [148, 248],
-    [300, 512], [342, 468], [268, 556], [318, 596], [356, 542], [286, 470], [330, 628]
-  ];
-  var mote = '';
-  for (var i = 0; i < motes.length; i++) {
-    mote += '<circle cx="' + motes[i][0] + '" cy="' + motes[i][1] + '" r="0.9" fill="' +
-      hexToRgba(i < 7 ? c1 : c2, 0.55) + '"/>';
-  }
-  html += '<svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
-    mote +
-    '<path d="M 200,404 Q 330,470 372,616" stroke="' + hexToRgba(c2, 0.38) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>' +
-  '</svg>';
+    '<div class="ugz-lr-fan"><svg class="ugz-bg-svg" viewBox="' + UGZ_VB + '" preserveAspectRatio="xMidYMid slice">' +
+      '<defs>' + grad('ugzLr1', c1) + grad('ugzLr2', c2) + '</defs>' + poly + line +
+    '</svg></div>' +
+    '<div class="ugz-lr-sweep" style="background:linear-gradient(104deg, transparent 0%, ' +
+      'rgba(255,255,255,0.024) 48%, rgba(255,255,255,0.009) 62%, transparent 100%);"></div>';
 
   return _ugzBgFrame(c1, c2, html);
 }
 
-function getFloatingOrbsBgHtml(c1, c2) {
+// ── 3 · Depth Grid ───────────────────────────────────────────────────────────
+// The rungs sit at geometrically spaced distances from the vanishing point, so
+// scaling the layer by exactly that ratio maps the set onto itself and the loop
+// closes with no seam. Rays go in a separate STATIC layer: a line through the
+// origin is invariant under this scale, so animating it would only fatten it.
+var UGZ_DG_S = 2.40;
+
+function getDepthGridBgHtml(c1, c2) {
   c1 = _ugzBrighten(c1, 0.34);
   c2 = _ugzBrighten(c2, 0.34);
 
-  // No filter:blur() — it re-blurs every animated frame and eats the alpha. A
-  // radial gradient is a blur, for free, and stays stable under animation.
-  // The smallest orbs carry the highest alpha: that inversion is what reads as
-  // "small light sources" with depth rather than as big soft blobs.
-  var orbs = [
-    { size: 150, top: '11%',  left: '9%',   col: c1, a: 0.36, ring: false },
-    { size: 210, top: '58%',  right: '8%',  col: c2, a: 0.31, ring: false },
-    { size: 120, top: '78%',  left: '22%',  col: c1, a: 0.40, ring: true  },
-    { size: 260, top: '28%',  right: '26%', col: c2, a: 0.24, ring: false },
-    { size: 96,  top: '40%',  left: '44%',  col: c1, a: 0.42, ring: true  }
+  var vx = 200, vy = 387, N = 4, d0 = 22;
+  // Half-width grows linearly with distance: that is what turns a stack of
+  // horizontal lines into a corridor rather than a ladder.
+  var K = 0.811;
+
+  function rungs() {
+    var s = '', i, d, hw;
+    for (i = 0; i < 16; i++) {                     // the floor
+      d = d0 * Math.pow(UGZ_DG_S, i / N);
+      hw = K * d;
+      s += '<line x1="' + (vx - hw).toFixed(1) + '" y1="' + (vy + d).toFixed(1) +
+        '" x2="' + (vx + hw).toFixed(1) + '" y2="' + (vy + d).toFixed(1) +
+        '" stroke="' + hexToRgba(c1, 0.30) + '" stroke-width="0.9" vector-effect="non-scaling-stroke"/>';
+    }
+    for (i = 0; i < 14; i++) {                     // the ceiling
+      d = d0 * Math.pow(UGZ_DG_S, i / N);
+      hw = K * d;
+      s += '<line x1="' + (vx - hw).toFixed(1) + '" y1="' + (vy - d).toFixed(1) +
+        '" x2="' + (vx + hw).toFixed(1) + '" y2="' + (vy - d).toFixed(1) +
+        '" stroke="' + hexToRgba(c1, 0.22) + '" stroke-width="0.9" vector-effect="non-scaling-stroke"/>';
+    }
+    return s;
+  }
+
+  // Nine rays, each drawn as one line running clean through the vanishing point.
+  var rays = '';
+  for (var r = 0; r < 9; r++) {
+    var xb = -200 + r * 100;
+    var xt = vx + (xb - vx) * (-vy / (880 - vy));
+    rays += '<line x1="' + xt.toFixed(1) + '" y1="0" x2="' + xb + '" y2="880" stroke="' +
+      hexToRgba(c1, 0.17) + '" stroke-width="0.8" vector-effect="non-scaling-stroke"/>';
+  }
+  // The horizon is this design's hairline, the family signature.
+  rays += '<line x1="-40" y1="' + vy + '" x2="440" y2="' + vy + '" stroke="' + hexToRgba(c2, 0.40) +
+    '" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+    '<circle cx="' + vx + '" cy="' + vy + '" r="2.2" fill="' + hexToRgba(c2, 0.42) + '"/>';
+
+  function layer(cls) {
+    return '<div class="ugz-dg-run ' + cls + '"><svg class="ugz-bg-svg" viewBox="' + UGZ_VB +
+      '" preserveAspectRatio="xMidYMid slice">' + rungs() + '</svg></div>';
+  }
+
+  var html =
+    layer('ugz-dg-run-1') + layer('ugz-dg-run-2') + layer('ugz-dg-run-3') +
+    '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="' + UGZ_VB +
+      '" preserveAspectRatio="xMidYMid slice">' + rays + '</svg>';
+
+  return _ugzBgFrame(c1, c2, html);
+}
+
+// ── 4 · Ripple ───────────────────────────────────────────────────────────────
+// The only motif whose elements appear and disappear instead of always being
+// there. Each ring is authored at its FINAL diameter and scaled up to 1, never
+// past it, so the rasterized bitmap is never magnified and the edge stays clean.
+function getRippleBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  var origins = [
+    { x: 24, y: 22, d: 300, col: c1, dur: 21 },
+    { x: 78, y: 58, d: 260, col: c2, dur: 26 },
+    { x: 44, y: 86, d: 340, col: c1, dur: 24 }
   ];
 
   var html = '';
-  for (var i = 0; i < orbs.length; i++) {
-    var o = orbs[i];
-    var pos = 'top:' + o.top + ';' + (o.left ? 'left:' + o.left + ';' : 'right:' + o.right + ';');
-    html += '<div class="ugz-orb ugz-orb-' + (i + 1) + '" style="' + pos +
-      'width:' + o.size + 'px;height:' + o.size + 'px;' +
-      'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(o.col, o.a) + ' 0%, ' +
-        hexToRgba(o.col, o.a * 0.45) + ' 38%, transparent 70%);">' +
-      // A hairline ring is what stops an orb reading as a generic blob.
-      (o.ring ? '<div class="ugz-orb-ring" style="border:1px solid ' + hexToRgba(o.col, 0.26) + ';"></div>' : '') +
-    '</div>';
+  for (var o = 0; o < origins.length; o++) {
+    var g = origins[o];
+    for (var k = 0; k < 3; k++) {
+      html += '<div class="ugz-rp" style="' +
+        'left:' + g.x + '%;top:' + g.y + '%;width:' + g.d + 'px;height:' + g.d + 'px;' +
+        'margin-left:' + (-g.d / 2) + 'px;margin-top:' + (-g.d / 2) + 'px;' +
+        'border:1.5px solid ' + hexToRgba(g.col, o === 1 ? 0.34 : 0.42) + ';' +
+        'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(g.col, 0.10) + ' 0%, transparent 62%);' +
+        'animation-duration:' + g.dur + 's;animation-delay:-' + (g.dur * k / 3).toFixed(1) + 's;"></div>';
+    }
+    // A still point at each origin, so the source of the ripple is legible.
+    html += '<div style="position:absolute;left:' + g.x + '%;top:' + g.y + '%;width:3px;height:3px;' +
+      'margin:-1.5px 0 0 -1.5px;border-radius:50%;background:' + hexToRgba(g.col, 0.55) + ';"></div>';
   }
+
   return _ugzBgFrame(c1, c2, html);
 }
 
-function getLiquidFlowBgHtml(c1, c2) {
+// ── 5 · Silk ─────────────────────────────────────────────────────────────────
+// Fifteen near-parallel strands, interleaved across five layers that slide at
+// different rates. Staggered lateral offsets on parallel curves read as one
+// wave travelling through the field — no strand ever has to bend for that.
+function getSilkBgHtml(c1, c2) {
   c1 = _ugzBrighten(c1, 0.34);
   c2 = _ugzBrighten(c2, 0.34);
 
-  // Deform without touching a paint property: the old version animated
-  // border-radius (full re-rasterization every frame). Instead a slow orbit on
-  // the wrapper and a non-uniform scale on the shape, at incommensurate
-  // periods, so the motion never visibly repeats. The off-centre gradient is
-  // what makes rotation read as flow instead of as a spinning wheel.
-  function shape(cls, col, a, at) {
-    return '<div class="ugz-liq-wrap ' + cls + '">' +
-      '<div class="ugz-liq-shape" style="background:radial-gradient(circle at ' + at + ', ' +
-        hexToRgba(col, a) + ' 0%, ' + hexToRgba(col, a * 0.38) + ' 40%, transparent 68%);"></div>' +
-    '</div>';
+  var n = 15, band = ['', '', '', '', ''];
+  for (var i = 0; i < n; i++) {
+    var y = 62 + i * 54;
+    // Amplitude swells toward the middle of the screen and eases off at both
+    // edges; a constant amplitude reads as corrugated metal, not silk.
+    var a = 12 + 15 * Math.sin(Math.PI * i / (n - 1));
+    var d = 'M -60,' + y.toFixed(0) +
+      ' Q 40,' + (y - a).toFixed(1) + ' 140,' + y.toFixed(0) +
+      ' Q 240,' + (y + a).toFixed(1) + ' 340,' + y.toFixed(0) +
+      ' Q 410,' + (y - a * 0.7).toFixed(1) + ' 460,' + (y + a * 0.25).toFixed(1);
+
+    var accent = (i === 3 || i === 7 || i === 11);
+    var s;
+    if (accent) {
+      s = '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.08) + '" stroke-width="3" fill="none" vector-effect="non-scaling-stroke"/>' +
+          '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.52) + '" stroke-width="1" fill="none" vector-effect="non-scaling-stroke"/>';
+    } else if (i % 2 === 0) {
+      s = '<path d="' + d + '" stroke="' + hexToRgba(c1, 0.30) + '" stroke-width="0.8" fill="none" vector-effect="non-scaling-stroke"/>';
+    } else {
+      s = '<path d="' + d + '" stroke="' + hexToRgba(c2, 0.22) + '" stroke-width="0.8" fill="none" vector-effect="non-scaling-stroke"/>';
+    }
+    // Interleaved, not sliced into blocks: neighbouring strands must land in
+    // different layers or the wave turns into five sliding stripes.
+    band[i % 5] += s;
   }
 
-  var html =
-    shape('ugz-liq-1', c1, 0.30, '38% 42%') +
-    // The stroked ellipse sits inside shape 2's wrapper so it inherits the
-    // orbit and reads as the surface tension edge of the ink.
-    '<div class="ugz-liq-wrap ugz-liq-2">' +
-      '<div class="ugz-liq-shape" style="background:radial-gradient(circle at 58% 46%, ' +
-        hexToRgba(c2, 0.26) + ' 0%, ' + hexToRgba(c2, 0.10) + ' 40%, transparent 68%);"></div>' +
-      '<svg class="ugz-bg-svg" style="position:absolute;inset:0;" viewBox="0 0 200 200" preserveAspectRatio="none">' +
-        '<ellipse cx="100" cy="100" rx="76" ry="62" fill="none" stroke="' + hexToRgba(c2, 0.34) +
-          '" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
-      '</svg>' +
-    '</div>' +
-    shape('ugz-liq-3', c1, 0.17, '44% 56%');
+  var html = '';
+  for (var k = 0; k < 5; k++) {
+    html += '<div class="ugz-sk ugz-sk-' + (k + 1) + '"><svg class="ugz-bg-svg" viewBox="' + UGZ_VB +
+      '" preserveAspectRatio="xMidYMid slice">' + band[k] + '</svg></div>';
+  }
 
   return _ugzBgFrame(c1, c2, html);
+}
+
+// ── 6 · Embers ───────────────────────────────────────────────────────────────
+// Sharp embers climb in 26-40s, soft bokeh in 58-72s. That difference in speed
+// is the entire depth cue; matching them collapses the image flat.
+function getEmbersBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  var html = '', i;
+
+  for (i = 0; i < 5; i++) {
+    var bs = 80 + _ugzRnd(i + 200) * 60;
+    var bd = 58 + _ugzRnd(i + 210) * 14;
+    html += '<div class="ugz-em" style="' +
+      'left:' + (6 + _ugzRnd(i + 220) * 80).toFixed(1) + '%;bottom:-' + (bs + 40).toFixed(0) + 'px;' +
+      'width:' + bs.toFixed(0) + 'px;height:' + bs.toFixed(0) + 'px;' +
+      '--dx:' + ((_ugzRnd(i + 230) - 0.5) * 40).toFixed(0) + 'px;' +
+      'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(i % 2 ? c2 : c1, 0.17) + ' 0%, ' +
+        hexToRgba(i % 2 ? c2 : c1, 0.07) + ' 42%, transparent 72%);' +
+      'animation-duration:' + bd.toFixed(0) + 's;animation-delay:-' + (bd * _ugzRnd(i + 240)).toFixed(0) + 's;"></div>';
+  }
+
+  // A middle tier between the bokeh and the sparks. Without it the field is
+  // binary — five huge blurs and a scatter of pinpricks — and reads as an empty
+  // panel no matter how many pinpricks there are.
+  for (i = 0; i < 14; i++) {
+    var ms = 9 + _ugzRnd(i + 300) * 9;
+    var md = 34 + _ugzRnd(i + 310) * 14;
+    var mc = (i % 2) ? c2 : c1;
+    html += '<div class="ugz-em" style="' +
+      'left:' + (_ugzRnd(i + 320) * 94).toFixed(1) + '%;bottom:-40px;' +
+      'width:' + ms.toFixed(0) + 'px;height:' + ms.toFixed(0) + 'px;' +
+      '--dx:' + ((_ugzRnd(i + 330) - 0.5) * 46).toFixed(0) + 'px;' +
+      'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(mc, 0.20) + ' 0%, ' +
+        hexToRgba(mc, 0.08) + ' 44%, transparent 76%);' +
+      'animation-duration:' + md.toFixed(0) + 's;animation-delay:-' + (md * _ugzRnd(i + 340)).toFixed(0) + 's;"></div>';
+  }
+
+  // 44, not the 22 this started at, and every one carries a SOLID core out to
+  // 34% before it falls off. With the old 0%-to-74% ramp a 3px ember had about
+  // one visible pixel: 22 of them measured a mere 7% under the set average and
+  // still looked like a black panel. Luminance says nothing about density.
+  for (i = 0; i < 44; i++) {
+    var s = 3 + _ugzRnd(i) * 4;
+    var du = 26 + _ugzRnd(i + 50) * 14;
+    var col = (i % 3 === 0) ? c2 : c1;
+    var al = 0.62 + _ugzRnd(i + 80) * 0.26;
+    html += '<div class="ugz-em" style="' +
+      'left:' + (_ugzRnd(i + 60) * 96).toFixed(1) + '%;bottom:-30px;' +
+      'width:' + s.toFixed(1) + 'px;height:' + s.toFixed(1) + 'px;' +
+      '--dx:' + ((_ugzRnd(i + 70) - 0.5) * 52).toFixed(0) + 'px;' +
+      'background:radial-gradient(circle at 50% 50%, ' + hexToRgba(col, al) + ' 0%, ' +
+        hexToRgba(col, al) + ' 34%, ' + hexToRgba(col, al * 0.34) + ' 58%, transparent 80%);' +
+      'animation-duration:' + du.toFixed(0) + 's;animation-delay:-' + (du * _ugzRnd(i + 90)).toFixed(0) + 's;"></div>';
+  }
+
+  return _ugzBgFrame(c1, c2, html);
+}
+
+// ── 7 · Prism ────────────────────────────────────────────────────────────────
+// Plain alpha, deliberately no mix-blend-mode: translucent fills already
+// accumulate where they cross, and blending would force a composite pass every
+// frame for a difference nobody can see at these alphas. Every polygon runs off
+// the canvas on at least one side, so a 1.4deg rotation can never swing an
+// unintended corner into view.
+function getPrismBgHtml(c1, c2) {
+  c1 = _ugzBrighten(c1, 0.34);
+  c2 = _ugzBrighten(c2, 0.34);
+
+  // These alphas look impossibly low written down, and they are: each plane
+  // covers most of the screen and two or three of them stack everywhere, so the
+  // fills add up to ~0.10 in the busy regions. Authored at the 0.09-0.13 the
+  // other motifs use, this one measured 62% brighter than the rest of the set.
+  // The edge strokes stay strong — they are 1px lines, they cost nothing, and
+  // they are the only thing that says "sheet of glass" instead of "smudge".
+  var planes = [
+    { p: '-80,-60 300,-120 460,240 120,300', c: c1, a: 0.023 },
+    { p: '-60,180 240,120 460,420 180,520 -100,400', c: c2, a: 0.017 },
+    { p: '60,380 460,300 470,700 140,660', c: c1, a: 0.021 },
+    { p: '-90,560 260,500 460,780 200,940 -60,860', c: c2, a: 0.016 },
+    { p: '100,660 460,620 450,950 60,940', c: c1, a: 0.019 }
+  ];
+
+  var html = '';
+  for (var i = 0; i < planes.length; i++) {
+    var pl = planes[i];
+    html += '<div class="ugz-pr ugz-pr-' + (i + 1) + '"><svg class="ugz-bg-svg" viewBox="' + UGZ_VB +
+      '" preserveAspectRatio="xMidYMid slice">' +
+      '<polygon points="' + pl.p + '" fill="' + hexToRgba(pl.c, pl.a) + '" stroke="' +
+        hexToRgba(pl.c, 0.18) + '" stroke-width="1" vector-effect="non-scaling-stroke"/>' +
+    '</svg></div>';
+  }
+
+  return _ugzBgFrame(c1, c2, html);
+}
+
+// ── Dispatch, and the saved keys from the previous seven ─────────────────────
+var UGZ_BG_MOTIF = {
+  'uni-constellation': getConstellationBgHtml,
+  'uni-light-rays': getLightRaysBgHtml,
+  'uni-depth-grid': getDepthGridBgHtml,
+  'uni-ripple': getRippleBgHtml,
+  'uni-silk': getSilkBgHtml,
+  'uni-ember': getEmbersBgHtml,
+  'uni-prism': getPrismBgHtml
+};
+
+// Every one of these is a key somebody already has saved against a chat. All
+// seven designs were replaced, so without this table each of them would fall
+// through to the unknown branch and that chat would lose its background. Each
+// old key lands on whichever new design shares its dominant visual.
+var UGZ_BG_LEGACY = {
+  'uni-energy-lines': 'uni-silk',        'Energy Lines': 'uni-silk',
+  'uni-aurora': 'uni-light-rays',        'Aurora': 'uni-light-rays',        'uni-2': 'uni-light-rays',
+  'uni-nebula': 'uni-ember',             'Nebula': 'uni-ember',             'uni-9': 'uni-ember',
+  'uni-floating-orbs': 'uni-ember',      'Floating Orbs': 'uni-ember',      'uni-3': 'uni-ember',
+  'uni-particle-wave': 'uni-constellation', 'Particle Wave': 'uni-constellation',
+  'uni-geometric-pulse': 'uni-constellation', 'Geometric Pulse': 'uni-constellation',
+  'uni-4': 'uni-constellation',
+  'uni-topographic': 'uni-ripple',       'Topographic': 'uni-ripple',
+  'uni-liquid-flow': 'uni-prism',        'Liquid Flow': 'uni-prism',
+  'uni-1': 'uni-prism',                  'uni-6': 'uni-prism',
+  // The names of the current seven, so a stored display name resolves too.
+  'Constellation': 'uni-constellation',  'Light Rays': 'uni-light-rays',
+  'Depth Grid': 'uni-depth-grid',        'Ripple': 'uni-ripple',
+  'Silk': 'uni-silk',                    'Embers': 'uni-ember',
+  'Prism': 'uni-prism'
+};
+
+function _ugzBgKey(bgKey) {
+  if (UGZ_BG_MOTIF[bgKey]) return bgKey;
+  return UGZ_BG_LEGACY[bgKey] || 'uni-constellation';
 }
 
 function renderChatBackground(bgKey) {
@@ -13824,28 +14043,8 @@ function renderChatBackground(bgKey) {
   // layers don't collapse to 0 height.
   container.style.cssText = 'position:absolute;inset:0;overflow:hidden;pointer-events:none;';
 
-  var html = '';
-  if (bgKey === 'uni-nebula' || bgKey === 'Nebula' || bgKey === 'uni-9') {
-    html = getNebulaBgHtml(c1, c2);
-  } else if (bgKey === 'uni-topographic' || bgKey === 'Topographic') {
-    html = getTopographicBgHtml(c1, c2);
-  } else if (bgKey === 'uni-particle-wave' || bgKey === 'Particle Wave' ||
-             // Geometric Pulse was replaced by Particle Wave; migrate saved keys
-             // so existing chats don't fall through to the unknown-key branch.
-             bgKey === 'uni-geometric-pulse' || bgKey === 'Geometric Pulse' || bgKey === 'uni-4') {
-    html = getParticleWaveBgHtml(c1, c2);
-  } else if (bgKey === 'uni-energy-lines' || bgKey === 'Energy Lines') {
-    html = getEnergyLinesBgHtml(c1, c2);
-  } else if (bgKey === 'uni-floating-orbs' || bgKey === 'Floating Orbs' || bgKey === 'uni-3') {
-    html = getFloatingOrbsBgHtml(c1, c2);
-  } else if (bgKey === 'uni-liquid-flow' || bgKey === 'Liquid Flow' || bgKey === 'uni-1' || bgKey === 'uni-6') {
-    html = getLiquidFlowBgHtml(c1, c2);
-  } else {
-    // Includes 'uni-aurora' / 'Aurora' / 'uni-2' and any unrecognised legacy
-    // value. Aurora is the safe default: assigning bgKey as a CSS background
-    // (the old behaviour) left the chat with no background layer at all.
-    html = getAuroraBgHtml(c1, c2);
-  }
+  var fn = UGZ_BG_MOTIF[_ugzBgKey(bgKey)] || UGZ_BG_MOTIF['uni-constellation'];
+  var html = fn(c1, c2);
 
   if (chatWin) chatWin.classList.add('ugz-uni-bg');
   container.innerHTML = html;
@@ -13873,69 +14072,112 @@ function getMiniaturePreviewHtml(id, c1, c2) {
     return '<svg style="position:absolute;inset:0;width:100%;height:100%;" viewBox="0 0 76 112" preserveAspectRatio="none">' + inner + '</svg>';
   }
 
-  if (id === 'uni-aurora') {
-    motif =
-      '<div style="position:absolute;left:-30%;right:-30%;top:16%;height:34%;transform:rotate(-11deg);background:radial-gradient(ellipse 60% 50% at 50% 50%, ' + hexToRgba(c1, 0.30) + ' 0%, transparent 72%);"></div>' +
-      '<div style="position:absolute;left:-30%;right:-30%;top:48%;height:32%;transform:rotate(7deg);background:radial-gradient(ellipse 60% 50% at 50% 50%, ' + hexToRgba(c2, 0.24) + ' 0%, transparent 72%);"></div>' +
-      '<div style="position:absolute;left:-24%;right:-24%;top:19%;height:1px;transform:rotate(-11deg);background:linear-gradient(90deg, transparent, ' + hexToRgba(c1, 0.55) + ' 45%, transparent);"></div>' +
-      '<div style="position:absolute;left:-24%;right:-24%;top:50%;height:1px;transform:rotate(7deg);background:linear-gradient(90deg, transparent, ' + hexToRgba(c2, 0.45) + ' 55%, transparent);"></div>';
-  } else if (id === 'uni-nebula') {
-    motif =
-      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 78% 52% at 22% 18%, ' + hexToRgba(c1, 0.32) + ' 0%, ' + hexToRgba(c1, 0.13) + ' 33%, transparent 57%);"></div>' +
-      '<div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 48% at 84% 62%, ' + hexToRgba(c2, 0.28) + ' 0%, ' + hexToRgba(c2, 0.12) + ' 33%, transparent 57%);"></div>' +
-      svg('<circle cx="18" cy="22" r="0.8" fill="' + hexToRgba(c1, 0.6) + '"/><circle cx="27" cy="15" r="0.7" fill="' + hexToRgba(c1, 0.5) + '"/><circle cx="13" cy="31" r="0.7" fill="' + hexToRgba(c1, 0.45) + '"/>' +
-          '<circle cx="58" cy="66" r="0.8" fill="' + hexToRgba(c2, 0.55) + '"/><circle cx="66" cy="59" r="0.7" fill="' + hexToRgba(c2, 0.5) + '"/>' +
-          '<path d="M 38,50 Q 62,60 70,80" stroke="' + hexToRgba(c2, 0.34) + '" stroke-width="0.8" fill="none"/>');
-  } else if (id === 'uni-topographic') {
-    var rings = '';
-    var isles = [{ cy: 26, n: 4 }, { cy: 64, n: 4 }, { cy: 98, n: 3 }];
-    for (var t = 0; t < isles.length; t++) {
-      for (var r = 0; r < isles[t].n; r++) {
-        var h = 4 + r * 4.5;
-        var acc = (r === 1);
-        rings += '<path d="M -12,' + isles[t].cy + ' C 12,' + (isles[t].cy - h) + ' 60,' + (isles[t].cy - h) + ' 88,' + isles[t].cy +
-          ' C 60,' + (isles[t].cy + h) + ' 12,' + (isles[t].cy + h) + ' -12,' + isles[t].cy + ' Z" stroke="' +
-          hexToRgba(acc ? c1 : (r % 2 === 0 ? c1 : c2), acc ? 0.62 : (r % 2 === 0 ? 0.44 : 0.32)) +
-          '" stroke-width="' + (acc ? 0.9 : 0.7) + '" fill="none"/>';
+  // Deliberately still: the thumbnail shows the composition, the chat shows the
+  // motion. Seven animations running side by side in the picker would cost more
+  // than the preview is worth.
+  if (id === 'uni-constellation') {
+    var cn = [[14, 18], [30, 11], [22, 30], [40, 23], [10, 38], [52, 58], [64, 48],
+              [44, 66], [58, 74], [24, 92], [38, 101], [15, 84], [52, 96]];
+    var cl = '';
+    for (var a = 0; a < cn.length; a++) {
+      for (var bq = a + 1; bq < cn.length; bq++) {
+        var ddx = cn[bq][0] - cn[a][0], ddy = cn[bq][1] - cn[a][1];
+        if (ddx * ddx + ddy * ddy < 24 * 24) {
+          cl += '<line x1="' + cn[a][0] + '" y1="' + cn[a][1] + '" x2="' + cn[bq][0] + '" y2="' + cn[bq][1] +
+            '" stroke="' + hexToRgba(c1, 0.26) + '" stroke-width="0.5"/>';
+        }
       }
     }
-    motif = svg(rings + '<circle cx="20" cy="26" r="0.9" fill="' + hexToRgba(c1, 0.6) + '"/><circle cx="52" cy="64" r="0.9" fill="' + hexToRgba(c2, 0.6) + '"/>');
-  } else if (id === 'uni-particle-wave') {
-    var pw = [
-      { col: c1, a: 0.50, r: 0.6, tile: 5, sh: 0 },
-      { col: c1, a: 0.62, r: 0.8, tile: 8, sh: 5 },
-      { col: c2, a: 0.70, r: 1.0, tile: 13, sh: 10 }
-    ];
-    for (var p = 0; p < pw.length; p++) {
-      var L = pw[p], cc = hexToRgba(L.col, L.a);
-      var mk = 'radial-gradient(ellipse 140% 26% at 22% ' + (26 + L.sh) + '%, #000 0%, rgba(0,0,0,0.55) 42%, transparent 78%),' +
-               'radial-gradient(ellipse 150% 24% at 76% ' + (54 + L.sh) + '%, #000 0%, rgba(0,0,0,0.5) 44%, transparent 80%),' +
-               'radial-gradient(ellipse 130% 22% at 38% ' + (82 + L.sh) + '%, #000 0%, rgba(0,0,0,0.45) 40%, transparent 76%)';
-      motif += '<div style="position:absolute;inset:0;background-image:radial-gradient(circle at 50% 50%, ' + cc + ' 0px, ' + cc + ' ' + L.r + 'px, transparent ' + (L.r * 2) + 'px);' +
-        'background-size:' + L.tile + 'px ' + L.tile + 'px;-webkit-mask-image:' + mk + ';mask-image:' + mk + ';-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;"></div>';
+    for (var d2 = 0; d2 < cn.length; d2++) {
+      var cc2 = (d2 % 4 === 1) ? c2 : c1;
+      cl += '<circle cx="' + cn[d2][0] + '" cy="' + cn[d2][1] + '" r="2.1" fill="' + hexToRgba(cc2, 0.14) + '"/>' +
+            '<circle cx="' + cn[d2][0] + '" cy="' + cn[d2][1] + '" r="0.9" fill="' + hexToRgba(cc2, 0.80) + '"/>';
     }
-    motif += svg('<path d="M -8,32 Q 30,24 84,31" stroke="' + hexToRgba(c1, 0.38) + '" stroke-width="0.8" fill="none"/>');
-  } else if (id === 'uni-energy-lines') {
+    // The spark, frozen mid-link, so the card still says what this one does.
+    cl += '<circle cx="47" cy="62" r="1.3" fill="' + hexToRgba(c2, 0.95) + '"/>';
+    motif = svg(cl);
+  } else if (id === 'uni-light-rays') {
+    var rp = '', rl = '';
+    var bm = [[22, 2.6, c1], [31, 1.5, c2], [39, 3.1, c1], [48, 1.8, c2], [56, 2.9, c1], [65, 1.4, c1], [74, 2.4, c2]];
+    for (var r2 = 0; r2 < bm.length; r2++) {
+      var t0 = (bm[r2][0] - bm[r2][1]) * Math.PI / 180, t1 = (bm[r2][0] + bm[r2][1]) * Math.PI / 180;
+      var x0 = (-8 + 260 * Math.cos(t0)).toFixed(1), y0 = (-11 + 260 * Math.sin(t0)).toFixed(1);
+      var x1 = (-8 + 260 * Math.cos(t1)).toFixed(1), y1 = (-11 + 260 * Math.sin(t1)).toFixed(1);
+      rp += '<polygon points="-8,-11 ' + x0 + ',' + y0 + ' ' + x1 + ',' + y1 + '" fill="' + hexToRgba(bm[r2][2], 0.13) + '"/>';
+      rl += '<line x1="-8" y1="-11" x2="' + x0 + '" y2="' + y0 + '" stroke="' + hexToRgba(bm[r2][2], 0.42) + '" stroke-width="0.5"/>';
+    }
+    motif = svg(rp + rl) +
+      '<div style="position:absolute;top:-20%;bottom:-20%;left:14%;width:34%;background:linear-gradient(104deg, transparent 0%, rgba(255,255,255,0.07) 48%, transparent 100%);"></div>';
+  } else if (id === 'uni-depth-grid') {
+    var g = '', gi, gd, gh, gvy = 49, gk = 0.811 * (76 / 400) / (112 / 880);
+    for (gi = 0; gi < 11; gi++) {
+      gd = 2.8 * Math.pow(2.4, gi / 4);
+      gh = gk * gd;
+      g += '<line x1="' + (38 - gh).toFixed(1) + '" y1="' + (gvy + gd).toFixed(1) + '" x2="' + (38 + gh).toFixed(1) +
+        '" y2="' + (gvy + gd).toFixed(1) + '" stroke="' + hexToRgba(c1, 0.44) + '" stroke-width="0.5"/>';
+    }
+    for (gi = 0; gi < 9; gi++) {
+      gd = 2.8 * Math.pow(2.4, gi / 4);
+      gh = gk * gd;
+      g += '<line x1="' + (38 - gh).toFixed(1) + '" y1="' + (gvy - gd).toFixed(1) + '" x2="' + (38 + gh).toFixed(1) +
+        '" y2="' + (gvy - gd).toFixed(1) + '" stroke="' + hexToRgba(c1, 0.32) + '" stroke-width="0.5"/>';
+    }
+    for (gi = 0; gi < 7; gi++) {
+      var gxb = -30 + gi * 24;
+      var gxt = 38 + (gxb - 38) * (-gvy / (112 - gvy));
+      g += '<line x1="' + gxt.toFixed(1) + '" y1="0" x2="' + gxb + '" y2="112" stroke="' + hexToRgba(c1, 0.24) + '" stroke-width="0.5"/>';
+    }
+    g += '<line x1="-6" y1="' + gvy + '" x2="82" y2="' + gvy + '" stroke="' + hexToRgba(c2, 0.55) + '" stroke-width="0.7"/>' +
+         '<circle cx="38" cy="' + gvy + '" r="1.1" fill="' + hexToRgba(c2, 0.6) + '"/>';
+    motif = svg(g);
+  } else if (id === 'uni-ripple') {
+    var ro = [[18, 25, c1], [59, 65, c2], [33, 96, c1]];
+    var rr = '';
+    for (var q = 0; q < ro.length; q++) {
+      var rad = [5, 11, 18];
+      for (var w = 0; w < rad.length; w++) {
+        rr += '<circle cx="' + ro[q][0] + '" cy="' + ro[q][1] + '" r="' + rad[w] + '" fill="none" stroke="' +
+          hexToRgba(ro[q][2], 0.56 - w * 0.16) + '" stroke-width="0.7"/>';
+      }
+      rr += '<circle cx="' + ro[q][0] + '" cy="' + ro[q][1] + '" r="1.1" fill="' + hexToRgba(ro[q][2], 0.75) + '"/>';
+    }
+    motif = svg(rr);
+  } else if (id === 'uni-silk') {
+    var sk = '';
+    for (var s2 = 0; s2 < 13; s2++) {
+      var sy = 7 + s2 * 8.2;
+      var sa = 1.8 + 2.6 * Math.sin(Math.PI * s2 / 12);
+      var sd = 'M -8,' + sy.toFixed(1) + ' Q 12,' + (sy - sa).toFixed(1) + ' 30,' + sy.toFixed(1) +
+        ' Q 50,' + (sy + sa).toFixed(1) + ' 66,' + sy.toFixed(1) + ' Q 76,' + (sy - sa * 0.7).toFixed(1) + ' 84,' + sy.toFixed(1);
+      if (s2 === 3 || s2 === 6 || s2 === 10) {
+        sk += '<path d="' + sd + '" stroke="' + hexToRgba(c1, 0.12) + '" stroke-width="1.8" fill="none"/>' +
+              '<path d="' + sd + '" stroke="' + hexToRgba(c1, 0.72) + '" stroke-width="0.6" fill="none"/>';
+      } else {
+        sk += '<path d="' + sd + '" stroke="' + hexToRgba(s2 % 2 ? c2 : c1, s2 % 2 ? 0.32 : 0.42) + '" stroke-width="0.5" fill="none"/>';
+      }
+    }
+    motif = svg(sk);
+  } else if (id === 'uni-ember') {
+    motif =
+      '<div style="position:absolute;left:12%;top:52%;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.20) + ' 0%, transparent 72%);"></div>' +
+      '<div style="position:absolute;right:6%;top:22%;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c2, 0.17) + ' 0%, transparent 72%);"></div>';
+    var em = '';
+    for (var e2 = 0; e2 < 20; e2++) {
+      // Smaller and fainter toward the top: the thumbnail has to show the climb
+      // even though nothing is moving.
+      var ey = 108 - _ugzRnd(e2 + 60) * 104;
+      var fade = 0.30 + 0.62 * (ey / 112);
+      em += '<circle cx="' + (_ugzRnd(e2) * 76).toFixed(1) + '" cy="' + ey.toFixed(1) + '" r="' +
+        (0.5 + _ugzRnd(e2 + 20) * 0.9 * (ey / 112 + 0.35)).toFixed(2) + '" fill="' +
+        hexToRgba(e2 % 3 === 0 ? c2 : c1, fade) + '"/>';
+    }
+    motif += svg(em);
+  } else if (id === 'uni-prism') {
     motif = svg(
-      '<path d="M -10,20 Q 38,15 86,22" stroke="' + hexToRgba(c1, 0.16) + '" stroke-width="3" fill="none"/>' +
-      '<path d="M -10,20 Q 38,15 86,22" stroke="' + hexToRgba(c1, 0.72) + '" stroke-width="1" fill="none"/>' +
-      '<path d="M -10,46 Q 38,52 86,44" stroke="' + hexToRgba(c2, 0.60) + '" stroke-width="0.9" fill="none"/>' +
-      '<path d="M -10,72 Q 38,66 86,75" stroke="' + hexToRgba(c1, 0.66) + '" stroke-width="1" fill="none"/>' +
-      '<path d="M -10,96 Q 38,101 86,93" stroke="' + hexToRgba(c2, 0.52) + '" stroke-width="0.9" fill="none"/>' +
-      '<circle cx="26" cy="18" r="3" fill="' + hexToRgba(c1, 0.14) + '"/><circle cx="26" cy="18" r="1.2" fill="' + hexToRgba(c1, 0.85) + '"/>' +
-      '<circle cx="56" cy="48" r="3" fill="' + hexToRgba(c2, 0.14) + '"/><circle cx="56" cy="48" r="1.1" fill="' + hexToRgba(c2, 0.8) + '"/>');
-  } else if (id === 'uni-floating-orbs') {
-    motif =
-      '<div style="position:absolute;top:12%;left:8%;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.34) + ' 0%, ' + hexToRgba(c1, 0.15) + ' 38%, transparent 70%);"></div>' +
-      '<div style="position:absolute;top:56%;right:6%;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c2, 0.28) + ' 0%, ' + hexToRgba(c2, 0.12) + ' 38%, transparent 70%);"></div>' +
-      '<div style="position:absolute;top:74%;left:18%;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.38) + ' 0%, ' + hexToRgba(c1, 0.16) + ' 38%, transparent 70%);">' +
-        '<div style="position:absolute;top:29%;left:29%;width:42%;height:42%;border-radius:50%;border:1px solid ' + hexToRgba(c1, 0.3) + ';"></div></div>' +
-      '<div style="position:absolute;top:36%;left:40%;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 50% 50%, ' + hexToRgba(c1, 0.42) + ' 0%, transparent 70%);"></div>';
-  } else if (id === 'uni-liquid-flow') {
-    motif =
-      '<div style="position:absolute;width:128%;height:70%;top:-8%;left:-20%;border-radius:50%;background:radial-gradient(circle at 38% 42%, ' + hexToRgba(c1, 0.30) + ' 0%, ' + hexToRgba(c1, 0.12) + ' 40%, transparent 68%);"></div>' +
-      '<div style="position:absolute;width:112%;height:78%;bottom:-14%;right:-18%;border-radius:50%;background:radial-gradient(circle at 58% 46%, ' + hexToRgba(c2, 0.26) + ' 0%, ' + hexToRgba(c2, 0.10) + ' 40%, transparent 68%);"></div>' +
-      svg('<ellipse cx="46" cy="74" rx="26" ry="21" fill="none" stroke="' + hexToRgba(c2, 0.30) + '" stroke-width="0.8"/>');
+      '<polygon points="-15,-8 57,-15 87,30 23,38" fill="' + hexToRgba(c1, 0.17) + '" stroke="' + hexToRgba(c1, 0.34) + '" stroke-width="0.5"/>' +
+      '<polygon points="-11,23 46,15 87,53 34,66 -19,51" fill="' + hexToRgba(c2, 0.13) + '" stroke="' + hexToRgba(c2, 0.30) + '" stroke-width="0.5"/>' +
+      '<polygon points="11,48 87,38 89,89 27,84" fill="' + hexToRgba(c1, 0.15) + '" stroke="' + hexToRgba(c1, 0.32) + '" stroke-width="0.5"/>' +
+      '<polygon points="-17,71 49,64 87,99 38,120 -11,110" fill="' + hexToRgba(c2, 0.12) + '" stroke="' + hexToRgba(c2, 0.28) + '" stroke-width="0.5"/>');
   } else {
     motif = '<div style="position:absolute;inset:0;background:linear-gradient(135deg,' + hexToRgba(c1, 0.4) + ',' + hexToRgba(c2, 0.3) + ');"></div>';
   }
@@ -13945,13 +14187,14 @@ function getMiniaturePreviewHtml(id, c1, c2) {
 
 function getUniColorDesigns() {
   return [
-    { id: 'uni-aurora', name: 'Aurora', type: 'static' },
-    { id: 'uni-nebula', name: 'Nebula', type: 'static' },
-    { id: 'uni-particle-wave', name: 'Particle Wave', type: 'static' },
-    { id: 'uni-topographic', name: 'Topographic', type: 'static' },
-    { id: 'uni-energy-lines', name: 'Energy Lines', type: 'animated' },
-    { id: 'uni-floating-orbs', name: 'Floating Orbs', type: 'animated' },
-    { id: 'uni-liquid-flow', name: 'Liquid Flow', type: 'animated' }
+    // Ordered so no two neighbours in the grid move the same way.
+    { id: 'uni-constellation', name: 'Constellation', type: 'animated' },
+    { id: 'uni-light-rays', name: 'Light Rays', type: 'animated' },
+    { id: 'uni-depth-grid', name: 'Depth Grid', type: 'animated' },
+    { id: 'uni-ripple', name: 'Ripple', type: 'animated' },
+    { id: 'uni-silk', name: 'Silk', type: 'animated' },
+    { id: 'uni-ember', name: 'Embers', type: 'animated' },
+    { id: 'uni-prism', name: 'Prism', type: 'animated' }
   ];
 }
 
@@ -14043,7 +14286,11 @@ function selectMainBg(type) {
       currentStyle = userPro.customization.chatBackgrounds[curChatId] || '';
     }
     if (!currentStyle || currentStyle === 'default' || currentStyle === 'black' || currentStyle === '#050505' || currentStyle === 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
-      applyChatBgStyle('uni-aurora');
+      // Has to be a live id. A retired one still RENDERS, because the legacy
+      // table migrates it, but it gets saved verbatim and then matches no card,
+      // so renderUniDesigns falls back to highlighting the first one and the
+      // selected card stops agreeing with what is actually on screen.
+      applyChatBgStyle('uni-constellation');
     }
   }
 }

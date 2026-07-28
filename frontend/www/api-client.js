@@ -30,7 +30,7 @@ const IS_CAPACITOR = !!(
 );
 
 // Túnel público o URL remota de producción
-const REMOTE_URL = 'https://flour-nyc-plug-alike.trycloudflare.com';
+const REMOTE_URL = 'https://peoples-words-theater-fairy.trycloudflare.com';
 
 // En App Android Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
 // En Web Local se utiliza el puerto 3000 local del host.

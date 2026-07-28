@@ -1638,7 +1638,17 @@ function _bootRestoredApp(){
   try{if(typeof _saveSessionState==='function')_saveSessionState();}catch(e){}
   try{setTimeout(function(){if(typeof _showEntryPoll==='function')_showEntryPoll();},700);}catch(e){}
 }
-// ── SPLASH ──
+// ── SPLASH / APP INIT ──
+function _hideNativeSplashScreen() {
+  try {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
+      window.Capacitor.Plugins.SplashScreen.hide({ fadeOutDuration: 350 });
+    }
+  } catch(e) {
+    console.warn("Could not hide native splash screen:", e);
+  }
+}
+
 window.addEventListener('load', function() {
   try{if(typeof applyLanguageTranslations==='function')applyLanguageTranslations();}catch(e){}
   try{_logoColorsLoad();_applyLogoColors();}catch(e){}
@@ -1651,114 +1661,126 @@ window.addEventListener('load', function() {
     }
   });
 
+  // Failsafe safety net: Ensure native splash hides even if network or JS encounters an unhandled error
+  setTimeout(_hideNativeSplashScreen, 3500);
+
   // Upfront session validity check
   var sessionCheckPromise = Promise.resolve(null);
   if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
-    sessionCheckPromise = apiClient.getMe().catch(function() {
+    sessionCheckPromise = Promise.race([
+      apiClient.getMe(),
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Timeout')); }, 2500); })
+    ]).catch(function(err) {
+      console.warn("Session check failed or timed out:", err);
       return null;
     });
   }
 
-  setTimeout(function() {
-    var logo=document.getElementById('spl-logo'),sub=document.getElementById('spl-sub'),fill=document.getElementById('spl-fill'),bar=document.querySelector('.spl-bar');
-    if(logo){logo.style.opacity='1';logo.style.transform='scale(1)';}
-    if(sub)sub.style.opacity='1';if(bar)bar.style.opacity='1';
-    setTimeout(function(){if(fill){fill.style.background='var(--p)';fill.style.width='100%';}},80);
-    setTimeout(function(){
-      var _restored=false;try{_restored=(typeof _restoreSession==='function')&&_restoreSession();}catch(e){}
-      var sp=document.getElementById('splash');if(sp){sp.style.opacity='0';sp.style.transition='opacity 0.55s';}
-      
-      sessionCheckPromise.then(function(user) {
-        setTimeout(function(){
-          if(sp)sp.style.display='none';
-          if(_restored){
-            if (user) {
-              try {
-                userPro.id = user.id;
-                userPro.name = user.firstName + ' ' + (user.lastName || '');
-                userPro.handle = user.handle ? (user.handle.startsWith('@') ? user.handle : '@' + user.handle) : '@you';
-                userPro.email = user.email;
-                userPro.phone = user.phone || '';
-                
-                var profile = user.profile || {};
-                userPro.bio = profile.bio || '';
-                userPro.university = profile.university || '';
-                userPro.major = profile.major || '';
-                userPro.grad = profile.grad || '';
-                userPro.crossover = profile.crossover || false;
-                userPro.isGhostMode = profile.isGhostMode || false;
-                userPro.subscriptionTier = profile.subscriptionTier || 'FREE';
-                if (profile.gender) {
-                  userPro.gender = profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other';
-                  userGender = userPro.gender;
-                }
-                if (profile.interestedIn) {
-                  userPro.interestedIn = profile.interestedIn === 'WOMAN' ? 'female' : profile.interestedIn === 'MAN' ? 'male' : 'any';
-                  crushGenderPref = userPro.interestedIn;
-                }
-                userPro.interests = profile.interests || [];
-                userPro.prompts = profile.prompts || [];
-                userPro.identityTags = profile.identityTags || [];
-                userPro.lookingForTags = profile.lookingForTags || [];
-                
-                if (profile.lifestyle) Object.assign(userPro, profile.lifestyle);
-                if (profile.academic) Object.assign(userPro, profile.academic);
-                if (profile.background) Object.assign(userPro, profile.background);
-                if (profile.customization) {
-                  userPro.customization = profile.customization;
-                  Object.assign(userPro, profile.customization);
-                  if (profile.customization.chatBackgrounds) {
-                    userPro.chatBackgrounds = profile.customization.chatBackgrounds;
-                  }
-                }
-                if (profile.socials) Object.assign(userPro, profile.socials);
-                
-                userPro.customization = profile.customization || {};
-                userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
-                if (userPro.isVerified) verified = true;
-                
-                // Resolving uni
-                if (userPro.university) {
-                  uni = _resolveUserUniversity(userPro.university);
-                  if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
-                }
-                
-                // Map & render database photos in UI grid on session restore
-                var grid = document.getElementById('prof-photos');
-                if (grid) {
-                  grid.querySelectorAll('.pgcell:not(.add)').forEach(function(c){c.remove();});
-                  const dbPhotos = user.photos || [];
-                  dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
-                  dbPhotos.forEach(p => {
-                    if (typeof crushPhotoCell === 'function') {
-                      var d = crushPhotoCell(p.url, 'center');
-                      d.dataset.photoId = p.id;
-                      grid.insertBefore(d, grid.lastChild);
-                    }
-                  });
-                  if (dbPhotos.length > 0) {
-                    _profilePicUrl = dbPhotos[0].url;
-                  } else {
-                    _profilePicUrl = '';
-                  }
-                  if (typeof _syncFirstCrushPhoto === 'function') {
-                    _syncFirstCrushPhoto();
-                  }
-                }
-              } catch (mapErr) {
-                console.error("Error syncing profile on restore:", mapErr);
-              }
-            }
-            var app=document.getElementById('app');if(app)app.classList.add('active');
-            setTimeout(_bootRestoredApp,20);
-          }else{
-            var as=document.getElementById('authscreen');if(as)as.classList.add('active');
-            if(typeof switchAuthTab==='function')switchAuthTab('login');
+  // Restore session from localStorage if available
+  var savedUserPro = null;
+  try {
+    var stored = localStorage.getItem('userPro');
+    if (stored) {
+      savedUserPro = JSON.parse(stored);
+    }
+  } catch(e) {}
+
+  sessionCheckPromise.then(function(user) {
+    var activeUser = user || savedUserPro;
+    if (activeUser) {
+      if (user) {
+        try {
+          userPro.id = user.id;
+          userPro.name = user.firstName + ' ' + (user.lastName || '');
+          userPro.handle = user.handle ? (user.handle.startsWith('@') ? user.handle : '@' + user.handle) : '@you';
+          userPro.email = user.email;
+          userPro.phone = user.phone || '';
+          
+          var profile = user.profile || {};
+          userPro.bio = profile.bio || '';
+          userPro.university = profile.university || '';
+          userPro.major = profile.major || '';
+          userPro.grad = profile.grad || '';
+          userPro.crossover = profile.crossover || false;
+          userPro.isGhostMode = profile.isGhostMode || false;
+          userPro.subscriptionTier = profile.subscriptionTier || 'FREE';
+          if (profile.gender) {
+            userPro.gender = profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other';
+            userGender = userPro.gender;
           }
-        },560);
-      });
-    },2400);
-  },60);
+          if (profile.interestedIn) {
+            userPro.interestedIn = profile.interestedIn === 'WOMAN' ? 'female' : profile.interestedIn === 'MAN' ? 'male' : 'any';
+            crushGenderPref = userPro.interestedIn;
+          }
+          userPro.interests = profile.interests || [];
+          userPro.prompts = profile.prompts || [];
+          userPro.identityTags = profile.identityTags || [];
+          userPro.lookingForTags = profile.lookingForTags || [];
+          
+          if (profile.lifestyle) Object.assign(userPro, profile.lifestyle);
+          if (profile.academic) Object.assign(userPro, profile.academic);
+          if (profile.background) Object.assign(userPro, profile.background);
+          if (profile.customization) {
+            userPro.customization = profile.customization;
+            Object.assign(userPro, profile.customization);
+            if (profile.customization.chatBackgrounds) {
+              userPro.chatBackgrounds = profile.customization.chatBackgrounds;
+            }
+          }
+          if (profile.socials) Object.assign(userPro, profile.socials);
+          
+          userPro.customization = profile.customization || {};
+          userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
+          if (userPro.isVerified) verified = true;
+          
+          if (userPro.university) {
+            uni = _resolveUserUniversity(userPro.university);
+            if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
+          }
+          
+          var grid = document.getElementById('prof-photos');
+          if (grid) {
+            grid.querySelectorAll('.pgcell:not(.add)').forEach(function(c){c.remove();});
+            const dbPhotos = user.photos || [];
+            dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
+            dbPhotos.forEach(p => {
+              if (typeof crushPhotoCell === 'function') {
+                var d = crushPhotoCell(p.url, 'center');
+                d.dataset.photoId = p.id;
+                grid.insertBefore(d, grid.lastChild);
+              }
+            });
+            if (dbPhotos.length > 0) {
+              _profilePicUrl = dbPhotos[0].url;
+            } else {
+              _profilePicUrl = '';
+            }
+            if (typeof _syncFirstCrushPhoto === 'function') {
+              _syncFirstCrushPhoto();
+            }
+          }
+        } catch (mapErr) {
+          console.error("Error syncing profile on restore:", mapErr);
+        }
+      }
+      var app = document.getElementById('app');
+      if (app) app.classList.add('active');
+      if (typeof _bootRestoredApp === 'function') {
+        setTimeout(_bootRestoredApp, 20);
+      }
+    } else {
+      var as = document.getElementById('authscreen');
+      if (as) as.classList.add('active');
+      if (typeof switchAuthTab === 'function') switchAuthTab('login');
+    }
+  }).catch(function(e) {
+    console.error("Initialization error:", e);
+    var as = document.getElementById('authscreen');
+    if (as) as.classList.add('active');
+    if (typeof switchAuthTab === 'function') switchAuthTab('login');
+  }).finally(function() {
+    _hideNativeSplashScreen();
+  });
 });
 
 // ── AUTH ──

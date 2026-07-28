@@ -1578,7 +1578,8 @@ document.addEventListener('DOMContentLoaded', () => {
         message,
         type: 'SYSTEM',
       });
-      showToast(res.message);
+      const count = res.data ? res.data.count : 0;
+      showToast(`Notificación enviada con éxito a ${count} usuario(s).`);
       elements.formSendNotification.reset();
     } catch (err) {
       showToast(err.message, 'error');
@@ -2743,18 +2744,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.rejectVerifReq = (reqId) => {
-    const reason = prompt('Motivo del rechazo de verificación (opcional):', 'Credencial no legible o información insuficiente.');
-    if (reason !== null) {
-      showConfirmDialog('Rechazar Solicitud', '¿Confirmas el rechazo de esta verificación?', async () => {
-        try {
-          await window.adminApi.rejectVerification(reqId, reason);
-          showToast('Solicitud rechazada.');
-          loadVerificationsView();
-        } catch (err) {
-          showToast(err.message, 'error');
-        }
-      });
-    }
+    confirmRejectVerif(reqId, 'estudiante');
   };
 
   // Run initialization

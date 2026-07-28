@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_splash_vector">
+
+    <!-- Falling, Spinning & Bouncing Graduation Cap Animation -->
+    <target
+        android:name="cap_falling_group"
+        android:animation="@animator/cap_anim_set" />
+
+    <!-- 3 Celebrating Students Jump Animation -->
+    <target
+        android:name="students_group"
+        android:animation="@animator/students_anim_set" />
+
+    <!-- Shield & Letter U Elastic Pop Animation -->
+    <target
+        android:name="shield_group"
+        android:animation="@animator/shield_anim_set" />
+
+    <!-- Cheerful UNDRGRADZ Brand Text Wave Animation -->
+    <target
+        android:name="brand_text_group"
+        android:animation="@animator/text_anim_set" />
+
+</animated-vector>
