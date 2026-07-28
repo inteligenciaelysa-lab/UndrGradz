@@ -761,7 +761,7 @@ textarea.gi {
 /* ONBOARDING */
 #onboarding {
   align-items: center;
-  padding: 28px var(--s) 24px;
+  padding: calc(28px + env(safe-area-inset-top)) var(--s) 24px;
 }
 .ob-wrap {
   width: 100%;
@@ -1070,7 +1070,7 @@ textarea.gi {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 0 8px 16px;
+  padding: 0 8px calc(12px + env(safe-area-inset-bottom));
   z-index: 100;
 }
 .bot-inner:empty {
@@ -1952,7 +1952,7 @@ textarea.gi {
   display: flex;
   gap: 8px;
   align-items: center;
-  padding: 8px 10px 18px 10px;
+  padding: 8px 10px calc(14px + env(safe-area-inset-bottom)) 10px;
   background: #0b141a;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -6609,7 +6609,7 @@ html.light-secondary .jbtn {
 .app-fab {
   position: fixed;
   right: 18px;
-  bottom: 88px;
+  bottom: calc(84px + env(safe-area-inset-bottom));
   z-index: 120;
   width: 56px;
   height: 56px;
@@ -7688,14 +7688,29 @@ button.jbtn {
   touch-action: none !important;
 }
 
-/* 5. Safe selection properties */
+/* 5. Safe selection & iOS touch responsiveness properties */
 .no-select {
   -webkit-user-select: none !important;
   user-select: none !important;
 }
+input, textarea, select, button, a, [role="button"], .tbi, .app-fab, .chat-fab, .gi, .auth-tab-btn, .act-btn, .jbtn, .evsec-chip, .chatsec-chip {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 input, textarea, [contenteditable="true"] {
   -webkit-user-select: text !important;
   user-select: text !important;
+  pointer-events: auto !important;
+}
+button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, .jbtn {
+  pointer-events: auto;
+}
+.mov:not(.open),
+.cwin:not(.open),
+.age-modal:not(.open),
+.gif-modal:not(.open) {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 /* Campus category selector pills */
@@ -8786,7 +8801,7 @@ input, textarea, [contenteditable="true"] {
   justify-content: center;
   width: 100%;
   max-width: 480px;
-  padding: 48px 24px;
+  padding: calc(48px + env(safe-area-inset-top)) 24px 24px;
   box-sizing: border-box;
 }
 

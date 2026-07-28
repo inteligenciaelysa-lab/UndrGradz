@@ -72,6 +72,9 @@ class ApiClient {
   clearTokens() {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('ugz_token');
+    localStorage.removeItem('userPro');
   }
 
   /**

@@ -1639,10 +1639,11 @@ function _bootRestoredApp(){
   try{setTimeout(function(){if(typeof _showEntryPoll==='function')_showEntryPoll();},700);}catch(e){}
 }
 // ── SPLASH / APP INIT ──
-function _hideNativeSplashScreen() {
+function _hideNativeSplashScreen(options) {
   try {
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.SplashScreen) {
-      window.Capacitor.Plugins.SplashScreen.hide({ fadeOutDuration: 350 });
+      var fadeDuration = (options && typeof options.fadeOutDuration === 'number') ? options.fadeOutDuration : 400;
+      window.Capacitor.Plugins.SplashScreen.hide({ fadeOutDuration: fadeDuration });
     }
   } catch(e) {
     console.warn("Could not hide native splash screen:", e);
@@ -1662,7 +1663,9 @@ window.addEventListener('load', function() {
   });
 
   // Failsafe safety net: Ensure native splash hides even if network or JS encounters an unhandled error
-  setTimeout(_hideNativeSplashScreen, 3500);
+  var failsafeTimer = setTimeout(function() {
+    _hideNativeSplashScreen({ fadeOutDuration: 400 });
+  }, 3500);
 
   // Upfront session validity check
   var sessionCheckPromise = Promise.resolve(null);
@@ -1759,6 +1762,7 @@ window.addEventListener('load', function() {
               _syncFirstCrushPhoto();
             }
           }
+          try { localStorage.setItem('userPro', JSON.stringify(userPro)); } catch(sErr){}
         } catch (mapErr) {
           console.error("Error syncing profile on restore:", mapErr);
         }
@@ -1769,6 +1773,9 @@ window.addEventListener('load', function() {
         setTimeout(_bootRestoredApp, 20);
       }
     } else {
+      if (typeof apiClient !== 'undefined' && apiClient.clearTokens) {
+        apiClient.clearTokens();
+      }
       var as = document.getElementById('authscreen');
       if (as) as.classList.add('active');
       if (typeof switchAuthTab === 'function') switchAuthTab('login');
@@ -1779,7 +1786,11 @@ window.addEventListener('load', function() {
     if (as) as.classList.add('active');
     if (typeof switchAuthTab === 'function') switchAuthTab('login');
   }).finally(function() {
-    _hideNativeSplashScreen();
+    clearTimeout(failsafeTimer);
+    // Hold splash for an extra brief moment (350ms) after app/login screen is ready for a smooth, elegant transition
+    setTimeout(function() {
+      _hideNativeSplashScreen({ fadeOutDuration: 400 });
+    }, 350);
   });
 });
 
@@ -16922,7 +16933,16 @@ function _performLogoutExecution() {
   if (typeof apiClient !== 'undefined') {
     try { apiClient.logout(); } catch(e) {}
   }
-  try { localStorage.removeItem('ugz_snap_v3'); } catch(e) {}
+  try {
+    localStorage.removeItem('userPro');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('token');
+    localStorage.removeItem('ugz_token');
+    localStorage.removeItem('ugz_snap_v3');
+    localStorage.removeItem('ugz_last_screen');
+    localStorage.removeItem('ugz_last_label');
+  } catch(e) {}
   try {
     sessionStorage.removeItem('ugz_snap');
     sessionStorage.removeItem('ugz_last_screen');
