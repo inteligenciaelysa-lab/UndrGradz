@@ -499,9 +499,13 @@ document.addEventListener('DOMContentLoaded', () => {
       gradient.addColorStop(1, '#ec4899');
 
       ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.roundRect(160, y, barWidth, barHeight, 4);
-      ctx.fill();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.beginPath();
+        ctx.roundRect(160, y, barWidth, barHeight, 4);
+        ctx.fill();
+      } else {
+        ctx.fillRect(160, y, barWidth, barHeight);
+      }
 
       // Draw Count
       ctx.fillStyle = '#f8fafc';
@@ -1578,7 +1582,8 @@ document.addEventListener('DOMContentLoaded', () => {
         message,
         type: 'SYSTEM',
       });
-      showToast(res.message);
+      const count = res.data ? res.data.count : 0;
+      showToast(`Notificación enviada con éxito a ${count} usuario(s).`);
       elements.formSendNotification.reset();
     } catch (err) {
       showToast(err.message, 'error');
@@ -1683,18 +1688,24 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderAnalyticsCharts(data) {
+    if (!data) return;
+
     // 0. Hero Chart: Activity Trend & Engagement (Full Width)
     const ctxTrend = document.getElementById('chart-activity-trend');
     if (ctxTrend) {
       if (chartInstances.trend) chartInstances.trend.destroy();
+      const trendLabels = data.growthTrend ? data.growthTrend.map(d => d.date) : [];
+      const trendUsers = data.growthTrend ? data.growthTrend.map(d => d.users) : [];
+      const trendActive = data.growthTrend ? data.growthTrend.map(d => d.active) : [];
+
       chartInstances.trend = new Chart(ctxTrend, {
         type: 'bar',
         data: {
-          labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+          labels: trendLabels,
           datasets: [{
             type: 'line',
-            label: 'Usuarios Activos Diarios',
-            data: [120, 240, 310, 464],
+            label: 'Usuarios Registrados (Acumulado)',
+            data: trendUsers,
             borderColor: '#60a5fa',
             backgroundColor: 'rgba(96, 165, 250, 0.15)',
             borderWidth: 3,
@@ -1703,15 +1714,8 @@ document.addEventListener('DOMContentLoaded', () => {
             yAxisID: 'y'
           }, {
             type: 'bar',
-            label: 'Mensajes & Coincidencias',
-            data: [450, 890, 1420, 1980],
-            backgroundColor: 'rgba(192, 132, 252, 0.5)',
-            borderRadius: 6,
-            yAxisID: 'y1'
-          }, {
-            type: 'bar',
-            label: 'Hangouts Creados',
-            data: [12, 28, 45, 62],
+            label: 'Usuarios Activos',
+            data: trendActive,
             backgroundColor: 'rgba(52, 211, 153, 0.6)',
             borderRadius: 6,
             yAxisID: 'y'
@@ -1723,8 +1727,7 @@ document.addEventListener('DOMContentLoaded', () => {
           plugins: { legend: { labels: { color: '#94a3b8', font: { weight: '600' } } } },
           scales: {
             x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { type: 'linear', position: 'left', ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y1: { type: 'linear', position: 'right', ticks: { color: '#c084fc' }, grid: { display: false } }
+            y: { type: 'linear', position: 'left', ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
           }
         }
       });
@@ -1737,17 +1740,17 @@ document.addEventListener('DOMContentLoaded', () => {
       chartInstances.growth = new Chart(ctxGrowth, {
         type: 'line',
         data: {
-          labels: data.growthTrend ? data.growthTrend.map(d => d.date) : ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          labels: data.growthTrend ? data.growthTrend.map(d => d.date) : [],
           datasets: [{
-            label: 'Usuarios Totales',
-            data: data.growthTrend ? data.growthTrend.map(d => d.users) : [50, 110, 190, 280, 370, 464],
+            label: 'Usuarios Registrados',
+            data: data.growthTrend ? data.growthTrend.map(d => d.users) : [],
             borderColor: '#3d7bff',
             backgroundColor: 'rgba(61, 123, 255, 0.15)',
             fill: true,
             tension: 0.4
           }, {
             label: 'Usuarios Activos',
-            data: data.growthTrend ? data.growthTrend.map(d => d.active) : [40, 95, 160, 240, 330, 410],
+            data: data.growthTrend ? data.growthTrend.map(d => d.active) : [],
             borderColor: '#22c55e',
             borderDash: [5, 5],
             fill: false,
@@ -1770,14 +1773,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxUni = document.getElementById('chart-uni-breakdown');
     if (ctxUni) {
       if (chartInstances.uni) chartInstances.uni.destroy();
+      const uniLabels = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.name) : ['Sin datos'];
+      const uniCounts = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.students) : [0];
+      const uniColors = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.color) : ['#3d7bff'];
+
       chartInstances.uni = new Chart(ctxUni, {
         type: 'bar',
         data: {
-          labels: data.uniBreakdown ? data.uniBreakdown.map(u => u.name) : ['UANE', 'ITESM', 'UAdC', 'UANL', 'Tec Saltillo', 'Ibero'],
+          labels: uniLabels,
           datasets: [{
             label: 'Estudiantes Registrados',
-            data: data.uniBreakdown ? data.uniBreakdown.map(u => u.students) : [145, 98, 86, 62, 45, 28],
-            backgroundColor: ['#3d7bff', '#e04155', '#fbbf24', '#c084fc', '#22c55e', '#38bdf8'],
+            data: uniCounts,
+            backgroundColor: uniColors,
             borderRadius: 6
           }]
         },
@@ -1804,10 +1811,10 @@ document.addEventListener('DOMContentLoaded', () => {
           labels: ['Estudiantes 🎓', 'Creadores ✨', 'Atletas 🏅', 'Gobierno 🏛️'],
           datasets: [{
             data: [
-              data.kpis?.verifiedUsers || 14,
-              data.kpis?.creatorUsers || 8,
-              12,
-              5
+              data.kpis?.verifiedUsers || 0,
+              data.kpis?.creatorUsers || 0,
+              data.kpis?.athleteUsers || 0,
+              data.kpis?.govtUsers || 0
             ],
             backgroundColor: ['#c084fc', '#fbbf24', '#4ade80', '#60a5fa'],
             borderWidth: 2,
@@ -1826,19 +1833,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxCat = document.getElementById('chart-event-categories');
     if (ctxCat) {
       if (chartInstances.cat) chartInstances.cat.destroy();
+      const catLabels = data.eventCategories && data.eventCategories.length > 0 ? data.eventCategories.map(c => c.category) : ['Sin eventos'];
+      const catCounts = data.eventCategories && data.eventCategories.length > 0 ? data.eventCategories.map(c => c.count) : [0];
+      const catColors = data.eventCategories && data.eventCategories.length > 0 ? data.eventCategories.map(c => c.color || 'rgba(59, 130, 246, 0.7)') : ['rgba(59, 130, 246, 0.7)'];
+
       chartInstances.cat = new Chart(ctxCat, {
         type: 'polarArea',
         data: {
-          labels: ['Fiestas 🎉', 'Estudio 📚', 'Deportes ⚽', 'Gaming 🎮', 'Café ☕'],
+          labels: catLabels,
           datasets: [{
-            data: [24, 18, 15, 12, 9],
-            backgroundColor: [
-              'rgba(239, 68, 68, 0.7)',
-              'rgba(59, 130, 246, 0.7)',
-              'rgba(34, 197, 94, 0.7)',
-              'rgba(168, 85, 247, 0.7)',
-              'rgba(245, 158, 11, 0.7)'
-            ]
+            data: catCounts,
+            backgroundColor: catColors
           }]
         },
         options: {
@@ -1854,13 +1859,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxMatch = document.getElementById('chart-match-activity');
     if (ctxMatch) {
       if (chartInstances.match) chartInstances.match.destroy();
+      const matchLabels = data.matchesByDay ? Object.keys(data.matchesByDay) : ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      const matchCounts = data.matchesByDay ? Object.values(data.matchesByDay) : [0, 0, 0, 0, 0, 0, 0];
+
       chartInstances.match = new Chart(ctxMatch, {
         type: 'bar',
         data: {
-          labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+          labels: matchLabels,
           datasets: [{
             label: 'Coincidencias de Chat',
-            data: [65, 84, 112, 145, 198, 230, 175],
+            data: matchCounts,
             backgroundColor: 'rgba(56, 189, 248, 0.65)',
             borderRadius: 5
           }]
@@ -1881,18 +1889,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxRadar = document.getElementById('chart-career-radar');
     if (ctxRadar) {
       if (chartInstances.radar) chartInstances.radar.destroy();
+      const areaLabels = data.academicAreas ? data.academicAreas.labels : ['Ingeniería ⚙️', 'Salud 🩺', 'Negocios 💼', 'Derecho ⚖️', 'Diseño 🎨', 'Ciencias 🔬'];
+      const menData = data.academicAreas ? data.academicAreas.men : [0, 0, 0, 0, 0, 0];
+      const womenData = data.academicAreas ? data.academicAreas.women : [0, 0, 0, 0, 0, 0];
+
       chartInstances.radar = new Chart(ctxRadar, {
         type: 'radar',
         data: {
-          labels: ['Ingeniería ⚙️', 'Salud 🩺', 'Negocios 💼', 'Derecho ⚖️', 'Diseño 🎨', 'Ciencias 🔬'],
+          labels: areaLabels,
           datasets: [{
             label: 'Hombres',
-            data: [85, 45, 65, 40, 50, 60],
+            data: menData,
             borderColor: '#38bdf8',
             backgroundColor: 'rgba(56, 189, 248, 0.25)'
           }, {
             label: 'Mujeres',
-            data: [55, 90, 75, 65, 80, 55],
+            data: womenData,
             borderColor: '#ec4899',
             backgroundColor: 'rgba(236, 72, 153, 0.25)'
           }]
@@ -1917,12 +1929,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxDevice = document.getElementById('chart-device-os');
     if (ctxDevice) {
       if (chartInstances.device) chartInstances.device.destroy();
+      const deviceLabels = data.devices ? data.devices.labels : ['Desktop 💻', 'Mobile Web 🌐', 'Android App 🤖', 'iOS App 🍎'];
+      const deviceCounts = data.devices ? data.devices.counts : [0, 0, 0, 0];
+
       chartInstances.device = new Chart(ctxDevice, {
         type: 'doughnut',
         data: {
-          labels: ['iOS App 🍎', 'Android App 🤖', 'Web App 🌐', 'Desktop 💻'],
+          labels: deviceLabels,
           datasets: [{
-            data: [52, 34, 10, 4],
+            data: deviceCounts,
             backgroundColor: ['#60a5fa', '#34d399', '#fbbf24', '#a855f7'],
             borderWidth: 2,
             borderColor: '#121827'
@@ -1940,13 +1955,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxHourly = document.getElementById('chart-hourly-activity');
     if (ctxHourly) {
       if (chartInstances.hourly) chartInstances.hourly.destroy();
+      const hourlyLabels = data.hourlyTraffic ? data.hourlyTraffic.labels : ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '00:00'];
+      const hourlyCounts = data.hourlyTraffic ? data.hourlyTraffic.counts : [0, 0, 0, 0, 0, 0, 0, 0, 0];
+
       chartInstances.hourly = new Chart(ctxHourly, {
         type: 'bar',
         data: {
-          labels: ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00', '00:00'],
+          labels: hourlyLabels,
           datasets: [{
             label: 'Tráfico de Estudiantes',
-            data: [25, 60, 110, 95, 140, 280, 420, 390, 180],
+            data: hourlyCounts,
             backgroundColor: [
               '#38bdf8', '#38bdf8', '#60a5fa', '#60a5fa',
               '#818cf8', '#a855f7', '#c084fc', '#ec4899', '#f43f5e'
@@ -2743,18 +2761,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.rejectVerifReq = (reqId) => {
-    const reason = prompt('Motivo del rechazo de verificación (opcional):', 'Credencial no legible o información insuficiente.');
-    if (reason !== null) {
-      showConfirmDialog('Rechazar Solicitud', '¿Confirmas el rechazo de esta verificación?', async () => {
-        try {
-          await window.adminApi.rejectVerification(reqId, reason);
-          showToast('Solicitud rechazada.');
-          loadVerificationsView();
-        } catch (err) {
-          showToast(err.message, 'error');
-        }
-      });
-    }
+    confirmRejectVerif(reqId, 'estudiante');
   };
 
   // Run initialization
