@@ -1673,6 +1673,9 @@ function setActiveRootScreen(screenId) {
 
 
 window.addEventListener('load', function() {
+  var initStart = Date.now();
+  console.log(`[STARTUP] APP_INIT_START at ${initStart}`);
+
   try{if(typeof applyLanguageTranslations==='function')applyLanguageTranslations();}catch(e){}
   try{_logoColorsLoad();_applyLogoColors();}catch(e){}
 
@@ -1684,14 +1687,14 @@ window.addEventListener('load', function() {
     }
   });
 
-  // Failsafe safety net: Ensure native splash hides even if network or JS encounters an unhandled error
+  // Failsafe safety net: Ensure native splash hides even if network or JS encounters an unhandled error (max 4000ms)
   var failsafeTimer = setTimeout(function() {
-    if (window._ugzStartupLog) window._ugzStartupLog("failsafeTimer (3.5s) triggered _hideNativeSplashScreen");
+    console.warn("[STARTUP] Failsafe timer (4000ms) triggered _hideNativeSplashScreen");
     _hideNativeSplashScreen({ fadeOutDuration: 400 });
-  }, 3500);
+  }, 4000);
 
   // Upfront session validity check
-  if (window._ugzStartupLog) window._ugzStartupLog("sessionCheckPromise start");
+  console.log("[STARTUP] SESSION_CHECK_START");
   var checkStart = Date.now();
   var sessionCheckPromise = Promise.resolve(null);
   if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
@@ -1699,10 +1702,10 @@ window.addEventListener('load', function() {
       apiClient.getMe(),
       new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Timeout 1500ms')); }, 1500); })
     ]).then(function(res) {
-      if (window._ugzStartupLog) window._ugzStartupLog(`getMe success in ${Date.now() - checkStart}ms`);
+      console.log(`[STARTUP] SESSION_CHECK_END (success in ${Date.now() - checkStart}ms)`);
       return res;
     }).catch(function(err) {
-      if (window._ugzStartupLog) window._ugzStartupLog(`getMe failed/timeout in ${Date.now() - checkStart}ms: ${err.message}`);
+      console.warn(`[STARTUP] SESSION_CHECK_END (failed/timeout in ${Date.now() - checkStart}ms: ${err.message})`);
       return null;
     });
   }
@@ -1718,6 +1721,8 @@ window.addEventListener('load', function() {
 
   sessionCheckPromise.then(function(user) {
     var activeUser = user || savedUserPro;
+    
+    // --- CRITICAL TASK 1: Set Root Screen & Prepare Critical DOM ---
     if (activeUser) {
       if (user) {
         try {
@@ -1754,9 +1759,6 @@ window.addEventListener('load', function() {
           if (profile.customization) {
             userPro.customization = profile.customization;
             Object.assign(userPro, profile.customization);
-            if (profile.customization.chatBackgrounds) {
-              userPro.chatBackgrounds = profile.customization.chatBackgrounds;
-            }
           }
           if (profile.socials) Object.assign(userPro, profile.socials);
           
@@ -1768,54 +1770,78 @@ window.addEventListener('load', function() {
             uni = _resolveUserUniversity(userPro.university);
             if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
           }
-          
-          var grid = document.getElementById('prof-photos');
-          if (grid) {
-            grid.querySelectorAll('.pgcell:not(.add)').forEach(function(c){c.remove();});
-            const dbPhotos = user.photos || [];
-            dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
-            dbPhotos.forEach(p => {
-              if (typeof crushPhotoCell === 'function') {
-                var d = crushPhotoCell(p.url, 'center');
-                d.dataset.photoId = p.id;
-                grid.insertBefore(d, grid.lastChild);
-              }
-            });
-            if (dbPhotos.length > 0) {
-              _profilePicUrl = dbPhotos[0].url;
-            } else {
-              _profilePicUrl = '';
-            }
-            if (typeof _syncFirstCrushPhoto === 'function') {
-              _syncFirstCrushPhoto();
-            }
-          }
           try { localStorage.setItem('userPro', JSON.stringify(userPro)); } catch(sErr){}
         } catch (mapErr) {
           console.error("Error syncing profile on restore:", mapErr);
         }
       }
       setActiveRootScreen('app');
-      if (typeof _bootRestoredApp === 'function') {
-        setTimeout(_bootRestoredApp, 20);
-      }
+      console.log("[STARTUP] ROOT_SCREEN_READY -> 'app'");
     } else {
       if (typeof apiClient !== 'undefined' && apiClient.clearTokens) {
         apiClient.clearTokens();
       }
       setActiveRootScreen('authscreen');
       if (typeof switchAuthTab === 'function') switchAuthTab('login');
+      console.log("[STARTUP] ROOT_SCREEN_READY -> 'authscreen'");
     }
+
+    // Force layout reflow behind splash screen so WKWebView paints the frame
+    try { void document.body.offsetHeight; } catch(e){}
+    console.log("[STARTUP] CRITICAL_UI_READY");
+
+    // --- TIMING CALCULATIONS ---
+    var elapsed = Date.now() - initStart;
+    var minSplashTime = 1500; // Minimum 1500ms visual splash
+    var remainingDelay = Math.max(0, minSplashTime - elapsed);
+
+    console.log(`[STARTUP] SPLASH_HIDE_START (elapsed: ${elapsed}ms, remainingDelay: ${remainingDelay}ms)`);
+
+    setTimeout(function() {
+      clearTimeout(failsafeTimer);
+      _hideNativeSplashScreen({ fadeOutDuration: 400 });
+      console.log(`[STARTUP] SPLASH_HIDE_END (splash hidden at +${Date.now() - initStart}ms)`);
+
+      // --- SECONDARY TASKS (Run non-blocking AFTER Splash is fully hidden) ---
+      setTimeout(function() {
+        console.log(`[STARTUP] SECONDARY_TASKS_START at +${Date.now() - initStart}ms`);
+        
+        // 1. Deferred Photo Grid Rendering
+        if (activeUser && user && user.photos) {
+          try {
+            var grid = document.getElementById('prof-photos');
+            if (grid) {
+              grid.querySelectorAll('.pgcell:not(.add)').forEach(function(c){c.remove();});
+              const dbPhotos = user.photos || [];
+              dbPhotos.sort((a,b) => (a.order || 0) - (b.order || 0));
+              dbPhotos.forEach(p => {
+                if (typeof crushPhotoCell === 'function') {
+                  var d = crushPhotoCell(p.url, 'center');
+                  d.dataset.photoId = p.id;
+                  grid.insertBefore(d, grid.lastChild);
+                }
+              });
+              _profilePicUrl = dbPhotos.length > 0 ? dbPhotos[0].url : '';
+              if (typeof _syncFirstCrushPhoto === 'function') _syncFirstCrushPhoto();
+            }
+          } catch(photoErr) {
+            console.error("Secondary photo render error:", photoErr);
+          }
+        }
+
+        // 2. Deferred Socket & Network Connections
+        if (activeUser && typeof _bootRestoredApp === 'function') {
+          try { _bootRestoredApp(); } catch(bootErr) { console.error("Secondary boot error:", bootErr); }
+        }
+      }, 450); // Executed 450ms AFTER splash hide command completes!
+    }, remainingDelay);
+
   }).catch(function(e) {
     console.error("Initialization error:", e);
     setActiveRootScreen('authscreen');
     if (typeof switchAuthTab === 'function') switchAuthTab('login');
-  }).finally(function() {
     clearTimeout(failsafeTimer);
-    // Hold splash for an extra brief moment (350ms) after app/login screen is ready for a smooth, elegant transition
-    setTimeout(function() {
-      _hideNativeSplashScreen({ fadeOutDuration: 400 });
-    }, 350);
+    _hideNativeSplashScreen({ fadeOutDuration: 400 });
   });
 });
 
