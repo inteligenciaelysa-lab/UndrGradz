@@ -761,7 +761,7 @@ textarea.gi {
 /* ONBOARDING */
 #onboarding {
   align-items: center;
-  padding: calc(28px + env(safe-area-inset-top)) var(--s) 24px;
+  padding: calc(16px + env(safe-area-inset-top)) var(--s) 24px;
 }
 .ob-wrap {
   width: 100%;
@@ -795,7 +795,7 @@ textarea.gi {
   padding: 18px;
   border-radius: var(--r);
   width: 100%;
-  animation: fadeUp 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeUp 0.25s ease-out forwards;
 }
 .ob-title {
   font-size:var(--fs-lg);
@@ -8445,9 +8445,13 @@ button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, 
   display: flex !important;
 }
 
-#onboarding {
-  background: radial-gradient(ellipse at 50% 20%, #0d0724 0%, #060312 65%, #030109 100%) !important;
-  z-index: 100;
+/* TEMPORARY DIAGNOSTIC TEST: Disable animations exclusively in Sign Up / Onboarding */
+#onboarding,
+#onboarding *,
+#auth-signup-panel,
+#auth-signup-panel * {
+  animation: none !important;
+  transition: none !important;
 }
 
 /* Background Container (Strictly behind the Login Form) */
@@ -8462,6 +8466,15 @@ button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, 
   pointer-events: none !important;
   overflow: hidden !important;
   z-index: 1;
+}
+
+.auth-bg-decor *,
+.pass-cards-stage *,
+.pass-card,
+.pass-card * {
+  pointer-events: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
 }
 
 /* Ambient Soft Glow Orbs */
@@ -8811,7 +8824,7 @@ button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, 
   justify-content: center;
   width: 100%;
   max-width: 480px;
-  padding: calc(48px + env(safe-area-inset-top)) 24px 24px;
+  padding: calc(20px + env(safe-area-inset-top)) 24px 24px;
   box-sizing: border-box;
 }
 

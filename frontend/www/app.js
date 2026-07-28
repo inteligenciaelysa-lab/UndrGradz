@@ -2487,6 +2487,7 @@ function _ob4Go(p){
   _ob4Steps();
   var c=document.getElementById('ob4-content');if(!c)return;
   c.innerHTML=(p===1)?_ob4P1():(p===2)?_ob4P2():(p===3)?_ob4P3():(p===4)?_ob4P4():_ob4P5();
+  try { void c.offsetHeight; } catch(e){}
   _ob4PaintLabels();
   _ob4BackLabel();
   if(p===1)setTimeout(function(){if(typeof _ob4ValidateAll==='function')_ob4ValidateAll();},50);
