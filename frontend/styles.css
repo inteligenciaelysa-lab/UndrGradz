@@ -1005,10 +1005,20 @@ textarea.gi {
   position: fixed;
   inset: 0;
 }
-#app.active {
-  display: flex;
+.screen:not(.active) {
+  display: none !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+  visibility: hidden !important;
+}
+#app.active,
+#authscreen.active,
+#onboarding.active {
+  display: flex !important;
   flex-direction: column;
-  overflow: hidden;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
 }
 .app-scroll {
   flex: 1;

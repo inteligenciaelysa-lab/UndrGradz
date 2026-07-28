@@ -1650,6 +1650,26 @@ function _hideNativeSplashScreen(options) {
   }
 }
 
+function setActiveRootScreen(screenId) {
+  var screens = ['authscreen', 'onboarding', 'app'];
+  screens.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) {
+      if (id === screenId) {
+        el.classList.add('active');
+        el.style.display = 'flex';
+        el.style.pointerEvents = 'auto';
+        el.style.visibility = 'visible';
+      } else {
+        el.classList.remove('active');
+        el.style.display = 'none';
+        el.style.pointerEvents = 'none';
+        el.style.visibility = 'hidden';
+      }
+    }
+  });
+}
+
 window.addEventListener('load', function() {
   try{if(typeof applyLanguageTranslations==='function')applyLanguageTranslations();}catch(e){}
   try{_logoColorsLoad();_applyLogoColors();}catch(e){}
@@ -1767,8 +1787,7 @@ window.addEventListener('load', function() {
           console.error("Error syncing profile on restore:", mapErr);
         }
       }
-      var app = document.getElementById('app');
-      if (app) app.classList.add('active');
+      setActiveRootScreen('app');
       if (typeof _bootRestoredApp === 'function') {
         setTimeout(_bootRestoredApp, 20);
       }
@@ -1776,14 +1795,12 @@ window.addEventListener('load', function() {
       if (typeof apiClient !== 'undefined' && apiClient.clearTokens) {
         apiClient.clearTokens();
       }
-      var as = document.getElementById('authscreen');
-      if (as) as.classList.add('active');
+      setActiveRootScreen('authscreen');
       if (typeof switchAuthTab === 'function') switchAuthTab('login');
     }
   }).catch(function(e) {
     console.error("Initialization error:", e);
-    var as = document.getElementById('authscreen');
-    if (as) as.classList.add('active');
+    setActiveRootScreen('authscreen');
     if (typeof switchAuthTab === 'function') switchAuthTab('login');
   }).finally(function() {
     clearTimeout(failsafeTimer);
@@ -2150,8 +2167,7 @@ async function doLoginAuth(){
       conectarChatEnVivo();
     }
 
-    var auth=document.getElementById('authscreen');if(auth)auth.classList.remove('active');
-    var app=document.getElementById('app');if(app)app.classList.add('active');
+    setActiveRootScreen('app');
     setTimeout(function(){
       applyColors();
       if(typeof applySeasonalSkin==='function')applySeasonalSkin();
@@ -16949,11 +16965,7 @@ function _performLogoutExecution() {
     sessionStorage.removeItem('ugz_last_label');
   } catch(e) {}
   try {
-    var _a = document.getElementById('app');
-    if (_a) {
-      _a.classList.remove('active');
-      _a.style.display = 'none';
-    }
+    setActiveRootScreen('authscreen');
     document.querySelectorAll('.mov.open').forEach(function(m) {
       m.classList.remove('open');
     });

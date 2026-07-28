@@ -13,6 +13,11 @@
       "backgroundColor": "#0a0520",
       "androidSplashResourceName": "splash",
       "showSpinner": false
+    },
+    "Keyboard": {
+      "resize": "body",
+      "style": "DARK",
+      "resizeOnFullScreen": true
     }
   }
 }
