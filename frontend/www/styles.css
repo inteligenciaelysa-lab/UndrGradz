@@ -8445,13 +8445,9 @@ button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, 
   display: flex !important;
 }
 
-/* TEMPORARY DIAGNOSTIC TEST: Disable animations exclusively in Sign Up / Onboarding */
-#onboarding,
-#onboarding *,
-#auth-signup-panel,
-#auth-signup-panel * {
-  animation: none !important;
-  transition: none !important;
+#onboarding {
+  background: radial-gradient(ellipse at 50% 20%, #0d0724 0%, #060312 65%, #030109 100%) !important;
+  z-index: 100;
 }
 
 /* Background Container (Strictly behind the Login Form) */

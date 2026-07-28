@@ -1670,6 +1670,80 @@ function setActiveRootScreen(screenId) {
   });
 }
 
+// ── DIAGNOSTIC HUD & STARTUP TIMESTAMP LOGGER ──
+(function _initDiagnosticHUD() {
+  var startTime = Date.now();
+  var logEntries = [];
+  
+  function addStartupLog(msg) {
+    var elapsed = Date.now() - startTime;
+    var line = `[+${elapsed}ms] ${msg}`;
+    console.log(`[STARTUP_TIMING] ${line}`);
+    logEntries.push(line);
+    var hud = document.getElementById('ugz-startup-log');
+    if (hud) hud.innerHTML = logEntries.slice(-4).join('<br/>');
+  }
+
+  window._ugzStartupLog = addStartupLog;
+  addStartupLog("JS Execution initialized");
+
+  document.addEventListener('DOMContentLoaded', function() {
+    addStartupLog("DOM Content Loaded");
+  });
+
+  window.addEventListener('load', function() {
+    addStartupLog("Window Load Event");
+  });
+
+  // Touch & Hit-Test Diagnostic Tracker
+  function setupTouchTracker() {
+    var hud = document.createElement('div');
+    hud.id = 'ugz-touch-hud';
+    hud.style.cssText = 'position:fixed;top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;z-index:999999;background:rgba(10,5,26,0.94);color:#00ffcc;font-family:monospace;font-size:10px;padding:6px 10px;border-radius:8px;border:1px solid #00ffcc;pointer-events:none !important;box-shadow:0 4px 14px rgba(0,0,0,0.6);line-height:1.3;';
+    hud.innerHTML = '<strong>[DIAGNOSTIC HUD ACTIVE]</strong><br/><span id="ugz-startup-log">Initializing startup logs...</span><br/><span id="ugz-touch-log">Tap anywhere in Sign Up to test hit-testing...</span>';
+    document.body.appendChild(hud);
+
+    function handleTouchDiag(e) {
+      try {
+        var touch = e.touches ? e.touches[0] : e;
+        if (!touch) return;
+        var x = touch.clientX, y = touch.clientY;
+        var hitEl = document.elementFromPoint(x, y);
+        var targetEl = e.target;
+        
+        var hitDesc = hitEl ? `${hitEl.tagName.toLowerCase()}${hitEl.id ? '#'+hitEl.id : ''}${hitEl.className ? '.'+String(hitEl.className).split(' ')[0] : ''}` : 'null';
+        var targetDesc = targetEl ? `${targetEl.tagName.toLowerCase()}${targetEl.id ? '#'+targetEl.id : ''}${targetEl.className ? '.'+String(targetEl.className).split(' ')[0] : ''}` : 'null';
+        
+        var cs = hitEl ? window.getComputedStyle(hitEl) : {};
+        var pe = cs.pointerEvents || 'n/a';
+        var zi = cs.zIndex || 'n/a';
+        var pos = cs.position || 'n/a';
+        var disp = cs.display || 'n/a';
+        var vis = cs.visibility || 'n/a';
+        var op = cs.opacity || 'n/a';
+
+        var touchBox = document.getElementById('ugz-touch-log');
+        if (touchBox) {
+          touchBox.innerHTML = 
+            `<b>Event:</b> ${e.type} | <b>Pos:</b> (${Math.round(x)}, ${Math.round(y)})<br/>` +
+            `<b>Target:</b> <span style="color:#ffcc00;">${targetDesc}</span><br/>` +
+            `<b>elementFromPoint:</b> <span style="color:${hitEl === targetEl ? '#00ffcc' : '#ff4444'};">${hitDesc}</span><br/>` +
+            `<b>Hit Styles:</b> ptr:${pe} | z:${zi} | pos:${pos} | disp:${disp} | vis:${vis} | op:${op}`;
+        }
+      } catch(err) {
+        console.error("Touch diag err:", err);
+      }
+    }
+
+    ['touchstart', 'pointerdown', 'click'].forEach(function(evt) {
+      document.addEventListener(evt, handleTouchDiag, { capture: true, passive: true });
+    });
+  }
+
+  if (document.body) setupTouchTracker();
+  else document.addEventListener('DOMContentLoaded', setupTouchTracker);
+})();
+
 window.addEventListener('load', function() {
   try{if(typeof applyLanguageTranslations==='function')applyLanguageTranslations();}catch(e){}
   try{_logoColorsLoad();_applyLogoColors();}catch(e){}
@@ -1684,17 +1758,23 @@ window.addEventListener('load', function() {
 
   // Failsafe safety net: Ensure native splash hides even if network or JS encounters an unhandled error
   var failsafeTimer = setTimeout(function() {
+    if (window._ugzStartupLog) window._ugzStartupLog("failsafeTimer (3.5s) triggered _hideNativeSplashScreen");
     _hideNativeSplashScreen({ fadeOutDuration: 400 });
   }, 3500);
 
   // Upfront session validity check
+  if (window._ugzStartupLog) window._ugzStartupLog("sessionCheckPromise start");
+  var checkStart = Date.now();
   var sessionCheckPromise = Promise.resolve(null);
   if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
     sessionCheckPromise = Promise.race([
       apiClient.getMe(),
-      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Timeout')); }, 2500); })
-    ]).catch(function(err) {
-      console.warn("Session check failed or timed out:", err);
+      new Promise(function(_, reject) { setTimeout(function() { reject(new Error('Timeout 1500ms')); }, 1500); })
+    ]).then(function(res) {
+      if (window._ugzStartupLog) window._ugzStartupLog(`getMe success in ${Date.now() - checkStart}ms`);
+      return res;
+    }).catch(function(err) {
+      if (window._ugzStartupLog) window._ugzStartupLog(`getMe failed/timeout in ${Date.now() - checkStart}ms: ${err.message}`);
       return null;
     });
   }
