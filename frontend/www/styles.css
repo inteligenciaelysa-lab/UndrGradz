@@ -8450,6 +8450,18 @@ button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, 
   z-index: 100;
 }
 
+/* Localized touch-action optimization strictly for Sign Up / Onboarding form elements */
+#onboarding input,
+#onboarding button,
+#onboarding select,
+#onboarding textarea,
+#onboarding .gi,
+#onboarding .ob4-chip,
+#authscreen input,
+#authscreen button {
+  touch-action: manipulation;
+}
+
 /* Background Container (Strictly behind the Login Form) */
 .auth-bg-decor {
   position: absolute;

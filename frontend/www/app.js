@@ -2410,7 +2410,7 @@ function _ob4Start(isAlumni){
     '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:16px 0 6px;">'+
       '<div style="flex:1;min-width:0;"><div class="ob4-title" id="ob4-title"></div><div class="ob4-sub" id="ob4-sub"></div></div>'+
     '</div>'+
-    '<div id="ob4-content" style="flex:1;overflow-y:auto;padding:6px 0 24px;"></div>'+
+    '<div id="ob4-content" style="flex:1;overflow:visible;padding:6px 0 24px;"></div>'+
     '<input type="file" id="ob4-file" accept="image/*" style="display:none;" onchange="_ob4PhotoChange(this)"/>';
   _ob4Go(1);
 }
@@ -2444,10 +2444,22 @@ function _ob4Ring(pct){
   var col1='var(--uni-p, #dc2626)';
   var col2='var(--uni-p2, #4d84ff)';
   var r=19,c=2*Math.PI*r,off=c*(1-pct/100);
-  box.innerHTML='<div style="background:linear-gradient(135deg, rgba(13,13,17,0.92), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-lg);padding:8px 13px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(10px);">'+
-    '<div><div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.4px;text-transform:uppercase;">Profile strength</div><div style="font-size:var(--fs-lg);font-weight:1000;color:#fff;text-shadow:0 0 10px var(--uni-p, rgba(240,62,90,0.8));">'+pct+'% '+(full?'<span style="font-size:var(--fs-2xs);padding:2px 5px;background:rgba(240,62,90,0.25);border:1px solid var(--uni-p, #dc2626);border-radius:var(--rad-xs);color:#fff;vertical-align:middle;">⚡ MAX</span>':'')+'</div></div>'+
-    '<svg width="44" height="44" viewBox="0 0 44 44"><defs><linearGradient id="ob4RingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="'+col1+'"/><stop offset="100%" stop-color="'+col2+'"/></linearGradient></defs><circle cx="22" cy="22" r="'+r+'" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/><circle cx="22" cy="22" r="'+r+'" fill="none" stroke="url(#ob4RingGrad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 22 22)" style=""/></svg></div>';
+
+  if(!box.firstElementChild || !box.querySelector('.ob4-ring-val')){
+    box.innerHTML='<div style="background:linear-gradient(135deg, rgba(13,13,17,0.92), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-lg);padding:8px 13px;display:flex;align-items:center;gap:10px;backdrop-filter:blur(10px);">'+
+      '<div><div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.7);font-weight:600;letter-spacing:0.4px;text-transform:uppercase;">Profile strength</div><div style="font-size:var(--fs-lg);font-weight:1000;color:#fff;text-shadow:0 0 10px var(--uni-p, rgba(240,62,90,0.8));"><span class="ob4-ring-val">'+pct+'%</span> <span class="ob4-ring-max" style="display:'+(full?'inline-block':'none')+';font-size:var(--fs-2xs);padding:2px 5px;background:rgba(240,62,90,0.25);border:1px solid var(--uni-p, #dc2626);border-radius:var(--rad-xs);color:#fff;vertical-align:middle;">⚡ MAX</span></div></div>'+
+      '<svg width="44" height="44" viewBox="0 0 44 44"><defs><linearGradient id="ob4RingGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="'+col1+'"/><stop offset="100%" stop-color="'+col2+'"/></linearGradient></defs><circle cx="22" cy="22" r="'+r+'" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/><circle class="ob4-ring-circle" cx="22" cy="22" r="'+r+'" fill="none" stroke="url(#ob4RingGrad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+off+'" transform="rotate(-90 22 22)" style=""/></svg></div>';
+    return;
+  }
+
+  var valEl = box.querySelector('.ob4-ring-val');
+  if(valEl) valEl.textContent = pct + '%';
+  var maxEl = box.querySelector('.ob4-ring-max');
+  if(maxEl) maxEl.style.display = full ? 'inline-block' : 'none';
+  var circle = box.querySelector('.ob4-ring-circle');
+  if(circle) circle.style.strokeDashoffset = off;
 }
+var _ob4StrengthFrame = null;
 function _ob4Strength(){
   var p=0,t=11;
   if(suData&&suData.fname)p++;
@@ -2461,7 +2473,12 @@ function _ob4Strength(){
   if(_ob4State.living||window._regAlumni)p++;
   if(selectedHobbies&&selectedHobbies.length>=3)p++;
   if(userDatingPhotos&&userDatingPhotos.filter(Boolean).length>0)p++;
-  var pct=Math.min(100,Math.round(p/t*100));_ob4Ring(pct);return pct;
+  var pct=Math.min(100,Math.round(p/t*100));
+  if (_ob4StrengthFrame) cancelAnimationFrame(_ob4StrengthFrame);
+  _ob4StrengthFrame = requestAnimationFrame(function() {
+    _ob4Ring(pct);
+  });
+  return pct;
 }
 // Each sign-up section gets its own underline colour instead of all sharing one.
 // Done in JS for the same reason _paintSettingsNeon exists: the labels sit among
@@ -17371,6 +17388,11 @@ function detectUni(v){
   } else {
     u = (typeof _selectedUniDomain !== 'undefined' && _selectedUniDomain) ? UNI[_selectedUniDomain] : null;
   }
+
+  // Guard: Avoid redundant CSS variable writes on every keystroke if uni state hasn't changed
+  if (window._lastDetectedUni === u && (u !== null || !hasAt)) return;
+  window._lastDetectedUni = u;
+
   var el=document.getElementById('udet');
   if(typeof _checkTecCampus==='function')setTimeout(_checkTecCampus,0);
   if(u){
