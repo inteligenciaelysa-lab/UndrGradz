@@ -1025,7 +1025,7 @@ textarea.gi {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px var(--s) 9px;
+  padding: calc(13px + env(safe-area-inset-top)) var(--s) 9px;
   top: 0;
   left: 0;
   right: 0;
@@ -1144,7 +1144,7 @@ textarea.gi {
 }
 .section {
   display: none;
-  padding-top: 13%;
+  padding-top: calc(52px + env(safe-area-inset-top));
 }
 .section.active {
   display: block;

@@ -8,6 +8,7 @@ const destDir = path.join(__dirname, 'www');
 const exclude = new Set([
   'node_modules',
   'android',
+  'ios',
   'www',
   'package.json',
   'package-lock.json',

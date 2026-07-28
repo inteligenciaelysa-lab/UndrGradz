@@ -26,23 +26,25 @@ const API_HOST = HOST || 'localhost'; // file:// deja hostname vacío -> localho
 const IS_CAPACITOR = !!(
   (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) ||
   (window.Capacitor && window.Capacitor.platform && window.Capacitor.platform !== 'web') ||
-  window.location.protocol === 'capacitor:'
+  window.location.protocol === 'capacitor:' ||
+  (window.Capacitor && (window.Capacitor.platform === 'ios' || window.Capacitor.platform === 'android'))
 );
 
 // Túnel público o URL remota de producción
 const REMOTE_URL = 'https://peoples-words-theater-fairy.trycloudflare.com';
 
-// En App Android Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
+// En App Android/iOS Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
 // En Web Local se utiliza el puerto 3000 local del host.
 // En Web Producción se utiliza la URL remota.
-const BASE_URL = IS_CAPACITOR
+const BASE_URL = (IS_CAPACITOR || (window.Capacitor && window.Capacitor.platform !== 'web'))
   ? `${REMOTE_URL}/api/v1`
   : (IS_LOCAL ? `http://${API_HOST}:3000/api/v1` : `${REMOTE_URL}/api/v1`);
 
-const SOCKET_URL = IS_CAPACITOR
+const SOCKET_URL = (IS_CAPACITOR || (window.Capacitor && window.Capacitor.platform !== 'web'))
   ? REMOTE_URL
   : (IS_LOCAL ? `http://${API_HOST}:3000` : REMOTE_URL);
 
+console.log("IS_CAPACITOR:", IS_CAPACITOR);
 console.log("BASE_URL:", BASE_URL);
 console.log("SOCKET_URL:", SOCKET_URL);
 
