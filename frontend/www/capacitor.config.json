@@ -15,9 +15,8 @@
       "showSpinner": false
     },
     "Keyboard": {
-      "resize": "body",
-      "style": "DARK",
-      "resizeOnFullScreen": true
+      "resize": "none",
+      "style": "DARK"
     }
   }
 }
