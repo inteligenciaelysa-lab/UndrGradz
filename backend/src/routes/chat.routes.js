@@ -11,5 +11,7 @@ router.get('/token', chatController.getToken);
 router.get('/conversations', chatController.getConversations);
 router.post('/conversations', chatController.createConversation);
 router.get('/:matchId/messages', chatController.getMessages);
+router.post('/:matchId/messages', chatController.createMessage);
+router.post('/:matchId/audio-url', chatController.getAudioUploadUrl);
 
 module.exports = router;

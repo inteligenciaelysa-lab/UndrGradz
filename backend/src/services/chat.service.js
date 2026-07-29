@@ -1,6 +1,7 @@
 const prisma = require('../database/prisma');
 const AppError = require('../errors/appError');
 const { generateUserChatToken, upsertChatUser } = require('../integrations/stream');
+const { generateChatAudioSignedUrl } = require('../integrations/gcs');
 
 class ChatService {
   async getChatToken(userId) {
@@ -95,25 +96,69 @@ class ChatService {
     }));
   }
 
-  async getMessages(userId, matchId, limit = 50) {
-    // 1. Verify user belongs to this match
-    const match = await prisma.match.findUnique({
-      where: { id: matchId },
+  async resolveMatch(userId, matchIdOrHandle) {
+    if (!matchIdOrHandle) {
+      throw new AppError('Match ID, user ID or handle is required', 400);
+    }
+
+    // 1. Direct Match ID lookup
+    let match = await prisma.match.findUnique({
+      where: { id: matchIdOrHandle },
     });
 
-    if (!match) {
-      throw new AppError('Match not found', 404);
+    if (match) {
+      if (match.userOneId !== userId && match.userTwoId !== userId) {
+        throw new AppError('Not authorized to access this conversation', 403);
+      }
+      return match;
     }
 
-    if (match.userOneId !== userId && match.userTwoId !== userId) {
-      throw new AppError('Not authorized to view this conversation', 403);
+    // 2. Partner lookup by handle or user ID
+    const cleanHandle = matchIdOrHandle.replace(/^@/, '');
+    const partnerUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: matchIdOrHandle },
+          { handle: cleanHandle },
+          { handle: '@' + cleanHandle }
+        ]
+      }
+    });
+
+    if (partnerUser) {
+      const partnerId = partnerUser.id;
+      if (partnerId === userId) {
+        throw new AppError('Cannot converse with yourself', 400);
+      }
+
+      const userOneId = userId < partnerId ? userId : partnerId;
+      const userTwoId = userId < partnerId ? partnerId : userId;
+
+      let matchByUsers = await prisma.match.findUnique({
+        where: { userOneId_userTwoId: { userOneId, userTwoId } }
+      });
+
+      if (!matchByUsers) {
+        matchByUsers = await prisma.match.create({
+          data: { userOneId, userTwoId, isActive: true }
+        });
+      }
+
+      return matchByUsers;
     }
+
+    throw new AppError('Match not found', 404);
+  }
+
+  async getMessages(userId, matchIdInput) {
+    const match = await this.resolveMatch(userId, matchIdInput);
+    const realMatchId = match.id;
 
     // Mark partner's messages as read
     const partnerId = match.userOneId === userId ? match.userTwoId : match.userOneId;
     await prisma.message.updateMany({
       where: {
-        matchId,
+        matchId: realMatchId,
         senderId: partnerId,
         isRead: false,
       },
@@ -122,11 +167,10 @@ class ChatService {
       },
     });
 
-    // 2. Query messages
+    // Query ALL messages associated with the match ordered chronologically
     const messages = await prisma.message.findMany({
-      where: { matchId },
+      where: { matchId: realMatchId },
       orderBy: { createdAt: 'asc' },
-      take: limit,
       include: {
         sender: {
           select: {
@@ -141,36 +185,53 @@ class ChatService {
     return messages;
   }
 
-  async getOrCreateConversation(userId, partnerId) {
+  async createMessage(userId, matchIdInput, content, type = 'TEXT', mediaUrl = null, duration = null) {
+    const match = await this.resolveMatch(userId, matchIdInput);
+    const realMatchId = match.id;
+
+    const durSecs = duration ? parseInt(duration, 10) : null;
+    const msgType = (type || 'TEXT').toUpperCase();
+
+    const message = await prisma.message.create({
+      data: {
+        matchId: realMatchId,
+        senderId: userId,
+        content: content || (msgType === 'AUDIO' ? '🎤 Mensaje de voz' : ''),
+        type: msgType,
+        mediaUrl: mediaUrl || null,
+        duration: msgType === 'AUDIO' ? durSecs : null,
+        isRead: false,
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+
+    return message;
+  }
+
+  async getOrCreateConversation(userId, partnerInput) {
+    const partnerUser = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { id: partnerInput },
+          { handle: partnerInput ? partnerInput.replace(/^@/, '') : '' },
+          { handle: partnerInput ? '@' + partnerInput.replace(/^@/, '') : '' }
+        ]
+      }
+    });
+
+    const partnerId = partnerUser ? partnerUser.id : partnerInput;
     if (userId === partnerId) {
       throw new AppError('Cannot create conversation with yourself', 400);
     }
 
-    // Verify friendship status or match status (to ensure authorization)
-    const isFriend = await prisma.friendship.findFirst({
-      where: {
-        status: 'ACCEPTED',
-        OR: [
-          { senderId: userId, receiverId: partnerId },
-          { senderId: partnerId, receiverId: userId }
-        ]
-      }
-    });
-
-    const isMatched = await prisma.match.findFirst({
-      where: {
-        OR: [
-          { userOneId: userId, userTwoId: partnerId },
-          { userOneId: partnerId, userTwoId: userId }
-        ]
-      }
-    });
-
-    if (!isFriend && !isMatched) {
-      throw new AppError('You are not authorized to start a conversation with this user', 403);
-    }
-
-    // Find or create Match (ensure userOneId < userTwoId for @@unique constraint consistency)
     const userOneId = userId < partnerId ? userId : partnerId;
     const userTwoId = userId < partnerId ? partnerId : userId;
 
@@ -240,6 +301,29 @@ class ChatService {
       matchId: match.id,
       partner
     };
+  }
+
+  async getAudioUploadUrl(userId, matchId, contentType = 'audio/webm', req = null) {
+    // 1. Verify match exists and user belongs to match
+    const match = await prisma.match.findUnique({
+      where: { id: matchId },
+    });
+
+    if (!match) {
+      throw new AppError('Match conversation not found', 404);
+    }
+
+    if (match.userOneId !== userId && match.userTwoId !== userId) {
+      throw new AppError('Not authorized to send audio in this conversation', 403);
+    }
+
+    // 2. Validate MIME type
+    if (!contentType || typeof contentType !== 'string' || !contentType.toLowerCase().startsWith('audio/')) {
+      throw new AppError('Invalid audio MIME type', 400);
+    }
+
+    // 3. Generate signed upload URL
+    return await generateChatAudioSignedUrl(userId, matchId, contentType, req);
   }
 }
 

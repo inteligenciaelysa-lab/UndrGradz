@@ -1,6 +1,7 @@
 const { Server } = require('socket.io');
 const { verifyAccessToken } = require('./utils/jwt');
 const prisma = require('./database/prisma');
+const { validateAudioFile } = require('./utils/audioValidator');
 
 // Store online users mapping: userId -> socketId
 const onlineUsers = new Map();
@@ -58,9 +59,11 @@ const setupSocket = (server) => {
     });
 
     // Listen for incoming message sends
-    socket.on('sendMessage', async ({ matchId, content }) => {
+    socket.on('sendMessage', async ({ matchId, content, type = 'TEXT', mediaUrl, duration }) => {
       try {
-        if (!content || content.trim() === '') return;
+        const msgType = (type || 'TEXT').toUpperCase();
+        
+        if (msgType === 'TEXT' && (!content || content.trim() === '')) return;
 
         // Verify if user is part of the match
         const match = await prisma.match.findUnique({
@@ -69,6 +72,17 @@ const setupSocket = (server) => {
 
         if (!match || (match.userOneId !== userId && match.userTwoId !== userId)) {
           return socket.emit('error', { message: 'Unauthorized match room' });
+        }
+
+        // Strict Backend Audio & Binary Duration Validation
+        let durSecs = null;
+        if (msgType === 'AUDIO') {
+          const audioVal = await validateAudioFile(mediaUrl, duration);
+          if (!audioVal.valid) {
+            console.warn(`[AUDIO SECURITY] Audio validation rejected for user ${userId}: ${audioVal.reason}`);
+            return socket.emit('error', { message: audioVal.reason || 'El archivo de audio no es válido o excede 60 segundos.' });
+          }
+          durSecs = audioVal.duration;
         }
 
         // Find recipient ID
@@ -88,7 +102,10 @@ const setupSocket = (server) => {
           data: {
             matchId,
             senderId: userId,
-            content,
+            content: content || (msgType === 'AUDIO' ? '🎤 Mensaje de voz' : ''),
+            type: msgType || 'TEXT',
+            mediaUrl: mediaUrl || null,
+            duration: msgType === 'AUDIO' ? durSecs : null,
             isRead,
           },
           include: {

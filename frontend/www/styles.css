@@ -1941,6 +1941,108 @@ textarea.gi {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+/* Unified Audio Player & Icebreaker Card Styles */
+.msg-audio-player-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.35), rgba(139, 92, 246, 0.35));
+  border: 1.5px solid rgba(236, 72, 153, 0.45);
+  border-radius: 22px;
+  padding: 10px 16px;
+  min-width: 220px;
+  max-width: 280px;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.msg.in .msg-audio-player-wrapper,
+.msg.out .msg-audio-player-wrapper {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.35), rgba(139, 92, 246, 0.35));
+  border: 1.5px solid rgba(236, 72, 153, 0.45);
+}
+.msg-audio-play-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  color: #d02040;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.msg-audio-play-btn:active {
+  transform: scale(0.92);
+}
+.msg-audio-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.msg-audio-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+.msg-audio-fill {
+  height: 100%;
+  width: 0%;
+  background: #ffffff;
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+.msg-audio-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* Unified Icebreaker Game Card */
+.msg-game-card {
+  background: linear-gradient(135deg, #059669, #0d9488, #0f766e) !important;
+  border: 1.5px solid rgba(52, 211, 153, 0.4) !important;
+  border-radius: 18px !important;
+  padding: 12px 16px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(13, 148, 136, 0.25) !important;
+  max-width: 290px;
+}
+.msg.out .msg-game-card,
+.msg.in .msg-game-card {
+  background: linear-gradient(135deg, #059669, #0d9488, #0f766e) !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+}
+.msg-game-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.msg-game-title {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: #ffffff;
+}
 .msg.in {
   align-self: flex-start;
   background: var(--chat-in-bg, rgba(255, 255, 255, 0.1));
@@ -11236,4 +11338,194 @@ button, a, input, select, textarea, [role="button"],
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
 }
+
+/* ==========================================================================
+   CHAT VOICE RECORDING & AUDIO PLAYER STYLES (WHATSAPP/TELEGRAM-LIKE)
+   ========================================================================== */
+
+/* Recording bar container */
+.chat-audio-rec-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(240, 62, 90, 0.45);
+  border-radius: var(--rad-lg, 24px);
+  padding: 6px 14px;
+  animation: recBarSlide 0.25s ease-out;
+  min-height: 42px;
+}
+
+@keyframes recBarSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulsing red recording indicator dot */
+.chat-rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+  animation: recPulse 1.2s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+@keyframes recPulse {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 14px #ef4444; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* Timer display */
+.chat-rec-timer {
+  font-family: monospace, sans-serif;
+  font-size: var(--fs-md, 15px);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+/* Audio waveform visualization bars */
+.chat-rec-wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  height: 18px;
+  overflow: hidden;
+  margin: 0 4px;
+}
+
+.chat-rec-wave-bar {
+  width: 3px;
+  background: linear-gradient(180deg, #f03e5a, #a855f7);
+  border-radius: 2px;
+  animation: waveBar 0.8s infinite ease-in-out alternate;
+}
+
+.chat-rec-wave-bar:nth-child(1) { height: 35%; animation-delay: 0.1s; }
+.chat-rec-wave-bar:nth-child(2) { height: 75%; animation-delay: 0.3s; }
+.chat-rec-wave-bar:nth-child(3) { height: 100%; animation-delay: 0.2s; }
+.chat-rec-wave-bar:nth-child(4) { height: 50%; animation-delay: 0.4s; }
+.chat-rec-wave-bar:nth-child(5) { height: 80%; animation-delay: 0.15s; }
+.chat-rec-wave-bar:nth-child(6) { height: 40%; animation-delay: 0.35s; }
+
+@keyframes waveBar {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1); }
+}
+
+/* Actions buttons in recording bar */
+.chat-audio-btn {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+.chat-audio-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+.chat-audio-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+.chat-audio-btn.send-btn {
+  background: linear-gradient(135deg, #f03e5a, #e11d48);
+  color: #ffffff;
+  width: 34px;
+  height: 34px;
+  box-shadow: 0 3px 10px rgba(240, 62, 90, 0.4);
+}
+.chat-audio-btn.send-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 5px 14px rgba(240, 62, 90, 0.6);
+}
+
+/* Audio Player Bubble in Chat */
+.msg-audio-player-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  min-width: 210px;
+  max-width: 260px;
+  border-radius: 16px;
+}
+
+.msg.out .msg-audio-player-wrapper {
+  background: linear-gradient(135deg, #f03e5a, #c026d3);
+  color: #ffffff;
+}
+.msg.in .msg-audio-player-wrapper {
+  background: rgba(30, 41, 59, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.msg-audio-play-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.msg-audio-play-btn:active {
+  transform: scale(0.92);
+}
+
+.msg-audio-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msg-audio-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.3);
+  position: relative;
+  cursor: pointer;
+}
+
+.msg-audio-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: #ffffff;
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+.msg-audio-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
 

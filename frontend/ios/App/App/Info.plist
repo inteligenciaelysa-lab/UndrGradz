@@ -56,6 +56,7 @@
 				<false/>
 			</dict>
 		</dict>
-	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Necesitamos acceso al micrófono para grabar y enviar mensajes de voz en el chat.</string>
 </dict>
 </plist>

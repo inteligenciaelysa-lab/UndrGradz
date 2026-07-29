@@ -12479,8 +12479,13 @@ function openChatGame(){
 function _playChatGame(i){
   var g=window._chatGames&&window._chatGames[i];if(!g||!curChatId)return;
   if(!chatHistory[curChatId])chatHistory[curChatId]=[];
-  chatHistory[curChatId].push({txt:g.m(),out:true});
+  var gameMsg = g.m();
+  chatHistory[curChatId].push({txt:gameMsg,out:true});
   if(typeof renderMsgs==='function')renderMsgs();
+  var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !curChatId.startsWith('biz_') && !curChatId.startsWith('net_') && !curChatId.startsWith('clist-') && !curChatId.includes('moment'));
+  if (isDbMatch) {
+    apiClient.sendChatMessage(curChatId, gameMsg, 'GAME');
+  }
   var mm=document.getElementById('chatgame-modal');if(mm)mm.remove();
 }
 
@@ -12532,34 +12537,115 @@ function updateChatWindowBubbleColors(style, partnerUni) {
   }
 }
 
-function openChat(id,nm,color,av,isGrp,msgs,online){
-  if (id && typeof id === 'string' && id.startsWith('friend_')) {
-    var friendId = id.replace('friend_', '');
-    if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
-      apiClient.createConversation(friendId).then(function(result) {
-        openChat(result.matchId, nm, color, av, isGrp, msgs, online);
-        if (typeof fetchAndRenderChats === 'function') fetchAndRenderChats();
-      }).catch(function(err) {
-        console.error("Failed to upgrade friend chat in openChat:", err);
-      });
-    }
-    return;
+function _getCurrentUserId() {
+  if (typeof userPro !== 'undefined' && userPro && userPro.id) return userPro.id;
+  if (typeof window._currentUserId !== 'undefined' && window._currentUserId) return window._currentUserId;
+  if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
+    try {
+      var token = apiClient.getAccessToken();
+      var parts = token.split('.');
+      if (parts.length === 3) {
+        var payload = JSON.parse(atob(parts[1]));
+        var uid = payload.userId || payload.id || null;
+        if (uid) {
+          window._currentUserId = uid;
+          if (typeof userPro !== 'undefined' && userPro) userPro.id = uid;
+          return uid;
+        }
+      }
+    } catch(e) {}
   }
-  var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !id.startsWith('biz_') && !id.startsWith('net_') && !id.startsWith('clist-') && !id.includes('moment'));
-  
-  // Clear the unread badge for this chat from the DOM when opened
-  var unrdList = document.querySelectorAll('#dm-match-' + id + ' .cunrd, #uc-match-' + id + ' .cunrd');
-  unrdList.forEach(function(badge) {
-    badge.remove();
+  return null;
+}
+window._getCurrentUserId = _getCurrentUserId;
+
+function debugChatState(label, matchId) {
+  var target = matchId || (typeof curChatId !== 'undefined' ? curChatId : null);
+  var arr = (typeof chatHistory !== 'undefined' && target) ? chatHistory[target] : null;
+  console.log('[CHAT STATE]', label, {
+    matchId: target,
+    curChatId: (typeof curChatId !== 'undefined' ? curChatId : null),
+    count: Array.isArray(arr) ? arr.length : 'NOT_ARRAY',
+    messages: Array.isArray(arr)
+      ? arr.map(function(m) {
+          return {
+            id: m.id,
+            text: m.txt || m.text || m.content,
+            senderId: m.senderId,
+            out: m.out
+          };
+        })
+      : arr
   });
-  if (window._unreadMessageCounts) {
-    window._unreadMessageCounts[id] = 0;
+}
+window.debugChatState = debugChatState;
+
+function normalizeChatMessage(m) {
+  if (!m) return null;
+  var curUserId = _getCurrentUserId();
+  var senderId = m.senderId || (m.sender ? m.sender.id : null);
+  
+  var isOut = false;
+  if (typeof m.out === 'boolean') {
+    isOut = m.out;
+  } else if (senderId && curUserId) {
+    isOut = (senderId === curUserId);
   }
-  var totalUnread = 0;
-  if (window._unreadMessageCounts) {
-    for (var mId in window._unreadMessageCounts) {
-      totalUnread += window._unreadMessageCounts[mId] || 0;
+
+  var txtContent = m.content || m.txt || m.text || '';
+  
+  return {
+    id: m.id || ('msg_loc_' + Math.random().toString(36).substring(2, 9)),
+    txt: txtContent,
+    content: txtContent,
+    type: (m.type || 'TEXT').toUpperCase(),
+    mediaUrl: m.mediaUrl || m.img || m.audio || null,
+    duration: m.duration || null,
+    out: isOut,
+    senderId: senderId,
+    from: (m.sender && m.sender.firstName) ? m.sender.firstName : (m.from || ''),
+    seeOnce: !!m.seeOnce,
+    opened: !!m.opened,
+    expired: !!m.expired,
+    isVideo: !!m.isVideo,
+    createdAt: m.createdAt || new Date().toISOString()
+  };
+}
+window.normalizeChatMessage = normalizeChatMessage;
+
+function _updateUnreadBadgeForChat(matchId) {
+  window._unreadMessageCounts = window._unreadMessageCounts || {};
+  var count = window._unreadMessageCounts[matchId] || 0;
+  
+  var targets = ['dm-match-' + matchId, 'uc-match-' + matchId];
+  targets.forEach(function(rowId) {
+    var item = document.getElementById(rowId);
+    if (!item) return;
+    
+    var existingBadge = item.querySelector('.cunrd');
+    if (count > 0) {
+      var displayCount = count > 9 ? '+9' : count;
+      if (existingBadge) {
+        existingBadge.textContent = displayCount;
+        existingBadge.style.display = 'flex';
+      } else {
+        var metaRight = item.querySelector('div[style*="flex-direction:column"]') || item.children[2];
+        if (metaRight) {
+          var bDiv = document.createElement('div');
+          bDiv.className = 'cunrd';
+          bDiv.style.cssText = 'background:var(--p); display:flex; align-items:center; justify-content:center;';
+          bDiv.textContent = displayCount;
+          metaRight.appendChild(bDiv);
+        }
+      }
+    } else {
+      if (existingBadge) existingBadge.remove();
     }
+  });
+
+  var totalUnread = 0;
+  for (var mId in window._unreadMessageCounts) {
+    totalUnread += window._unreadMessageCounts[mId] || 0;
   }
   var chatsBadge = document.getElementById('nbadge-chats');
   if (chatsBadge) {
@@ -12570,6 +12656,47 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
       chatsBadge.style.display = 'none';
     }
   }
+  var navBadge = document.querySelector('.nav-btn[data-tab="chats"] .nav-badge') || document.querySelector('#nav-chats .nav-badge');
+  if (navBadge) {
+    if (totalUnread > 0) {
+      navBadge.style.display = 'flex';
+      navBadge.textContent = totalUnread > 9 ? '+9' : totalUnread;
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
+}
+window._updateUnreadBadgeForChat = _updateUnreadBadgeForChat;
+
+function openChat(id,nm,color,av,isGrp,msgs,online){
+  var inpBefore = document.getElementById('cinp') ? document.getElementById('cinp').value : '';
+  console.log('[CHAT DUPLICATE DEBUG] openChat() START | timestamp: ' + new Date().toISOString() + ' | id: ' + id + ' | input value BEFORE loading chat: "' + inpBefore + '"');
+  debugChatState('openChat START', id);
+  console.log('[CHAT DEBUG] OPEN CHAT START | openChat ARGUMENT id:', id, '| name:', nm);
+  console.log('[CHAT DEBUG] current user ID:', _getCurrentUserId());
+
+  if (id && typeof id === 'string' && (id.startsWith('friend_') || id.startsWith('user_') || (!id.startsWith('cm') && !id.startsWith('grp_') && !id.startsWith('biz_') && !id.startsWith('net_') && !id.startsWith('clist-') && !id.includes('moment')))) {
+    var partnerRef = id.replace(/^(friend_|user_)/, '');
+    console.log('[CHAT DEBUG] Non-Match ID detected, resolving partnerRef:', partnerRef);
+    if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
+      apiClient.createConversation(partnerRef).then(function(result) {
+        if (result && result.matchId) {
+          console.log('[CHAT DEBUG] Resolved partnerRef ' + partnerRef + ' to matchId:', result.matchId);
+          openChat(result.matchId, nm, color, av, isGrp, msgs, online);
+          if (typeof fetchAndRenderChats === 'function') fetchAndRenderChats();
+        }
+      }).catch(function(err) {
+        console.error("[CHAT DEBUG ERROR] Failed to resolve conversation ID in openChat:", err);
+      });
+    }
+    return;
+  }
+  var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !id.startsWith('biz_') && !id.startsWith('net_') && !id.startsWith('clist-') && !id.includes('moment'));
+  
+  if (window._unreadMessageCounts) {
+    window._unreadMessageCounts[id] = 0;
+  }
+  _updateUnreadBadgeForChat(id);
 
   var conv = (typeof _chatPartnerCache !== 'undefined') ? _chatPartnerCache[id] : null;
   var partner = conv ? conv.partner : null;
@@ -12600,13 +12727,8 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
   var bgContainer = document.getElementById('cwbg');
   if (bgContainer) {
     if (chatBgStyle) {
-      // The saved value is a design id ('uni-silk', 'black', ...), not a CSS
-      // value — it has to go through the renderer or the chosen background is
-      // silently lost every time the chat is reopened.
       renderChatBackground(chatBgStyle);
     } else {
-      // Clear any container left over from the previously opened chat, then
-      // keep the existing partner-university tint fallback.
       renderChatBackground('default');
       if (partnerUni) {
         bgContainer.style.background = 'linear-gradient(135deg, ' + partnerUni.p + '33, ' + (partnerUni.p2 || partnerUni.p) + '18, var(--bg, #000000))';
@@ -12631,30 +12753,56 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
       if (color) avDiv.style.background = color;
     }
   }
-  if(!chatHistory[id])chatHistory[id]=[];if(msgs&&chatHistory[id].length===0)chatHistory[id]=msgs.map(function(m,i){return{txt:m,out:isGrp?false:(i%2===0)};});if(typeof _cwApplyChatHead==='function')_cwApplyChatHead(id,displayName,color,!!isGrp);renderMsgs();if(typeof renderIcebreakers==='function')renderIcebreakers(id);
-  // Database match chat connection & message fetching
-  var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !id.startsWith('biz_') && !id.startsWith('net_') && !id.startsWith('clist-') && !id.includes('moment'));
+  if (!chatHistory[id]) chatHistory[id] = [];
+  if (!isDbMatch && msgs && chatHistory[id].length === 0) {
+    chatHistory[id] = msgs.map(function(m){ return normalizeChatMessage({ txt: m, out: isGrp?false:true }); });
+  }
+  if (typeof _cwApplyChatHead === 'function') _cwApplyChatHead(id, displayName, color, !!isGrp);
+  
+  console.log('[CHAT DEBUG] curChatId set to:', curChatId);
+  console.log('[CHAT DEBUG] Initial chatHistory[' + id + '] count:', chatHistory[id].length, chatHistory[id]);
+  
+  renderMsgs();
+  if (typeof renderIcebreakers === 'function') renderIcebreakers(id);
+
   if (isDbMatch) {
+    window._currentChatRequestId = (window._currentChatRequestId || 0) + 1;
+    var requestId = window._currentChatRequestId;
+
+    console.log('[CHAT DEBUG] Requesting DB messages for matchId:', id, '| requestId:', requestId);
     if (csub) csub.textContent = 'Loading messages...';
+    debugChatState('openChat BEFORE GET RESOLVE', id);
     apiClient.getChatMessages(id).then(function(dbMsgs) {
-      chatHistory[id] = dbMsgs.map(function(m) {
-        return {
-          id: m.id,
-          txt: m.content,
-          out: m.senderId === userPro.id,
-          from: m.sender.firstName
-        };
+      if (window._currentChatRequestId !== requestId || curChatId !== id) {
+        console.log('[CHAT DEBUG] Ignoring stale GET response for requestId ' + requestId);
+        return;
+      }
+      console.log('[CHAT DEBUG] GET RETURNED:', (dbMsgs ? dbMsgs.length : 0), 'messages from server for matchId:', id);
+      
+      debugChatState('openChat BEFORE ASSIGNING GET RESULT', id);
+      chatHistory[id] = (dbMsgs || []).map(function(m) {
+        return normalizeChatMessage(m);
       });
+      debugChatState('openChat AFTER ASSIGNING GET RESULT', id);
+      
+      console.log('[CHAT DEBUG] NORMALIZED & UPDATED chatHistory[' + id + ']:', chatHistory[id].length, 'messages');
       renderMsgs();
+      debugChatState('openChat AFTER renderMsgs FOR GET', id);
       if (csub) csub.textContent = online ? 'Online' : 'Last seen recently';
     }).catch(function(err) {
-      console.error("Failed to load chat history:", err);
+      console.error("[CHAT DEBUG ERROR] Failed to load chat history:", err);
       if (csub) csub.textContent = 'Error loading history';
     });
     apiClient.joinChatRoom(id);
   }
 }
 function closeChat(){
+  debugChatState('closeChat START', curChatId);
+  console.log('[CHAT DEBUG] CHAT CLOSE');
+  console.log('[CHAT DEBUG] curChatId BEFORE CLOSE:', curChatId);
+  if (curChatId && chatHistory[curChatId]) {
+    console.log('[CHAT DEBUG] chatHistory BEFORE CLOSE for ' + curChatId + ' count:', chatHistory[curChatId].length, chatHistory[curChatId]);
+  }
   var win=document.getElementById('cwin');
   if(win)win.classList.remove('open');
   if (typeof curChatId !== 'undefined' && curChatId) {
@@ -12663,6 +12811,7 @@ function closeChat(){
     }
     curChatId = null;
   }
+  debugChatState('closeChat END', curChatId);
 }
 function _e(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 window.groupChatMeta = window.groupChatMeta || {};
@@ -13055,11 +13204,6 @@ function groupExitGroup(chatId) {
     confirmText: 'Salir',
     cancelText: 'Cancelar',
     onConfirm: function() {
-      var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
-      var meta = _getGroupMeta(chatId);
-      meta.members = meta.members.filter(function(m) { return m.handle !== myHandle; });
-      _saveGroupMeta();
-      if (typeof chatHistory !== 'undefined') delete chatHistory[chatId];
       if (typeof _deleteChatRow === 'function') _deleteChatRow(chatId);
       var sm = document.getElementById('chat-settings-modal');
       if (sm) sm.remove();
@@ -13069,13 +13213,165 @@ function groupExitGroup(chatId) {
 }
 
 function renderMsgs(){
-  var box=document.getElementById('cmsgs');if(!box||!curChatId)return;box.innerHTML='';
+  var box=document.getElementById('cmsgs');if(!box||!curChatId)return;
   var isGrp=!!(typeof _curChatUser!=='undefined'&&_curChatUser&&_curChatUser.isGrp);
   var hist=chatHistory[curChatId]||[];
+  console.log('[CHAT DEBUG] renderMsgs() executing for curChatId:', curChatId, '| messages count in chatHistory:', hist.length, hist);
+  box.innerHTML='';
   if(hist.length){var d=document.createElement('div');d.style.cssText='align-self:center;font-size:var(--fs-2xs);font-weight:800;color:var(--fg2);background:rgba(255,255,255,0.08);border-radius:var(--rad-sm);padding:3px 12px;margin:2px 0 4px;';d.textContent='Today';box.appendChild(d);}
   var RX=['❤️','🔥','👍'];var COLS=['#e91e63','#3b82f6','#3d7bff','#f59e0b','#22c55e','#0ea5e9'];
   hist.forEach(function(m){
-    if(m.img){var iv=document.createElement('div');iv.className='msg '+(m.out?'out':'in');iv.innerHTML='<img src="'+m.img+'" style="width:120px;height:120px;border-radius:var(--rad-sm);object-fit:cover;display:block;"/>';iv.style.padding='4px';iv.style.background='transparent';box.appendChild(iv);return;}
+    var div=document.createElement('div');div.className='msg '+(m.out?'out':'in');
+
+    // 1. See-Once media handling
+    if(m.seeOnce&&!m.opened&&!m.expired){
+      div.style.cssText+='cursor:pointer;background:rgba(180,83,9,0.3);border:1px dashed rgba(251,191,36,0.4);';
+      div.innerHTML='<div style="text-align:center;padding:4px 8px;"><div style="font-size:var(--fs-xl);margin-bottom:4px;">'+(m.isVideo?'🎬':'👁')+'</div><div style="font-size:var(--fs-sm);font-weight:500;">View Once '+(m.isVideo?'Video':'Photo')+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);">Tap to open — disappears after viewing</div></div>';
+      div.onclick=function(){
+        m.opened=true;div.onclick=null;
+        div.style.cssText='';div.className='msg '+(m.out?'out':'in');div.style.padding='4px';div.style.background='transparent';
+        if(m.isVideo){
+          div.innerHTML='<video src="'+m.img+'" controls autoplay playsinline style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
+        }else{
+          div.innerHTML='<img src="'+m.img+'" style="width:180px;border-radius:var(--rad-sm);display:block;object-fit:cover;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
+        }
+        setTimeout(function(){m.expired=true;m.img=null;renderMsgs();},8000);
+      };
+      box.appendChild(div);return;
+    }else if(m.seeOnce&&m.expired){
+      div.innerHTML='<div style="font-size:var(--fs-sm);color:var(--fg3);font-style:italic;">'+(m.isVideo?'🎬':'👁')+' Media expired</div>';
+      box.appendChild(div);return;
+    }else if(m.seeOnce&&m.opened&&m.img){
+      div.style.padding='4px';div.style.background='transparent';
+      if(m.isVideo){div.innerHTML='<video src="'+m.img+'" controls style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
+      else{div.innerHTML='<img src="'+m.img+'" style="width:180px;border-radius:var(--rad-sm);display:block;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
+      box.appendChild(div);return;
+    }
+
+    // 2. Audio message rendering
+    var isAudio = (m.type === 'AUDIO' || m.audio || (m.mediaUrl && (m.mediaUrl.includes('audio') || m.mediaUrl.includes('.webm') || m.mediaUrl.includes('.m4a') || m.mediaUrl.includes('.ogg') || m.mediaUrl.includes('.mp3') || m.mediaUrl.includes('.wav') || m.mediaUrl.includes('/audios/'))) || (m.txt && m.txt.includes('Mensaje de voz')));
+    if (isAudio) {
+      var audioUrl = m.mediaUrl || m.audio;
+      if (!audioUrl && m.txt && m.txt.includes('http')) {
+        var matchUrl = m.txt.match(/https?:\/\/[^\s]+/);
+        if (matchUrl) audioUrl = matchUrl[0];
+      }
+      var durSecs = m.duration || 0;
+      var durLabel = typeof _formatAudioTime === 'function' ? _formatAudioTime(durSecs) : (durSecs > 0 ? (durSecs + 's') : 'Audio');
+
+      div.style.background = 'transparent';
+      div.style.padding = '2px';
+
+      var playerWrap = document.createElement('div');
+      playerWrap.className = 'msg-audio-player-wrapper';
+      playerWrap.innerHTML = `
+        <button type="button" class="msg-audio-play-btn">▶</button>
+        <div class="msg-audio-body">
+          <div class="msg-audio-track">
+            <div class="msg-audio-fill"></div>
+          </div>
+          <div class="msg-audio-meta">
+            <span>🎤 Audio</span>
+            <span class="dur-txt">${durLabel}</span>
+          </div>
+        </div>
+      `;
+
+      var playBtn = playerWrap.querySelector('.msg-audio-play-btn');
+      var fill = playerWrap.querySelector('.msg-audio-fill');
+      var durTxt = playerWrap.querySelector('.dur-txt');
+      var track = playerWrap.querySelector('.msg-audio-track');
+
+      var audioInst = null;
+
+      playBtn.onclick = function() {
+        if (!audioUrl) {
+          alert('⚠️ Archivo de audio no disponible.');
+          return;
+        }
+        if (audioInst && !audioInst.paused) {
+          audioInst.pause();
+          playBtn.textContent = '▶';
+          return;
+        }
+
+        if (!audioInst) {
+          audioInst = new Audio(audioUrl);
+          audioInst.onloadedmetadata = function() {
+            if (audioInst.duration && isFinite(audioInst.duration)) {
+              var realDur = Math.round(audioInst.duration);
+              if (typeof _formatAudioTime === 'function') durTxt.textContent = _formatAudioTime(realDur);
+            }
+          };
+          audioInst.onended = function() {
+            playBtn.textContent = '▶';
+            fill.style.width = '0%';
+            if (durSecs > 0 && typeof _formatAudioTime === 'function') durTxt.textContent = _formatAudioTime(durSecs);
+          };
+          audioInst.ontimeupdate = function() {
+            if (audioInst && audioInst.duration) {
+              var pct = (audioInst.currentTime / audioInst.duration) * 100;
+              fill.style.width = pct + '%';
+              if (typeof _formatAudioTime === 'function') durTxt.textContent = _formatAudioTime(audioInst.currentTime);
+            }
+          };
+        }
+
+        if (typeof window._currentlyPlayingAudio !== 'undefined' && window._currentlyPlayingAudio && window._currentlyPlayingAudio !== audioInst) {
+          window._currentlyPlayingAudio.pause();
+        }
+        window._currentlyPlayingAudio = audioInst;
+
+        audioInst.play().then(function() {
+          playBtn.textContent = '⏸';
+        }).catch(function(e) {
+          console.error("Playback failed:", e);
+        });
+      };
+
+      track.onclick = function(e) {
+        if (!audioInst) return;
+        var rect = track.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        if (audioInst.duration) {
+          audioInst.currentTime = pct * audioInst.duration;
+        }
+      };
+
+      div.appendChild(playerWrap);
+      box.appendChild(div);
+      return;
+    }
+
+    // 3. Image / Video message handling
+    if(m.img || m.type === 'IMAGE' || m.isVideo || (m.mediaUrl && (m.mediaUrl.includes('.jpg') || m.mediaUrl.includes('.png') || m.mediaUrl.includes('.jpeg') || m.mediaUrl.includes('.webp')))){
+      var imgUrl = m.img || m.mediaUrl;
+      div.style.padding='4px';div.style.background='transparent';
+      if (m.isVideo) {
+        div.innerHTML='<video src="'+imgUrl+'" controls style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video>';
+      } else {
+        div.innerHTML='<img src="'+imgUrl+'" style="width:160px;max-height:160px;border-radius:var(--rad-sm);object-fit:cover;display:block;"/>';
+      }
+      box.appendChild(div);return;
+    }
+
+    // 4. File attachment handling
+    if (m.type === 'FILE' || (m.mediaUrl && !isAudio)) {
+      var fileUrl = m.mediaUrl;
+      div.style.padding = '8px 12px';
+      div.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">📎</span><div><a href="' + fileUrl + '" target="_blank" style="color:#fff;text-decoration:underline;font-weight:600;font-size:var(--fs-sm);">' + (m.txt || 'Attachment') + '</a></div></div>';
+      box.appendChild(div);return;
+    }
+
+    // 5. Game card handling
+    if (m.type === 'GAME' || (m.txt && (m.txt.includes('This or That') || m.txt.includes('Truth or Dare') || m.txt.includes('2 Truths') || m.txt.includes('Would You Rather')))) {
+      div.style.background = 'transparent';
+      div.style.padding = '0';
+      div.innerHTML = '<div class="msg-game-card"><div class="msg-game-badge">🎮 Icebreaker Game</div><div class="msg-game-title">' + _e(m.txt) + '</div></div>';
+      box.appendChild(div);return;
+    }
+
+    // 6. Group message formatting
     if(!m.out&&isGrp){
       var txt=m.txt||'';var from=m.from||'';var body=txt;
       if(!from){var mt=txt.match(/^([^:@]{1,22}):\s+(.+)$/);if(mt){from=mt[1];body=mt[2];}}
@@ -13087,23 +13383,52 @@ function renderMsgs(){
         box.appendChild(row);return;
       }
     }
-    var div=document.createElement('div');div.className='msg '+(m.out?'out':'in');div.textContent=m.txt;box.appendChild(div);
+
+    // 7. Plain text fallback
+    div.textContent=m.txt||'';
+    box.appendChild(div);
   });
   box.scrollTop=box.scrollHeight;
+  console.log('[CHAT DEBUG] renderMsgs() finished, DOM children count in #cmsgs:', box.children.length);
 }
 function sendMsg(){
-  var inp=document.getElementById('cinp');if(!inp||!inp.value.trim())return;
+  var rawInpValue = document.getElementById('cinp') ? document.getElementById('cinp').value : '';
+  console.log('[CHAT DUPLICATE DEBUG] sendMsg() CALLED', {
+    timestamp: new Date().toISOString(),
+    curChatId: curChatId,
+    inputValue: rawInpValue
+  });
+  try { console.trace('[CHAT DUPLICATE DEBUG] sendMsg() CALLED'); } catch(e) {}
+
+  if (window._isSendingMsg) {
+    console.warn('⚠️ sendMsg blocked: message sending already in progress');
+    return;
+  }
+  window._isSendingMsg = true;
+  setTimeout(function() { window._isSendingMsg = false; }, 600);
+
+  var inp=document.getElementById('cinp');if(!inp||!inp.value.trim()){ window._isSendingMsg = false; return; }
   var txt=inp.value.trim();
   var txtLow=txt.toLowerCase();
-  if(BANNED.some(function(w){return txtLow.includes(w);})){alert('Message contains restricted content.');inp.value=txt;return;}
+  if(BANNED.some(function(w){return txtLow.includes(w);})){alert('Message contains restricted content.');inp.value=txt; window._isSendingMsg = false; return;}
   inp.value='';
   if (typeof _handleCinpInput==='function') _handleCinpInput();
+
+  console.log('[CHAT DEBUG] SEND START');
+  console.log('[CHAT DEBUG] current user ID:', _getCurrentUserId());
+  console.log('[CHAT DEBUG] curChatId:', curChatId);
+  console.log('[CHAT DEBUG] message content:', txt);
+
   if(!curChatId)return;
   if(!chatHistory[curChatId])chatHistory[curChatId]=[];
   
   var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !curChatId.startsWith('biz_') && !curChatId.startsWith('net_') && !curChatId.startsWith('clist-') && !curChatId.includes('moment'));
   
+  debugChatState('sendMsg BEFORE PUSH', curChatId);
   chatHistory[curChatId].push({txt:txt,out:true});
+  debugChatState('sendMsg AFTER PUSH', curChatId);
+  console.log('[CHAT DEBUG] LOCAL MESSAGE INSERTED, local count in chatHistory[' + curChatId + ']:', chatHistory[curChatId].length);
+  
   var _ib=document.getElementById('icebreaker-bar');if(_ib)_ib.style.display='none';
   
   if(typeof _bumpKindness==='function')_bumpKindness(1);
@@ -13126,7 +13451,22 @@ function sendMsg(){
   renderMsgs();
   
   if (isDbMatch) {
-    apiClient.sendChatMessage(curChatId, txt);
+    apiClient.sendChatMessage(curChatId, txt).then(function(savedMsg) {
+      console.log("[CHAT DEBUG] SERVER CONFIRMED MESSAGE, DB ID:", savedMsg ? savedMsg.id : 'N/A', savedMsg);
+      if (savedMsg && savedMsg.id) {
+        var local = chatHistory[curChatId] ? chatHistory[curChatId].find(function(m) { return !m.id && m.txt === txt && m.out; }) : null;
+        if (local) local.id = savedMsg.id;
+      }
+    }).catch(function(err) {
+      console.error("[CHAT DEBUG] SERVER REJECTED MESSAGE:", err);
+      if (chatHistory[curChatId]) {
+        debugChatState('sendMsg BEFORE REJECT FILTER', curChatId);
+        chatHistory[curChatId] = chatHistory[curChatId].filter(function(m) { return m.txt !== txt || !m.out || m.id; });
+        debugChatState('sendMsg AFTER REJECT FILTER', curChatId);
+        renderMsgs();
+      }
+      if (typeof showToast === 'function') showToast('❌ Error al guardar el mensaje');
+    });
     window._lastTypingState = false;
     apiClient.sendTypingStatus(curChatId, false);
   } else {
@@ -16589,6 +16929,10 @@ function _handleCinpInput() {
 
 function _handleChatActionClick() {
   var inp = document.getElementById('cinp');
+  console.log('[CHAT DUPLICATE DEBUG] _handleChatActionClick() CALLED', {
+    inputValue: inp ? inp.value : '',
+    curChatId: curChatId
+  });
   if (inp && inp.value.trim().length > 0) {
     sendMsg();
   } else {
@@ -16596,12 +16940,427 @@ function _handleChatActionClick() {
   }
 }
 
+var _chatAudioRec = null;
+var _chatAudioChunks = [];
+var _chatAudioStream = null;
+var _chatAudioTimer = null;
+var _chatAudioSecs = 0;
+var _chatAudioBlob = null;
+var _chatAudioMimeType = 'audio/webm';
+var _chatAudioState = 'idle'; // 'idle', 'recording', 'preview', 'uploading'
+var _chatAudioPreviewEl = null;
+var _currentlyPlayingAudio = null;
+
+function _formatAudioTime(sec) {
+  var s = Math.floor(sec || 0);
+  var m = Math.floor(s / 60);
+  var rs = s % 60;
+  return String(m).padStart(2, '0') + ':' + String(rs).padStart(2, '0');
+}
+
 function _triggerVoiceMsg() {
-  if (typeof showToast === 'function') {
-    showToast('🎤 Presiona y mantén para grabar audio');
-  } else {
-    alert('🎤 Presiona y mantén presionado para enviar un mensaje de voz');
+  console.log('[AUDIO] _triggerVoiceMsg invoked, current state:', _chatAudioState);
+  if (_chatAudioState === 'recording') {
+    _stopChatAudioRecording(false);
+    return;
   }
+  if (_chatAudioState === 'preview' || _chatAudioState === 'uploading') {
+    return;
+  }
+  _startChatAudioRecording();
+}
+
+function _createAndStartMediaRecorder(stream) {
+  var tracks = stream ? stream.getAudioTracks() : [];
+  console.log('[AUDIO] Audio tracks:', tracks.map(function(t) {
+    return { label: t.label, readyState: t.readyState, enabled: t.enabled, muted: t.muted };
+  }));
+
+  if (!tracks.length || tracks[0].readyState !== 'live') {
+    throw new Error('No live audio track available in MediaStream');
+  }
+
+  // Candidate MIME types to try in order of preference
+  var candidates = [];
+  var testTypes = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4;codecs=mp4a.40.2',
+    'audio/mp4',
+    'audio/aac',
+    'audio/ogg;codecs=opus',
+    'audio/wav',
+    '' // browser default
+  ];
+
+  for (var i = 0; i < testTypes.length; i++) {
+    var t = testTypes[i];
+    if (!t || (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t))) {
+      candidates.push(t);
+    }
+  }
+
+  if (candidates.indexOf('') === -1) candidates.push('');
+
+  var recorder = null;
+  var selectedType = '';
+  var startErr = null;
+
+  for (var j = 0; j < candidates.length; j++) {
+    var mime = candidates[j];
+    try {
+      console.log('[AUDIO] Trying to instantiate & start MediaRecorder with mimeType:', mime || '(default)');
+      var opts = mime ? { mimeType: mime } : undefined;
+      var rec = new MediaRecorder(stream, opts);
+      
+      // Test starting recording synchronously
+      rec.start(100);
+      
+      recorder = rec;
+      selectedType = rec.mimeType || mime || 'audio/webm';
+      console.log('[AUDIO] Successfully started MediaRecorder with MIME type:', selectedType);
+      break;
+    } catch(err) {
+      console.warn('[AUDIO] Failed MediaRecorder start with mimeType:', mime, err);
+      startErr = err;
+    }
+  }
+
+  if (!recorder) {
+    throw startErr || new Error('Failed to start MediaRecorder with any candidate MIME type');
+  }
+
+  return { recorder: recorder, mimeType: selectedType };
+}
+
+function _startChatAudioRecording() {
+  console.log('[AUDIO] Requesting microphone permission');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    console.error('[AUDIO] navigator.mediaDevices.getUserMedia not supported');
+    alert('🎤 El acceso al micrófono no está soportado en este navegador.');
+    return;
+  }
+
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+    console.log('[AUDIO] Microphone permission granted');
+    console.log('[AUDIO] getUserMedia success');
+
+    _chatAudioStream = stream;
+    _chatAudioChunks = [];
+
+    try {
+      var recRes = _createAndStartMediaRecorder(stream);
+      _chatAudioRec = recRes.recorder;
+      _chatAudioMimeType = recRes.mimeType;
+
+      console.log('[AUDIO] MediaRecorder created and started with selected MIME type:', _chatAudioMimeType);
+
+      _chatAudioRec.onstart = function() {
+        console.log('[AUDIO] Recording started event fired');
+      };
+
+      _chatAudioRec.ondataavailable = function(e) {
+        if (e.data && e.data.size > 0) {
+          console.log('[AUDIO] Data received:', e.data.size, 'bytes');
+          _chatAudioChunks.push(e.data);
+        }
+      };
+
+      _chatAudioRec.onstop = function() {
+        console.log('[AUDIO] Recording stopped event fired, total chunks:', _chatAudioChunks.length);
+        _chatAudioBlob = new Blob(_chatAudioChunks, { type: _chatAudioMimeType });
+        console.log('[AUDIO] Audio blob created, size:', _chatAudioBlob.size, 'bytes, type:', _chatAudioBlob.type);
+        if (_chatAudioState === 'recording') {
+          _showChatAudioPreview();
+        }
+      };
+
+      _chatAudioRec.onerror = function(err) {
+        console.error('[AUDIO] Recording error:', err);
+      };
+
+      _chatAudioState = 'recording';
+      _chatAudioSecs = 0;
+
+      console.log('[AUDIO] Recording started');
+      _renderChatAudioRecordingUI();
+
+      if (_chatAudioTimer) clearInterval(_chatAudioTimer);
+      _chatAudioTimer = setInterval(function() {
+        _chatAudioSecs++;
+        var timerEl = document.getElementById('chat-rec-timer-txt');
+        if (timerEl) {
+          timerEl.textContent = _formatAudioTime(_chatAudioSecs) + ' / 01:00';
+        }
+
+        // Enforce 60s limit (1 minute)
+        if (_chatAudioSecs >= 60) {
+          console.log('[AUDIO] 60s limit reached, auto-stopping recording');
+          if (typeof showToast === 'function') {
+            showToast('⏱️ Límite máximo de 1 minuto alcanzado');
+          }
+          _stopChatAudioRecording(true);
+        }
+      }, 1000);
+
+    } catch(recErr) {
+      console.error('[AUDIO] Error initializing MediaRecorder:', recErr);
+      if (typeof showToast === 'function') {
+        showToast('❌ Error al iniciar la grabación de audio');
+      } else {
+        alert('❌ Error al iniciar el grabador de voz.');
+      }
+      if (_chatAudioStream) {
+        _chatAudioStream.getTracks().forEach(function(t) { t.stop(); });
+        _chatAudioStream = null;
+      }
+    }
+
+  }).catch(function(err) {
+    console.error('[AUDIO] Error accessing microphone / getUserMedia rejected:', err);
+    if (typeof showToast === 'function') {
+      showToast('❌ Se requiere permiso de micrófono para grabar audio');
+    } else {
+      alert('❌ Permiso de micrófono denegado');
+    }
+  });
+}
+
+function _renderChatAudioRecordingUI() {
+  console.log('[AUDIO] Rendering Chat Audio Recording UI');
+  var cbar = document.getElementById('cbar') || document.querySelector('.cbar-capsule') || document.querySelector('.cbar');
+  if (!cbar) {
+    console.error('[AUDIO] Container .cbar or .cbar-capsule not found in DOM');
+    return;
+  }
+
+  var inp = document.getElementById('cinp');
+  if (inp) inp.style.display = 'none';
+
+  Array.from(cbar.children).forEach(function(child) {
+    if (child.id !== 'chat-audio-rec-bar') {
+      child.style.display = 'none';
+    }
+  });
+
+  var existing = document.getElementById('chat-audio-rec-bar');
+  if (existing) existing.remove();
+
+  var bar = document.createElement('div');
+  bar.id = 'chat-audio-rec-bar';
+  bar.className = 'chat-audio-rec-bar';
+  bar.innerHTML = `
+    <div class="chat-rec-dot"></div>
+    <div id="chat-rec-timer-txt" class="chat-rec-timer">00:00 / 01:00</div>
+    <div class="chat-rec-wave">
+      <div class="chat-rec-wave-bar"></div>
+      <div class="chat-rec-wave-bar"></div>
+      <div class="chat-rec-wave-bar"></div>
+      <div class="chat-rec-wave-bar"></div>
+      <div class="chat-rec-wave-bar"></div>
+      <div class="chat-rec-wave-bar"></div>
+    </div>
+    <button type="button" class="chat-audio-btn danger" onclick="_cancelChatAudioRecording()" title="Cancelar">🗑️</button>
+    <button type="button" class="chat-audio-btn send-btn" onclick="_stopChatAudioRecording(false)" title="Previsualizar / Detener">⏹️</button>
+  `;
+
+  cbar.appendChild(bar);
+}
+
+function _stopChatAudioRecording(autoStopped) {
+  console.log('[AUDIO] Stopping Chat Audio Recording, autoStopped:', autoStopped);
+  if (_chatAudioTimer) {
+    clearInterval(_chatAudioTimer);
+    _chatAudioTimer = null;
+  }
+
+  if (_chatAudioRec && _chatAudioRec.state !== 'inactive') {
+    try {
+      _chatAudioRec.stop();
+    } catch(e) {
+      console.warn('[AUDIO] Error calling recorder.stop():', e);
+    }
+  }
+
+  if (_chatAudioStream) {
+    _chatAudioStream.getTracks().forEach(function(t) { t.stop(); });
+    _chatAudioStream = null;
+  }
+
+  if (_chatAudioSecs <= 0) _chatAudioSecs = 1;
+
+  if (autoStopped) {
+    setTimeout(function() { _showChatAudioPreview(); }, 200);
+  }
+}
+
+function _showChatAudioPreview() {
+  console.log('[AUDIO] Showing Chat Audio Preview');
+  _chatAudioState = 'preview';
+  var bar = document.getElementById('chat-audio-rec-bar');
+  if (!bar) return;
+
+  var durTxt = _formatAudioTime(_chatAudioSecs);
+  bar.innerHTML = `
+    <button type="button" id="chat-audio-preview-play-btn" class="chat-audio-btn" onclick="_toggleChatAudioPreviewPlay()" style="background:rgba(255,255,255,0.15);color:#fff;width:32px;height:32px;" title="Escuchar audio">▶️</button>
+    <div class="chat-rec-timer" style="font-size:13px;">${durTxt} 🎤</div>
+    <div style="flex:1;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;overflow:hidden;">
+      <div id="chat-audio-preview-progress" style="width:0%;height:100%;background:#f03e5a;"></div>
+    </div>
+    <button type="button" class="chat-audio-btn danger" onclick="_cancelChatAudioRecording()" title="Descartar">🗑️</button>
+    <button type="button" id="chat-audio-send-btn" class="chat-audio-btn send-btn" onclick="_sendChatAudioMessage()" title="Enviar audio">🚀</button>
+  `;
+}
+
+function _toggleChatAudioPreviewPlay() {
+  if (!_chatAudioBlob) return;
+
+  var btn = document.getElementById('chat-audio-preview-play-btn');
+  var progress = document.getElementById('chat-audio-preview-progress');
+
+  if (_chatAudioPreviewEl && !_chatAudioPreviewEl.paused) {
+    _chatAudioPreviewEl.pause();
+    if (btn) btn.textContent = '▶️';
+    return;
+  }
+
+  if (!_chatAudioPreviewEl) {
+    var audioUrl = URL.createObjectURL(_chatAudioBlob);
+    _chatAudioPreviewEl = new Audio(audioUrl);
+    _chatAudioPreviewEl.onended = function() {
+      if (btn) btn.textContent = '▶️';
+      if (progress) progress.style.width = '0%';
+    };
+    _chatAudioPreviewEl.ontimeupdate = function() {
+      if (_chatAudioPreviewEl && progress && _chatAudioPreviewEl.duration) {
+        var pct = (_chatAudioPreviewEl.currentTime / _chatAudioPreviewEl.duration) * 100;
+        progress.style.width = pct + '%';
+      }
+    };
+  }
+
+  if (_currentlyPlayingAudio && _currentlyPlayingAudio !== _chatAudioPreviewEl) {
+    _currentlyPlayingAudio.pause();
+  }
+  _currentlyPlayingAudio = _chatAudioPreviewEl;
+
+  _chatAudioPreviewEl.play().then(function() {
+    if (btn) btn.textContent = '⏸️';
+  }).catch(function(e) {
+    console.error("[AUDIO] Error playing audio preview", e);
+  });
+}
+
+function _cancelChatAudioRecording() {
+  console.log('[AUDIO] Cancelling Chat Audio Recording');
+  if (_chatAudioTimer) {
+    clearInterval(_chatAudioTimer);
+    _chatAudioTimer = null;
+  }
+  if (_chatAudioRec && _chatAudioRec.state !== 'inactive') {
+    try { _chatAudioRec.stop(); } catch(e){}
+  }
+  if (_chatAudioStream) {
+    _chatAudioStream.getTracks().forEach(function(t) { t.stop(); });
+    _chatAudioStream = null;
+  }
+  if (_chatAudioPreviewEl) {
+    _chatAudioPreviewEl.pause();
+    _chatAudioPreviewEl = null;
+  }
+
+  _chatAudioState = 'idle';
+  _chatAudioBlob = null;
+  _chatAudioChunks = [];
+  _chatAudioSecs = 0;
+
+  var cbar = document.getElementById('cbar') || document.querySelector('.cbar-capsule') || document.querySelector('.cbar');
+  if (cbar) {
+    Array.from(cbar.children).forEach(function(child) {
+      if (child.id === 'chat-audio-rec-bar') {
+        child.remove();
+      } else {
+        child.style.display = '';
+      }
+    });
+  }
+
+  var inp = document.getElementById('cinp');
+  if (inp) {
+    inp.style.display = 'block';
+    inp.focus();
+  }
+}
+
+function _sendChatAudioMessage() {
+  if (_chatAudioState === 'uploading' || !_chatAudioBlob || !curChatId) return;
+
+  console.log('[AUDIO] Sending Chat Audio Message, size:', _chatAudioBlob.size, 'type:', _chatAudioBlob.type);
+  _chatAudioState = 'uploading';
+
+  var sendBtn = document.getElementById('chat-audio-send-btn');
+  if (sendBtn) {
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '⏳';
+    sendBtn.style.opacity = '0.7';
+  }
+
+  var durSecs = Math.min(60, Math.max(1, _chatAudioSecs));
+  var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !curChatId.startsWith('biz_') && !curChatId.startsWith('net_') && !curChatId.startsWith('clist-') && !curChatId.includes('moment'));
+
+  if (!isDbMatch) {
+    var localDataUrl = URL.createObjectURL(_chatAudioBlob);
+    if (!chatHistory[curChatId]) chatHistory[curChatId] = [];
+    chatHistory[curChatId].push({
+      txt: '🎤 Mensaje de voz',
+      type: 'AUDIO',
+      mediaUrl: localDataUrl,
+      duration: durSecs,
+      out: true
+    });
+    renderMsgs();
+    _cancelChatAudioRecording();
+    return;
+  }
+
+  // Real DB + Storage Flow
+  apiClient.getChatAudioUploadUrl(curChatId, _chatAudioMimeType).then(function(res) {
+    var data = res.data || res;
+    var uploadUrl = data.uploadUrl;
+    var publicUrl = data.publicUrl;
+
+    return apiClient.uploadAudioToStorage(uploadUrl, _chatAudioBlob).then(function() {
+      console.log('[AUDIO] Upload successful to:', publicUrl);
+      if (!chatHistory[curChatId]) chatHistory[curChatId] = [];
+      chatHistory[curChatId].push({
+        txt: '🎤 Mensaje de voz',
+        type: 'AUDIO',
+        mediaUrl: publicUrl,
+        duration: durSecs,
+        out: true
+      });
+      renderMsgs();
+
+      apiClient.sendChatMessage(curChatId, '🎤 Mensaje de voz', 'AUDIO', publicUrl, durSecs);
+      window._lastTypingState = false;
+      apiClient.sendTypingStatus(curChatId, false);
+
+      _cancelChatAudioRecording();
+    });
+  }).catch(function(err) {
+    console.error("❌ [AUDIO] Audio upload/send error:", err);
+    if (typeof showToast === 'function') {
+      showToast('❌ Error al subir el audio. Inténtalo de nuevo.');
+    } else {
+      alert('❌ Error al enviar mensaje de voz.');
+    }
+    _chatAudioState = 'preview';
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '🚀';
+      sendBtn.style.opacity = '1';
+    }
+  });
 }
 
 function _openChatAttachmentPicker() {
@@ -16716,35 +17475,56 @@ function conectarChatEnVivo() {
     },
     onMessageReceived: function(msg) {
       console.log("✉️ Real-time message received:", msg);
-      if (curChatId === msg.matchId) {
-        if (!chatHistory[curChatId]) chatHistory[curChatId] = [];
-        var exists = chatHistory[curChatId].some(function(m) {
-          return m.id === msg.id;
-        });
-        if (!exists) {
-          var optMsg = null;
-          if (msg.senderId === userPro.id) {
-            optMsg = chatHistory[curChatId].find(function(m) {
-              return !m.id && m.txt === msg.content && m.out;
-            });
-          }
-          if (optMsg) {
-            optMsg.id = msg.id;
-          } else {
-            chatHistory[curChatId].push({
-              id: msg.id,
-              txt: msg.content,
-              out: msg.senderId === userPro.id,
-              from: msg.sender.firstName
-            });
-          }
+      if (!msg || !msg.matchId) return;
+
+      var targetId = msg.matchId;
+      if (!chatHistory[targetId]) chatHistory[targetId] = [];
+
+      var exists = chatHistory[targetId].some(function(m) {
+        return m.id === msg.id;
+      });
+
+      var curUserId = _getCurrentUserId();
+      var isOut = msg.senderId === curUserId;
+
+      if (!exists) {
+        var optMsg = null;
+        if (isOut) {
+          optMsg = chatHistory[targetId].find(function(m) {
+            return !m.id && m.txt === msg.content && m.out;
+          });
+        }
+        if (optMsg) {
+          optMsg.id = msg.id;
+          optMsg.type = msg.type || optMsg.type || 'TEXT';
+          optMsg.mediaUrl = msg.mediaUrl || optMsg.mediaUrl || null;
+          optMsg.duration = msg.duration || optMsg.duration || null;
+        } else {
+          chatHistory[targetId].push({
+            id: msg.id,
+            txt: msg.content,
+            type: msg.type || 'TEXT',
+            mediaUrl: msg.mediaUrl || null,
+            duration: msg.duration || null,
+            out: isOut,
+            from: msg.sender ? msg.sender.firstName : ''
+          });
+        }
+
+        if (curChatId === targetId) {
           renderMsgs();
         }
       }
       
-      var cpreList = document.querySelectorAll('#dm-match-' + msg.matchId + ' .cpre, #uc-match-' + msg.matchId + ' .cpre');
+      var previewText = msg.content;
+      if (msg.type === 'AUDIO') previewText = '🎤 Mensaje de voz';
+      else if (msg.type === 'GAME') previewText = '🎮 ' + (msg.content || 'Icebreaker Game');
+      else if (msg.type === 'IMAGE') previewText = '📷 Foto';
+      else if (msg.type === 'FILE') previewText = '📎 Archivo';
+
+      var cpreList = document.querySelectorAll('#dm-match-' + targetId + ' .cpre, #uc-match-' + targetId + ' .cpre');
       cpreList.forEach(function(el) {
-        el.textContent = msg.content;
+        el.textContent = previewText;
       });
       
       var now = new Date();
@@ -16754,15 +17534,16 @@ function conectarChatEnVivo() {
       hours = hours % 12;
       hours = hours ? hours : 12;
       var newTime = hours + ':' + minutes + ampm;
-      var ctmList = document.querySelectorAll('#dm-match-' + msg.matchId + ' .ctm, #uc-match-' + msg.matchId + ' .ctm');
+      var ctmList = document.querySelectorAll('#dm-match-' + targetId + ' .ctm, #uc-match-' + targetId + ' .ctm');
       ctmList.forEach(function(el) {
         el.textContent = newTime;
       });
 
-      if (curChatId !== msg.matchId) {
+      if (curChatId !== targetId && !isOut) {
         window._unreadMessageCounts = window._unreadMessageCounts || {};
-        window._unreadMessageCounts[msg.matchId] = (window._unreadMessageCounts[msg.matchId] || 0) + 1;
-        var count = window._unreadMessageCounts[msg.matchId];
+        window._unreadMessageCounts[targetId] = (window._unreadMessageCounts[targetId] || 0) + 1;
+        _updateUnreadBadgeForChat(targetId);
+        var count = window._unreadMessageCounts[targetId];
         
         var totalUnread = 0;
         for (var mId in window._unreadMessageCounts) {
@@ -16856,8 +17637,10 @@ function conectarChatEnVivo() {
 async function fetchAndRenderChats() {
   if (typeof apiClient === 'undefined' || !apiClient.getAccessToken()) return;
   try {
+    debugChatState('fetchAndRenderChats START', curChatId);
     const list = await apiClient.getConversations();
     console.log("Loaded conversations from database:", list);
+    debugChatState('fetchAndRenderChats AFTER getConversations', curChatId);
     
     var dmContainer = document.getElementById('chat-dm-container');
     if (dmContainer) dmContainer.innerHTML = '';
@@ -18816,33 +19599,137 @@ function chatDoSendPhoto(url,seeOnce,isVideo){
   renderMsgs();
 }
 
-// Update renderMsgs to handle see-once messages
-renderMsgs=function(){var box=document.getElementById('cmsgs');if(!box||!curChatId)return;box.innerHTML='';(chatHistory[curChatId]||[]).forEach(function(m){
-  var div=document.createElement('div');div.className='msg '+(m.out?'out':'in');
-  if(m.seeOnce&&!m.opened&&!m.expired){
-    div.style.cssText+='cursor:pointer;background:rgba(180,83,9,0.3);border:1px dashed rgba(251,191,36,0.4);';
-    div.innerHTML='<div style="text-align:center;padding:4px 8px;"><div style="font-size:var(--fs-xl);margin-bottom:4px;">'+(m.isVideo?'🎬':'👁')+'</div><div style="font-size:var(--fs-sm);font-weight:500;">View Once '+(m.isVideo?'Video':'Photo')+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);">Tap to open — disappears after viewing</div></div>';
-    div.onclick=function(){
-      m.opened=true;div.onclick=null;
-      div.style.cssText='';div.className='msg '+(m.out?'out':'in');div.style.padding='4px';div.style.background='transparent';
-      if(m.isVideo){
-        div.innerHTML='<video src="'+m.img+'" controls autoplay playsinline style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
-      }else{
-        div.innerHTML='<img src="'+m.img+'" style="width:180px;border-radius:var(--rad-sm);display:block;object-fit:cover;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
+// Attachment, Camera Photo, and Icebreaker Game Handlers
+function _openChatAttachmentPicker() {
+  if (!curChatId) return;
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '*/*';
+  inp.onchange = function() {
+    if (!inp.files || !inp.files[0]) return;
+    var file = inp.files[0];
+    var isImage = file.type.startsWith('image/');
+    var isAudio = file.type.startsWith('audio/');
+    var isVideo = file.type.startsWith('video/');
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      if (!chatHistory[curChatId]) chatHistory[curChatId] = [];
+      if (isImage) {
+        chatHistory[curChatId].push({ img: dataUrl, out: true });
+      } else if (isAudio) {
+        chatHistory[curChatId].push({ txt: '🎤 Mensaje de voz', type: 'AUDIO', mediaUrl: dataUrl, duration: 10, out: true });
+      } else if (isVideo) {
+        chatHistory[curChatId].push({ img: dataUrl, isVideo: true, out: true });
+      } else {
+        chatHistory[curChatId].push({ txt: file.name, type: 'FILE', mediaUrl: dataUrl, out: true });
       }
-      setTimeout(function(){m.expired=true;m.img=null;renderMsgs();},8000);
+      renderMsgs();
     };
-  }else if(m.seeOnce&&m.expired){
-    div.innerHTML='<div style="font-size:var(--fs-sm);color:var(--fg3);font-style:italic;">'+(m.isVideo?'🎬':'👁')+' Media expired</div>';
-  }else if(m.seeOnce&&m.opened&&m.img){
-    div.style.padding='4px';div.style.background='transparent';
-    if(m.isVideo){div.innerHTML='<video src="'+m.img+'" controls style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
-    else{div.innerHTML='<img src="'+m.img+'" style="width:180px;border-radius:var(--rad-sm);display:block;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
-  }else if(m.img&&!m.seeOnce){
-    if(m.isVideo){div.innerHTML='<video src="'+m.img+'" controls style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video>';div.style.padding='4px';div.style.background='transparent';}
-    else{div.innerHTML='<img src="'+m.img+'" style="width:160px;max-height:160px;border-radius:var(--rad-sm);object-fit:cover;display:block;"/>';div.style.padding='4px';div.style.background='transparent';}
-  }else{div.textContent=m.txt;}
-  box.appendChild(div);});box.scrollTop=box.scrollHeight;};
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function chatSendPhoto() {
+  if (!curChatId) return;
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = function() {
+    if (!inp.files || !inp.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var dataUrl = e.target.result;
+      if (!chatHistory[curChatId]) chatHistory[curChatId] = [];
+      chatHistory[curChatId].push({ img: dataUrl, out: true });
+      renderMsgs();
+      var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !curChatId.startsWith('biz_') && !curChatId.startsWith('net_') && !curChatId.startsWith('clist-') && !curChatId.includes('moment'));
+      if (isDbMatch) {
+        apiClient.sendChatMessage(curChatId, '📷 Foto', 'IMAGE', dataUrl);
+      }
+    };
+    reader.readAsDataURL(inp.files[0]);
+  };
+  inp.click();
+}
+
+function openChatGame() {
+  if (!curChatId) return;
+
+  var existing = document.getElementById('chat-game-picker-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'chat-game-picker-modal';
+  modal.className = 'mov open';
+  modal.style.zIndex = '10005';
+  modal.innerHTML = `
+    <div style="background:linear-gradient(145deg, #0d061f, #1a0a38);border:1.5px solid rgba(124,58,237,0.4);border-radius:24px 24px 0 0;padding:22px 18px;max-width:440px;width:100%;margin:auto 0 0;box-shadow:0 -10px 30px rgba(0,0,0,0.5);animation:slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;">
+          🎮 Escoge un Juego de Icebreaker
+        </div>
+        <button type="button" onclick="this.closest('#chat-game-picker-modal').remove()" style="background:rgba(255,255,255,0.12);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+
+      <div style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:14px;line-height:1.4;">
+        ¡Elige una pregunta o dinámica para enviar a la conversación y romper el hielo!
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;padding-right:4px;">
+        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('⚖️ This or That: Tacos 🌮 or Pizza 🍕?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
+          <div style="font-weight:800;color:#38bdf8;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">⚖️ THIS OR THAT</div>
+          <div style="color:#fff;font-weight:600;font-size:14px;">Tacos 🌮 o Pizza 🍕?</div>
+        </div>
+
+        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('⚖️ This or That: Salir de fiesta 🍺 o Netflix & chill 🍿?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
+          <div style="font-weight:800;color:#38bdf8;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">⚖️ THIS OR THAT</div>
+          <div style="color:#fff;font-weight:600;font-size:14px;">Salir de fiesta 🍺 o Netflix & chill 🍿?</div>
+        </div>
+
+        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('🎯 Truth or Dare: ¿Cuál ha sido tu anécdota más graciosa o vergonzosa en la universidad?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
+          <div style="font-weight:800;color:#f43f5e;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">🎯 TRUTH OR DARE</div>
+          <div style="color:#fff;font-weight:600;font-size:14px;">¿Cuál ha sido tu anécdota más graciosa en la universidad?</div>
+        </div>
+
+        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('🕵️ 2 Verdades y 1 Mentira: Adivina cuál de mis 3 datos es falso!')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
+          <div style="font-weight:800;color:#a855f7;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">🕵️ 2 VERDADES Y 1 MENTIRA</div>
+          <div style="color:#fff;font-weight:600;font-size:14px;">Adivina cuál de mis 3 datos es falso!</div>
+        </div>
+
+        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('🤔 Qué Prefieres: ¿No volver a dormir o no volver a comer comida rápida?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
+          <div style="font-weight:800;color:#fbbf24;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">🤔 QUÉ PREFIERES</div>
+          <div style="color:#fff;font-weight:600;font-size:14px;">¿No volver a dormir o no volver a comer comida rápida?</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function _selectAndSendGamePrompt(gameTxt) {
+  var modal = document.getElementById('chat-game-picker-modal');
+  if (modal) modal.remove();
+
+  if (!curChatId) return;
+
+  var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !curChatId.startsWith('biz_') && !curChatId.startsWith('net_') && !curChatId.startsWith('clist-') && !curChatId.includes('moment'));
+
+  if (!chatHistory[curChatId]) chatHistory[curChatId] = [];
+  chatHistory[curChatId].push({
+    txt: gameTxt,
+    type: 'GAME',
+    out: true
+  });
+  renderMsgs();
+
+  if (isDbMatch) {
+    apiClient.sendChatMessage(curChatId, gameTxt, 'GAME');
+  }
+}
 
 // ── PHOTO UPLOAD STEP ──
 var userDatingTier='free';

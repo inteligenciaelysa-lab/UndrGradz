@@ -31,7 +31,7 @@ const IS_CAPACITOR = !!(
 );
 
 // Túnel público o URL remota de producción
-const REMOTE_URL = 'https://peoples-words-theater-fairy.trycloudflare.com';
+const REMOTE_URL = 'https://analytical-signed-serve-desirable.trycloudflare.com';
 
 // En App Android/iOS Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
 // En Web Local se utiliza el puerto 3000 local del host.
@@ -444,9 +444,36 @@ class ApiClient {
     return result.data.conversations;
   }
 
-  async getChatMessages(matchId, limit = 50) {
-    const result = await this.request(`/chats/${matchId}/messages?limit=${limit}`);
-    return result.data.messages;
+  async getChatMessages(matchId) {
+    const url = `/chats/${matchId}/messages`;
+    const timestamp = new Date().toISOString();
+    console.log(`[CHAT GET START] timestamp: ${timestamp} | matchId: ${matchId} | url: ${url}`);
+    try {
+      const result = await this.request(url);
+      const msgs = result.data ? result.data.messages : [];
+      console.log(`[CHAT GET END] timestamp: ${timestamp} | matchId: ${matchId} | response count: ${msgs ? msgs.length : 0} | message IDs:`, msgs ? msgs.map(m => m.id) : []);
+      return msgs;
+    } catch (err) {
+      console.error(`[CHAT GET ERROR] url: ${url} failed:`, err);
+      throw err;
+    }
+  }
+
+  async sendChatMessage(matchId, content, type = 'TEXT', mediaUrl = null, duration = null) {
+    const url = `/chats/${matchId}/messages`;
+    console.log(`[CHAT DEBUG] POST URL: ${url} | matchId: ${matchId} | content: "${content}"`);
+    try {
+      const result = await this.request(url, {
+        method: 'POST',
+        body: JSON.stringify({ content, type, mediaUrl, duration })
+      });
+      const message = result.data ? result.data.message : result;
+      console.log(`[CHAT DEBUG] SERVER CONFIRMED MESSAGE | DATABASE MESSAGE ID: ${message ? message.id : 'N/A'}`, message);
+      return message;
+    } catch (err) {
+      console.error(`[CHAT DEBUG] SERVER REJECTED MESSAGE | POST URL ${url} failed:`, err);
+      throw err;
+    }
   }
 
   async searchUsers(query) {
@@ -527,6 +554,9 @@ class ApiClient {
 
     this.socket.on('connect', () => {
       console.log('🔌 Socket connected successfully!');
+      if (typeof window !== 'undefined' && window.curChatId && !window.curChatId.startsWith('biz_') && !window.curChatId.startsWith('net_') && !window.curChatId.startsWith('clist-') && !window.curChatId.includes('moment')) {
+        this.joinChatRoom(window.curChatId);
+      }
       if (this.socketCallbacks.onConnected) this.socketCallbacks.onConnected();
     });
 
@@ -689,10 +719,48 @@ class ApiClient {
     }
   }
 
-  sendChatMessage(matchId, content) {
-    if (this.socket) {
-      this.socket.emit('sendMessage', { matchId, content });
+  async sendChatMessage(matchId, content, type = 'TEXT', mediaUrl = null, duration = null) {
+    const timestamp = new Date().toISOString();
+    console.log(`[CHAT DUPLICATE DEBUG] POST /messages START | timestamp: ${timestamp} | matchId: ${matchId} | content: "${content}"`);
+    try {
+      const result = await this.request(`/chats/${matchId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content, type, mediaUrl, duration })
+      });
+      const savedMsg = result.data ? result.data.message : result;
+      console.log(`[CHAT DUPLICATE DEBUG] POST /messages END | timestamp: ${new Date().toISOString()} | POST message ID returned: ${savedMsg ? savedMsg.id : 'NONE'}`);
+      return savedMsg;
+    } catch (err) {
+      console.warn('⚠️ HTTP message send warning:', err);
+      throw err;
     }
+  }
+
+  async getChatAudioUploadUrl(matchId, contentType = 'audio/webm') {
+    return this.request(`/chats/${matchId}/audio-url`, {
+      method: 'POST',
+      body: JSON.stringify({ contentType }),
+    });
+  }
+
+  async uploadAudioToStorage(uploadUrl, audioBlob) {
+    let targetUrl = uploadUrl;
+    if ((IS_CAPACITOR || !IS_LOCAL) && targetUrl && targetUrl.includes('localhost:3000')) {
+      targetUrl = targetUrl.replace('http://localhost:3000', REMOTE_URL);
+    }
+    console.log('[AUDIO] Uploading audio blob (size: ' + audioBlob.size + ') to target URL:', targetUrl);
+
+    const response = await fetch(targetUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': audioBlob.type || 'audio/webm',
+      },
+      body: audioBlob,
+    });
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}`);
+    }
+    return true;
   }
 
   sendTypingStatus(matchId, isTyping) {
