@@ -31,7 +31,7 @@ const IS_CAPACITOR = !!(
 );
 
 // Túnel público o URL remota de producción
-const REMOTE_URL = 'https://img-commissioners-kinda-your.trycloudflare.com';
+const REMOTE_URL = 'https://charger-assessed-solar-echo.trycloudflare.com';
 
 // En App Android/iOS Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
 // En Web Local se utiliza el puerto 3000 local del host.

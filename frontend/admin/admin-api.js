@@ -8,7 +8,7 @@ class AdminApiClient {
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || window.location.port === '8080';
     const host = (hostname === 'localhost' || hostname === '127.0.0.1') ? hostname : 'localhost';
     
-    const remoteUrl = 'https://img-commissioners-kinda-your.trycloudflare.com';
+    const remoteUrl = 'https://charger-assessed-solar-echo.trycloudflare.com';
     this.baseUrl = isLocal
       ? `http://${host}:3000/api/v1/admin`
       : `${remoteUrl}/api/v1/admin`;
