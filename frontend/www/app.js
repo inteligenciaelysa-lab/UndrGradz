@@ -1399,9 +1399,9 @@ function _populateFilterChips(){
   var unis=Object.keys(UNI).map(function(d){return UNI[d].name;});
   var set=function(id,html){var el=document.getElementById(id);if(el)el.innerHTML=html;};
   // Major filters removed; Greek filters are now static Fraternity/Sorority/Rushing/None chips (in markup)
-  set('crush-uni-chips',_uniChipsHtml());_restoreUniPicks('crush');
+  _uniRender('crush');
   // Hangouts University choose-list — unified to match the Crush filter
-  set('ev-uni-choose-chips',_uniChipsHtml());_restoreUniPicks('ev');
+  _uniRender('ev');
   /* uni state selects are now country-scoped via _uniCountryChange */
   // Free toggle filters (green flags, love language, workout, diet)
   var mkFree=function(label){return '<div class="yr-chip" style="font-size:var(--fs-2xs);" onclick="this.classList.toggle(\'on\')">'+label+'</div>';};
@@ -17465,6 +17465,15 @@ function _showMatchOverlay(data) {
 
   document.body.appendChild(overlay);
 
+  // Safety: this overlay is triggered asynchronously by match/WebSocket
+  // events and covers the whole screen at z-index:999999. Without a
+  // backdrop-close it swallows every tap that misses its two buttons,
+  // producing "random dead taps, must tap several times". Allow a tap
+  // on the backdrop to dismiss it.
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+
   var chatBtn = document.getElementById('live-match-btn-chat');
   if (chatBtn) {
     chatBtn.onclick = function() {
@@ -18101,27 +18110,59 @@ function _uniChipsHtml(){
   });
   return html;
 }
+// ── Capped, search-driven university chip rendering ──────────────────────
+// Rendering all ~17k universities as DOM chips produced ~39k nodes, which made
+// every full-screen relayout (Profile / Settings / Sign Up) freeze for seconds
+// on iOS WKWebView (Android's layout engine absorbed it). We now render only
+// the already-picked chips plus up to _UNI_MAX_CHIPS search matches, on demand.
+var _UNI_FLAT=null, _UNI_MAX_CHIPS=80;
+function _uniFlat(){
+  if(!_UNI_FLAT){
+    _UNI_FLAT=Object.keys(UNI).map(function(d){return {d:d,name:UNI[d].name||d,acr:_uniAcronym(UNI[d]),st:_uniStateOf(d),country:_uniCountry(d),p:UNI[d].p||'',p2:UNI[d].p2||''};});
+    _UNI_FLAT.sort(function(a,b){return (a.name||'').localeCompare(b.name||'');});
+  }
+  return _UNI_FLAT;
+}
+function _uniChipHtml(u,on){
+  var c1=u.p||'#3d7bff',c2=u.p2||u.p||'#3d7bff';
+  return '<div class="yr-chip'+(on?' on':'')+'" data-country="'+(u.country||'')+'" data-state="'+(u.st||'')+'" data-name="'+(u.name||'').replace(/"/g,'')+'" data-acr="'+(u.acr||'').replace(/"/g,'')+'" style="font-size:var(--fs-2xs);--u-p:'+c1+';--u-p2:'+c2+';" onclick="_uniPickChip(this)">'+(u.name||'')+(u.acr?' ('+u.acr+')':'')+'</div>';
+}
+// Render capped, search-driven chips into a crush/ev filter container.
+function _uniRender(pfx,q,ctry,st){
+  var id=(pfx==='crush')?'crush-uni-chips':'ev-uni-choose-chips';
+  var box=document.getElementById(id);if(!box)return;
+  if(q==null)q=((document.getElementById(pfx+'-uni-search')||{}).value)||'';
+  if(ctry==null)ctry=((document.getElementById(pfx+'-uni-country')||{}).value)||'';
+  if(st==null)st=((document.getElementById(pfx+'-uni-state')||{}).value)||'';
+  q=(''+q).toLowerCase().trim();
+  var picked=_pickedUnis[pfx]||[];
+  var pickedKeys={};picked.forEach(function(p){pickedKeys[(p.name||'')+'|'+(p.acr||'')]=1;});
+  var html='';
+  picked.forEach(function(p){html+=_uniChipHtml({name:p.name,acr:p.acr,country:p.country,st:p.state},true);});
+  var hasFilter=!!(q||ctry||st);
+  if(hasFilter){
+    var flat=_uniFlat(),shown=0;
+    for(var i=0;i<flat.length&&shown<_UNI_MAX_CHIPS;i++){
+      var u=flat[i];
+      if(ctry&&u.country!==ctry)continue;
+      if(st&&u.st!==st)continue;
+      if(q&&(u.name+' '+u.acr).toLowerCase().indexOf(q)===-1)continue;
+      if(pickedKeys[(u.name||'')+'|'+(u.acr||'')])continue;
+      html+=_uniChipHtml(u,false);shown++;
+    }
+    if(!shown&&!picked.length)html+='<div style="color:var(--fg2);font-size:var(--fs-2xs);padding:6px;width:100%;">No universities match.</div>';
+    else if(shown>=_UNI_MAX_CHIPS)html+='<div style="color:var(--fg2);font-size:var(--fs-2xs);padding:6px;width:100%;">Showing first '+_UNI_MAX_CHIPS+' — keep typing to narrow.</div>';
+  }else if(!picked.length){
+    html+='<div style="color:var(--fg2);font-size:var(--fs-2xs);padding:6px;width:100%;">🔎 Type to search universities.</div>';
+  }
+  box.innerHTML=html;
+  var n=box.querySelectorAll('.yr-chip.on').length;
+  var cnt=document.getElementById(pfx+'-uni-counter');if(cnt&&n)cnt.textContent='Your university + '+n+' selected ('+(n+1)+'/10)';
+}
 // State <select> (with an "All" option) for the US uni filter
-// Combined search + state filter for a uni chip list
+// Combined search + state filter for a uni chip list — re-renders capped list
 function _uniListFilter(containerId){
-  var box=document.getElementById(containerId);if(!box)return;
-  var pfx=box.getAttribute('data-pfx')||(containerId==='crush-uni-chips'?'crush':'ev');
-  var q=(((document.getElementById(pfx+'-uni-search')||{}).value)||'').toLowerCase().trim();
-  var ctry=((document.getElementById(pfx+'-uni-country')||{}).value)||'';
-  var st=((document.getElementById(pfx+'-uni-state')||{}).value)||'';
-  Array.prototype.forEach.call(box.querySelectorAll('.yr-chip'),function(c){
-    var t=(c.textContent||'').toLowerCase();var cs=c.getAttribute('data-state')||'';var cc=c.getAttribute('data-country')||'';
-    var ok=(!q||t.indexOf(q)>-1);
-    if(ctry)ok=ok&&(cc===ctry);
-    if(st)ok=ok&&(cs===st);
-    c.style.display=ok?'':'none';
-  });
-  Array.prototype.forEach.call(box.querySelectorAll('.uni-grp-head'),function(h){
-    var cc=h.getAttribute('data-country');
-    if(ctry&&cc!==ctry){h.style.display='none';return;}
-    var any=false;Array.prototype.forEach.call(box.querySelectorAll('.yr-chip[data-country="'+cc+'"]'),function(sx){if(sx.style.display!=='none')any=true;});
-    h.style.display=any?'':'none';
-  });
+  _uniRender((containerId==='crush-uni-chips')?'crush':'ev');
 }
 // University filter scope: My University (free) / Near me (plan) / Univs (plan)
 var _uniScopeBy={ev:'mine',crush:'mine'};
@@ -22218,6 +22259,9 @@ function showDoubleDateMatch(pA,pB){
     '<button class="gbtn-ghost" style="width:100%;" onclick="document.getElementById(\'dd-match-overlay\').remove();">Maybe later</button>'+
     '</div>';
   document.body.appendChild(overlay);
+  // Backdrop-close safety: full-screen overlay must never trap taps if
+  // it appears at an unexpected moment (see live-match-modal note).
+  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
   window._ddPair={a:pA,b:pB,swapped:false};
   _renderDdPairing();
 }

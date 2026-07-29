@@ -210,7 +210,9 @@ body {
     radial-gradient(60% 46% at 4% -6%, var(--p), transparent 60%),
     radial-gradient(56% 44% at 100% 4%, var(--p2), transparent 60%),
     radial-gradient(95% 70% at 50% 112%, var(--p), transparent 64%), #000000;
-  background-attachment: fixed;
+  /* background-attachment:fixed removed — on iOS WKWebView it is not
+     honored but still forces a full-viewport composited backing layer
+     that intermittently drops touch hit-tests (random dropped taps). */
   color: var(--fg);
 }
 body::before {
@@ -4270,7 +4272,7 @@ button:active {
       radial-gradient(740px 500px at 100% 4%, var(--p2), transparent 58%),
       radial-gradient(1050px 700px at 50% 112%, var(--p), transparent 62%),
       #000000;
-    background-attachment: fixed;
+    /* background-attachment:fixed removed (see note on body rule) */
   }
   .screen {
     max-width: 440px;
@@ -7828,6 +7830,73 @@ button, a, [role="button"], .tbi, .app-fab, .chat-fab, .auth-tab-btn, .act-btn, 
 .gif-modal:not(.open) {
   display: none !important;
   pointer-events: none !important;
+}
+
+/* ============================================================
+   iOS WKWebView TAP RELIABILITY — root-cause hardening
+   Fixes taps that fail randomly across the whole app on iOS only.
+   ============================================================ */
+/* ~265 interactive rows in this app are plain <div onclick>. On iOS
+   WKWebView a non-semantic element only becomes a reliable tap target
+   when it is clearly "clickable"; without this, synthetic-click
+   hit-testing is flaky under heavy compositing and taps get dropped
+   (retapping forces a recomposite, hence "tap 2-3 times"). Android's
+   Blink never gated synthetic clicks this way, so it always worked.
+   touch-action:manipulation also drops the double-tap wait. */
+[onclick] {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* The bottom nav is a full-width position:fixed bar (z-index:100). Its
+   transparent margins around the pill were swallowing every tap that
+   landed on the bar but outside a button. Let taps fall through the
+   bar itself and only hit its real children — same pattern .topbar
+   already uses. */
+.bot-nav {
+  pointer-events: none;
+}
+.bot-nav > *,
+.bot-nav .bot-inner,
+.bot-nav .np,
+.bot-nav button {
+  pointer-events: auto;
+}
+
+/* ============================================================
+   iOS WKWebView COMPOSITING RELIEF (fixes the FREEZE)
+   Cause: opening a full-screen glass screen (Settings, Sign Up)
+   stacks dozens of backdrop-filter:blur() layers ON TOP of an app
+   that already runs blur() aurora/orb animations. WKWebView's web
+   content process saturates and hangs → the whole app freezes.
+   Android's compositor absorbs it, so it only happens on iOS.
+   Fix: on iOS only, drop backdrop-filter (keep a solid fallback so
+   glass stays legible) and stop the always-on blur animations.
+   ============================================================ */
+body.is-ios *,
+body.is-ios *::before,
+body.is-ios *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* Glass surfaces relied on the blur for legibility — give them a solid
+   dark fallback now that the blur is gone. */
+body.is-ios .glass,
+body.is-ios .gc,
+body.is-ios .bot-inner,
+body.is-ios .msheet,
+body.is-ios .mov,
+body.is-ios .topbar .glass,
+body.is-ios .ugz-modal-overlay {
+  background-color: rgba(14, 9, 28, 0.94) !important;
+}
+/* The full-screen blurred aurora/orbs animate forever, forcing the GPU to
+   re-composite a viewport-sized blurred layer every frame. Freeze them
+   (still visible, just static → composited once). */
+body.is-ios::before,
+body.is-ios::after,
+body.is-ios .screen::before {
+  animation: none !important;
 }
 
 /* Campus category selector pills */
@@ -11584,9 +11653,7 @@ body.keyboard-open .cbar,
 
 /* 3. Settings & Notifications top space fix on iOS */
 body.is-ios #settings-modal .msheet,
-body.is-ios #notif-modal .msheet,
-@supports (-webkit-touch-callout: none) #settings-modal .msheet,
-@supports (-webkit-touch-callout: none) #notif-modal .msheet {
+body.is-ios #notif-modal .msheet {
   max-height: 100% !important;
   max-height: 100dvh !important;
   height: 100% !important;
@@ -11595,9 +11662,7 @@ body.is-ios #notif-modal .msheet,
 }
 
 body.is-ios #settings-modal .mhnd,
-body.is-ios #notif-modal .mhnd,
-@supports (-webkit-touch-callout: none) #settings-modal .mhnd,
-@supports (-webkit-touch-callout: none) #notif-modal .mhnd {
+body.is-ios #notif-modal .mhnd {
   display: none !important;
 }
 
