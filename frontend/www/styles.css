@@ -4311,9 +4311,36 @@ button:active {
     max-width: 460px;
   }
 }
-@media (max-width: 360px) {
+/* ── Small-phone responsive scaling ──────────────────────────────────────
+   Every text size and the base spacing read from these root tokens, so
+   scaling them here makes the WHOLE app fit compact phones (iPhone SE/mini,
+   small Androids) in one place — no per-screen tweaks needed. --fs-md is left
+   at 16px on purpose: it is the input font-size, and anything below 16px makes
+   iOS zoom the page on focus. */
+@media (max-width: 380px) {
   :root {
-    --s: 11px;
+    --s: 12px;
+    --fs-2xs: 9.5px;
+    --fs-xs: 10.5px;
+    --fs-sm: 11.5px;
+    --fs-base: 13.5px;
+    --fs-lg: 17px;
+    --fs-xl: 20px;
+    --fs-2xl: 25px;
+    --r: 18px;
+  }
+}
+@media (max-width: 340px) {
+  :root {
+    --s: 10px;
+    --fs-2xs: 9px;
+    --fs-xs: 10px;
+    --fs-sm: 11px;
+    --fs-base: 13px;
+    --fs-lg: 16px;
+    --fs-xl: 19px;
+    --fs-2xl: 23px;
+    --r: 16px;
   }
 }
 /* never let content overflow the frame horizontally */
