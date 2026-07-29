@@ -4860,18 +4860,21 @@ function _initCrushDeck(){
   if(typeof _roseLoad==='function')_roseLoad();
 }
 
-function sw(id,label){
-  // Crush merged into Campus as a tab. Anything still asking for the old
-  // section — saved ugz_last_screen from a previous version, hardcoded buttons,
-  // deep links — lands on Campus with the Crush tab selected. Without this a
-  // returning user boots to a blank app, because #sec-unicrush no longer exists
-  // as a section and sw() fails silently when it can't find one.
+function sw(id,label,opts){
   if(id==='unicrush'){
     id='discover'; label='Campus';
     try{
       sessionStorage.setItem('ugz_last_crush_tab','swipe');
       localStorage.setItem('ugz_last_crush_tab','swipe');
     }catch(e){}
+  }
+  if(window.NavigationManager){
+    if(!label){
+      label = window.NavigationManager.getSectionLabel(id);
+    }
+    if(!opts || !opts.fromBack){
+      window.NavigationManager.pushSectionHistory(id, label);
+    }
   }
   _detachFabs();
   _syncFabs(id);
@@ -6220,7 +6223,7 @@ function _openChatCreateMenu(){
       '<div style="width:70px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;"><div id="ccf-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2b5fd9,#3d7bff);transition:width 0.2s;"></div></div>'+
     '</div>'+
     '<div style="display:flex;gap:10px;">'+
-      '<button class="gbtn-ghost" style="flex:1;margin:0;" onclick="document.getElementById(\'chat-create-menu\').remove()">Cancel</button>'+
+      '<button class="gbtn-ghost" style="flex:1;margin:0;" onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'chat-create-menu\').remove()">Cancel</button>'+
       '<button class="gbtn" id="ccf-create" disabled style="flex:2;margin:0;background:linear-gradient(135deg,var(--accent),var(--accent-deep));opacity:0.45;" onclick="_createChatFromPicker()">'+icon('chat',16)+' Create Chat</button>'+
     '</div>'+
   '</div>';
@@ -12669,6 +12672,7 @@ function _updateUnreadBadgeForChat(matchId) {
 window._updateUnreadBadgeForChat = _updateUnreadBadgeForChat;
 
 function openChat(id,nm,color,av,isGrp,msgs,online){
+  if(window.NavigationManager) window.NavigationManager.setActiveChat(id);
   var inpBefore = document.getElementById('cinp') ? document.getElementById('cinp').value : '';
   console.log('[CHAT DUPLICATE DEBUG] openChat() START | timestamp: ' + new Date().toISOString() + ' | id: ' + id + ' | input value BEFORE loading chat: "' + inpBefore + '"');
   debugChatState('openChat START', id);
@@ -12797,6 +12801,7 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
   }
 }
 function closeChat(){
+  if(window.NavigationManager) window.NavigationManager.setActiveChat(null);
   debugChatState('closeChat START', curChatId);
   console.log('[CHAT DEBUG] CHAT CLOSE');
   console.log('[CHAT DEBUG] curChatId BEFORE CLOSE:', curChatId);
@@ -19454,7 +19459,7 @@ function openChatSettings(){
   modal=document.createElement('div');modal.id='chat-settings-modal';modal.className='mov open';
   modal.innerHTML='<div class="msheet" style="max-height:94vh;overflow-y:auto;">'+
     '<div class="mhnd"></div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">Chat Profile & Settings</div><div onclick="document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div></div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">Chat Profile & Settings</div><div onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div></div>'+
     // profile header
     '<div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start;">'+
       '<div style="position:relative;flex-shrink:0;">'+avatar+heartBadge+'<div style="display:flex;flex-direction:column;gap:8px; margin-top:10px">'+statsHtml+'</div>'+'</div>'+
@@ -21478,7 +21483,7 @@ async function openNotifications(){
   sh+='</div>';
   sh+='<div class="nfchips">'+chips.map(function(c,i){return '<div class="nfchip'+(i===0?' on':'')+'" data-nf="'+c[0]+'" onclick="_setNotifFilter(\''+c[0]+'\',this)">'+c[1]+'</div>';}).join('')+'</div>';
   sh+='<div id="notif-body"></div>';
-  sh+='<button class="gbtn-ghost" onclick="document.getElementById(\'notif-modal\').remove()" style="margin-top:12px;">Close</button>';
+  sh+='<button class="gbtn-ghost" onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'notif-modal\').remove()" style="margin-top:12px;">Close</button>';
   sh+='</div>';
   modal.innerHTML=sh;
   document.body.appendChild(modal);

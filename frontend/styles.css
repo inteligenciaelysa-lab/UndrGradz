@@ -44,6 +44,11 @@
   --rx: 11px;
   --font: "DM Sans", system-ui, -apple-system, sans-serif;
   --s: 14px;
+  /* Safe Area Insets for iOS Notch / Dynamic Island & Android Gesture Bar */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 /* ── DESIGN SYSTEM TOKENS (additive — used by the new icon system & ongoing refactor) ── */
 :root {
@@ -11527,5 +11532,48 @@ button, a, input, select, textarea, [role="button"],
   font-weight: 500;
   opacity: 0.9;
 }
+
+/* ===== FULL-SCREEN VERTICAL SHEETS (SETTINGS, NOTIFICATIONS, CHAT SETTINGS, CREATE CHAT) ===== */
+#settings-modal,
+#notif-modal,
+#chat-settings-modal,
+#chat-create-menu,
+.vertical-sheet-modal {
+  align-items: flex-end !important;
+  justify-content: center !important;
+  transition: opacity 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+#settings-modal .msheet,
+#notif-modal .msheet,
+#chat-settings-modal .msheet,
+#chat-create-menu .msheet,
+.vertical-sheet-modal .msheet {
+  max-height: 94dvh !important;
+  border-radius: 24px 24px 0 0 !important;
+  padding-top: calc(var(--sat) + 14px) !important;
+  padding-bottom: calc(var(--sab) + 24px) !important;
+  will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+  overflow-y: auto;
+}
+
+#settings-modal:not(.open) .msheet,
+#notif-modal:not(.open) .msheet,
+#chat-settings-modal:not(.open) .msheet,
+#chat-create-menu:not(.open) .msheet,
+.vertical-sheet-modal:not(.open) .msheet {
+  transform: translate3d(0, 100%, 0);
+}
+
+#settings-modal.open .msheet,
+#notif-modal.open .msheet,
+#chat-settings-modal.open .msheet,
+#chat-create-menu.open .msheet,
+.vertical-sheet-modal.open .msheet {
+  transform: translate3d(0, 0, 0);
+}
+
+
 
 
