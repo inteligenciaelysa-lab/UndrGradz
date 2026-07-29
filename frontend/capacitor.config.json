@@ -16,7 +16,8 @@
     },
     "Keyboard": {
       "resize": "none",
-      "style": "DARK"
+      "style": "DARK",
+      "accessoryBarVisible": false
     }
   }
 }

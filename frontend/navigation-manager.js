@@ -32,6 +32,13 @@
     }
 
     init() {
+      const isIOSDevice = IS_IOS || /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOSDevice && document.body) {
+        document.body.classList.add('is-ios');
+      } else if (isIOSDevice) {
+        document.addEventListener('DOMContentLoaded', () => document.body.classList.add('is-ios'));
+      }
+
       // 1. Listen for Capacitor App backButton (Android hardware/virtual back button & gesture navigation)
       if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
         window.Capacitor.Plugins.App.addListener('backButton', () => {
@@ -39,13 +46,20 @@
         });
       }
 
-      // 2. Listen for Keyboard events via Capacitor Keyboard plugin
+      // 2. Listen for Keyboard events via Capacitor Keyboard plugin & hide iOS accessory bar (< > ✓)
       if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard) {
+        if (typeof window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible === 'function') {
+          try {
+            window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false });
+          } catch (e) {}
+        }
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillShow', () => {
           this.isKeyboardOpen = true;
+          document.body.classList.add('keyboard-open');
         });
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillHide', () => {
           this.isKeyboardOpen = false;
+          document.body.classList.remove('keyboard-open');
         });
       }
 
@@ -53,6 +67,10 @@
       document.addEventListener('focusin', (e) => {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
           this.isKeyboardOpen = true;
+          document.body.classList.add('keyboard-open');
+          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard && typeof window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible === 'function') {
+            try { window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false }); } catch (err) {}
+          }
         }
       });
       document.addEventListener('focusout', (e) => {
@@ -61,6 +79,7 @@
             const active = document.activeElement;
             if (!active || !(active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
               this.isKeyboardOpen = false;
+              document.body.classList.remove('keyboard-open');
             }
           }, 100);
         }

@@ -1861,7 +1861,7 @@ textarea.gi {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px var(--s);
+  padding: calc(12px + env(safe-area-inset-top, 0px)) var(--s) 12px;
   background: rgba(10, 10, 12, 0.78);
   backdrop-filter: blur(25px) saturate(180%);
   -webkit-backdrop-filter: blur(25px) saturate(180%);
@@ -11573,6 +11573,34 @@ button, a, input, select, textarea, [role="button"],
 .vertical-sheet-modal.open .msheet {
   transform: translate3d(0, 0, 0);
 }
+
+/* ===== iOS SPECIFIC UI FIXES ===== */
+
+/* 1. Chat input bar: remove extra bottom gap when typing/keyboard is open */
+body.keyboard-open .cbar,
+.cbar:focus-within {
+  padding-bottom: 8px !important;
+}
+
+/* 3. Settings & Notifications top space fix on iOS */
+body.is-ios #settings-modal .msheet,
+body.is-ios #notif-modal .msheet,
+@supports (-webkit-touch-callout: none) #settings-modal .msheet,
+@supports (-webkit-touch-callout: none) #notif-modal .msheet {
+  max-height: 100% !important;
+  max-height: 100dvh !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  padding-top: calc(env(safe-area-inset-top, 0px) + 12px) !important;
+}
+
+body.is-ios #settings-modal .mhnd,
+body.is-ios #notif-modal .mhnd,
+@supports (-webkit-touch-callout: none) #settings-modal .mhnd,
+@supports (-webkit-touch-callout: none) #notif-modal .mhnd {
+  display: none !important;
+}
+
 
 
 
