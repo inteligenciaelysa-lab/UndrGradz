@@ -69,6 +69,9 @@
 
   <!-- MAIN ADMIN APP LAYOUT -->
   <div id="app-layout" class="app-layout hidden">
+    <!-- MOBILE SIDEBAR BACKDROP -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+
     <!-- SIDEBAR NAVIGATION -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -165,6 +168,9 @@
     <main class="main-content">
       <!-- TOP HEADER -->
       <header class="top-header">
+        <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" aria-label="Abrir menú de navegación">
+          <span>☰</span>
+        </button>
         <div class="search-container">
           <span class="search-icon">🔍</span>
           <input type="text" id="global-search-input" class="search-input" placeholder="Búsqueda global (Usuarios, Universidades, Eventos, Reportes)..." autocomplete="off">
@@ -188,16 +194,34 @@
       <div class="views-wrapper">
         <!-- 1. DASHBOARD VIEW -->
         <section id="view-dashboard" class="view-panel active">
-          <div class="view-header">
+          <!-- View Header & Quick Actions -->
+          <div class="view-header flex flex-wrap items-center justify-between gap-4 mb-4">
             <div>
-              <h1 class="view-title">Dashboard General</h1>
-              <p class="view-subtitle">Métricas en tiempo real, estadísticas de uso y estado del sistema UndrGradz.</p>
+              <h1 class="view-title flex items-center gap-2">
+                <span>⚡</span> Dashboard General
+              </h1>
+              <p class="view-subtitle">Métricas en tiempo real, estadísticas globales y monitoreo continuo del ecosistema UndrGradz.</p>
             </div>
-            <button id="btn-refresh-dashboard" class="btn btn-secondary btn-sm">🔄 Actualizar</button>
+            <div class="flex items-center gap-2 flex-wrap">
+              <button id="quick-btn-notif" class="btn btn-secondary btn-sm">📢 Notificación</button>
+              <button id="quick-btn-verif" class="btn btn-secondary btn-sm">✅ Verificaciones <span id="quick-badge-verif" class="badge-count hidden">0</span></button>
+              <button id="quick-btn-reports" class="btn btn-secondary btn-sm">🛡️ Moderación <span id="quick-badge-reports" class="badge-count hidden">0</span></button>
+              <button id="btn-refresh-dashboard" class="btn btn-primary btn-sm">🔄 Actualizar</button>
+            </div>
           </div>
 
-          <!-- Stats Cards Grid -->
-          <div class="stats-grid">
+          <!-- Pending Alert Banner (Dynamically shown if pending items exist) -->
+          <div id="dashboard-alert-banner" class="dashboard-alert-banner hidden">
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-content">
+              <strong id="alert-banner-title">Atención Requerida</strong>
+              <p id="alert-banner-desc">Tienes solicitudes de verificación y reportes de moderación pendientes.</p>
+            </div>
+            <button id="alert-banner-action-btn" class="btn btn-primary btn-sm ml-auto">Revisar Solicitudes →</button>
+          </div>
+
+          <!-- Stats Cards Grid (6 Main Metrics) -->
+          <div class="stats-grid mt-4">
             <div class="stat-card">
               <div class="stat-icon icon-purple">👥</div>
               <div class="stat-details">
@@ -247,22 +271,28 @@
             </div>
           </div>
 
-          <!-- Charts & Health Grid -->
-          <div class="dashboard-grid">
-            <!-- University Distribution Chart Card -->
+          <!-- Main Analytics & Health Dashboard Grid -->
+          <div class="dashboard-grid mt-6">
+            <!-- University Distribution Widget (Clean Acronym List with Progress Bars & Badges) -->
             <div class="dashboard-card glass-panel">
-              <div class="card-header">
-                <h3>Estudiantes por Universidad</h3>
+              <div class="card-header flex items-center justify-between mb-3">
+                <h3 class="flex items-center gap-2">
+                  <span>🎓</span> Estudiantes por Universidad
+                </h3>
+                <span class="text-xs text-muted" id="uni-total-badge">Top Universidades</span>
               </div>
-              <div class="chart-container">
-                <canvas id="chart-universities" height="220"></canvas>
+              <div id="dashboard-uni-list" class="dashboard-uni-list">
+                <div class="text-center py-4 text-muted text-sm">Cargando distribución de estudiantes...</div>
               </div>
             </div>
 
-            <!-- System Health Widget -->
+            <!-- System & Server Health Status Widget -->
             <div class="dashboard-card glass-panel">
-              <div class="card-header">
-                <h3>🖥️ Estado del Sistema (System Health)</h3>
+              <div class="card-header flex items-center justify-between mb-3">
+                <h3 class="flex items-center gap-2">
+                  <span>🖥️</span> Estado del Sistema (System Health)
+                </h3>
+                <span class="badge badge-active text-xs">ONLINE</span>
               </div>
               <div class="health-details-grid" id="system-health-body">
                 <div class="health-item">
@@ -274,40 +304,61 @@
                   <span class="health-val" id="health-db-latency">--</span>
                 </div>
                 <div class="health-item">
-                  <span class="health-label">Conexiones Socket.io</span>
+                  <span class="health-label">Conexiones WebSocket (Socket.io)</span>
                   <span class="health-val" id="health-socket-clients">--</span>
                 </div>
                 <div class="health-item">
-                  <span class="health-label">Uso de Memoria (RAM)</span>
+                  <span class="health-label">Uso de Memoria (RAM Heap)</span>
                   <span class="health-val" id="health-memory">--</span>
                 </div>
                 <div class="health-item">
-                  <span class="health-label">Carga CPU</span>
+                  <span class="health-label">Carga Procesador (CPU)</span>
                   <span class="health-val" id="health-cpu">--</span>
+                </div>
+                <div class="health-item">
+                  <span class="health-label">Sesiones Admin Activas</span>
+                  <span class="health-val" id="health-admin-sessions">--</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Recent Activity Feed -->
-          <div class="dashboard-card glass-panel mt-4">
-            <div class="card-header">
-              <h3>Actividad Reciente del Sistema</h3>
+          <!-- Activity & Registrations Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <!-- Left 2 Cols: Audit Logs & System Activity -->
+            <div class="dashboard-card glass-panel lg:col-span-2">
+              <div class="card-header flex items-center justify-between mb-3">
+                <h3 class="flex items-center gap-2">
+                  <span>📜</span> Actividad Reciente del Sistema & Auditoría
+                </h3>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Usuario / Admin</th>
+                      <th>Evento / Acción</th>
+                      <th>Detalles</th>
+                      <th>Fecha</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-activity-tbody">
+                    <tr><td colspan="4" class="text-center py-4 text-muted">Cargando actividad reciente...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="table-responsive">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Administrador / Usuario</th>
-                    <th>Acción / Evento</th>
-                    <th>Detalles</th>
-                    <th>Fecha y Hora</th>
-                  </tr>
-                </thead>
-                <tbody id="recent-activity-tbody">
-                  <tr><td colspan="4" class="text-center py-4">Cargando actividad reciente...</td></tr>
-                </tbody>
-              </table>
+
+            <!-- Right 1 Col: Recent Student Registrations Feed -->
+            <div class="dashboard-card glass-panel lg:col-span-1">
+              <div class="card-header flex items-center justify-between mb-3">
+                <h3 class="flex items-center gap-2">
+                  <span>✨</span> Nuevos Registros
+                </h3>
+              </div>
+              <div id="recent-students-feed" class="recent-students-feed">
+                <div class="text-center py-4 text-muted text-sm">Cargando nuevos estudiantes...</div>
+              </div>
             </div>
           </div>
         </section>

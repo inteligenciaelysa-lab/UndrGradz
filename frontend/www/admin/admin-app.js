@@ -27,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loginSubmitBtn: document.getElementById('login-submit-btn'),
     loginSpinner: document.getElementById('login-spinner'),
     sidebarRoleBadge: document.getElementById('sidebar-role-badge'),
+    sidebarToggleBtn: document.getElementById('sidebar-toggle-btn'),
+    sidebarOverlay: document.getElementById('sidebar-overlay'),
+    sidebar: document.querySelector('.sidebar'),
     headerAvatar: document.getElementById('header-avatar'),
     headerAdminName: document.getElementById('header-admin-name'),
     headerAdminEmail: document.getElementById('header-admin-email'),
@@ -253,6 +256,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /* ==========================================================================
+     MOBILE SIDEBAR TOGGLE & NAVIGATION
+     ========================================================================== */
+  if (elements.sidebarToggleBtn) {
+    elements.sidebarToggleBtn.addEventListener('click', () => {
+      if (elements.sidebar) elements.sidebar.classList.toggle('open');
+      if (elements.sidebarOverlay) elements.sidebarOverlay.classList.toggle('hidden');
+    });
+  }
+
+  if (elements.sidebarOverlay) {
+    elements.sidebarOverlay.addEventListener('click', () => {
+      if (elements.sidebar) elements.sidebar.classList.remove('open');
+      elements.sidebarOverlay.classList.add('hidden');
+    });
+  }
+
   /* ==========================================================================
      ROUTING & NAVIGATION (URL Hash Syncing & Page Reload Persistence)
      ========================================================================== */
@@ -261,6 +291,12 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const view = item.getAttribute('data-view');
       switchView(view);
+
+      // Auto close mobile sidebar after item click
+      if (window.innerWidth <= 1024) {
+        if (elements.sidebar) elements.sidebar.classList.remove('open');
+        if (elements.sidebarOverlay) elements.sidebarOverlay.classList.add('hidden');
+      }
     });
   });
 
@@ -431,14 +467,61 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.badgePendingReports.classList.add('hidden');
       }
 
+      // Render Alert Banner & Badges
+      const pendingVerif = metrics.pendingVerifications || 0;
+      const pendingReports = metrics.pendingReports || 0;
+
+      const alertBanner = document.getElementById('dashboard-alert-banner');
+      if (pendingVerif > 0 || pendingReports > 0) {
+        if (alertBanner) {
+          alertBanner.classList.remove('hidden');
+          const alertTitle = document.getElementById('alert-banner-title');
+          const alertDesc = document.getElementById('alert-banner-desc');
+          const alertBtn = document.getElementById('alert-banner-action-btn');
+
+          if (alertTitle) alertTitle.textContent = `Atención Requerida: ${pendingVerif + pendingReports} elemento(s) pendiente(s)`;
+          if (alertDesc) alertDesc.textContent = `${pendingVerif} solicitud(es) de verificación y ${pendingReports} reporte(s) de moderación están esperando revisión.`;
+          if (alertBtn) {
+            alertBtn.onclick = () => {
+              if (pendingVerif > 0) switchView('verifications');
+              else switchView('moderation');
+            };
+          }
+        }
+      } else if (alertBanner) {
+        alertBanner.classList.add('hidden');
+      }
+
+      const verifBadge = document.getElementById('quick-badge-verif');
+      if (verifBadge) {
+        if (pendingVerif > 0) {
+          verifBadge.textContent = pendingVerif;
+          verifBadge.classList.remove('hidden');
+        } else verifBadge.classList.add('hidden');
+      }
+
+      const reportsBadge = document.getElementById('quick-badge-reports');
+      if (reportsBadge) {
+        if (pendingReports > 0) {
+          reportsBadge.textContent = pendingReports;
+          reportsBadge.classList.remove('hidden');
+        } else reportsBadge.classList.add('hidden');
+      }
+
+      // Quick action button handlers
+      document.getElementById('quick-btn-notif')?.addEventListener('click', () => switchView('notifications'));
+      document.getElementById('quick-btn-verif')?.addEventListener('click', () => switchView('verifications'));
+      document.getElementById('quick-btn-reports')?.addEventListener('click', () => switchView('moderation'));
+
       // Render Health Metrics
-      updateSystemHealthUI(systemHealth);
+      updateSystemHealthUI(systemHealth, metrics);
 
-      // Render University Distribution Chart
-      renderUniversityChart(usersByUniversity);
+      // Render University Distribution Breakdown List
+      renderUniversityProgressList(usersByUniversity);
 
-      // Render Recent Activity Feed
+      // Render Recent Activity & Students Feed
       renderRecentActivity(recentActivity);
+      renderRecentStudents(recentActivity ? recentActivity.recentUsers : []);
     } catch (err) {
       showToast('Error cargando el dashboard: ' + err.message, 'error');
     }
@@ -446,13 +529,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   elements.btnRefreshDashboard.addEventListener('click', loadDashboard);
 
-  function updateSystemHealthUI(health) {
+  function updateSystemHealthUI(health, metrics = {}) {
     if (!health) return;
     document.getElementById('health-backend-uptime').textContent = `${Math.floor(health.backend.uptimeSeconds / 60)}m ${health.backend.uptimeSeconds % 60}s`;
     document.getElementById('health-db-latency').textContent = `${health.database.latencyMs} ms (${health.database.status})`;
     document.getElementById('health-socket-clients').textContent = `${health.socketIo.connectedClients} cliente(s)`;
     document.getElementById('health-memory').textContent = `${health.serverResources.memory.heapUsedMb} MB / ${health.serverResources.memory.heapTotalMb} MB (${health.serverResources.memory.memoryUsagePercent}%)`;
     document.getElementById('health-cpu').textContent = `${health.serverResources.cpu.cores} cores (${health.serverResources.cpu.loadAvg.join(', ')})`;
+    const adminSessionsEl = document.getElementById('health-admin-sessions');
+    if (adminSessionsEl) {
+      adminSessionsEl.textContent = `${metrics.activeAdminSessionsCount || 1} sesión(es) activa(s)`;
+    }
   }
 
   function startHealthPolling() {
@@ -460,58 +547,79 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.currentView === 'dashboard') {
         try {
           const res = await window.adminApi.getDashboard();
-          updateSystemHealthUI(res.data.systemHealth);
+          updateSystemHealthUI(res.data.systemHealth, res.data.metrics);
         } catch (e) {}
       }
     }, 15000);
   }
 
-  function renderUniversityChart(data) {
-    const canvas = document.getElementById('chart-universities');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  function renderUniversityProgressList(data) {
+    const container = document.getElementById('dashboard-uni-list');
+    if (!container) return;
 
     if (!data || data.length === 0) {
-      ctx.fillStyle = '#64748b';
-      ctx.font = '14px Plus Jakarta Sans';
-      ctx.fillText('No hay datos suficientes', 50, 100);
+      container.innerHTML = '<div class="text-center py-4 text-muted text-sm">No hay datos suficientes de universidades.</div>';
       return;
     }
 
+    const colors = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4'];
     const maxCount = Math.max(...data.map(d => d.count), 1);
-    const barHeight = 22;
-    const gap = 12;
 
-    data.slice(0, 5).forEach((item, index) => {
-      const y = index * (barHeight + gap) + 20;
-      const barWidth = Math.max((item.count / maxCount) * 220, 10);
+    let html = '';
+    data.slice(0, 8).forEach((item, idx) => {
+      const color = colors[idx % colors.length];
+      const acronym = escapeHtml(item.acronym || item.name || 'UNI');
+      const fullName = escapeHtml(item.fullName || item.name);
+      const count = item.count || 0;
+      const percent = item.percent || ((count / maxCount) * 100).toFixed(1);
+      const barWidth = Math.max((count / maxCount) * 100, 3);
 
-      // Draw Uni Label
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '12px Plus Jakarta Sans';
-      const shortName = item.name.length > 22 ? item.name.substring(0, 20) + '...' : item.name;
-      ctx.fillText(shortName, 10, y + 15);
-
-      // Draw Gradient Bar
-      const gradient = ctx.createLinearGradient(160, 0, 160 + barWidth, 0);
-      gradient.addColorStop(0, '#6366f1');
-      gradient.addColorStop(1, '#ec4899');
-
-      ctx.fillStyle = gradient;
-      if (typeof ctx.roundRect === 'function') {
-        ctx.beginPath();
-        ctx.roundRect(160, y, barWidth, barHeight, 4);
-        ctx.fill();
-      } else {
-        ctx.fillRect(160, y, barWidth, barHeight);
-      }
-
-      // Draw Count
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 12px Plus Jakarta Sans';
-      ctx.fillText(String(item.count), 168 + barWidth, y + 15);
+      html += `
+        <div class="uni-item-row" title="${fullName}: ${count} estudiantes (${percent}%)">
+          <div class="uni-item-header">
+            <span class="uni-badge-acronym" style="background: ${color};">${acronym}</span>
+            <span class="uni-fullname">${fullName}</span>
+            <span class="uni-count-badge">${count} estudiantes (${percent}%)</span>
+          </div>
+          <div class="uni-progress-track">
+            <div class="uni-progress-fill" style="width: ${barWidth}%; background: linear-gradient(90deg, ${color} 0%, #ec4899 100%);"></div>
+          </div>
+        </div>
+      `;
     });
+
+    container.innerHTML = html;
+  }
+
+  function renderRecentStudents(users) {
+    const container = document.getElementById('recent-students-feed');
+    if (!container) return;
+
+    if (!users || users.length === 0) {
+      container.innerHTML = '<div class="text-center py-4 text-muted text-sm">No hay nuevos estudiantes registrados.</div>';
+      return;
+    }
+
+    let html = '';
+    users.slice(0, 6).forEach(u => {
+      const name = escapeHtml(`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email);
+      const handle = escapeHtml(`@${u.handle || 'estudiante'}`);
+      const uni = escapeHtml(u.profile?.university || 'UndrGradz');
+      const initial = name[0] ? name[0].toUpperCase() : 'U';
+      const dateStr = new Date(u.createdAt).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      html += `
+        <div class="student-feed-item">
+          <div class="student-feed-avatar">${initial}</div>
+          <div class="student-feed-info">
+            <span class="student-feed-name">${name}</span>
+            <span class="student-feed-meta">${handle} • ${uni} • ${dateStr}</span>
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
   }
 
   function renderRecentActivity({ recentUsers, recentReports, recentAuditLogs }) {
@@ -519,19 +627,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = [];
 
     (recentAuditLogs || []).forEach(log => {
+      let formattedDetails = '';
+      if (log.details && typeof log.details === 'object') {
+        const entries = Object.entries(log.details);
+        if (entries.length > 0) {
+          formattedDetails = entries.map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' | ');
+        } else {
+          formattedDetails = '-';
+        }
+      } else {
+        formattedDetails = log.details || '-';
+      }
+
       items.push({
-        user: log.admin ? `${log.admin.firstName} (${log.admin.role})` : 'Sistema',
-        action: log.action,
-        details: JSON.stringify(log.details || {}),
+        user: log.admin ? `${log.admin.firstName || ''} ${log.admin.lastName || ''}`.trim() + ` (${log.admin.role || 'ADMIN'})` : 'Sistema',
+        action: log.action || 'AUDIT_LOG',
+        details: formattedDetails,
+        fullDetails: JSON.stringify(log.details || {}),
         time: new Date(log.createdAt),
       });
     });
 
     (recentUsers || []).forEach(u => {
       items.push({
-        user: `${u.firstName} ${u.lastName}`,
+        user: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.email,
         action: 'NUEVO_REGISTRO',
         details: `@${u.handle || 'sin-handle'}`,
+        fullDetails: `Email: ${u.email}`,
         time: new Date(u.createdAt),
       });
     });
@@ -541,13 +663,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (items.length === 0) {
       html = '<tr><td colspan="4" class="text-center py-4">No hay actividad reciente registrada.</td></tr>';
     } else {
-      items.slice(0, 8).forEach(item => {
+      items.slice(0, 10).forEach(item => {
         html += `
           <tr>
-            <td><strong>${item.user}</strong></td>
-            <td><span class="role-badge role-admin">${item.action}</span></td>
-            <td>${item.details}</td>
-            <td>${item.time.toLocaleString()}</td>
+            <td><strong>${escapeHtml(item.user)}</strong></td>
+            <td><span class="role-badge role-admin">${escapeHtml(item.action)}</span></td>
+            <td><div class="cell-details-trunc" title="${escapeHtml(item.fullDetails)}">${escapeHtml(item.details)}</div></td>
+            <td class="text-nowrap">${item.time.toLocaleString()}</td>
           </tr>
         `;
       });
@@ -1773,7 +1895,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxUni = document.getElementById('chart-uni-breakdown');
     if (ctxUni) {
       if (chartInstances.uni) chartInstances.uni.destroy();
-      const uniLabels = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.name) : ['Sin datos'];
+      const uniLabels = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.acronym || u.name) : ['Sin datos'];
       const uniCounts = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.students) : [0];
       const uniColors = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.color) : ['#3d7bff'];
 
@@ -1792,10 +1914,24 @@ document.addEventListener('DOMContentLoaded', () => {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  if (!items || !items.length) return '';
+                  const idx = items[0].dataIndex;
+                  return data.uniBreakdown[idx] ? data.uniBreakdown[idx].fullName : items[0].label;
+                },
+                label: (item) => {
+                  return ` ${item.formattedValue} estudiantes registrados`;
+                }
+              }
+            }
+          },
           scales: {
             x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+            y: { ticks: { color: '#94a3b8', font: { weight: 'bold' } }, grid: { display: false } }
           }
         }
       });
