@@ -425,21 +425,22 @@ class AdminController {
   async exportAnalyticsXlsx(req, res, next) {
     try {
       const data = await adminService.getAnalyticsData();
-      res.setHeader('Content-Type', 'application/vnd.ms-excel');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="UndrGradz_Analytics_Report.csv"');
 
-      let csv = 'METRICAS GENERALES PLATAFORMA UNDRGRADZ\n';
+      let csv = '\uFEFF';
+      csv += 'METRICAS GENERALES PLATAFORMA UNDRGRADZ\n';
       csv += `Total Usuarios,${data.kpis.totalUsers}\n`;
-      csv += `Estudiantes Verificados (Palomita),${data.kpis.verifiedUsers}\n`;
-      csv += `Creadores Verificados (✨),${data.kpis.creatorUsers}\n`;
+      csv += `Estudiantes Verificados,${data.kpis.verifiedUsers}\n`;
+      csv += `Creadores Verificados,${data.kpis.creatorUsers}\n`;
       csv += `Tasa de Verificación,${data.kpis.verificationRate}%\n`;
       csv += `Total Eventos,${data.kpis.totalEvents}\n`;
       csv += `Total Matches,${data.kpis.totalMatches}\n\n`;
 
       csv += 'DISTRIBUCION POR UNIVERSIDAD\n';
-      csv += 'Universidad,Estudiantes\n';
+      csv += 'Acrónimo,Universidad,Estudiantes\n';
       data.uniBreakdown.forEach(u => {
-        csv += `"${u.fullName}",${u.students}\n`;
+        csv += `"${u.acronym}","${u.fullName}",${u.students}\n`;
       });
 
       csv += '\nDESGLOSE DE EVENTOS Y HANGOUTS POR CATEGORIA\n';
@@ -476,7 +477,15 @@ class AdminController {
             th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; font-size: 13px; }
             th { background: #f1f5f9; font-weight: 700; color: #334155; }
             .footer { border-top: 1px solid #e2e8f0; padding-top: 12px; font-size: 11px; color: #94a3b8; text-align: center; margin-top: 40px; }
+            @media print {
+              body { margin: 0; }
+            }
           </style>
+          <script>
+            window.onload = () => {
+              setTimeout(() => { window.print(); }, 400);
+            };
+          </script>
         </head>
         <body>
           <div class="header">
@@ -495,9 +504,9 @@ class AdminController {
 
           <h3>Distribución por Universidad Top</h3>
           <table>
-            <thead><tr><th>Universidad</th><th>Estudiantes Activos</th></tr></thead>
+            <thead><tr><th>Acrónimo</th><th>Universidad</th><th>Estudiantes Activos</th></tr></thead>
             <tbody>
-              ${data.uniBreakdown.map(u => `<tr><td>${u.fullName}</td><td>${u.students} estudiantes</td></tr>`).join('')}
+              ${data.uniBreakdown.map(u => `<tr><td><strong>${u.acronym}</strong></td><td>${u.fullName}</td><td>${u.students} estudiantes</td></tr>`).join('')}
             </tbody>
           </table>
 
@@ -513,7 +522,7 @@ class AdminController {
         </body>
         </html>
       `;
-      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
       res.status(200).send(html);
     } catch (error) {
       next(error);

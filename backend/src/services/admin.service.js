@@ -201,27 +201,84 @@ class AdminService {
 
     const pendingReports = await prisma.report.count({ where: { status: 'PENDING' } });
     const pendingModerationContent = await prisma.report.count({ where: { status: { in: ['PENDING', 'UNDER_REVIEW'] } } });
+    const pendingVerifications = await prisma.verificationRequest.count({ where: { status: 'PENDING' } });
+    const activeAdminSessionsCount = await prisma.adminSession.count({ where: { isRevoked: false } });
 
-    // Users grouped by university
+    // Users grouped by university with acronym resolution
     const userProfiles = await prisma.userProfile.findMany({
       select: { university: true },
     });
     const uniCounts = {};
+    let totalUniProfiles = 0;
     userProfiles.forEach(p => {
       const u = p.university || 'Unspecified';
       uniCounts[u] = (uniCounts[u] || 0) + 1;
+      if (p.university) totalUniProfiles++;
     });
+
+    const rawUniNames = Object.keys(uniCounts);
+    const dbUnis = await prisma.university.findMany({
+      where: {
+        OR: [
+          { name: { in: rawUniNames } },
+          { domain: { in: rawUniNames } },
+          { acronym: { in: rawUniNames } },
+        ],
+      },
+      select: { name: true, domain: true, acronym: true },
+    });
+
+    const uniAcronymMap = {};
+    dbUnis.forEach(u => {
+      if (u.acronym) {
+        if (u.name) uniAcronymMap[u.name.toLowerCase().trim()] = u.acronym;
+        if (u.domain) uniAcronymMap[u.domain.toLowerCase().trim()] = u.acronym;
+      }
+    });
+
+    function resolveAcronym(rawName) {
+      if (!rawName || rawName === 'Unspecified') return 'N/A';
+      const key = rawName.toLowerCase().trim();
+      if (uniAcronymMap[key]) return uniAcronymMap[key];
+
+      if (key.includes('southern methodist')) return 'SMU';
+      if (key.includes('texas tech')) return 'TTU';
+      if (key.includes('texas a&m') || key.includes('texas am')) return 'TAMU';
+      if (key.includes('baylor')) return 'BU';
+      if (key.includes('austin')) return 'UT Austin';
+      if (key.includes('tecnológica nacional') || key.includes('tecnica nacional')) return 'UTN';
+      if (key.includes('americas') || key.includes('américas')) return 'UDLA';
+
+      const cleaned = rawName.replace(/\b(the|of|at|de|del|la|las|los|y|en|university|universidad)\b/gi, '').trim();
+      const words = cleaned.split(/\s+/).filter(Boolean);
+      if (words.length === 0) return rawName.substring(0, 8).toUpperCase();
+      const initials = words.map(w => w[0]).join('').toUpperCase();
+      return initials.length >= 2 ? initials : rawName.substring(0, 10);
+    }
+
     const usersByUniversity = Object.entries(uniCounts)
-      .map(([name, count]) => ({ name, count }))
+      .map(([name, count]) => {
+        const acronym = resolveAcronym(name);
+        const percent = totalUsers > 0 ? ((count / totalUsers) * 100).toFixed(1) : 0;
+        return {
+          acronym,
+          name: acronym,
+          fullName: name,
+          count,
+          percent,
+        };
+      })
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      .slice(0, 8);
 
     // Recent activity feed
     const recentUsers = await prisma.user.findMany({
       where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
-      take: 5,
-      select: { id: true, firstName: true, lastName: true, handle: true, createdAt: true },
+      take: 6,
+      include: {
+        profile: { select: { university: true } }
+      }
     });
 
     const recentReports = await prisma.report.findMany({
@@ -234,7 +291,7 @@ class AdminService {
 
     const recentAuditLogs = await prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 8,
+      take: 10,
       include: {
         admin: { select: { firstName: true, lastName: true, role: true } },
       },
@@ -253,6 +310,8 @@ class AdminService {
         totalLikes,
         pendingReports,
         pendingModerationContent,
+        pendingVerifications,
+        activeAdminSessionsCount,
       },
       usersByUniversity,
       recentActivity: {
@@ -1381,11 +1440,55 @@ class AdminService {
       take: 8,
     });
 
+    const rawUniNames = uniGroup.map(g => g.university).filter(Boolean);
+    const dbUnis = await prisma.university.findMany({
+      where: {
+        OR: [
+          { name: { in: rawUniNames } },
+          { domain: { in: rawUniNames } },
+          { acronym: { in: rawUniNames } },
+        ],
+      },
+      select: { name: true, domain: true, acronym: true },
+    });
+
+    const uniAcronymMap = {};
+    dbUnis.forEach(u => {
+      if (u.acronym) {
+        if (u.name) uniAcronymMap[u.name.toLowerCase().trim()] = u.acronym;
+        if (u.domain) uniAcronymMap[u.domain.toLowerCase().trim()] = u.acronym;
+      }
+    });
+
+    function resolveAcronym(rawName) {
+      if (!rawName) return 'N/A';
+      const key = rawName.toLowerCase().trim();
+      if (uniAcronymMap[key]) return uniAcronymMap[key];
+
+      // Custom acronym overrides for common universities
+      if (key.includes('southern methodist')) return 'SMU';
+      if (key.includes('texas tech')) return 'TTU';
+      if (key.includes('texas a&m') || key.includes('texas am')) return 'TAMU';
+      if (key.includes('baylor')) return 'BU';
+      if (key.includes('austin')) return 'UT Austin';
+      if (key.includes('tecnológica nacional') || key.includes('tecnica nacional')) return 'UTN';
+      if (key.includes('americas') || key.includes('américas')) return 'UDLA';
+
+      // Fallback: extract uppercase initials of key words
+      const cleaned = rawName.replace(/\b(the|of|at|de|del|la|las|los|y|en|university|universidad)\b/gi, '').trim();
+      const words = cleaned.split(/\s+/).filter(Boolean);
+      if (words.length === 0) return rawName.substring(0, 8).toUpperCase();
+      const initials = words.map(w => w[0]).join('').toUpperCase();
+      return initials.length >= 2 ? initials : rawName.substring(0, 10);
+    }
+
     const uniBreakdown = uniGroup.map((g, idx) => {
       const colors = ['#3d7bff', '#e04155', '#fbbf24', '#c084fc', '#22c55e', '#38bdf8', '#f472b6', '#a855f7'];
       const rawName = g.university || 'No asignada';
+      const acronym = resolveAcronym(rawName);
       return {
-        name: rawName.length > 18 ? rawName.substring(0, 16) + '...' : rawName,
+        acronym,
+        name: acronym,
         fullName: rawName,
         students: g._count.userId,
         color: colors[idx % colors.length],
