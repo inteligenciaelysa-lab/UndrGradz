@@ -2236,7 +2236,7 @@ textarea.gi {
   display: block;
 }
 .crush-card-wrap {
-  padding: 0 var(--s) 16px;
+  padding: 14px var(--s) 16px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -2642,25 +2642,80 @@ textarea.gi {
 .crush-actions {
   display: flex;
   justify-content: center;
-  gap: 14px;
-  padding: 10px 12px;
-  margin: 25px auto 0;
+  gap: 18px;
+  padding: 6px 4px;
+  margin: 12px auto 0;
   width: fit-content;
   border-radius: 36px;
-  background: rgba(10, 5, 24, 0.78);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:var(--el-3);
+  /* pill container is invisible now — only the button circles show */
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 .crush-card-wrap > .crush-actions {
   position: sticky;
   bottom: 8px;
   z-index: 60;
 }
+/* ── Crush swipe dock: one bar that slides between [actions] ↔ [nav] ────── */
+.crush-dock {
+  position: sticky;
+  bottom: 8px;
+  z-index: 60;
+  width: 100%;
+  max-width: 380px;
+  margin: 12px auto 0;
+  overflow: hidden;
+}
+.crush-dock-track {
+  display: flex;
+  width: 200%;
+  transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
+  touch-action: pan-y;
+}
+.crush-dock-track.show-nav {
+  transform: translateX(-50%);
+}
+.crush-dock-page {
+  flex: 0 0 50%;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.crush-dock-page .crush-actions {
+  margin-top: 0 !important;
+}
+.crush-dock-page .bot-inner {
+  width: 100%;
+  max-width: 340px;
+}
+.crush-dock-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 7px;
+}
+.crush-dock-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  transition: background 0.2s, width 0.2s;
+}
+.crush-dock-dots span.on {
+  background: #fff;
+  width: 16px;
+  border-radius: 3px;
+}
+/* while the Crush deck is on screen, the global bottom nav is replaced by the
+   dock's second page — hide the global one to avoid two navs. */
+body.crush-deck-on .bot-nav {
+  display: none !important;
+}
 .crb {
-  width: 54px;
-  height: 54px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   background: rgba(18, 10, 35, 0.6) !important;
@@ -8131,8 +8186,8 @@ body.is-ios .screen::before {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 12px !important;
-  padding: 8px 18px !important;
+  gap: 22px !important;
+  padding: 8px 10px !important;
   background: transparent !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -9834,7 +9889,6 @@ body::after,
 .cps-row,
 .crush-card,
 .crush-card-inner,
-.crush-actions,
 .crb,
 .stubhub-event-card,
 .fb-product-card,

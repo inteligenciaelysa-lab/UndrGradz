@@ -682,22 +682,18 @@
             <div class="swipe-overlay" id="swipe-overlay-maybe"></div>
           </div>
           <div class="crush-actions no-deemoji" id="deck-action-bar">
+            <button class="crb crb-neon-x" onclick="swipe('nope')" title="Pass">
+              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
             <button class="crb crb-neon-undo" style="position:relative;" onclick="swipeBack()" title="Go Back — undo last left swipe" id="swipe-back-btn">
               <svg class="crb-svg crb-undo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M9 14 4 9l5-5M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
               <span id="swipe-back-count" style="position:absolute;top:-4px;right:-4px;background:#f59e0b;color:#000;font-size:var(--fs-2xs);font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;line-height:1;">0</span>
-            </button>
-            <button class="crb crb-neon-x" onclick="swipe('nope')" title="Pass">
-              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
             <button class="crb crb-neon-star" onclick="swipe('maybe')" title="Super Like">
               <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></polygon></svg>
             </button>
             <button class="crb crb-neon-heart" onclick="swipe('like')" title="Like">
               <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            </button>
-            <button class="crb crb-neon-rose" style="position:relative;" onclick="superLike()" title="Rose — your weekly Super Like" id="rose-btn">
-              <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><path d="M17 10h-1a4 4 0 1 1 4-4v.534"/><path d="M17 6h1a4 4 0 0 1 1.42 7.74l-2.29.87a6 6 0 0 1-5.339-10.68l2.069-1.31"/><path d="M4.5 17c2.8-.5 4.4 0 5.5.8s1.8 2.2 2.3 3.7c-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2"/><path d="M9.77 12C4 15 2 22 2 22"/><circle cx="17" cy="8" r="2"/></svg>
-              <span id="rose-count" style="position:absolute;top:-4px;right:-4px;background:#791515;color:#fff;font-size:var(--fs-2xs);font-weight:700;border-radius:50%;width:16px;height:16px;display:none;align-items:center;justify-content:center;line-height:1;">1</span>
             </button>
           </div>
         </div>
@@ -1655,5 +1651,6 @@
 <script src="api-client.js"></script>
 <script src="navigation-manager.js"></script>
 <script src="app.js"></script>
+<script src="crush-dock.js"></script>
 </body>
 </html>
