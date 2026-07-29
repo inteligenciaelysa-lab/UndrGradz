@@ -17,9 +17,10 @@ const exclude = new Set([
   '.vscode'
 ]);
 
-if (!fs.existsSync(destDir)) {
-  fs.mkdirSync(destDir, { recursive: true });
+if (fs.existsSync(destDir)) {
+  fs.rmSync(destDir, { recursive: true, force: true });
 }
+fs.mkdirSync(destDir, { recursive: true });
 
 const entries = fs.readdirSync(srcDir, { withFileTypes: true });
 
