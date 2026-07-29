@@ -2433,7 +2433,7 @@ function _ob4Steps(){
   var box=document.getElementById('ob4-steps');if(!box)return;var L=['Identity','Academic','Personality','About You','Preview'];var h='';
   for(var i=0;i<5;i++){var n=i+1,done=n<_ob4Phase,cur=n===_ob4Phase;
     if(i>0)h+='<div class="ob4-line'+(n<=_ob4Phase?' on':'')+'"></div>';
-    h+='<div class="ob4-step'+(cur?' cur':'')+(done?' done':'')+'" '+((done||cur)?'style="cursor:pointer;" onclick="_ob4Go('+n+')"':'')+'><div class="ob4-dot">'+(done?'✓':n)+'</div><div class="ob4-lbl">'+L[i]+'</div></div>';}
+    h+='<div class="ob4-step'+(cur?' cur':'')+(done?' done':'')+'" '+((done||cur)?'style="cursor:pointer;" onclick="_ob4Go('+n+', true)"':'')+'><div class="ob4-dot">'+(done?'✓':n)+'</div><div class="ob4-lbl">'+L[i]+'</div></div>';}
   box.innerHTML=h;
 }
 // The PROFILE STRENGTH ring was removed from the header by request. This is
@@ -2518,7 +2518,25 @@ function _ob4PaintLabels(){
     }
   }catch(e){}
 }
-function _ob4Go(p){
+function _ob4Go(p, forceScrollTop){
+  var isStepChange = (_ob4Phase !== p) || !!forceScrollTop;
+  var savedScroll = null;
+
+  if (!isStepChange) {
+    try {
+      var sc = document.getElementById('onboarding');
+      if (sc && sc.scrollTop > 0) {
+        savedScroll = { el: sc, top: sc.scrollTop };
+      } else if (document.scrollingElement && document.scrollingElement.scrollTop > 0) {
+        savedScroll = { el: document.scrollingElement, top: document.scrollingElement.scrollTop };
+      } else if (window.scrollY > 0) {
+        savedScroll = { el: window, top: window.scrollY };
+      } else {
+        savedScroll = { el: sc || window, top: 0 };
+      }
+    } catch(e){}
+  }
+
   _ob4Phase=p;
   var T = window.currentLang === 'es' ? [
     ["Empecemos con lo básico", "Esto ayuda a que otras personas te encuentren y conecten contigo."],
@@ -2556,18 +2574,26 @@ function _ob4Go(p){
     setTimeout(function(){if(typeof _ob4ValidateAll5==='function')_ob4ValidateAll5();},50);
   }
   _ob4Strength();
-  // Al cambiar de paso hay que volver arriba. Se reseteaba #ob4-content, que
-  // NUNCA se desplaza (scrollHeight === clientHeight): el que scrollea es
-  // #onboarding, que es quien lleva el overflow-y:auto. Por eso el paso 2 se
-  // abría a media altura, donde hubieras dejado el paso 1.
-  c.scrollTop = 0;
-  try{
-    var _sc = document.getElementById('onboarding');
-    if(_sc) _sc.scrollTop = 0;
-    // y por si el contenedor cambia algún día
-    if(document.scrollingElement) document.scrollingElement.scrollTop = 0;
-    window.scrollTo(0, 0);
-  }catch(e){}
+
+  try {
+    if (isStepChange) {
+      c.scrollTop = 0;
+      var sc = document.getElementById('onboarding');
+      if (sc && sc.scrollTop > 0) {
+        sc.scrollTop = 0;
+      } else if (document.scrollingElement && document.scrollingElement.scrollTop > 0) {
+        document.scrollingElement.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
+    } else if (savedScroll && savedScroll.el) {
+      if (savedScroll.el === window) {
+        window.scrollTo(0, savedScroll.top);
+      } else {
+        savedScroll.el.scrollTop = savedScroll.top;
+      }
+    }
+  } catch(e){}
 }
 function _ob4P1(){
   var st=_ob4State;
