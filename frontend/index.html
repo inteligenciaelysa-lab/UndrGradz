@@ -156,7 +156,7 @@
       <div id="auth-login-panel" style="display:block;width:100%;">
         <div class="field" style="margin-bottom:16px;">
           <label id="li-email-label" style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;display:block;">School email or @username</label>
-          <input class="gi auth-input-field" type="text" id="li-email" placeholder="you@school.edu  or  @username"/>
+          <input class="gi auth-input-field" type="text" id="li-email" placeholder="you@school.edu  or  username" autocapitalize="none" autocorrect="off" spellcheck="false" oninput="this.value=this.value.toLowerCase()"/>
         </div>
         <div id="li-forgot-creds" style="text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 16px;cursor:pointer;" onclick="forgotEmailUsername()">Forgot email or username?</div>
         
@@ -942,7 +942,7 @@
               <div class="yr-chip" onclick="this.classList.toggle('on')">Non-smoker</div>
               <div class="yr-chip" onclick="this.classList.toggle('on')">Socially</div>
               <div class="yr-chip" onclick="this.classList.toggle('on')">Regularly</div>
-              <div class="yr-chip" onclick="this.classList.toggle('on')">Vaper/Juul</div>
+              <div class="yr-chip" onclick="this.classList.toggle('on')">Vape</div>
             </div>
           </div>
           <div class="love-filter-section"><div class="love-filter-title">🏫 School Type <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-schooltype-chips"><div class="yr-chip on" onclick="_setSchoolType('crush','all',this)">All</div><div class="yr-chip" onclick="_setSchoolType('crush','public',this)">🏛️ Public</div><div class="yr-chip" onclick="_setSchoolType('crush','private',this)">🎓 Private</div></div></div><div class="love-filter-section"><div class="love-filter-title">🎓 Alumni Degree <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;" id="crush-degree-chips"><div class="yr-chip on" onclick="_setDegree('all',this)">All</div><div class="yr-chip" onclick="_setDegree('phd',this)">PhD</div><div class="yr-chip" onclick="_setDegree('masters',this)">Master's</div><div class="yr-chip" onclick="_setDegree('none',this)">None</div></div></div>
