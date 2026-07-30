@@ -2251,7 +2251,7 @@ function buildStudentOb(){
   ste.innerHTML=
   '<div id="obs1">'+sdots(1,7)+'<div class="ob-panel glass"><div class="ob-title">Verify your .edu 📧</div><div class="ob-hint">Quick setup — just the essentials now. You can finish the rest anytime in Profile → Edit.</div><div class="field"><label>Your University</label><div style="display:flex;gap:8px;margin-bottom:6px;"><select class="gi" id="ob-uni-country" onchange="_setUniSearchCountry(this.value)" style="width:74px;flex-shrink:0;"><option value="">🌎</option><option value="US">🇺🇸</option><option value="MX">🇲🇽</option><option value="CA">🇨🇦</option></select><input class="gi" type="text" id="ob-uni-search" placeholder="Search your university" oninput="filterUniList(this.value)" onfocus="filterUniList(this.value)" autocomplete="off" style="flex:1;"/></div><div id="ob-uni-dropdown" style="background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);max-height:200px;overflow-y:auto;"></div><div style="font-size:var(--fs-2xs);color:#fff;margin-top:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">School not listed? <a href="mailto:support@undrgradz.com?subject=Add%20my%20university" style="color:#fff;font-weight:600;text-decoration:underline;">Email us</a> or <a href="https://www.instagram.com/undrgradz/" target="_blank" rel="noopener" style="color:#fff;font-weight:600;text-decoration:underline;">message on Instagram</a></div></div><div class="field"><label>University email</label><div style="display:flex;gap:8px;"><input class="gi" type="email" id="ob-email" placeholder="Example@school.edu" oninput="detectUni(this.value)" style="flex:1;"/><button onclick="sendEmailCode()" style="padding:10px 14px;border-radius:var(--rx);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;" id="email-verify-btn">Verify</button></div></div><div class="udet" id="udet"><div class="ud" id="ud"></div><div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;" id="un-lbl">University detected</div><div id="uc-lbl" class="t-meta"></div></div></div><div id="tec-campus-row" style="display:none;margin-bottom:12px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!==\'undefined\')userPro.campus=this.value;">'+TEC_CAMPUSES.map(function(c){return '<option value="'+c[0]+'">'+c[1]+' ('+c[0]+')</option>';}).join('')+'</select></div><div id="email-code-row" style="display:none;margin-bottom:12px;"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Enter verification code</div><div style="display:flex;gap:6px;justify-content:center;"><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="emailCodeCheck()"/></div><div id="email-code-msg" style="font-size:var(--fs-sm);font-weight:500;text-align:center;margin-top:6px;color:var(--fg3);"></div></div>'+
   '<button class="gbtn" style="background:var(--p);opacity:0.5;" id="step1-continue" onclick="goOb(2)" disabled>Verify your email to continue</button></div></div>'+
-  '<div id="obs2" style="display:none;">'+sdots(2,7)+'<div class="ob-panel glass"><div class="ob-title">Choose your @username 🎓</div><div class="ob-hint">4-12 characters. Change once per year.</div><div class="field"><label>Username</label><input class="gi" type="text" id="ob-handle" placeholder="@yourname" oninput="checkHandle(this)"/></div><div id="handle-msg" style="font-size:var(--fs-sm);min-height:18px;font-weight:500;margin-bottom:10px;"></div>'+
+  '<div id="obs2" style="display:none;">'+sdots(2,7)+'<div class="ob-panel glass"><div class="ob-title">Choose your @username 🎓</div><div class="ob-hint">4-12 characters. Change once per year.</div><div class="field"><label>Username</label><input class="gi" type="text" id="ob-handle" placeholder="yourname" oninput="checkHandle(this)"/></div><div id="handle-msg" style="font-size:var(--fs-sm);min-height:18px;font-weight:500;margin-bottom:10px;"></div>'+
     // Location permission
     '<div class="field"><label>'+icon('mapPin',16)+' Nearby & Location <span style="font-weight:400;color:var(--fg3);text-transform:none;letter-spacing:0;">(optional)</span></label>'+
       '<div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.5;margin-bottom:8px;">Let Undrgradz use your real-time location to show nearby students, events, and businesses around you.</div>'+
@@ -2338,7 +2338,7 @@ function buildBusinessOb(){
   '<button class="gbtn" style="background:var(--p);" onclick="goOb(2)">Continue →</button></div></div>'+
   '<div id="obs2" style="display:none;">'+sdots(2,3)+'<div class="ob-panel glass"><div class="ob-title">Verify your business ✅</div><div class="ob-hint">Required so students know you\'re legit.</div>'+
   '<div class="field"><label>Website</label><input class="gi" type="url" id="biz-web" placeholder="https://mybusiness.com"/></div>'+
-  '<div class="field"><label>Instagram @</label><input class="gi" type="text" id="biz-ig" placeholder="@mybusiness"/></div>'+
+  '<div class="field"><label>Instagram @</label><input class="gi" type="text" id="biz-ig" placeholder="mybusiness"/></div>'+
   '<div class="field"><label>Business Address</label><input class="gi" type="text" id="biz-addr" placeholder="123 Main St, Dallas TX"/></div>'+
   '<div class="id-box" id="biz-photo-box" onclick="document.getElementById(\'biz-photo-file\').click()">📷 Upload photo of your business</div>'+
   '<input type="file" id="biz-photo-file" accept="image/*" style="display:none;" onchange="handleBizPhoto(this)"/>'+
@@ -2369,17 +2369,17 @@ function buildInstOb(){
 // ── LAUNCH ──
 
 // ============ 4-PHASE ONBOARDING ============
-var _ob4Phase=1,_ob4State={},_ob4Involved=[],_ob4PhotoIdx=0,_ob4Cat='All',_ob4Query='';
+var _ob4Phase=1,_ob4State={},_ob4Involved=[],_ob4PhotoIdx=0,_ob4Cat='Social',_ob4Query='';
 var INTERESTS4=[
  ['Travel','✈️','Lifestyle'],['Coffee','☕','Lifestyle'],['Nature','🍃','Lifestyle'],['Culture','🌍','Lifestyle'],['Cooking','🍳','Lifestyle'],['Fashion','👗','Lifestyle'],['Wellness','🙏','Lifestyle'],['Foodie','🍜','Lifestyle'],['Volunteering','🤝','Lifestyle'],['Pets','🐶','Lifestyle'],['Cars','🚗','Lifestyle'],['Thrifting','🛍️','Lifestyle'],
- ['Photography','📷','Hobbies'],['Writing','✍️','Hobbies'],['Reading','📖','Hobbies'],['Blogging','💻','Hobbies'],['Puzzles','🎯','Hobbies'],['Podcasts','🎙️','Hobbies'],['Gaming','🎮','Hobbies'],['Board Games','🎲','Hobbies'],['Chess','♟️','Hobbies'],['Gardening','🌱','Hobbies'],['DIY','🔧','Hobbies'],['Collecting','🏷️','Hobbies'],
+ ['Photography','📷','Hobbies'],['Writing','✍️','Hobbies'],['Reading','📖','Hobbies'],['Blogging','💻','Hobbies'],['Puzzles','🎯','Hobbies'],['Podcasts','🎙️','Hobbies'],['Gaming','🎮','Hobbies'],['Board Games','🎲','Hobbies'],['Chess','♟️','Hobbies'],['Gardening','🌱','Hobbies'],['DIY','🔧','Hobbies'],['Collecting','🏷️','Hobbies'],['Baking','🧁','Hobbies'],['Knitting','🧶','Hobbies'],['Journaling','📓','Hobbies'],['Anime','🎌','Hobbies'],['Comics','💥','Hobbies'],['Cosplay','🎭','Hobbies'],['Fishing','🎣','Hobbies'],['Camping','🏕️','Hobbies'],['Hiking','🥾','Hobbies'],['Astrology','🔮','Hobbies'],['Magic','🃏','Hobbies'],['Woodworking','🪵','Hobbies'],['Pottery','🏺','Hobbies'],['Origami','🦢','Hobbies'],['Streaming','📺','Hobbies'],['Sudoku','🔢','Hobbies'],['Model Building','🚂','Hobbies'],['Birdwatching','🦉','Hobbies'],['Calligraphy','🖌️','Hobbies'],['Sewing','🧵','Hobbies'],
  ['Painting','🎨','Arts'],['Music','🎵','Arts'],['Theater','🎭','Arts'],['Guitar','🎸','Arts'],['Piano','🎹','Arts'],['Film','🎬','Arts'],['Design','✒️','Arts'],['Singing','🎤','Arts'],['Drums','🥁','Arts'],['Poetry','🖊️','Arts'],['Museums','🏛️','Arts'],['Dance','💃','Arts'],
  ['Gym','🏋️','Sports'],['Soccer','⚽','Sports'],['Basketball','🏀','Sports'],['Running','🏃','Sports'],['Climbing','⛰️','Sports'],['Yoga','🙏','Sports'],['Tennis','🎾','Sports'],['Swimming','🏊','Sports'],['Cycling','🚴','Sports'],['Skiing','🎿','Sports'],['Volleyball','🏐','Sports'],['Football','🏈','Sports'],
  ['Science','🔬','Academic'],['Coding','👨‍💻','Academic'],['Debate','🗣️','Academic'],['Business','💼','Academic'],['Languages','🗪','Academic'],['Research','🔎','Academic'],['History','📜','Academic'],['Psychology','💡','Academic'],['Astronomy','🔭','Academic'],['Economics','📈','Academic'],['Law','⚖️','Academic'],['Startups','🚀','Academic'],
  ['Parties','🎉','Social'],['Concerts','🎫','Social'],['Nightlife','🌙','Social'],['Networking','🤝','Social'],['Festivals','🎪','Social'],['Karaoke','🎤','Social']
 ];
 var INTERESTS4_REC=[['Travel','✈️'],['Coffee','☕'],['Music','🎵'],['Gym','🏋️']];
-var INTERESTS4_CATS=['All','Lifestyle','Hobbies','Arts','Sports','Academic','Social'];
+var INTERESTS4_CATS=['Social','Lifestyle','Hobbies','Arts','Sports','Academic'];
 (function(){try{var have={};INTERESTS4.forEach(function(it){have[it[0].toLowerCase()]=1;});var map={'Openness':'Arts','Conscientiousness':'Academic','Extraversion':'Sports','Agreeableness':'Lifestyle','Nightlife':'Social'};BIG5.forEach(function(sec){var cat=map[sec.name]||'Hobbies';sec.acts.forEach(function(a){var m=a.match(/^(\S+)\s+([\s\S]+)$/);var em=m?m[1]:'';var nm=(m?m[2]:a).trim();if(nm&&!have[nm.toLowerCase()]){INTERESTS4.push([nm,em,cat]);have[nm.toLowerCase()]=1;}});});}catch(e){}})();
 
 function _ob4Begin(mode){
@@ -2395,10 +2395,10 @@ function _ob4Start(isAlumni){
   var wrap=document.querySelector('#onboarding .ob-wrap');if(!wrap)return;
   var onb=document.getElementById('onboarding');if(onb)onb.classList.add('active');
   var auth=document.getElementById('authscreen');if(auth)auth.classList.remove('active');
-  _ob4Phase=1;_ob4Involved=[];_ob4Cat='All';_ob4Query='';
+  _ob4Phase=1;_ob4Involved=[];_ob4Cat='Social';_ob4Query='';
   var fn=(suData&&suData.fname)||'',ln=(suData&&suData.lname)||'';
   _ob4State={living:'',major:'',minor:'',gradyr:'',degree:"Bachelor's",field:'',
-    handle:'@'+(fn+ln).toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12),
+    handle:(fn+ln).toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12),
     email:'',phone:'',code:'+1',bio:'',looking:['Friends'],uniNameStyle:'full'};
   if(typeof selectedHobbies==='undefined')window.selectedHobbies=[];
   wrap.innerHTML=
@@ -3240,8 +3240,8 @@ function _ob4P4(){
     [['Non-drinker','Non-drinker'],['Social drinker','Social drinker'],['Regular drinker','Regular drinker']];
 
   var SMOKING=isEs?
-    [['Non-smoker','No fumo'],['Socially','Socialmente'],['Regularly','Regularmente'],['Vaper/Juul','Vapeo/Juul']]:
-    [['Non-smoker','Non-smoker'],['Socially','Socially'],['Regularly','Regularly'],['Vaper/Juul','Vaper/Juul']];
+    [['Non-smoker','No fumo'],['Socially','Socialmente'],['Regularly','Regularmente'],['Vape','Vape']]:
+    [['Non-smoker','Non-smoker'],['Socially','Socially'],['Regularly','Regularly'],['Vape','Vape']];
 
   // Country / State / City
   var countries = (typeof GEO_COUNTRIES!=='undefined'?GEO_COUNTRIES:['Mexico','United States','Canada','Other']);
@@ -3293,30 +3293,22 @@ function _ob4P4(){
   return '<div>'+
     // 1. Add Your Photos Card
     _ob4RenderPhotoGridP4()+
+    // Origin
+    section('📍', isEs?'Lugar de origen':'Origin',
+      '<div style="display:flex;flex-direction:column;gap:10px;">'+
+        '<select class="gi" id="ob4-from-country" onchange="_ob4AUCountry(this.value)">'+countryOpts+'</select>'+
+        '<select class="gi" id="ob4-from-state" onchange="_ob4AUState(this.value)">'+stateOpts+'</select>'+
+        '<select class="gi" id="ob4-from-city" onchange="_ob4AUCity(this.value)">'+cityOpts+'</select>'+
+      '</div>'
+    )+
     // 2. Languages You Speak
     _ob4RenderLangsP4()+
     // 3. Ethnicity
     section('🌍', isEs?'Etnicidad (máx 2)':'Ethnicity (max 2)',
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ETHNICITIES,'ethnicity',true,2)+'</div>'
     )+
-    // Religion
-    section('✝️', isEs?'Religión':'Religion',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(RELIGIONS,'religion',false)+'</div>'
-    )+
-    // Politics
-    section('🗳️', isEs?'Política':'Politics',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(POLITICS,'politics',false)+'</div>'
-    )+
-    // Pronouns
-    section('💬', isEs?'Pronombres':'Pronouns',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(PRONOUNS,'pronouns',false)+'</div>'
-    )+
-    // Sexual Orientation
-    section('🏳️‍🌈', isEs?'Orientación sexual':'Sexual Orientation',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ORIENTATIONS,'orientation',false)+'</div>'
-    )+
-    // Height (3 to 7 feet, persisted cm)
-    section('📏', isEs?'Altura':'Height',
+    // Height (optional)
+    section('📏', isEs?'Altura (opcional)':'Height (optional)',
       '<div style="display:flex;gap:10px;align-items:center;">'+
         '<select class="gi" id="ob4-height-ft" onchange="_ob4AUHeight()" style="flex:1;">'+
           '<option value="">'+(isEs?'Pies':'Feet')+'</option>'+
@@ -3329,20 +3321,20 @@ function _ob4P4(){
         '<span style="font-size:var(--fs-base);font-weight:600;color:#a9c4ff;min-width:60px;text-align:center;" id="ob4-height-cm">'+(cmVal?cmVal+' cm':'— cm')+'</span>'+
       '</div>'
     )+
-    // Origin
-    section('📍', isEs?'Lugar de origen':'Origin',
-      '<div style="display:flex;flex-direction:column;gap:10px;">'+
-        '<select class="gi" id="ob4-from-country" onchange="_ob4AUCountry(this.value)">'+countryOpts+'</select>'+
-        '<select class="gi" id="ob4-from-state" onchange="_ob4AUState(this.value)">'+stateOpts+'</select>'+
-        '<select class="gi" id="ob4-from-city" onchange="_ob4AUCity(this.value)">'+cityOpts+'</select>'+
-      '</div>'
+    // Religion + hide-from-profile toggle
+    section('✝️', isEs?'Religión':'Religion',
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(RELIGIONS,'religion',false)+'</div>'+
+      _obPrivacyToggle('religion',isEs)
     )+
-    // Zodiac (Clean: Icon + Name only, no auto-calc subtitle, no duplicate emoji)
-    section('⭐', isEs?'Signo zodiacal':'Zodiac Sign',
-      '<div style="padding:12px 16px;background:rgba(196,181,253,0.07);border:1px solid rgba(196,181,253,0.2);border-radius:var(--rad-md);display:flex;align-items:center;gap:12px;">'+
-        '<div style="width:38px;height:38px;border-radius:var(--rad-sm);background:linear-gradient(135deg,rgba(61,123,255,0.3),rgba(43,95,217,0.3));border:1px solid rgba(61,123,255,0.4);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);box-shadow:var(--el-1);">'+zodiacIcon+'</div>'+
-        '<div style="color:#fff;font-size:var(--fs-md);font-weight:600;">'+zodiacName+'</div>'+
-      '</div>'
+    // Politics + hide-from-profile toggle
+    section('🗳️', isEs?'Política':'Politics',
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(POLITICS,'politics',false)+'</div>'+
+      _obPrivacyToggle('politics',isEs)
+    )+
+    // Sexual Orientation (optional) + hide-from-profile toggle
+    section('🏳️‍🌈', isEs?'Orientación sexual (opcional)':'Sexual Orientation (optional)',
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ORIENTATIONS,'orientation',false)+'</div>'+
+      _obPrivacyToggle('orientation',isEs)
     )+
     // Lifestyle
     section('🌿', isEs?'Estilo de vida':'Lifestyle',
@@ -3368,7 +3360,7 @@ function _ob4P4(){
     '<div style="height:110px;"></div>'+
     '</div>'+
     '<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:380px;max-width:100%;box-sizing:border-box;padding:24px 16px 16px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.98) 35%,#000000 100%);z-index:10000;pointer-events:auto;">'+
-      '<button class="ob4-cta" id="ob4-continue-btn-p4" onclick="_ob4Next4()" style="margin:0;width:100%;">'+btnContinue+'</button>'+
+      '<button class="ob4-cta" id="ob4-continue-btn-p4" onclick="_ob4Next4()" '+(_ob4Step4Valid()?'':'disabled')+' style="margin:0;width:100%;'+(_ob4Step4Valid()?'':'opacity:0.45;cursor:not-allowed;')+'">'+btnContinue+'</button>'+
       '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:8px;">'+noteText+'</div>'+
     '</div>';
 }
@@ -3397,6 +3389,27 @@ function _ob4AUHeight(){
   }
 }
 
+// "Don't show on my profile" toggle for sensitive fields (religion / politics /
+// orientation). The value is still saved and still used to FILTER/MATCH, it's
+// just hidden on the public Crush card when private.
+function _obPrivacyToggle(key,isEs){
+  var on=!!_ob4State[key+'Private'];
+  var lbl=isEs?'No mostrar esto en mi perfil (se sigue usando para filtros)':"Don't show this on my profile (still used for matching filters)";
+  return '<label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:var(--fs-xs);color:var(--fg2);cursor:pointer;">'+
+    '<input type="checkbox" '+(on?'checked':'')+' onchange="_ob4TogglePrivate(\''+key+'\',this.checked)" style="width:16px;height:16px;accent-color:var(--p);cursor:pointer;flex:0 0 auto;"/>'+
+    '<span>🔒 '+lbl+'</span></label>';
+}
+function _ob4TogglePrivate(key,val){ _ob4State[key+'Private']=!!val; }
+// Continue on step 4 stays OFF until the required fields are set. Height &
+// Sexual Orientation are optional, so they are not required here.
+function _ob4Step4Valid(){
+  return ((window.userDatingPhotos||[]).filter(Boolean).length>=2)
+    && !!_ob4State.fromCountry
+    && !!(_ob4State.languages && _ob4State.languages.length)
+    && !!(_ob4State.ethnicity && _ob4State.ethnicity.length)
+    && !!_ob4State.religion
+    && !!_ob4State.politics;
+}
 function _ob4AUPick(key, val, multi, maxCount){
   if(multi){
     if(!_ob4State[key]) _ob4State[key] = [];
@@ -3437,8 +3450,7 @@ function _ob4AUCity(val){
   _ob4State.fromCity = val;
 }
 function _ob4ValidateAll4(){
-  var photosCount = (window.userDatingPhotos || []).filter(Boolean).length;
-  var isValid = photosCount >= 2;
+  var isValid = _ob4Step4Valid();
   var btn = document.getElementById('ob4-continue-btn-p4');
   if (btn) {
     if (isValid) {
@@ -3453,9 +3465,8 @@ function _ob4ValidateAll4(){
   }
 }
 function _ob4Next4(){
-  var photosCount = (window.userDatingPhotos || []).filter(Boolean).length;
-  if (photosCount < 2) {
-    alert(window.currentLang === 'es' ? 'Por favor sube al menos 2 fotos para continuar.' : 'Please upload at least 2 photos to continue.');
+  if (!_ob4Step4Valid()) {
+    alert(window.currentLang === 'es' ? 'Completa fotos, origen, idioma, etnicidad, religión y política para continuar.' : 'Please add photos, origin, language, ethnicity, religion and politics to continue.');
     return;
   }
   // Save lifestyle etc to userPro
@@ -3464,6 +3475,11 @@ function _ob4Next4(){
   if(_ob4State.politics)userPro.politics=_ob4State.politics;
   if(_ob4State.pronouns)userPro.pronouns=_ob4State.pronouns;
   if(_ob4State.orientation)userPro.orientation=_ob4State.orientation;
+  // "Don't show on my profile": hide on the Crush card but keep the value for
+  // matching filters. Uses the same *HideOnUnicrush flags the card already checks.
+  userPro.religionHideOnUnicrush=!!_ob4State.religionPrivate;
+  userPro.politicsHideOnUnicrush=!!_ob4State.politicsPrivate;
+  userPro.orientationHideOnUnicrush=!!_ob4State.orientationPrivate;
   if(_ob4State.height)userPro.height=_ob4State.height;
   if(_ob4State.heightCm)userPro.heightCm=_ob4State.heightCm;
   if(_ob4State.fromCountry)userPro.fromCountry=_ob4State.fromCountry;
@@ -3481,7 +3497,7 @@ function _ob4CatSel(el,c){_ob4Cat=c;var box=el.parentElement;if(box)box.querySel
 function _ob4IntSel(nm){return selectedHobbies.some(function(h){return h===nm||h.replace(/^[^ ]+\s/,'')===nm;});}
 function _ob4RenderInt(){
   var grid=document.getElementById('ob4-intgrid');if(!grid)return;var q=(_ob4Query||'').toLowerCase();
-  var list=INTERESTS4.filter(function(it){if(_ob4Cat!=='All'&&it[2]!==_ob4Cat)return false;if(q&&it[0].toLowerCase().indexOf(q)===-1)return false;return true;});
+  var list=INTERESTS4.filter(function(it){if(q){return it[0].toLowerCase().indexOf(q)>-1;}if(_ob4Cat!=='All'&&it[2]!==_ob4Cat)return false;return true;});
   if(_ob4Cat==='All'&&!q&&list.length>21){
     list=list.slice(0,21);
   }
@@ -5145,7 +5161,7 @@ function _initFilterAccordion(){
 function openEdit(){var m=document.getElementById('edit-modal');if(m)m.classList.add('open');setTimeout(function(){var em=document.getElementById('ed-major');if(em&&em.tagName==='SELECT'&&typeof MAJORS!=='undefined'&&em.children.length<=1){em.innerHTML='<option value="">Select major…</option>'+MAJORS.map(function(x){return '<option>'+x+'</option>';}).join('');em.value=(userPro&&userPro.major)||'';}var en=document.getElementById('ed-minor');if(en&&en.tagName==='SELECT'&&typeof MINORS!=='undefined'&&en.children.length<=1){en.innerHTML='<option value="">None</option>'+MINORS.filter(function(x){return x!=='None';}).map(function(x){return '<option>'+x+'</option>';}).join('');en.value=(userPro&&userPro.minor)||'';}},20);var mode=obMode||userMode||'student';var sheet=m.querySelector('.msheet');if(mode==='business'){sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Edit Business Profile</div>'+
   '<div class="field"><label>Bio / Description</label><textarea class="gi" id="ed-bio" rows="2" placeholder="Tell students about your business…">'+((userPro.bio||''))+'</textarea></div>'+
   '<div class="field"><label>Business Category</label><select class="gi" id="ed-biz-cat"><option value="">Select…</option><option>Bar & Nightclub</option><option>Restaurant</option><option>Fast Food</option><option>Coffee Shop</option><option>Fitness & Gym</option><option>Beauty & Salon</option><option>Retail & Fashion</option><option>Tech & Gaming</option><option>Tutoring & Education</option><option>Health & Wellness</option><option>Entertainment</option><option>Services & Other</option></select></div>'+
-  '<div class="field"><label>Instagram @</label><input class="gi" type="text" id="ed-ig" placeholder="@mybusiness" value="'+((userPro.ig||''))+'"/></div>'+
+  '<div class="field"><label>Instagram @</label><input class="gi" type="text" id="ed-ig" placeholder="mybusiness" value="'+((userPro.ig||''))+'"/></div>'+
   '<div class="field"><label>Website URL</label><input class="gi" type="url" id="ed-website" placeholder="https://mybusiness.com" value="'+((userPro.website||''))+'"/></div>'+
   '<div class="field"><label>Other Links</label><input class="gi" type="url" id="ed-otherlink" placeholder="https://linktr.ee/mybusiness" value="'+((userPro.otherlink||''))+'"/></div>'+
   '<button class="gbtn" style="background:var(--p);" onclick="saveEdit()">Save Profile</button>'+
@@ -9998,7 +10014,7 @@ function buildHingeStackHtml(p,opts){
   if(ddiet)lifeRows.push(['Diet',ddiet,false]);
   if(lvng)lifeRows.push(['Lives',lvng,false]);
   var _prn=isSelf?(userPro.pronouns||[]):(p.pronouns||[]);if(_prn.length&&(!isSelf||userPro.hideIdentityLife!==true))lifeRows.push(['Pronouns',_prn.join('/'),false]);
-  var _ori=isSelf?userPro.orientation:p.orientation;if(_ori&&_ori!=='Prefer not to say'&&(!isSelf||userPro.hideIdentityLife!==true))lifeRows.push(['Orientation',_ori,false]);
+  var _ori=isSelf?userPro.orientation:p.orientation;if(_ori&&_ori!=='Prefer not to say'&&(!isSelf||userPro.hideIdentityLife!==true)&&(isSelf?!userPro.orientationHideOnUnicrush:!p.orientationHideOnUnicrush))lifeRows.push(['Orientation',_ori,false]);
   var _gmap={female:'Female',male:'Male'};var _gnd=isSelf?(userPro.genderIdentity||_gmap[userPro.gender]||''):(p.genderIdentity||_gmap[p.gender]||'');if(_gnd&&(!isSelf||userPro.hideIdentityLife!==true))lifeRows.push(['Gender',_gnd,false]);
   var _tff=isSelf?userPro.transferFrom:p.transferFrom;if(_tff&&_tff.name)lifeRows.push(['Transferred from',_tff.name,false]);
   var _spts=isSelf?(userPro.athlete?(userPro.sports||[]):[]):(p.sports||[]);if(_spts&&_spts.length)lifeRows.push(['\uD83C\uDFC5 Athlete',_spts.join(', '),false]);
@@ -15304,7 +15320,7 @@ var LOVE_LANGS=['💬 Words of affirmation','⏰ Quality time','🎁 Gifts','�
 var WORKOUTS=['🏋️ Gym rat','🏃 Runner','⚽ Sports','🙏 Yoga/Pilates','🚶 Casual mover','🛋️ Not my thing'];
 var POLITICS_OPTS=['Liberal','Moderate','Conservative','Apolitical'];
 var DRINK_OPTS=['Non-drinker','Social drinker','Regular drinker'];
-var SMOKE_OPTS=['Non-smoker','Socially','Regularly','Vaper/Juul'];
+var SMOKE_OPTS=['Non-smoker','Socially','Regularly','Vape'];
 function _profileWorkoutDisplay(p,isSelf){var w=isSelf?p.workout:_profileWorkout(p);if(Array.isArray(w))return w.join(', ');return w;}
 var DIETS=['🍽️ Anything','🥗 Vegetarian','🌱 Vegan','☪️ Halal','✡️ Kosher','🌾 Gluten-free'];
 // small stand-in catalog for the "anthem" picker (real app: Spotify Search API)
@@ -18045,7 +18061,7 @@ function changeUsername(){
   var modal=document.createElement('div');modal.id='username-change-modal';modal.className='mov open';
   modal.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Change Username</div>'+
     '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.6;margin-bottom:14px;">'+icon('alert',16)+' You can only change your username once a year. Are you sure?</div>'+
-    '<div class="field"><label>New Username</label><input class="gi" type="text" id="new-username-inp" placeholder="@newusername" maxlength="13" oninput="checkHandle(this)"/></div>'+
+    '<div class="field"><label>New Username</label><input class="gi" type="text" id="new-username-inp" placeholder="newusername" maxlength="13" oninput="checkHandle(this)"/></div>'+
     '<div id="new-handle-msg" style="font-size:var(--fs-sm);min-height:18px;font-weight:500;margin-bottom:10px;"></div>'+
     '<button class="gbtn" style="background:var(--p);" onclick="confirmUsernameChange()">Change Username</button>'+
     '<button class="gbtn-ghost" onclick="document.getElementById(\'username-change-modal\').remove()">Cancel</button></div>';
@@ -18565,7 +18581,7 @@ function editInterests(){
   if(typeof userPro!=='undefined'&&userPro&&Array.isArray(userPro.interests)&&!selectedHobbies.length){
     selectedHobbies=userPro.interests.slice();
   }
-  _ob4Cat='All';_ob4Query='';
+  _ob4Cat='Social';_ob4Query='';
   var modal=document.getElementById('edit-interests-modal');if(modal)modal.remove();
   modal=document.createElement('div');modal.id='edit-interests-modal';modal.className='mov open';
   var es=(window.currentLang==='es');
@@ -21545,12 +21561,11 @@ async function openNotifications(){
   _notifFilter='all';
   var chips=[['all','All'],['social','❤️ Social'],['campus','🎓 Campus'],['events','📅 Events'],['requests','👤 Requests'],['system','⚙️ System']];
   var sh='<div class="msheet" style="padding-bottom:24px;"><div class="mhnd"></div>';
-  sh+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div class="t-title">'+icon('bell',16)+' Notifications'+(unread.length?' <span style="font-size:var(--fs-xs);background:var(--p);color:#fff;border-radius:var(--rad-sm);padding:1px 8px;vertical-align:middle;">'+unread.length+'</span>':'')+'</div>';
+  sh+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div class="t-title" style="display:flex;align-items:center;gap:6px;"><button onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'notif-modal\').remove()" title="Back" aria-label="Back" style="background:none;border:none;color:#fff;cursor:pointer;padding:2px;margin:-2px 2px -2px -4px;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>Notifications'+(unread.length?' <span style="font-size:var(--fs-xs);background:var(--p);color:#fff;border-radius:var(--rad-sm);padding:1px 8px;vertical-align:middle;">'+unread.length+'</span>':'')+'</div>';
   if(unread.length>0)sh+='<button onclick="markAllNotifsRead()" style="background:none;border:none;color:var(--p);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">Mark all read</button>';
   sh+='</div>';
   sh+='<div class="nfchips">'+chips.map(function(c,i){return '<div class="nfchip'+(i===0?' on':'')+'" data-nf="'+c[0]+'" onclick="_setNotifFilter(\''+c[0]+'\',this)">'+c[1]+'</div>';}).join('')+'</div>';
   sh+='<div id="notif-body"></div>';
-  sh+='<button class="gbtn-ghost" onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'notif-modal\').remove()" style="margin-top:12px;">Close</button>';
   sh+='</div>';
   modal.innerHTML=sh;
   document.body.appendChild(modal);

@@ -10784,7 +10784,9 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 
 /* ── 1. Los chips de sign up ── */
 .ob4-chip {
-  --ob-hue: #dc2626;
+  /* No hardcoded hue: inherit --ob-hue from the section container (set by
+     _ob4PaintLabels to the section title's colour) so each option's underline
+     matches its title instead of always being red. Fallback stays red. */
   position: relative;
   background: transparent !important;
   border: none !important;
@@ -10810,7 +10812,7 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
   bottom: 0;
   height: 3px;
   border-radius: 2px;
-  background: var(--ob-line, var(--ob-hue));
+  background: var(--ob-line, var(--ob-hue, #dc2626));
   /* Idle: the line is there, dim and unlit. The glow lives on .on below. */
   box-shadow: none;
   transform: scaleX(1);
