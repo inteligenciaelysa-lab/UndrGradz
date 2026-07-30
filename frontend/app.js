@@ -6713,64 +6713,35 @@ var _hangoutUniScope='mine';
 function _setHangoutUniScope(v){if((v==='near'||v==='pick')&&curPlan!=='aplus'){if(typeof premAlert==='function')premAlert();return;}_hangoutUniScope=v;_uniScopeBy.ev=v;var ch=document.getElementById('ev-uni-chooser');if(ch)ch.style.display=(v==='pick')?'':'none';var row=document.getElementById('ev-uni-scope');if(row)row.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-scope')===v);});if(typeof renderHangouts==='function')renderHangouts();}
 function _uniScopeBannerHtml(){
   var isA = (typeof curPlan !== 'undefined' && curPlan === 'aplus');
-
-  var mineOn = _hangoutUniScope === 'mine';
-  var pickOn = _hangoutUniScope === 'pick';
-  
-  var capSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
-  var landSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark-icon lucide-landmark"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>';
-  var lockSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-icon lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
-
-  // Los dos dejan _gradSkin y llevan receta propia. My University elegido va con
-  // el MISMO degradado que el CONTINUE del registro (--cta-grad) y sin borde;
-  // sin elegir se queda en negro con el tono en el filo, que es como estaba.
-  var _uniBtnBase = 'border-radius:var(--rad-md);box-shadow:none;text-shadow:none;';
-  var mineSkin = mineOn
-    ? (_uniBtnBase + 'background:var(--cta-grad, var(--p));border:none;color:#fff;')
-    : (_uniBtnBase + 'background:#000;border:1.5px solid color-mix(in srgb, var(--p) 40%, transparent);color:var(--p);');
-  var mineBtn = '<button onclick="_setHangoutUniScope(\'mine\')" style="' + mineSkin + 'flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;text-align:left;transition:all var(--dur) ease;font-family:var(--font);">'+
-    // No colour of its own — it inherits currentColor from the button, which is
-    // #fff when picked and the hue when idle. Pinning it to var(--p) made the
-    // icon vanish on the picked button, whose fill is that same var(--p).
-    '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+capSvg+'</div>'+
-    '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
-      '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My University</span>'+
-      // The acronym, not the full name: "Universidad Tecnológica del Norte de
-      // Coahuila" only ever showed as "Universidad Tecnológica d…" in this width.
-      '<span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+((typeof _uniAcronymOf === 'function' && _uniAcronymOf(null)) || 'University')+'</span>'+
-    '</div>'+
-  '</button>';
-
-  // Other Universities: fondo negro y el degradado en el BORDE. Se consigue con
-  // dos capas de background — el negro por padding-box y el degradado por
-  // border-box —, que es la única forma de pintar un borde en degradado sin
-  // envolver el botón en otro elemento. Elegido enciende el degradado; sin
-  // elegir el mismo degradado va al 45%, apagado.
-  //
-  // El negro se escribe como linear-gradient(#000,#000) y NO como `#000`: en el
-  // atajo `background` el color solo puede ir en la ÚLTIMA capa, así que
-  // ponerlo el primero invalida la declaración entera y no se pinta nada.
-  var _uniEdge = 'var(--cta-grad, linear-gradient(100deg, var(--p), var(--p2)))';
-  var pickSkin = _uniBtnBase + 'border:1.5px solid transparent;color:#fff;' +
-    (pickOn
-      ? ('background:linear-gradient(#000,#000) padding-box, ' + _uniEdge + ' border-box;')
-      : 'background:linear-gradient(#000,#000) padding-box, linear-gradient(100deg, color-mix(in srgb, var(--p) 45%, transparent), color-mix(in srgb, var(--p2) 45%, transparent)) border-box;');
-  var pickBtn = '<button onclick="_setHangoutUniScope(\'pick\')" style="' + pickSkin + 'flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;cursor:pointer;text-align:left;transition:all var(--dur) ease;position:relative;font-family:var(--font);">'+
-    '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden;">'+
-      '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+landSvg+'</div>'+
-      '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
-        '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Other Universities</span>'+
-        // "Unlock with A+" is normally blue, but the picked button's fill is
-        // that same blue, so it goes white there to stay readable.
-        '<span style="font-size:var(--fs-xs);color:'+(isA?'#34d399':(pickOn?'rgba(255,255,255,0.85)':'#3d7bff'))+';margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(isA?'Unlocked':'Unlock with A+')+'</span>'+
-      '</div>'+
-    '</div>'+
-    (!isA?'<div style="display:flex;align-items:center;flex-shrink:0;margin-left:4px;">'+lockSvg+'</div>':'')+
-  '</button>';
-
-  return '<div style="display:flex;align-items:stretch;gap:8px;margin:0 0 12px;padding:4px;border-radius:var(--rad-md);background:rgba(255,255,255,0.01);box-sizing:border-box;width:100%;">'+
-    mineBtn + pickBtn +
-  '</div>';
+  var scope = (_hangoutUniScope === 'pick') ? 'pick' : 'mine';
+  // White label, neon underline in the ACTIVE school colour: primary (--p) for
+  // "My University", secondary (--p2) for "Other Universities". --p/--p2 are what
+  // applyColors() writes from the student's school (--uni-p was the stale default).
+  var hue = (scope === 'pick') ? 'var(--p2)' : 'var(--p)';
+  // Matches the Sort control next to it. "Other Universities" carries a 🔒 until
+  // the student is A+ (gated in the onchange).
+  return '<select class="ev-ctrl-sel" id="ev-uniscope-sel" style="--ctl-hue:' + hue + ';" onchange="_uniScopeSelChange(this)">' +
+      '<option value="mine"' + (scope === 'mine' ? ' selected' : '') + '>🎓 My University</option>' +
+      '<option value="pick"' + (scope === 'pick' ? ' selected' : '') + '>🏛️ Other Universities</option>' +
+    '</select>';
+}
+// Gate "Other Universities" behind A+: on a non-A+ student it fires the paywall
+// and snaps the pill back to their own university.
+function _uniScopeSelChange(sel){
+  var v = sel.value;
+  if (v === 'pick' && (typeof curPlan === 'undefined' || curPlan !== 'aplus')) {
+    if (typeof premAlert === 'function') premAlert();
+    sel.value = (_hangoutUniScope === 'pick') ? 'pick' : 'mine';
+    return;
+  }
+  _hangoutUniScope = v;
+  if (typeof _uniScopeBy !== 'undefined') _uniScopeBy.ev = v;
+  // Recolor the underline immediately so the switch feels instant (renderHangouts
+  // rebuilds it too). Text stays white — only the neon underline changes hue.
+  sel.style.setProperty('--ctl-hue', (v === 'pick') ? 'var(--p2)' : 'var(--p)');
+  var ch = document.getElementById('ev-uni-chooser');
+  if (ch) ch.style.display = (v === 'pick') ? '' : 'none';
+  if (typeof renderHangouts === 'function') renderHangouts();
 }
 // 🔍 Rush interest — shown in the Greek Life section to students not already in a house
 function _rushInterestBannerHtml(){
@@ -6914,13 +6885,27 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
 
   var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
 
-  // Avatars + "N going" — hidden on your own events (you know who's coming, it's your event)
+  // "View ›" affordance so Nearby cards (which have no buttons) read as tappable.
+  var isNearby = !isMyEvent && !isJoinedView;
+  // A neutral round "go" button — just an arrow, so it reads on any photo and
+  // combines with every section colour. Frosted white with a dark arrow + a soft
+  // lift shadow so it never looks flat.
+  var viewPill = isNearby ?
+    '<div style="display:flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:50%;background:linear-gradient(155deg,#ffffff,#e9edf5);box-shadow:0 6px 16px -4px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.9);flex-shrink:0;">' +
+      '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#14151c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
+    '</div>' : '';
+
+  // Avatars + "N going" — hidden on your own events (you know who's coming, it's your event).
+  // The "+N" pill was dropped: the "N going" text already states the count.
   var goingRowHtml = isMyEvent ? '' :
-    '<div style="display:flex;align-items:center;gap:10px;min-width:0;margin-top:12px;">' +
-      '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + extraPill + '</div>' +
-      '<div style="display:flex;align-items:center;gap:4px;font-size:var(--fs-base);font-weight:700;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-        '<span>🔥</span><span>' + totalGoing + ' going</span>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;margin-top:12px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;min-width:0;">' +
+        '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + '</div>' +
+        '<div style="display:flex;align-items:center;gap:4px;font-size:var(--fs-base);font-weight:700;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+          '<span>🔥</span><span>' + totalGoing + ' going</span>' +
+        '</div>' +
       '</div>' +
+      viewPill +
     '</div>';
 
   var safeName = (e.name || '').replace(/'/g, "\\'");
@@ -6945,18 +6930,30 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       '</div>';
   }
 
+  // Time is the #1 scan datum → a glass badge pinned to the top-left of the poster.
+  var timeBadgeHtml =
+    '<div style="display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:700;color:' + (_live ? '#4ade80' : '#fff') + ';padding:5px 11px;border-radius:var(--rad-pill);background:rgba(0,0,0,0.42);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.18);white-space:nowrap;">' +
+      (_live
+        ? '<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;animation:fomoPulse 1.6s infinite ease-in-out;"></span>'
+        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a9c4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>') +
+      '<span>' + formattedTime + '</span>' +
+    '</div>';
+
   // Full-bleed poster: the whole card IS the photo, everything sits on a bottom scrim.
   var secCol = _secColor(e.section);
   return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid '+secCol+';border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
     // Category accent — a hairline of the section colour along the top edge
     '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+secCol+';z-index:3;"></div>' +
-    // Scrim: clear at the top so the photo reads, deep at the bottom so the text does
-    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.42) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0.72) 58%,rgba(0,0,0,0.96) 100%);pointer-events:none;"></div>' +
+    // Scrim: lighter so the photo stays the hook; still legible at the bottom.
+    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.28) 0%,rgba(0,0,0,0) 38%,rgba(0,0,0,0.55) 66%,rgba(0,0,0,0.92) 100%);pointer-events:none;"></div>' +
 
-    // Badges row (top)
+    // Top row: time badge (left) · promo / scarcity badges (right)
     '<div style="position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:8px;min-height:1px;">' +
-      badgeHtml +
-      capFlagHtml +
+      timeBadgeHtml +
+      '<div style="display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
+        badgeHtml +
+        capFlagHtml +
+      '</div>' +
     '</div>' +
 
     // Info block (bottom): title · date · location · who's going · actions
@@ -6964,16 +6961,8 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       // Clamped to 2 lines so a runaway title can never grow the block and swallow the photo
       '<div style="font-size:var(--fs-lg);font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.3px;text-shadow:0 2px 12px rgba(0,0,0,0.95);margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + e.name + ' ' + evtEmoji + '</div>' +
 
-      '<div style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);font-weight:' + (_live ? '800' : '600') + ';color:' + (_live ? '#4ade80' : 'rgba(255,255,255,0.94)') + ';margin-bottom:5px;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
-        (_live
-          // A live dot reads as "happening" the way a calendar never can.
-          ? '<span style="width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;animation:fomoPulse 1.6s infinite ease-in-out;"></span>'
-          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>') +
-        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + formattedTime + '</span>' +
-      '</div>' +
-
       '<div style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);font-weight:600;color:#e0e7ff;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
-        '<span style="color:#dc2626;flex-shrink:0;font-size:var(--fs-base);line-height:1;">'+icon('mapPin',16)+'</span>' +
+        '<span style="color:rgba(255,255,255,0.6);flex-shrink:0;font-size:var(--fs-base);line-height:1;">'+icon('mapPin',16)+'</span>' +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + evtAddr + '</span>' +
       '</div>' +
 

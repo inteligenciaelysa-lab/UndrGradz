@@ -245,10 +245,9 @@
             Campus
           </div>
         </div>
-        <div id="hangout-uniscope" style="padding: 2% 3%;"></div>
-        <div style="padding:4px var(--s) 6px;display:flex;align-items:center;gap:8px;">
-          <div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;flex-shrink:0;display:none;">Filter</div>
-          <select class="gi" id="ev-filter-sel" onchange="renderHangouts()" style="flex:1;padding:7px 10px;font-size:var(--fs-sm);border-radius:var(--rad-lg);" data-tfmark="1">
+        <div style="padding:6px var(--s) 8px;display:flex;align-items:center;gap:8px;">
+          <span id="hangout-uniscope" style="flex:1 1 auto;min-width:0;display:flex;"></span>
+          <select class="gi ev-ctrl-sel" id="ev-filter-sel" onchange="renderHangouts()" data-tfmark="1">
             <option value="compat">🎯 Most compatible with you</option>
             <option value="trending">🔥 Top trending</option>
             <option value="newest">🆕 Newest</option>

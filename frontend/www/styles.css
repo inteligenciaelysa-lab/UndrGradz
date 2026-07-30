@@ -1719,12 +1719,11 @@ textarea.gi {
   display: none;
   flex-direction: column;
   background: var(--bg, #0a0518);
-}
-/* Lift the whole chat window above the keyboard by its exact height, applied
-   INSTANTLY (no transition) so there is no lag — the bar snaps to the keyboard's
-   top the moment it appears and the keyboard slides up to meet it. */
-body.keyboard-open .cwin {
-  padding-bottom: var(--kb, 0px);
+  /* Glide the lift with iOS's own keyboard timing (≈0.25s, curve 7) so the bar
+     rises in lockstep WITH the keyboard — like Instagram/WhatsApp. The height is
+     set directly (inline px) by the keyboardWillShow handler so WebKit actually
+     runs the transition (it won't animate a value delivered via a CSS var). */
+  transition: padding-bottom 0.25s cubic-bezier(0.38, 0.7, 0.125, 1);
 }
 .cwin.open {
   display: flex;
@@ -2145,9 +2144,9 @@ body.keyboard-open .cwin {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  /* University colors — uses the JS-set --chat-send-btn-bg (uni color) or falls
-     back to the school primary→secondary gradient, never a generic blue. */
-  background: var(--chat-send-btn-bg, linear-gradient(135deg, var(--uni-p, var(--p)), var(--uni-p2, var(--p2)))) !important;
+  /* DEFAULT (no university): the same red as the sign-up / log-in buttons,
+     flat, no halo. */
+  background: #dc2626 !important;
   color: #fff !important;
   border: none !important;
   outline: none !important;
@@ -2156,8 +2155,13 @@ body.keyboard-open .cwin {
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
-  box-shadow: 0 3px 14px color-mix(in srgb, var(--uni-p, var(--p)) 45%, transparent) !important;
-  transition: transform var(--dur) ease, background-color var(--dur) ease;
+  box-shadow: none !important;
+  transition: transform var(--dur) ease, background var(--dur) ease;
+}
+/* WITH a university chosen: a circular button with a gradient of the school's
+   two colors. */
+html.uni-set .chat-standalone-btn {
+  background: linear-gradient(135deg, var(--uni-p, var(--red-fill)), var(--uni-p2, var(--red-deep))) !important;
 }
 .chat-standalone-btn:active {
   transform: scale(0.93);
@@ -6908,6 +6912,13 @@ html.light-secondary .app-fab {
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
+/* Hangouts controls layout — the neon-underline visuals live in one authoritative
+   block after all the #ev-filter-sel rules (search "scope + sort"). */
+.ev-ctrl-sel { -webkit-appearance: none !important; appearance: none !important; }
+#hangout-uniscope { flex: 1 1 auto; min-width: 0; display: flex; }
+#ev-uniscope-sel { width: 100% !important; }
+#ev-filter-sel { flex: 0 0 auto !important; width: auto !important; max-width: 54% !important; }
+
 /* ══════════════════════════════════════════════════════════════════
    NEON RESKIN OVERRIDE LAYER  (appended — wins by cascade order)
    Only touches color / background / border / shadow / gradient.
@@ -10395,6 +10406,42 @@ select:-webkit-autofill {
   border-bottom-color: var(--sort-hue) !important;
   box-shadow: 0 4px 14px -4px var(--sort-hue) !important;
   transform: none !important;
+}
+
+/* ══ Hangouts scope + sort: ONE matching neon-underline language ══
+   White label, a thick neon underline that glows in the control's hue, same
+   size + padding so the two sit perfectly even on one row. The hue is the school
+   PRIMARY on "My University" / SECONDARY on "Other Universities" (set inline as
+   --ctl-hue by _uniScopeBannerHtml), and the per-option --sort-hue for Sort. */
+#ev-uniscope-sel,
+#ev-filter-sel {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  border-bottom: 3px solid var(--ctl-hue, #fff) !important;
+  box-shadow: 0 5px 16px -3px color-mix(in srgb, var(--ctl-hue, #fff) 80%, transparent) !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-family: var(--font) !important;
+  font-size: var(--fs-sm) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.2px !important;
+  padding: 6px 24px 7px 3px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 5px center !important;
+  background-size: 12px !important;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--ctl-hue, #fff) 45%, transparent) !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+#ev-filter-sel { --ctl-hue: var(--sort-hue, var(--p)) !important; }
+#ev-uniscope-sel:hover, #ev-uniscope-sel:focus,
+#ev-filter-sel:hover, #ev-filter-sel:focus {
+  box-shadow: 0 7px 22px -3px color-mix(in srgb, var(--ctl-hue, #fff) 92%, transparent) !important;
 }
 
 /* ══ FILTER CHIPS AS UNDERLINE TABS ══
