@@ -158,7 +158,7 @@
           <label id="li-email-label" style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;display:block;">School email or @username</label>
           <input class="gi auth-input-field" type="text" id="li-email" placeholder="you@school.edu  or  username" autocapitalize="none" autocorrect="off" spellcheck="false" oninput="this.value=this.value.toLowerCase()"/>
         </div>
-        <div id="li-forgot-creds" style="text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 16px;cursor:pointer;" onclick="forgotEmailUsername()">Forgot email or username?</div>
+        <div id="li-forgot-creds" style="width:fit-content;text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 16px;cursor:pointer;" onclick="forgotEmailUsername()">Forgot email or username?</div>
         
         <div class="field" style="margin-bottom:16px;">
           <label id="li-password-label" style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;display:block;">Password</label>
@@ -167,7 +167,7 @@
             <div onclick="togglePwVis('li-pass','li-pass-eye')" id="ob-pass-eye-login" style="position:absolute;right:0;top:0;bottom:0;width:50px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:var(--fs-md);color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.04);border-radius:0 18px 18px 0;border-left:1px solid rgba(255,255,255,0.12);">👁</div>
           </div>
         </div>
-        <div id="li-forgot-pass" style="text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 20px;cursor:pointer;" onclick="forgotPassword()">Forgot password?</div>
+        <div id="li-forgot-pass" style="width:fit-content;text-align:left;font-size:var(--fs-sm);color:#38bdf8;font-weight:600;margin:-8px 0 20px;cursor:pointer;" onclick="forgotPassword()">Forgot password?</div>
         
         <button class="gbtn auth-submit-btn" id="do-login-btn" onclick="doLoginAuth()">Log In ›</button>
         <div id="li-no-acct" style="text-align:center;font-size:var(--fs-base);color:rgba(255,255,255,0.6);margin-top:16px;cursor:pointer;" onclick="switchAuthTab('signup')">Don't have an account? <span style="color:#38bdf8;font-weight:700;">Sign Up</span></div>

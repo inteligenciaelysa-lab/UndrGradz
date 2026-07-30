@@ -5838,9 +5838,9 @@ svg {
   cursor: pointer;
 }
 .ob4-int.on {
-  border-color: #3d7bff;
-  background: rgba(43, 95, 217, 0.16);
-  box-shadow: 0 0 0 1px rgba(61, 123, 255, 0.5);
+  border-color: var(--p);
+  background: color-mix(in srgb, var(--p) 16%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--p) 55%, transparent);
 }
 .ob4-int .ie {
   font-size:var(--fs-2xl);
@@ -5866,9 +5866,38 @@ svg {
   justify-content: center;
 }
 .ob4-int.on .iadd {
-  background: #3d7bff;
-  border-color: #3d7bff;
+  background: var(--p);
+  border-color: var(--p);
   color: #fff;
+}
+
+@keyframes ugzConfFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(108vh) rotate(600deg); opacity: 0.15; }
+}
+/* Password strength meter (step 1) */
+.pw-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: var(--rad-pill);
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.2s ease;
+}
+/* Sign-up step 1: group the field wall into labelled glass sub-cards. */
+.ob4-subcard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--gbdl);
+  border-radius: var(--rad-md);
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.ob4-subcard-h {
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
 }
 
 .li-role {

@@ -10,7 +10,7 @@ var I18N = {
     "li-password-placeholder": "Your password",
     "li-forgot-pass": "Forgot password?",
     "do-login-btn": "Log In ›",
-    "li-no-acct": "Don't have an account? <span style=\"color:var(--p);font-weight:700;\">Sign Up</span>",
+    "li-no-acct": "Don't have an account? <span style=\"color:#38bdf8;font-weight:700;\">Sign Up</span>",
     "su-choice-title": "Who are you joining as?",
     "su-choice-student-title": "Student",
     "su-choice-student-desc": "Currently enrolled at a university",
@@ -169,7 +169,7 @@ var I18N = {
     "li-password-placeholder": "Tu contraseña",
     "li-forgot-pass": "¿Olvidaste tu contraseña?",
     "do-login-btn": "Iniciar Sesión ›",
-    "li-no-acct": "¿No tienes cuenta? <span style=\"color:var(--p);font-weight:700;\">Regístrate</span>",
+    "li-no-acct": "¿No tienes cuenta? <span style=\"color:#38bdf8;font-weight:700;\">Regístrate</span>",
     "su-choice-title": "¿Cómo quieres unirte?",
     "su-choice-student-title": "Estudiante",
     "su-choice-student-desc": "Actualmente inscrito en una universidad",
@@ -641,7 +641,7 @@ var EMOJI_ICON={
   '📚':'book','📖':'book','📕':'book','📗':'book','📘':'book','📙':'book','📓':'book','📔':'book','📒':'book','📄':'book','📃':'book','📝':'edit','📋':'edit',
   '🎓':'grad','🎒':'grad','🏫':'landmark','🏛':'landmark','🏢':'landmark','🏦':'landmark','🏥':'landmark','🏪':'landmark','🏬':'landmark','🏨':'landmark','🏰':'landmark','⛪':'landmark','🛐':'landmark','🎪':'landmark','🏠':'home','🏡':'home','🚪':'home','🛋':'home','🛏':'home','💺':'home',
   '🔥':'flame','🕯':'flame','✨':'sparkles','🌟':'star','⭐':'star','★':'star','☆':'star','✦':'star','💫':'star','🌠':'star','💥':'zap','⚡':'zap',
-  '🤝':'handshake','🙏':'hand','🙌':'hand','👏':'hand','👋':'hand','🤟':'hand','🤙':'hand','✌':'hand','🤞':'hand','🤘':'hand','👌':'hand','✋':'hand','🖐':'hand','✊':'hand','👊':'hand','🤛':'hand','🤜':'hand','👐':'hand','🤲':'hand','👆':'hand','👇':'hand','👈':'hand','👉':'hand','☝':'hand','🤚':'hand','🖖':'hand','💖':'hand','🙋':'hand','💅':'hand','👍':'thumbsUp','👎':'thumbsUp','💪':'activity',
+  '🤝':'handshake','🙏':'hand','🙌':'hand','👏':'hand','👋':'hand','🧏':'hand','🤙':'hand','✌':'hand','🤞':'hand','🤘':'hand','👌':'hand','✋':'hand','🖐':'hand','✊':'hand','👊':'hand','🤛':'hand','🤜':'hand','👐':'hand','🤲':'hand','👆':'hand','👇':'hand','👈':'hand','👉':'hand','☝':'hand','🤚':'hand','🖖':'hand','💖':'hand','🙋':'hand','💅':'hand','👍':'thumbsUp','👎':'thumbsUp','💪':'activity',
   '💬':'chat','🗨':'chat','🗯':'chat','💭':'chat','🗣':'megaphone','📢':'megaphone','📣':'megaphone','🔊':'megaphone','🔉':'megaphone','🔈':'megaphone','🔔':'bell','🔕':'bell',
   '🔒':'lock','🔓':'lock','🔐':'lock','🔏':'lock','🔑':'key','🗝':'key',
   '✕':'x','✗':'x','❌':'x','🚫':'ban','⛔':'ban','🚭':'ban','🔞':'ban','🙅':'ban','🚯':'ban',
@@ -1310,14 +1310,14 @@ var FLAGS = [
   {f:'🇺🇦',l:'Ukrainian'},{f:'🇹🇷',l:'Turkish'},{f:'🇬🇷',l:'Greek'},{f:'🇮🇳',l:'Hindi'},{f:'🇵🇰',l:'Urdu'},
   {f:'🇧🇩',l:'Bengali'},{f:'🇳🇱',l:'Dutch'},{f:'🇸🇪',l:'Swedish'},{f:'🇳🇴',l:'Norwegian'},{f:'🇩🇰',l:'Danish'},
   {f:'🇫🇮',l:'Finnish'},{f:'🇵🇱',l:'Polish'},{f:'🇨🇿',l:'Czech'},{f:'🇵🇭',l:'Tagalog'},{f:'🇮🇩',l:'Indonesian'},
-  {f:'🇲🇾',l:'Malay'},{f:'🇹🇭',l:'Thai'},{f:'🇮🇱',l:'Hebrew'},{f:'🇮🇷',l:'Persian'},{f:'🤟',l:'ASL (Sign Language)'}
+  {f:'🇲🇾',l:'Malay'},{f:'🇹🇭',l:'Thai'},{f:'🇮🇱',l:'Hebrew'},{f:'🇮🇷',l:'Persian'},{f:'🧏',l:'ASL (Sign Language)'}
 ];
 
 function _getLangFlag(l) {
   if (!l) return '🗣️';
   var str = String(l).toLowerCase();
   
-  if (str.includes('asl') || str.includes('sign language')) return '🤟';
+  if (str.includes('asl') || str.includes('sign language')) return '🧏';
   
   var codeMap = [
     { k: ['english (us)', 'us english', 'american'], code: 'us' },
@@ -1425,7 +1425,7 @@ function _populateFilterChips(){
     { code: 'se', name: 'Swedish' }, { code: 'no', name: 'Norwegian' }, { code: 'dk', name: 'Danish' }, { code: 'fi', name: 'Finnish' },
     { code: 'pl', name: 'Polish' }, { code: 'cz', name: 'Czech' }, { code: 'ph', name: 'Tagalog' }, { code: 'id', name: 'Indonesian' },
     { code: 'my', name: 'Malay' }, { code: 'th', name: 'Thai' }, { code: 'il', name: 'Hebrew' }, { code: 'ir', name: 'Persian' },
-    { flag: '🤟', name: 'ASL (Sign Language)' }
+    { flag: '🧏', name: 'ASL (Sign Language)' }
   ];
   set('crush-lang-chips', langsP4List.map(function(item){
     var flagIco = item.flag ? ('<span style="font-size:13px;margin-right:4px;">' + item.flag + '</span>') : '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:4px;display:inline-block;box-shadow:var(--el-1);"/>';
@@ -2438,7 +2438,7 @@ function _ob4BackLabel(){
 }
 function _ob4Back(){if(_ob4Phase>1){_ob4Go(_ob4Phase-1);}else{var onb=document.getElementById('onboarding');if(onb)onb.classList.remove('active');var auth=document.getElementById('authscreen');if(auth)auth.classList.add('active');}}
 function _ob4Steps(){
-  var box=document.getElementById('ob4-steps');if(!box)return;var L=['Identity','Academic','Personality','About You','Preview'];var h='';
+  var box=document.getElementById('ob4-steps');if(!box)return;var L=(window.currentLang==='es')?['Identidad','Académico','Personalidad','Sobre ti','Vista previa']:['Identity','Academic','Personality','About You','Preview'];var h='';
   for(var i=0;i<5;i++){var n=i+1,done=n<_ob4Phase,cur=n===_ob4Phase;
     if(i>0)h+='<div class="ob4-line'+(n<=_ob4Phase?' on':'')+'"></div>';
     h+='<div class="ob4-step'+(cur?' cur':'')+(done?' done':'')+'" '+((done||cur)?'style="cursor:pointer;" onclick="_ob4Go('+n+', true)"':'')+'><div class="ob4-dot">'+(done?'✓':n)+'</div><div class="ob4-lbl">'+L[i]+'</div></div>';}
@@ -2577,7 +2577,7 @@ function _ob4Go(p, forceScrollTop){
     setTimeout(function(){if(typeof _ob4ValidateAll3==='function')_ob4ValidateAll3();},50);
   }
   if(p===4){
-    setTimeout(function(){if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();},50);
+    setTimeout(function(){if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();if(typeof _ob4P4Pips==='function')_ob4P4Pips();},50);
   }
   if(p===5&&typeof _ob4RenderPrompts==='function'){
     _ob4RenderPrompts();
@@ -2642,11 +2642,13 @@ function _ob4P1(){
   var placeholderRefCode = window.currentLang==='es'?'ej. A1B2C3D4':'e.g. A1B2C3D4';
   
   return ''+
+   '<div class="ob4-subcard"><div class="ob4-subcard-h">'+(window.currentLang==='es'?'Quién eres':'Who you are')+'</div>'+
    '<div class="g2"><div class="field"><label>'+lblFname+'</label><input class="gi" id="ob4-fn" value="'+((suData&&suData.fname)||'')+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.fname=this.value;_ob4Strength();_ob4ValidateAll();"/></div>'+
    '<div class="field"><label>'+lblLname+'</label><input class="gi" id="ob4-ln" value="'+((suData&&suData.lname)||'')+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.lname=this.value;_ob4Strength();_ob4ValidateAll();"/></div></div>'+
-   '<div class="field"><label>'+lblUname+'</label><div style="position:relative;"><input class="gi" id="ob-handle" value="'+st.handle+'" oninput="checkHandle(this);_ob4State.handle=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-right:96px;"/><span id="handle-msg" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);font-weight:600;color:#4ade80;">✓ Available</span></div></div>'+
-   '<div class="ob4-flabel">'+lblDob+'</div><div style="display:flex;gap:8px;"><select class="gi" id="ob4-dm" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:2;">'+monOpt+'</select><select class="gi" id="ob4-dd" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+dayOpt+'</select><select class="gi" id="ob4-dy" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+yrOpt+'</select></div>'+
-   '<div class="field" style="margin-top:14px;"><label>'+lblEmail+'</label>'+
+   '<div class="field"><label>'+lblUname+'</label><div style="position:relative;"><input class="gi" id="ob-handle" value="'+st.handle+'" oninput="checkHandle(this);_ob4State.handle=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-right:96px;"/><span id="handle-msg" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);font-weight:600;color:#4ade80;"></span></div></div>'+
+   '<div class="ob4-flabel">'+lblDob+'</div><div style="display:flex;gap:8px;"><select class="gi" id="ob4-dm" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:2;">'+monOpt+'</select><select class="gi" id="ob4-dd" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+dayOpt+'</select><select class="gi" id="ob4-dy" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+yrOpt+'</select></div></div>'+
+   '<div class="ob4-subcard"><div class="ob4-subcard-h">'+(window.currentLang==='es'?'Tu cuenta':'Your account')+'</div>'+
+   '<div class="field" style="margin-top:2px;"><label>'+lblEmail+'</label>'+
    '<div style="display:flex;gap:8px;">'+
      '<input class="gi" id="ob-email" type="email" value="'+st.email+'" placeholder="you@school.edu" oninput="_ob4State.email=this.value;if(typeof detectUni===\'function\')detectUni(this.value);_ob4Strength();_ob4ValidateAll();" style="flex:1;"/>'+
      '<button type="button" id="ob-email-verify-btn" onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">'+btnVerify+'</button>'+
@@ -2666,7 +2668,11 @@ function _ob4P1(){
      '<input class="gi" id="ob-pass" type="password" value="'+((suData&&suData.pass)||'')+'" placeholder="'+placeholderPass+'" oninput="if(suData)suData.pass=this.value;checkPasswordStrength(this.value);" style="padding-right:50px;"/>'+
      '<div onclick="togglePwVis(\'ob-pass\',\'ob-pass-eye\')" id="ob-pass-eye" style="position:absolute;right:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:var(--fs-md);color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.04);border-radius:0 var(--rx) var(--rx) 0;border-left:1px solid rgba(255,255,255,0.1);">👁</div>'+
    '</div>'+
-   '<div id="pass-msg" style="display:none;font-size:var(--fs-xs);color:#dc2626;margin-top:6px;font-weight:500;"></div></div>'+
+   '<div id="pass-msg" style="display:none;font-size:var(--fs-xs);color:#dc2626;margin-top:6px;font-weight:500;"></div>'+
+   '<div id="pass-meter" style="display:none;margin-top:8px;">'+
+     '<div style="display:flex;gap:5px;margin-bottom:7px;"><div class="pw-bar"></div><div class="pw-bar"></div><div class="pw-bar"></div><div class="pw-bar"></div></div>'+
+     '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:var(--fs-2xs);color:var(--fg3);font-weight:500;"><span data-rule="len">8+ chars</span><span data-rule="case">aA</span><span data-rule="num">123</span><span data-rule="spec">#!?</span></div>'+
+   '</div></div>'+
    '<div class="field"><label>'+lblPhone+'</label>'+
    '<div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1.5px solid var(--gbdl);border-radius:var(--rx);height:44px;position:relative;" id="ob-phone-container">'+
      '<div onclick="togglePhoneCodeDropdown(event)" id="ob-phone-flag-trigger" style="display:flex;align-items:center;gap:6px;padding:0 12px;cursor:pointer;border-right:1px solid rgba(255,255,255,0.12);height:100%;user-select:none;">'+
@@ -2688,60 +2694,60 @@ function _ob4P1(){
        '</div>'+
      '</div>'+
      '<input class="gi" id="ob-phone" type="tel" value="'+st.phone+'" placeholder="+1 (512) 123-4567" oninput="formatPhoneNumber(this)" style="flex:1;border:none;background:transparent;height:100%;box-shadow:none;padding:10px 12px;font-weight:600;letter-spacing:0.5px;"/>'+
-   '</div></div>'+
+   '</div></div></div>'+
     '<div class="field" style="margin-top:14px;"><label>'+lblRefCode+'</label>'+
     '<input class="gi" id="ob-refcode" value="'+(st.referralCode||'')+'" placeholder="'+placeholderRefCode+'" oninput="_ob4State.referralCode=this.value.trim().toUpperCase();" style="text-transform:uppercase;letter-spacing:1px;font-weight:600;"/></div>'+
+   '<div id="ob4-err1" style="display:none;color:#dc2626;font-size:var(--fs-sm);font-weight:600;text-align:center;margin-bottom:10px;"></div>'+
    '<button class="ob4-cta" id="ob4-continue-btn" onclick="_ob4Next1()" disabled style="opacity:0.45;">'+btnContinue+'</button>'+
    '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:22px;">'+privacyNote+'</div>';
 }
 function _ob4Dob(){var m=parseInt((document.getElementById('ob4-dm')||{}).value)||0,d=parseInt((document.getElementById('ob4-dd')||{}).value)||0,y=parseInt((document.getElementById('ob4-dy')||{}).value)||0;if(!m||!d||!y)return;var now=new Date();var age=now.getFullYear()-y-((now.getMonth()+1>m||(now.getMonth()+1===m&&now.getDate()>=d))?0:1);suData.age=age;suData.bMonth=m;suData.bDay=d;if(typeof _zodiacFromMD==='function'){var z=_zodiacFromMD(m,d);if(z){suData.zodiac=z.s;suData.zodiacEmoji=z.e;}}_ob4Strength();}
+// Inline errors instead of native alerts: red-outline the offending field, show
+// a helper line above Continue, and scroll it into view.
+function _ob4ClearErr1(){
+  var e=document.getElementById('ob4-err1'); if(e){e.style.display='none';e.textContent='';}
+  ['ob4-fn','ob4-ln','ob4-dm','ob4-dd','ob4-dy','ob-handle','ob-email','ob-pass','ob-phone'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.borderColor='';});
+}
+function _ob4Err1(id,msg){
+  var e=document.getElementById('ob4-err1'); if(e){e.textContent=msg;e.style.display='block';}
+  var el=document.getElementById(id);
+  if(el){ el.style.borderColor='#dc2626'; try{el.scrollIntoView({behavior:'smooth',block:'center'});}catch(_){}; try{el.focus({preventScroll:true});}catch(_){} }
+  return false;
+}
 function _ob4Next1(){
+  _ob4ClearErr1();
   var fn=((document.getElementById('ob4-fn')||{}).value||'').trim(),ln=((document.getElementById('ob4-ln')||{}).value||'').trim();
   var nameRegex = /^[A-Za-zÀ-ÿ\s'-]+$/;
-  if(!fn || !ln || !nameRegex.test(fn) || !nameRegex.test(ln)){
-    alert('Please enter a valid first and last name (letters only).');
-    return;
-  }
+  if(!fn || !nameRegex.test(fn)) return _ob4Err1('ob4-fn','Enter a valid first name (letters only).');
+  if(!ln || !nameRegex.test(ln)) return _ob4Err1('ob4-ln','Enter a valid last name (letters only).');
   suData.fname=fn;suData.lname=ln;
-  
+
   var m=parseInt((document.getElementById('ob4-dm')||{}).value)||0,d=parseInt((document.getElementById('ob4-dd')||{}).value)||0,y=parseInt((document.getElementById('ob4-dy')||{}).value)||0;
-  if(!m||!d||!y){alert('Please enter your date of birth.');return;}
+  if(!m||!d||!y) return _ob4Err1('ob4-dm','Please enter your date of birth.');
   var now=new Date();var age=now.getFullYear()-y-((now.getMonth()+1>m||(now.getMonth()+1===m&&now.getDate()>=d))?0:1);
-  if(age<17){alert('You must be at least 17 to join Undrgradz.');return;}
+  if(age<17) return _ob4Err1('ob4-dy','You must be at least 17 to join UndrGradz.');
   suData.age=age;suData.bMonth=m;suData.bDay=d;if(typeof _zodiacFromMD==='function'){var z=_zodiacFromMD(m,d);if(z){suData.zodiac=z.s;suData.zodiacEmoji=z.e;}}
-  
+
   var h=(_ob4State.handle||'').trim().replace(/^@/,'');
   var handleRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_)(?![._])){2,13}[a-zA-Z0-9]$/;
-  if(!handleRegex.test(h)){
-    alert('Pick a valid username (4-15 characters, alphanumeric, dots, or underscores, not starting or ending with dots/underscores).');
-    return;
-  }
-  if(typeof _usernameTaken==='function'&&_usernameTaken(h)){alert('That username is taken — try another.');return;}
-  
-  if(!_ob4State.emailVerified){
-    alert('Please verify your email with the 6-digit code first.');
-    return;
-  }
-  if(!/^\S+@\S+\.\S+/.test(_ob4State.email||'')){alert('Enter a valid email.');return;}
-  
+  if(!handleRegex.test(h)) return _ob4Err1('ob-handle','Pick a valid username (4–15 chars: letters, numbers, . or _).');
+  if(typeof _usernameTaken==='function'&&_usernameTaken(h)) return _ob4Err1('ob-handle','That username is taken — try another.');
+
+  if(!_ob4State.emailVerified) return _ob4Err1('ob-email','Verify your email with the 6-digit code first.');
+  if(!/^\S+@\S+\.\S+/.test(_ob4State.email||'')) return _ob4Err1('ob-email','Enter a valid email.');
+
   var passVal=((document.getElementById('ob-pass')||{}).value||'').trim();
   var passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
-  if(!passRegex.test(passVal)){
-    alert('Please enter a strong password (minimum 8 characters, at least one uppercase, one lowercase, one number, and one special character).');
-    return;
-  }
+  if(!passRegex.test(passVal)) return _ob4Err1('ob-pass','Use 8+ chars with upper, lower, a number & a symbol.');
   suData.pass=passVal;
-  
+
   var phone = ((document.getElementById('ob-phone') || {}).value || '').trim();
   var refCodeVal = ((document.getElementById('ob-refcode') || {}).value || '').trim();
   _ob4State.referralCode = refCodeVal.toUpperCase();
   var prefix = _ob4State.phoneCode || '+1';
   var digitsAfterPrefix = phone.slice(prefix.length).replace(/[^\d]/g, '');
-  if(digitsAfterPrefix.length !== 10){
-    alert('Please enter a valid 10-digit phone number.');
-    return;
-  }
-  
+  if(digitsAfterPrefix.length !== 10) return _ob4Err1('ob-phone','Enter a valid 10-digit phone number.');
+
   if(typeof detectUni==='function')detectUni(_ob4State.email);
   _ob4Go(2);
 }
@@ -2968,7 +2974,7 @@ function _ob4P3(){
     '<input id="ob4-intq" oninput="_ob4Query=this.value;_ob4RenderInt()" placeholder="'+placeholderSearch+'" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin:6px 0 4px;"/>'+
     '<div id="ob4-intgrid"></div>'+
     '<div style="height: 110px;"></div>'+
-    '<div style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 380px; max-width: 100%; box-sizing: border-box; padding: 24px 16px 16px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.98) 35%, #000000 100%); z-index: 10000; pointer-events: auto;">'+
+    '<div style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 380px; max-width: 100%; box-sizing: border-box; padding: 24px 16px calc(16px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.98) 35%, #000000 100%); z-index: 10000; pointer-events: auto;">'+
       '<button class="ob4-cta" id="ob4-continue-btn-p3" onclick="_ob4Next3()" disabled style="opacity:0.45; margin: 0; width: 100%;">'+btnContinue+'</button>'+
       '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:8px;">'+changeAnytimeText+'</div>'+
     '</div>';
@@ -3143,7 +3149,7 @@ var OB4_LANGS = [
     { code: 'th', en: 'Thai', es: 'Tailandés' },
     { code: 'il', en: 'Hebrew', es: 'Hebreo' },
     { code: 'ir', en: 'Persian', es: 'Persa' },
-    { code: 'asl', en: 'ASL (Sign Language)', es: 'ASL (Sign Language)', flag: '🤟' }
+    { code: 'asl', en: 'ASL (Sign Language)', es: 'ASL (Sign Language)', flag: '🧏' }
 ];
 
 function _ob4RenderLangsP4(){
@@ -3201,13 +3207,13 @@ function _ob4P4(){
 
   var isEs=window.currentLang==='es';
 
-  function chips(options, stateKey, multi, maxCount){
+  function chips(options, stateKey, multi, maxCount, hue){
     return options.map(function(o){
       var val=Array.isArray(o)?o[0]:o;
       var lbl=Array.isArray(o)?o[1]:o;
       var cur=_ob4State[stateKey];
       var on=multi?(cur&&cur.indexOf(val)>-1):(cur===val);
-      return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4AUPick(\''+stateKey+'\',\''+val.replace(/'/g,'\\\'')+'\',' +(multi?'true':'false')+','+(maxCount||'null')+')" style="padding:7px 14px;font-size:var(--fs-sm);font-weight:600;">'+lbl+'</div>';
+      return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4AUPick(\''+stateKey+'\',\''+val.replace(/'/g,'\\\'')+'\',' +(multi?'true':'false')+','+(maxCount||'null')+')" style="padding:7px 14px;font-size:var(--fs-sm);font-weight:600;'+(hue?'--ob-hue:'+hue+';':'')+'">'+lbl+'</div>';
     }).join('');
   }
 
@@ -3285,9 +3291,10 @@ function _ob4P4(){
   var cmVal = _ob4State.heightCm || (ftVal ? Math.round((ftVal * 12 + inVal) * 2.54) : null);
   if (cmVal) _ob4State.heightCm = cmVal;
 
-  function section(icon, title, content){
+  function section(icon, title, content, key, opt){
+    var pip = key ? '<span data-pipkey="'+key+'"'+(opt?' data-pipopt="1"':'')+' style="margin-left:auto;display:inline-flex;align-items:center;"></span>' : '';
     return '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;margin-top:16px;">'+
-      '<div class="ob4-flabel" style="margin:0 0 10px;display:flex;align-items:center;gap:7px;"><span style="font-size:var(--fs-md);">'+icon+'</span><span>'+title+'</span></div>'+
+      '<div class="ob4-flabel" style="margin:0 0 10px;display:flex;align-items:center;gap:7px;"><span style="font-size:var(--fs-md);">'+icon+'</span><span>'+title+'</span>'+pip+'</div>'+
       content+
     '</div>';
   }
@@ -3311,13 +3318,13 @@ function _ob4P4(){
         '<select class="gi" id="ob4-from-state" onchange="_ob4AUState(this.value)">'+stateOpts+'</select>'+
         '<select class="gi" id="ob4-from-city" onchange="_ob4AUCity(this.value)">'+cityOpts+'</select>'+
       '</div>'
-    )+
+    , 'from')+
     // 2. Languages You Speak
     _ob4RenderLangsP4()+
     // 3. Ethnicity
     section('🌍', isEs?'Etnicidad (máx 2)':'Ethnicity (max 2)',
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ETHNICITIES,'ethnicity',true,2)+'</div>'
-    )+
+    , 'ethnicity')+
     // Height (optional)
     section('📏', isEs?'Altura (opcional)':'Height (optional)',
       '<div style="display:flex;gap:10px;align-items:center;">'+
@@ -3331,46 +3338,46 @@ function _ob4P4(){
         '</select>'+
         '<span style="font-size:var(--fs-base);font-weight:600;color:#a9c4ff;min-width:60px;text-align:center;" id="ob4-height-cm">'+(cmVal?cmVal+' cm':'— cm')+'</span>'+
       '</div>'
-    )+
+    , 'height', true)+
     // Religion + hide-from-profile toggle
     section('✝️', isEs?'Religión':'Religion',
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(RELIGIONS,'religion',false)+'</div>'+
       _obPrivacyToggle('religion',isEs)
-    )+
+    , 'religion')+
     // Politics + hide-from-profile toggle
     section('🗳️', isEs?'Política':'Politics',
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(POLITICS,'politics',false)+'</div>'+
       _obPrivacyToggle('politics',isEs)
-    )+
+    , 'politics')+
     // Sexual Orientation (optional) + hide-from-profile toggle
     section('🏳️‍🌈', isEs?'Orientación sexual (opcional)':'Sexual Orientation (optional)',
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ORIENTATIONS,'orientation',false)+'</div>'+
       _obPrivacyToggle('orientation',isEs)
-    )+
+    , 'orientation', true)+
     // Lifestyle
     section('🌿', isEs?'Estilo de vida':'Lifestyle',
       '<div style="display:flex;flex-direction:column;gap:14px;">'+
         '<div>'+
-          '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">💪 '+(isEs?'Entrenamiento':'Workout')+'</div>'+
-          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(WORKOUT,'workout',false)+'</div>'+
+          '<div style="font-size:var(--fs-xs);font-weight:800;color:#22c55e;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">💪 '+(isEs?'Entrenamiento':'Workout')+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(WORKOUT,'workout',false,null,'#22c55e')+'</div>'+
         '</div>'+
         '<div>'+
-          '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">🥗 '+(isEs?'Dieta':'Diet')+'</div>'+
-          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(DIET,'diet',false)+'</div>'+
+          '<div style="font-size:var(--fs-xs);font-weight:800;color:#fbbf24;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">🥗 '+(isEs?'Dieta':'Diet')+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(DIET,'diet',false,null,'#fbbf24')+'</div>'+
         '</div>'+
         '<div>'+
-          '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">🍻 '+(isEs?'Alcohol':'Drinking')+'</div>'+
-          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(DRINKING,'drinking',false)+'</div>'+
+          '<div style="font-size:var(--fs-xs);font-weight:800;color:#3d7bff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">🍻 '+(isEs?'Alcohol':'Drinking')+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(DRINKING,'drinking',false,null,'#3d7bff')+'</div>'+
         '</div>'+
         '<div>'+
-          '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">🚬 '+(isEs?'Tabaco':'Smoking')+'</div>'+
-          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(SMOKING,'smoking',false)+'</div>'+
+          '<div style="font-size:var(--fs-xs);font-weight:800;color:#fb923c;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">🚬 '+(isEs?'Tabaco':'Smoking')+'</div>'+
+          '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(SMOKING,'smoking',false,null,'#fb923c')+'</div>'+
         '</div>'+
       '</div>'
-    )+
+    , 'lifestyle')+
     '<div style="height:110px;"></div>'+
     '</div>'+
-    '<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:380px;max-width:100%;box-sizing:border-box;padding:24px 16px 16px;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.98) 35%,#000000 100%);z-index:10000;pointer-events:auto;">'+
+    '<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:380px;max-width:100%;box-sizing:border-box;padding:24px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.98) 35%,#000000 100%);z-index:10000;pointer-events:auto;">'+
       '<button class="ob4-cta" id="ob4-continue-btn-p4" onclick="_ob4Next4()" '+(_ob4Step4Valid()?'':'disabled')+' style="margin:0;width:100%;'+(_ob4Step4Valid()?'':'opacity:0.45;cursor:not-allowed;')+'">'+btnContinue+'</button>'+
       '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:8px;">'+noteText+'</div>'+
     '</div>';
@@ -3419,7 +3426,30 @@ function _ob4Step4Valid(){
     && !!(_ob4State.languages && _ob4State.languages.length)
     && !!(_ob4State.ethnicity && _ob4State.ethnicity.length)
     && !!_ob4State.religion
-    && !!_ob4State.politics;
+    && !!_ob4State.politics
+    && !!_ob4State.workout && !!_ob4State.diet && !!_ob4State.drinking && !!_ob4State.smoking;
+}
+// Step 4 status pips: green ✓ when a required section is filled, a hollow ring
+// when it's still pending, and an "optional" tag on the optional ones — so the
+// page reads as a checklist you're winning instead of an arbitrary disabled CTA.
+function _ob4P4Pips(){
+  var reqs={
+    // Origin only counts as done once country, state AND city are all chosen.
+    from:!!(_ob4State.fromCountry && _ob4State.fromState && _ob4State.fromCity),
+    ethnicity:!!(_ob4State.ethnicity && _ob4State.ethnicity.length),
+    religion:!!_ob4State.religion,
+    politics:!!_ob4State.politics,
+    lifestyle:!!(_ob4State.workout && _ob4State.diet && _ob4State.drinking && _ob4State.smoking)
+  };
+  document.querySelectorAll('#ob4-content [data-pipkey]').forEach(function(el){
+    if(el.getAttribute('data-pipopt')==='1'){
+      el.innerHTML='<span style="font-size:var(--fs-2xs);color:var(--fg3);font-weight:600;">optional</span>';return;
+    }
+    var done=!!reqs[el.getAttribute('data-pipkey')];
+    el.innerHTML=done
+      ?'<span style="width:18px;height:18px;border-radius:50%;background:#22c55e;color:#04150c;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">✓</span>'
+      :'<span style="width:17px;height:17px;border-radius:50%;border:1.5px solid #dc2626;color:#dc2626;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;line-height:1;">×</span>';
+  });
 }
 function _ob4AUPick(key, val, multi, maxCount){
   if(multi){
@@ -3459,6 +3489,10 @@ function _ob4AUState(val){
 
 function _ob4AUCity(val){
   _ob4State.fromCity = val;
+  // Country/State re-render (which refreshes the pips); City didn't, so the Origin
+  // pip never flipped to done. Update the pip + validation here.
+  if(typeof _ob4P4Pips==='function')_ob4P4Pips();
+  if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();
 }
 function _ob4ValidateAll4(){
   var isValid = _ob4Step4Valid();
@@ -3585,12 +3619,15 @@ function _ob4P5(){
     '</span>' +
   '</div>';
 
-  var chips=selectedHobbies.slice(0,4).map(function(h){return '<span style="font-size:var(--fs-xs);font-weight:500;color:#a9c4ff;background:rgba(43,95,217,0.16);border:1px solid rgba(43,95,217,0.4);border-radius:var(--rad-md);padding:4px 10px;">'+h+'</span>';}).join('');
+  var chips=selectedHobbies.slice(0,4).map(function(h){return '<span style="font-size:var(--fs-xs);font-weight:600;color:#fff;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:var(--rad-pill);padding:5px 12px;">'+h+'</span>';}).join('');
   var more=selectedHobbies.length>4?('<span style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">+'+(selectedHobbies.length-4)+'</span>'):'';
 
   var selLangs = _ob4State.languages || [];
+  // Stored as "code·Name" (e.g. "us·English") — show the actual FLAG, not "us·".
+  var _flagOf = function(cc){ try{ return (cc||'').toUpperCase().replace(/[A-Z]/g, function(c){ return String.fromCodePoint(127397 + c.charCodeAt(0)); }); }catch(e){ return ''; } };
+  var _langsDisp = selLangs.map(function(u){ var parts=String(u).split('·'); var cc=parts[0]||''; var nm=parts.slice(1).join('·')||u; return (cc.length===2 ? _flagOf(cc)+' ' : '') + nm; }).join(', ');
   var langsBadge = selLangs.length > 0 ?
-    ('<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:4px;display:flex;align-items:center;gap:4px;">🗣️ <span style="color:#fff;font-weight:500;">' + selLangs.join(', ') + '</span></div>') : '';
+    ('<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:4px;display:flex;align-items:center;gap:4px;">🗣️ <span style="color:#fff;font-weight:500;">' + _langsDisp + '</span></div>') : '';
 
   var lk = window.currentLang==='es'?
     [['Friends','🤗','Amigos'],['Events','🎉','Eventos'],['Connections','💫','Conexiones']]:
@@ -3609,7 +3646,7 @@ function _ob4P5(){
 
   return '<div style="background:linear-gradient(145deg, rgba(13,13,17,0.92), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-xl);padding:16px;box-sizing:border-box;max-width:100%;">'+
     cardPhotoHtml+
-    '<div style="border-bottom:1px solid var(--gbdl);padding-bottom:14px;margin-bottom:14px;">'+
+    '<div style="padding-bottom:2px;">'+
       '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">'+nm+(age?(', '+age):'')+' <span style="color:#3b82f6;font-size:var(--fs-md);">✓</span></div>'+
       '<div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.7);font-weight:500;margin-top:2px;">🎓 '+displayUniName+' '+(gy?('\''+gy):'')+'</div>'+
       (major?('<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:2px;">📖 '+major+'</div>'):'')+
@@ -3617,9 +3654,11 @@ function _ob4P5(){
       langsBadge+
       (chips?('<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center;">'+chips+more+'</div>'):'')+
     '</div>'+
+  '</div>'+
+  '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-xl);padding:16px;margin-top:14px;box-sizing:border-box;">'+
+    '<div class="ob4-flabel" style="margin:0 0 12px;">'+(window.currentLang==='es'?'✨ Toques finales':'✨ Finishing touches')+'</div>'+
     '<div style="margin-bottom:14px;"><div class="ob4-flabel" style="margin:0 0 6px;">'+lblAboutMe+'</div><textarea oninput="_ob4Bio(this.value)" placeholder="'+placeholderBio+'" style="width:100%;box-sizing:border-box;height:75px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-size:var(--fs-base);padding:10px 12px;resize:none;">'+(_ob4State.bio||'')+'</textarea></div>'+
     '<div style="border-top:1px solid var(--gbdl);padding-top:14px;margin-bottom:14px;"><div class="ob4-flabel" style="margin:0 0 8px;">'+lblPrompts+'</div><div id="ob4-prompts"></div></div>'+
-    '<div style="border-top:1px solid var(--gbdl);padding-top:14px;margin-bottom:14px;"><div class="ob4-flabel" style="margin:0 0 8px;">'+lblLookingFor+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+lkHtml+'</div></div>'+
   '</div>'+
   '<button class="ob4-cta" id="ob4-finish-btn" onclick="_ob4Finish()" style="margin-top:16px;">'+btnFinish+'</button>'+
   '<div style="text-align:center;font-size:var(--fs-sm);font-weight:600;color:var(--fg2);margin-top:12px;cursor:pointer;" onclick="_ob4Go(4)">'+btnBack+'</div>';
@@ -3735,7 +3774,31 @@ function _ob4PhotoChange(inp){
     _ob4Strength();
   }
 }
+// A quick confetti burst — the finish should feel like a win, not a screen swap.
+function _ugzConfetti(){
+  try{
+    var wrap=document.createElement('div');
+    wrap.style.cssText='position:fixed;inset:0;z-index:100000;pointer-events:none;overflow:hidden;';
+    var cols=['#dc2626','#3d7bff','#22c55e','#fbbf24','#ec4899','#a855f7'];
+    var emojis=['🎓','🎓','🎓','🎉'];
+    for(var i=0;i<52;i++){
+      var p=document.createElement('div');
+      var left=Math.random()*100, delay=Math.random()*0.25, dur=1.1+Math.random()*0.8;
+      if(i%2===0){
+        p.textContent=emojis[i%emojis.length];
+        p.style.cssText='position:absolute;top:-30px;left:'+left+'%;font-size:'+(18+Math.random()*12)+'px;animation:ugzConfFall '+dur+'s ease-in '+delay+'s forwards;';
+      }else{
+        var size=8+Math.random()*8;
+        p.style.cssText='position:absolute;top:-20px;left:'+left+'%;width:'+size+'px;height:'+(size*0.6)+'px;background:'+cols[i%cols.length]+';border-radius:2px;animation:ugzConfFall '+dur+'s ease-in '+delay+'s forwards;';
+      }
+      wrap.appendChild(p);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(function(){ if(wrap.parentNode) wrap.parentNode.removeChild(wrap); },2600);
+  }catch(e){}
+}
 function _ob4Finish(){
+  if(typeof _ugzConfetti==='function')_ugzConfetti();
   var st=_ob4State;
   window.userDatingPhotos = window.userDatingPhotos || [];
   if (window.userDatingPhotos.filter(Boolean).length === 0 && typeof _profilePicUrl !== 'undefined' && _profilePicUrl) {
@@ -6947,9 +7010,20 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#14151c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
     '</div>' : '';
 
-  // Avatars + "N going" — hidden on your own events (you know who's coming, it's your event).
-  // The "+N" pill was dropped: the "N going" text already states the count.
-  var goingRowHtml = isMyEvent ? '' :
+  // Hosts care about turnout: show avatars + "N / cap joined" + a capacity bar.
+  var goingRowHtml;
+  if (isMyEvent) {
+    var _cap = (e.cap || 10), _joined = (totalGoing || e.spots || 0), _capPct = Math.min(100, Math.round(_joined / _cap * 100));
+    goingRowHtml =
+      '<div style="margin-top:12px;">' +
+        '<div style="display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:7px;">' +
+          '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + '</div>' +
+          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;white-space:nowrap;">' + _joined + ' / ' + _cap + ' joined</div>' +
+        '</div>' +
+        '<div style="height:4px;border-radius:var(--rad-pill);background:rgba(255,255,255,0.12);overflow:hidden;"><div style="height:100%;width:' + _capPct + '%;background:var(--p);border-radius:var(--rad-pill);"></div></div>' +
+      '</div>';
+  } else {
+    goingRowHtml =
     '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;margin-top:12px;">' +
       '<div style="display:flex;align-items:center;gap:10px;min-width:0;">' +
         '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + '</div>' +
@@ -6959,26 +7033,28 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       '</div>' +
       viewPill +
     '</div>';
+  }
 
   var safeName = (e.name || '').replace(/'/g, "\\'");
   var safeRef = String(e.id || e.name || '').replace(/'/g, "\\'");
 
   // Action row under the info block. Nearby cards carry none — you join from the detail sheet.
   var actionsHtml = '';
-  // Glow marks the ONE primary action per card. Edit and Delete keep their fill
-  // but drop the halo, so Boost is unmistakably the thing you're meant to tap.
+  var _ended = (typeof _evLiveState==='function' && _evLiveState(e)==='over') || (typeof _evCountdown==='function' && _evCountdown(e)==='ENDED');
+  // One primary per card. Boost is the sole filled+glow action; Edit is a ghost;
+  // Delete collapses to an icon so it stops reading like a primary button.
   if (isMyEvent) {
     actionsHtml =
-      '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;margin-top:14px;">' +
-        '<button onclick="_editMyEventCard(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#2b5fd9 0%,#3d7bff 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">'+icon('edit',16)+' Edit</button>' +
-        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#f59e0b 0%,#791515 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:var(--glow-primary);">🚀 Boost</button>' +
-        '<button onclick="_deleteMyEventById(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#791515 0%,#791515 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">'+icon('trash',16)+' Delete</button>' +
+      '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;margin-top:14px;align-items:stretch;">' +
+        '<button onclick="_editMyEventCard(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:var(--p);font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">'+icon('edit',16)+' Edit</button>' +
+        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1.4;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 16px -4px rgba(245,158,11,0.6);">'+(_ended?'↻ Repost':'🚀 Boost')+'</button>' +
+        '<button onclick="_deleteMyEventById(\''+safeRef+'\')" aria-label="Delete event" style="flex:0 0 auto;width:44px;padding:11px 0;border-radius:var(--rad-md);background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.5);color:#dc2626;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;">'+icon('trash',16)+'</button>' +
       '</div>';
   } else if (isJoinedView) {
     actionsHtml =
-      '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;margin-top:14px;">' +
+      '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;margin-top:14px;align-items:stretch;">' +
         '<button onclick="_eventJoinedTap(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" style="flex:1;padding:12px 10px;border-radius:var(--rad-md);background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--glow-primary);letter-spacing:0.3px;">'+icon('chat',16)+' Go to Chat</button>' +
-        '<button onclick="joinHangoutEv(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" style="flex:1;padding:12px 10px;border-radius:var(--rad-md);background:rgba(244,63,94,0.12);border:1.5px solid rgba(244,63,94,0.6);color:#dc2626;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;letter-spacing:0.3px;">🚪 Leave Event</button>' +
+        '<button onclick="joinHangoutEv(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" aria-label="Leave event" title="Leave event" style="flex:0 0 auto;padding:12px 15px;border-radius:var(--rad-md);background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.5);color:#dc2626;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">🚪</button>' +
       '</div>';
   }
 
@@ -6993,7 +7069,7 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
 
   // Full-bleed poster: the whole card IS the photo, everything sits on a bottom scrim.
   var secCol = _secColor(e.section);
-  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid '+secCol+';border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
+  return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid '+secCol+';border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);'+((_ended&&(isMyEvent||isJoinedView))?'filter:saturate(0.5);opacity:0.72;':'')+'">' +
     // Category accent — a hairline of the section colour along the top edge
     '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+secCol+';z-index:3;"></div>' +
     // Scrim: lighter so the photo stays the hook; still legible at the bottom.
@@ -12128,7 +12204,9 @@ function _admirerPaywall(){
     if(typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(true);
     return;
   }
-  return premAlert('Para ver quién te dio like y quién vio tu perfil necesitas el plan A+ Student.\n\nDesbloquea a todos tus admiradores secretos.');
+  return premAlert(window.currentLang==='es'
+    ? 'Para ver quién te dio like y quién vio tu perfil necesitas el plan A+ Student.\n\nDesbloquea a todos tus admiradores secretos.'
+    : 'See who liked you and who viewed your profile with A+ Student.\n\nUnlock all your secret admirers.');
 }
 
 function _likedSawHtml(pool,unlimited){
@@ -12148,27 +12226,30 @@ function _likedSawHtml(pool,unlimited){
   // last block in the app still built that way. Now it follows the house
   // language — black card, the wine hue carried by a lit underline, the count as
   // the loud element, and one full-width CTA on the shared _gradSkin recipe.
-  var _wine = '#dc2626';
+  var isEs = window.currentLang === 'es';
+  var _uc = ((getComputedStyle(document.documentElement).getPropertyValue('--p')||'').trim()) || '#dc2626';
+  var _uc2 = ((getComputedStyle(document.documentElement).getPropertyValue('--p2')||'').trim()) || '#3d7bff';
+  var _wine = _uc; // accent now follows the university, not a fixed red
   var _cta = (typeof _gradSkin === 'function')
-    ? _gradSkin(_wine, true, { radius: 'var(--rad-pill)', dim: 82 })
-    : 'background:' + _wine + ';border:none;border-radius:var(--rad-pill);color:#fff;';
+    ? _gradSkin(_uc, true, { radius: 'var(--rad-pill)', dim: 82 })
+    : 'background:linear-gradient(135deg,'+_uc+','+_uc2+');border:none;border-radius:var(--rad-pill);color:#fff;';
   var sub = unlimited
-    ? 'Estas son las personas que te tienen en la mira.'
-    : 'Descubre quién te está observando en secreto en tu universidad.';
+    ? (isEs?'Estas son las personas que te tienen en la mira.':'These are the people who have their eye on you.')
+    : (isEs?'Descubre quién te está observando en secreto.':'See who\'s secretly checking you out.');
   var breakdown = (n && (nLikes || nViews))
     ? '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;">'+
-        (nLikes?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#f9a8d4;background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.55);border-radius:var(--rad-xs);padding:2.5px 8px;">♥ '+nLikes+' te dieron like</span>':'')+
-        (nViews?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#fdba74;background:rgba(251,146,60,0.18);border:1px solid rgba(251,146,60,0.55);border-radius:var(--rad-xs);padding:2.5px 8px;">👁 '+nViews+' vieron tu perfil</span>':'')+
+        (nLikes?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#f9a8d4;background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.55);border-radius:var(--rad-xs);padding:2.5px 8px;">♥ '+nLikes+(isEs?' te dieron like':' liked you')+'</span>':'')+
+        (nViews?'<span style="font-size:var(--fs-2xs);font-weight:700;color:color-mix(in srgb, var(--p) 45%, #fff);background:color-mix(in srgb, var(--p) 18%, transparent);border:1px solid color-mix(in srgb, var(--p) 55%, transparent);border-radius:var(--rad-xs);padding:2.5px 8px;">👁 '+nViews+(isEs?' vieron tu perfil':' viewed you')+'</span>':'')+
       '</div>'
     : '';
-  var banner='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid rgba(176,36,58,0.4);border-radius:var(--rad-xl);padding:16px 18px 18px;margin:0 var(--s) 14px;">'+
+  var banner='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid color-mix(in srgb, var(--p) 40%, transparent);border-radius:var(--rad-xl);padding:16px 18px 18px;margin:0 var(--s) 14px;">'+
     // The lit 2px line every other section in the app uses to carry its hue
-    '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_wine+',#791515);box-shadow:0 0 10px rgba(176,36,58,0.85);"></div>'+
+    '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_uc+','+_uc2+');box-shadow:0 0 10px color-mix(in srgb, var(--p) 80%, transparent);"></div>'+
     '<div style="display:flex;align-items:center;gap:13px;">'+
       '<span style="color:'+_wine+';flex-shrink:0;display:flex;">'+hatGlassesSvg+'</span>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="display:flex;align-items:baseline;gap:7px;">'+
-          '<span style="font-size:var(--fs-2xl);font-weight:900;color:'+_wine+';line-height:1;letter-spacing:-1.2px;">'+n+'</span>'+
+          '<span style="font-size:var(--fs-2xl);font-weight:900;color:'+_wine+';line-height:1;letter-spacing:-1.2px;">'+(n>0?n:'👀')+'</span>'+
           '<span style="font-size:var(--fs-base);font-weight:800;color:#fff;letter-spacing:-0.2px;">Secret Admirers</span>'+
         '</div>'+
         '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;font-weight:500;line-height:1.4;">'+sub+'</div>'+
@@ -12177,10 +12258,22 @@ function _likedSawHtml(pool,unlimited){
     breakdown+
     // A+ users already see every card unlocked below, so the CTA would lead
     // nowhere — it only exists as the upsell.
-    (unlimited?'':'<button onclick="_admirerPaywall()" style="'+_cta+'width:100%;margin-top:14px;padding:11px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.7px;cursor:pointer;">⚡ DESBLOQUEAR CON A+</button>')+
+    (unlimited?'':'<button onclick="_admirerPaywall()" style="'+_cta+'width:100%;margin-top:14px;padding:12px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.2px;cursor:pointer;">'+(isEs?'Descubre quién te observa · A+':'See who it is · A+')+'</button>')+
   '</div>';
 
-  if(!pool.length)return banner+'<div style="text-align:center;padding:35px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">Sin admiradores secretos aún 🕵️<br><span style="font-size:var(--fs-xs);color:#7aa5ff;">¡Mantén actualizado tu perfil para recibir más visitas!</span></div>';
+  if(!pool.length){
+    var _ph='';
+    for(var _i=0;_i<4;_i++){
+      _ph+='<div onclick="_admirerPaywall()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid color-mix(in srgb, var(--p) 55%, transparent);position:relative;height:180px;background:linear-gradient(160deg, color-mix(in srgb, var(--p) 32%, #000), #0b0b0e);">'+
+        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'+
+          '<div style="width:44px;height:44px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #fff;box-shadow:0 0 18px color-mix(in srgb, var(--p) 60%, transparent);animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',20)+'</div>'+
+        '</div>'+
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:22px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent);"><div style="font-size:var(--fs-base);font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:3px;">? ? ?</div></div>'+
+      '</div>';
+    }
+    var _emptyMsg='<div style="text-align:center;padding:14px var(--s) 6px;color:var(--fg2);font-size:var(--fs-sm);font-weight:500;">'+(isEs?'Aún nadie… por ahora 👀':'No one yet… for now 👀')+'<br><span style="font-size:var(--fs-xs);color:color-mix(in srgb, var(--p) 45%, #fff);">'+(isEs?'Mantén tu perfil activo para atraer miradas':'Keep your profile fresh to draw more eyes')+'</span></div>';
+    return banner+_emptyMsg+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+_ph+'</div>';
+  }
 
   // Every profile stays hidden without A+ — there is no free reveal any more,
   // not even the first row. `unlimited` is the A+ flag the caller passes in.
@@ -12215,17 +12308,18 @@ function _likedSawHtml(pool,unlimited){
     // The tap opens the A+ modal, so the card says so. It used to read
     // "DESCUBRIR AHORA" under a pair of glasses, which promised a reveal that
     // has not existed since free reveals were removed.
-    return '<div onclick="_admirerPaywall()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.75);background:#0b0b0e;position:relative;height:216px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
-      '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
+    return '<div onclick="_admirerPaywall()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid color-mix(in srgb, var(--p) 65%, transparent);background:#0b0b0e;position:relative;height:216px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
+      '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:color-mix(in srgb, var(--p) 45%, #fff);padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid color-mix(in srgb, var(--p) 55%, transparent);z-index:2;">'+timeText+'</div>'+
       // 14px, not 18px: at 18px the photo is a flat smear and the card stops
       // suggesting there is a real person behind it.
       '<div style="height:100%;'+cover+'filter:blur(14px) saturate(170%);transform:scale(1.15);"></div>'+
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(61,123,255,0.22) 0%, rgba(0,0,0,0.82) 100%);z-index:2;">'+
-        '<div style="width:48px;height:48px;border-radius:50%;background:#791515;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',22)+'</div>'+
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, color-mix(in srgb, var(--p) 22%, transparent) 0%, rgba(0,0,0,0.82) 100%);z-index:2;">'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #ffffff;box-shadow:0 0 18px color-mix(in srgb, var(--p) 60%, transparent);animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',22)+'</div>'+
         '<div style="margin-top:7px;">'+_admirerSrcTag(p._src)+'</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
-        '<div style="background:linear-gradient(135deg,rgba(61,123,255,0.4),rgba(240,62,90,0.4));border:1px solid #3d7bff;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">'+icon('lock',14)+' DESBLOQUEAR CON A+</div>'+
+        '<div style="font-size:var(--fs-xs);font-weight:800;color:rgba(255,255,255,0.85);margin-bottom:6px;letter-spacing:1.5px;text-shadow:0 1px 6px #000;">'+((p.name||'?').charAt(0).toUpperCase())+' • • • •</div>'+
+        '<div style="background:linear-gradient(135deg,'+_uc+','+_uc2+');border:none;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:6px;border-radius:var(--rad-sm);letter-spacing:0.4px;">'+icon('lock',14)+' '+(isEs?'Desbloquear · A+':'Unlock · A+')+'</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -15186,7 +15280,7 @@ var savedStickers=[];
 var recentStickers=[];
 var STICKER_PACKS={
   faces:['😀','😃','😄','😁','😆','🥺','😅','😂','🤣','😊','😇','🙂','😉','😌','😍','🥰','😘','😗','😋','😛','😜','🤪','😝','🤑','🤗','🤭','😱','🤫','🤔','🙋','🤐','🤨','😐','😑','😶','😶','😏','😒','🙄','😬','😮‍💨','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🥵','🥶','🥴','😵','😵‍💫','🤯','🤠','🥳','😎','😎','🤓','🤓'],
-  gestures:['👍','👎','👊','✊','🤛','🤜','👏','🙌','💖','👐','🤲','🤝','🙏','✌️','🤞','👌','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👉','👋','🤚','🖐','✋','🖖','🤝','🤝','💪'],
+  gestures:['👍','👎','👊','✊','🤛','🤜','👏','🙌','💖','👐','🤲','🤝','🙏','✌️','🤞','👌','🧏','🤘','🤙','👈','👉','👆','🖕','👇','☝️','👉','👋','🤚','🖐','✋','🖖','🤝','🤝','💪'],
   love:['❤️','❤️','💛','💚','💙','💜','🖤','🤗','❤️','💔','❤️‍🔥','💖','💗','💓','💞','💕','💘','💝','💟','♥️','😍','🥰','😘','💑','💏','🤗'],
   nature:['🌸','🌺','🌻','🌹','🌷','🌼','🌸','🌸','🌿','☘️','🍀','🍃','🍂','🍁','🌾','🌵','🎋','🌱','🌲','🌳','🌴','🎄','⭐','🌟','✨','🌙','☀️','🌈','❄️','💧','🔥','⚡'],
   food:['🍕','🍔','🌮','🌯','🍟','🍿','🍰','🎂','🍩','🍪','🍫','☕','🥤','🍺','🍷','🥂','🍹','🥤','🍽️','🥡'],
@@ -18739,7 +18833,11 @@ function checkHandle(inp) {
   
   var msg = document.getElementById('handle-msg');
   if (!msg) return;
-  
+  // Nothing to say until the user actually types — never a status on a blank
+  // (or freshly pre-filled, untouched) field.
+  if (!v.length) { msg.textContent = ''; msg.style.display = 'none'; inp.style.borderColor = ''; return; }
+  msg.style.display = '';
+
   var regex = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_)(?![._])){2,13}[a-zA-Z0-9]$/;
   var isValidFormat = regex.test(v);
   var isBanned = BANNED.some(function(w) { return v.includes(w); });
@@ -23122,7 +23220,7 @@ function _renderSearchStudentCard(p) {
   var cardIsVerified = p.isVerified || p.verified || ((userPro.isVerified || verified) && (fullName === userPro.name || handle === userPro.handle || '@' + handle === userPro.handle));
 
   return '<div class="search-student-card" onclick="openProfileCardByName(\'' + safeName + '\')">' +
-    '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));">' +
+    '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--p),var(--p2));">' +
       '<div style="width:100%;height:100%;border-radius:50%;overflow:hidden;">' + avatarHtml + '</div>' +
       '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #000000;"></div>' +
     '</div>' +
@@ -23132,10 +23230,10 @@ function _renderSearchStudentCard(p) {
         _getVerifyBadgeHtml(cardIsVerified, 14) +
         (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;margin-left:2px;">' + p.age + '</span>' : '') +
       '</div>' +
-      '<div style="font-size:var(--fs-sm);color:#38bdf8;font-weight:500;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + ' • ' + major + '</div>' +
+      '<div style="font-size:var(--fs-sm);color:color-mix(in srgb, var(--p) 42%, #ffffff);font-weight:500;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + ' • ' + major + '</div>' +
       '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:2px;">🏛️ ' + acronym + '</div>' +
     '</div>' +
-    '<button style="background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
+    '<button style="background:linear-gradient(135deg,var(--p),var(--p2));border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
   '</div>';
 }
 
@@ -23543,23 +23641,32 @@ function verifyCodeInput(inp) {
 
 function checkPasswordStrength(val) {
   if (suData) suData.pass = val;
+  val = val || '';
+  // Live 4-segment meter + checklist, so the rules are visible AS you type
+  // instead of hidden behind a submit-time alert.
+  var rules = {
+    len: val.length >= 8,
+    case: /[a-z]/.test(val) && /[A-Z]/.test(val),
+    num: /\d/.test(val),
+    spec: /[@$!%*?&._\-]/.test(val)
+  };
+  var met = (rules.len?1:0) + (rules.case?1:0) + (rules.num?1:0) + (rules.spec?1:0);
+  var meter = document.getElementById('pass-meter');
+  if (meter) {
+    meter.style.display = val ? 'block' : 'none';
+    var cols = ['#dc2626', '#f59e0b', '#eab308', '#22c55e'];
+    var bars = meter.querySelectorAll('.pw-bar');
+    for (var i = 0; i < bars.length; i++) {
+      bars[i].style.background = (i < met) ? cols[Math.max(0, met - 1)] : 'rgba(255,255,255,0.12)';
+    }
+    Object.keys(rules).forEach(function (k) {
+      var el = meter.querySelector('[data-rule="' + k + '"]');
+      if (el) { el.style.color = rules[k] ? '#4ade80' : 'var(--fg3)'; el.style.fontWeight = rules[k] ? '700' : '500'; }
+    });
+  }
+  // The old single red line is now redundant — the meter says it all.
   var msg = document.getElementById('pass-msg');
-  if (!msg) return;
-  if (!val) {
-    msg.style.display = 'none';
-    _ob4Strength();
-    _ob4ValidateAll();
-    return;
-  }
-  msg.style.display = 'block';
-  var ok = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/.test(val);
-  if (ok) {
-    msg.textContent = '✓ Strong password';
-    msg.style.color = '#4ade80';
-  } else {
-    msg.textContent = '⚠️ Must have 8+ chars, uppercase, lowercase, number & special char';
-    msg.style.color = '#dc2626';
-  }
+  if (msg) msg.style.display = 'none';
   _ob4Strength();
   _ob4ValidateAll();
 }
