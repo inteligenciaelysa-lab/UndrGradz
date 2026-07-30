@@ -871,6 +871,44 @@ class SwipeService {
       };
     });
   }
+
+  // Retract a like from the "Likes Sent" list. Refuses once the other person
+  // liked back: the Match row references neither Swipe by id, so deleting the
+  // swipe underneath an active Match would leave a conversation whose origin no
+  // longer exists. Unmatching is a separate action.
+  async unsendLike(userId, targetId) {
+    if (!targetId) {
+      throw new AppError('Target user id is required', 400);
+    }
+
+    const match = await prisma.match.findFirst({
+      where: {
+        isActive: true,
+        OR: [
+          { userOneId: userId, userTwoId: targetId },
+          { userOneId: targetId, userTwoId: userId }
+        ]
+      }
+    });
+
+    if (match) {
+      throw new AppError('You already matched with this person — the like cannot be retracted', 409);
+    }
+
+    const { count } = await prisma.swipe.deleteMany({
+      where: {
+        senderId: userId,
+        receiverId: targetId,
+        type: { in: ['LIKE', 'SUPERLIKE', 'ROSE'] }
+      }
+    });
+
+    if (!count) {
+      throw new AppError('No sent like found for this profile', 404);
+    }
+
+    return { removed: count };
+  }
 }
 
 module.exports = new SwipeService();

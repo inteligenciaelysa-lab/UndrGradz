@@ -98,6 +98,23 @@ class SwipeController {
     }
   }
 
+  async unsendLike(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const { targetId } = req.params;
+      const { removed } = await swipeService.unsendLike(userId, targetId);
+
+      res.status(200).json({
+        status: 'success',
+        data: {
+          removed,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async swipe(req, res, next) {
     try {
       const senderId = req.user.userId || req.user.id;

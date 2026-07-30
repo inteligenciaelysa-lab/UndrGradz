@@ -11818,6 +11818,15 @@ function _getPhotoUrl(photo) {
   return '';
 }
 
+// Which flavour of like was sent. The backend already returns `swipeType` on
+// every row of /campus/sent-likes, so this needs no extra data.
+function _sentLikeKind(type){
+  var t=String(type||'LIKE').toUpperCase();
+  if(t==='SUPERLIKE')return {ico:'⭐',lbl:'SUPER',hue:'#06b6d4'};
+  if(t==='ROSE')return {ico:'🌹',lbl:'ROSE',hue:'#ec4899'};
+  return {ico:'💘',lbl:'LIKE',hue:'#22c55e'};
+}
+
 function _getSentLikesHtml(pool){
   if (!pool) {
     pool = window._sentLikesData;
@@ -11826,9 +11835,33 @@ function _getSentLikesHtml(pool){
   if (!pool) {
     pool = (crushDataAll||[]).filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);}).slice(0,8);
   }
+  // The tab renders either the real list or the demo fallback above, and the
+  // click handler needs the same array the cards were built from to resolve an
+  // index back to a person (and to their id, for un-sending).
+  window._sentLikesPool = pool || [];
 
-  if(!pool || !pool.length){return '<div style="text-align:center;padding:40px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">No le has dado like a nadie aún 💘<br><span style="font-size:var(--fs-xs);color:#7aa5ff;">¡Empieza a explorar perfiles!</span></div>';}
+  var _orange='#f59e0b';
+  if(!pool || !pool.length){
+    return '<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid rgba(245,158,11,0.32);border-radius:var(--rad-xl);padding:26px 20px 28px;margin:0 var(--s) 14px;text-align:center;">'+
+      '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_orange+',#7c4a06);box-shadow:0 0 10px rgba(245,158,11,0.75);"></div>'+
+      '<div style="font-size:var(--fs-2xl);line-height:1;">💘</div>'+
+      '<div style="font-size:var(--fs-base);font-weight:800;color:#fff;margin-top:10px;letter-spacing:-0.2px;">Aún no has dado ningún like</div>'+
+      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:6px;font-weight:500;line-height:1.4;">Los perfiles a los que les des like aparecerán aquí mientras esperas su respuesta.</div>'+
+      '<button onclick="switchCrushTab(\'swipe\')" style="'+((typeof _gradSkin==='function')?_gradSkin(_orange,true,{radius:'var(--rad-pill)',dim:82}):'background:'+_orange+';border:none;border-radius:var(--rad-pill);color:#fff;')+'margin-top:16px;padding:11px 26px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.7px;cursor:pointer;">EMPEZAR A EXPLORAR</button>'+
+    '</div>';
+  }
   var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name;});
+
+  // Section header on the same recipe as the Admirers banner: black card, the
+  // count as the loud element, the hue carried by a lit 2px underline.
+  var header='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid rgba(245,158,11,0.32);border-radius:var(--rad-xl);padding:15px 18px 17px;margin:0 var(--s) 14px;">'+
+    '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_orange+',#7c4a06);box-shadow:0 0 10px rgba(245,158,11,0.75);"></div>'+
+    '<div style="display:flex;align-items:baseline;gap:7px;">'+
+      '<span style="font-size:var(--fs-2xl);font-weight:900;color:'+_orange+';line-height:1;letter-spacing:-1.2px;">'+pool.length+'</span>'+
+      '<span style="font-size:var(--fs-base);font-weight:800;color:#fff;letter-spacing:-0.2px;">Likes enviados</span>'+
+    '</div>'+
+    '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;font-weight:500;line-height:1.4;">Esperando su respuesta. Toca un perfil para verlo o retirar tu like.</div>'+
+  '</div>';
 
   var cards = pool.map(function(p, i) {
     var h=_strHash((p.name||'')+'sent');
@@ -11836,14 +11869,40 @@ function _getSentLikesHtml(pool){
     var un=_getUniAcronym(unRaw);
     var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
     var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#38bdf8')+',rgba(0,0,0,0.55));';
-    var safe = (p.name||'').replace(/'/g,"");
-    var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
-    return '<div style="border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(56,189,248,0.6);background:#0b0b0e;position:relative;">'+
-      '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="height:190px;'+cover+'position:relative;cursor:pointer;">'+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, transparent 100%);"><div class="t-body-black">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
+    var kind=_sentLikeKind(p.swipeType);
+    var ago=(typeof _agoEs==='function')?_agoEs(p.createdAt):'';
+
+    var pills='<div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">'+
+      '<span style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;background:rgba(61,123,255,0.28);border:1px solid rgba(61,123,255,0.65);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;">🏛️ '+un+'</span>'+
+      (p.major?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.22);border:1px solid rgba(245,158,11,0.6);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">🎓 '+p.major+'</span>':'')+
+    '</div>';
+
+    return '<div class="sent-like-card" onclick="_openSentLikeProfile('+i+')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(245,158,11,0.42);background:#0b0b0e;position:relative;height:216px;'+cover+'">'+
+      '<div style="position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:3px;font-size:var(--fs-2xs);font-weight:700;color:'+kind.hue+';padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid '+kind.hue+';z-index:2;">'+kind.ico+' '+kind.lbl+'</div>'+
+      (ago?'<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:rgba(255,255,255,0.82);padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.72);z-index:2;">'+ago+'</div>':'')+
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:44px 10px 11px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.72) 62%, transparent 100%);">'+
+        '<div style="font-size:var(--fs-base);font-weight:900;color:#fff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.name+' '+(p.age||'')+'</div>'+
+        pills+
+      '</div>'+
+    '</div>';
   }).join('');
 
-  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
+  return header+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
+}
+
+// Open a profile from Likes Sent. Goes through viewUserUnicrush like every
+// other card, but tags the origin so _applyUcActionBar() swaps the like /
+// super-like / pass bar for the "already liked" status strip, and carries the
+// target's id so that strip's "Quitar like" button has something to delete.
+function _openSentLikeProfile(i){
+  var p=(window._sentLikesPool||[])[i];
+  if(!p)return;
+  viewUserUnicrush(p.handle||null,p.name,p.bg||'','','sent');
+  if(window._ucViewUser){
+    window._ucViewUser.sentTargetId=p.id||null;
+    window._ucViewUser.sentType=p.swipeType||'LIKE';
+    if(typeof _applyUcActionBar==='function')_applyUcActionBar();
+  }
 }
 
 function _renderSentTab(){
@@ -11962,10 +12021,31 @@ function _admirerSrcTag(src){
   return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fb923c;">👁 vio tu perfil</span>';
 }
 
+// The A+ gate for Admirers. Tapping a hidden admirer used to open a full-screen
+// sheet built from five hardcoded fake profiles; now it opens the standard
+// premium modal, whose confirm button lands on the Plans screen and from there
+// on the A+ checkout. With A+ there is nothing to gate, so it just repaints.
+function _admirerPaywall(){
+  if(typeof curPlan!=='undefined'&&curPlan==='aplus'){
+    if(typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(true);
+    return;
+  }
+  return premAlert('Para ver quién te dio like y quién vio tu perfil necesitas el plan A+ Student.\n\nDesbloquea a todos tus admiradores secretos.');
+}
+
 function _likedSawHtml(pool,unlimited){
   var n = pool.length;
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
-  
+
+  // Split the count by where each person came from. _mergedAdmirersPool already
+  // tags every row with _src ('like' | 'view' | 'both'), so this is free.
+  var nLikes=0,nViews=0;
+  pool.forEach(function(p){
+    if(p._src==='both'){nLikes++;nViews++;}
+    else if(p._src==='like')nLikes++;
+    else nViews++;
+  });
+
   // Redrawn: the old banner was a solid maroon slab with an orange button, the
   // last block in the app still built that way. Now it follows the house
   // language — black card, the wine hue carried by a lit underline, the count as
@@ -11974,6 +12054,15 @@ function _likedSawHtml(pool,unlimited){
   var _cta = (typeof _gradSkin === 'function')
     ? _gradSkin(_wine, true, { radius: 'var(--rad-pill)', dim: 82 })
     : 'background:' + _wine + ';border:none;border-radius:var(--rad-pill);color:#fff;';
+  var sub = unlimited
+    ? 'Estas son las personas que te tienen en la mira.'
+    : 'Descubre quién te está observando en secreto en tu universidad.';
+  var breakdown = (n && (nLikes || nViews))
+    ? '<div style="display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;">'+
+        (nLikes?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#f9a8d4;background:rgba(236,72,153,0.18);border:1px solid rgba(236,72,153,0.55);border-radius:var(--rad-xs);padding:2.5px 8px;">♥ '+nLikes+' te dieron like</span>':'')+
+        (nViews?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#fdba74;background:rgba(251,146,60,0.18);border:1px solid rgba(251,146,60,0.55);border-radius:var(--rad-xs);padding:2.5px 8px;">👁 '+nViews+' vieron tu perfil</span>':'')+
+      '</div>'
+    : '';
   var banner='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid rgba(176,36,58,0.4);border-radius:var(--rad-xl);padding:16px 18px 18px;margin:0 var(--s) 14px;">'+
     // The lit 2px line every other section in the app uses to carry its hue
     '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_wine+',#791515);box-shadow:0 0 10px rgba(176,36,58,0.85);"></div>'+
@@ -11984,10 +12073,13 @@ function _likedSawHtml(pool,unlimited){
           '<span style="font-size:var(--fs-2xl);font-weight:900;color:'+_wine+';line-height:1;letter-spacing:-1.2px;">'+n+'</span>'+
           '<span style="font-size:var(--fs-base);font-weight:800;color:#fff;letter-spacing:-0.2px;">Secret Admirers</span>'+
         '</div>'+
-        '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;font-weight:500;line-height:1.4;">Descubre quién te está observando en secreto en tu universidad.</div>'+
+        '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;font-weight:500;line-height:1.4;">'+sub+'</div>'+
       '</div>'+
     '</div>'+
-    '<button onclick="if(typeof revealWhoViewed===\'function\')revealWhoViewed()" style="'+_cta+'width:100%;margin-top:14px;padding:11px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.7px;cursor:pointer;">⚡ VER TODOS</button>'+
+    breakdown+
+    // A+ users already see every card unlocked below, so the CTA would lead
+    // nowhere — it only exists as the upsell.
+    (unlimited?'':'<button onclick="_admirerPaywall()" style="'+_cta+'width:100%;margin-top:14px;padding:11px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.7px;cursor:pointer;">⚡ DESBLOQUEAR CON A+</button>')+
   '</div>';
 
   if(!pool.length)return banner+'<div style="text-align:center;padding:35px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">Sin admiradores secretos aún 🕵️<br><span style="font-size:var(--fs-xs);color:#7aa5ff;">¡Mantén actualizado tu perfil para recibir más visitas!</span></div>';
@@ -11995,34 +12087,47 @@ function _likedSawHtml(pool,unlimited){
   // Every profile stays hidden without A+ — there is no free reveal any more,
   // not even the first row. `unlimited` is the A+ flag the caller passes in.
   var freeReveals = unlimited ? pool.length : 0;
+  var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name;});
 
   var cards=pool.map(function(p, idx){
     var unlocked = idx < freeReveals;
     var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
     var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#4d84ff')+',rgba(0,0,0,0.55));';
     var safe=p.name.replace(/'/g,"");
-    var timeText = p.timeAgo || 'hace 5m';
+    var timeText = p.timeAgo || (typeof _agoEs==='function' ? _agoEs(p.createdAt) : '') || 'hace 5m';
     var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
 
     if(unlocked){
-      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.5);position:relative;height:190px;'+cover+';">'+
+      var h=_strHash((p.name||'')+'saw');
+      var unRaw=(p.uni&&(p.uni.acronym||p.uni.name||p.uni))||(uniObjs.length?(uniObjs[h%uniObjs.length].acronym||uniObjs[h%uniObjs.length].name):'UANE');
+      var un=_getUniAcronym(unRaw);
+      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.5);position:relative;height:216px;'+cover+';">'+
         '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
-        '<div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, transparent 100%);">'+
-          '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;">'+p.name+'</div>'+
-          '<div style="margin-top:2px;">'+_admirerSrcTag(p._src)+'</div>'+
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:44px 10px 11px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.72) 62%, transparent 100%);">'+
+          '<div style="font-size:var(--fs-base);font-weight:900;color:#fff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.name+' '+(p.age||'')+'</div>'+
+          '<div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">'+
+            '<span style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;background:rgba(61,123,255,0.28);border:1px solid rgba(61,123,255,0.65);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;">🏛️ '+un+'</span>'+
+            (p.major?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.22);border:1px solid rgba(245,158,11,0.6);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">🎓 '+p.major+'</span>':'')+
+          '</div>'+
+          '<div style="margin-top:5px;">'+_admirerSrcTag(p._src)+'</div>'+
         '</div>'+
       '</div>';
     }
 
-    return '<div onclick="if(typeof revealWhoViewed===\'function\')revealWhoViewed()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.75);background:#0b0b0e;position:relative;height:190px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
+    // The tap opens the A+ modal, so the card says so. It used to read
+    // "DESCUBRIR AHORA" under a pair of glasses, which promised a reveal that
+    // has not existed since free reveals were removed.
+    return '<div onclick="_admirerPaywall()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.75);background:#0b0b0e;position:relative;height:216px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
       '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid rgba(6,182,212,0.5);z-index:2;">'+timeText+'</div>'+
-      '<div style="height:100%;'+cover+'filter:blur(18px) saturate(180%);transform:scale(1.15);"></div>'+
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(61,123,255,0.25) 0%, rgba(0,0,0,0.8) 100%);z-index:2;">'+
-        '<div style="width:48px;height:48px;border-radius:50%;background:#791515;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg></div>'+
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:#a9c4ff;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #4d84ff;">QUIÉN TE VIO</div>'+
+      // 14px, not 18px: at 18px the photo is a flat smear and the card stops
+      // suggesting there is a real person behind it.
+      '<div style="height:100%;'+cover+'filter:blur(14px) saturate(170%);transform:scale(1.15);"></div>'+
+      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(61,123,255,0.22) 0%, rgba(0,0,0,0.82) 100%);z-index:2;">'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:#791515;display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',22)+'</div>'+
+        '<div style="margin-top:7px;">'+_admirerSrcTag(p._src)+'</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
-        '<div style="background:linear-gradient(135deg,rgba(61,123,255,0.4),rgba(240,62,90,0.4));border:1px solid #3d7bff;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">'+icon('search',16)+' DESCUBRIR AHORA</div>'+
+        '<div style="background:linear-gradient(135deg,rgba(61,123,255,0.4),rgba(240,62,90,0.4));border:1px solid #3d7bff;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">'+icon('lock',14)+' DESBLOQUEAR CON A+</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -12161,71 +12266,21 @@ function _renderLikedYouReveal(unlimited){
     return;
   }
 
-  if(subTab==='saw'){
-    // Merged tab: people who liked you (swipe table) AND people who opened your
-    // profile (profileView table). Two different endpoints, so both are loaded
-    // and the results are concatenated + deduped by user id.
-    if (typeof apiClient !== 'undefined' && (!window._profileViewsData || Date.now() - (window._lastViewsFetch || 0) > 5000)) {
-      window._lastViewsFetch = Date.now();
-      loadProfileViews();
-    }
-    if (typeof apiClient !== 'undefined' && (!window._admirersData || Date.now() - (window._lastAdmirersFetch || 0) > 5000)) {
-      window._lastAdmirersFetch = Date.now();
-      loadAdmirers();
-    }
-    panel.innerHTML = subRow + _likedSawHtml(_mergedAdmirersPool(), unlimited);
-    return;
+  // 'saw' (Admirers), and the fallback for any other value: an unrecognised
+  // sub-tab left in localStorage used to fall through to a dead branch below and
+  // paint an empty panel.
+  // Merged tab: people who liked you (swipe table) AND people who opened your
+  // profile (profileView table). Two different endpoints, so both are loaded
+  // and the results are concatenated + deduped by user id.
+  if (typeof apiClient !== 'undefined' && (!window._profileViewsData || Date.now() - (window._lastViewsFetch || 0) > 5000)) {
+    window._lastViewsFetch = Date.now();
+    loadProfileViews();
   }
-
-  // Admirers Tab: Load real incoming likes from DB
   if (typeof apiClient !== 'undefined' && (!window._admirersData || Date.now() - (window._lastAdmirersFetch || 0) > 5000)) {
     window._lastAdmirersFetch = Date.now();
     loadAdmirers();
   }
-
-  var pref=(typeof crushGenderPref!=='undefined')?crushGenderPref:'female';
-  var pool = window._admirersData;
-  if (!pool) {
-    pool = (crushDataAll||[]).filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);}).slice(0,8);
-  } else {
-    pool = pool.filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);});
-  }
-
-  if(!pool.length){panel.innerHTML=subRow+'<div style="text-align:center;padding:40px var(--s);color:var(--fg2);font-size:var(--fs-base);font-weight:500;">No admiradores aún 💘</div>';return;}
-
-  // Free Plan allows 1 free reveal per week
-  var revealed = unlimited ? pool.length : 1;
-  var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name;});
-
-  var cards=pool.map(function(p,i){
-    var unlocked=unlimited||i<revealed;
-    var safe=(p.name||'').replace(/'/g,"");
-    var h=_strHash((p.name||'')+'ly');
-    var unRaw=(p.uni&&(p.uni.acronym||p.uni.name||p.uni))||(uniObjs.length?(uniObjs[h%uniObjs.length].acronym||uniObjs[h%uniObjs.length].name):'UANE');
-    var un=_getUniAcronym(unRaw);
-    var photoUrl = _getPhotoUrl(p.photos ? p.photos[0] : null);
-    var cover = photoUrl ? 'background-image:url('+photoUrl+');background-size:cover;background-position:center;' : 'background:linear-gradient(160deg,'+(p.bg||'#791515')+',rgba(0,0,0,0.55));';
-    var handleArg = p.handle ? '\'' + p.handle + '\'' : 'null';
-    
-    if(unlocked){
-      return '<div onclick="viewUserUnicrush('+handleArg+',\''+safe+'\',\''+(p.bg||'')+'\',\'\')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(61,123,255,0.6);background:#0b0b0e;position:relative;">'+
-        '<div style="height:190px;'+cover+'position:relative;"><div style="position:absolute;left:0;right:0;bottom:0;padding:24px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.96) 0%, transparent 100%);"><div class="t-body-black">'+p.name+' '+(p.age||'')+'</div><div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:2px;">'+(p.major?p.major+' · ':'')+un+'</div></div></div></div>';
-    }
-
-    return '<div onclick="revealLikedYou()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(240,62,90,0.75);background:#0b0b0e;position:relative;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
-      '<div style="height:190px;'+cover+'filter:blur(18px) saturate(180%);transform:scale(1.15);"></div>'+
-      '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, rgba(240,62,90,0.2) 0%, rgba(0,0,0,0.75) 100%);z-index:2;">'+
-        '<div style="width:48px;height:48px;border-radius:50%;background:#791515;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);border:2px solid #ffffff;animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',16)+'</div>'+
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:#dc2626;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #dc2626;">TAP TO REVEAL</div>'+
-      '</div>'+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
-        '<div style="font-size:var(--fs-xs);color:#d6e4ff;font-weight:600;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">'+(p.major?p.major+' · ':'')+un+'</div>'+
-        '<div style="margin-top:6px;background:linear-gradient(135deg,rgba(240,62,90,0.35),rgba(61,123,255,0.35));border:1px solid #dc2626;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">🔓 REVELAR PERFIL</div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-  
-  panel.innerHTML=subRow+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+cards+'</div>';
+  panel.innerHTML = subRow + _likedSawHtml(_mergedAdmirersPool(), unlimited);
 }
 function swipe(dir){
   var card=document.getElementById('crush-card');if(!card||card.style.display==='none')return;
@@ -15241,56 +15296,6 @@ function crushFilterChip(el){if(curPlan!=='aplus'){premAlert();return;}el.classL
 // Single-select scope chip (My University / All / Near me) — gated by plan
 // Reflect the current plan: show/hide lock icons + badges on premium filters
 function _applyPlanLocks(){try{document.body.classList.toggle('aplus-on',curPlan==='aplus');var searchInput=document.getElementById('crush-search-input');if(searchInput){if(curPlan!=='aplus'&&typeof uni!=='undefined'&&uni&&uni.acronym){searchInput.placeholder='Search students at '+uni.acronym+'...';}else{searchInput.placeholder='Search student handle...';}}}catch(e){}}
-// ── WHO VIEWED YOU ──
-function _viewRevealLeft(){try{var last=parseInt(localStorage.getItem('ugz_viewreveal_last')||'0');if(!last)return 0;var d=(Date.now()-last)/86400000;return Math.max(0,Math.ceil(5-d));}catch(e){return 0;}}
-function revealWhoViewed(){
-  if(curPlan==='aplus'){openWhoViewed(true);return;}
-  // No free reveals any more: admirers stay hidden until you have A+. Non-A+
-  // users get the locked sheet, which carries the upgrade CTA.
-  openWhoViewed(false);
-}
-function openWhoViewed(revealed){
-  var isA=(curPlan==='aplus')||revealed===true;
-  var viewers=[{n:'Ana M.',i:'A',c:'#e91e63',m:'Systems Eng'},{n:'Sage M.',i:'S',c:'#4d84ff',m:'Computer Science'},{n:'Laura V.',i:'L',c:'#3d7bff',m:'Pre-Law'},{n:'Marco R.',i:'M',c:'#16a34a',m:'Finance'},{n:'Quinn A.',i:'Q',c:'#14b8a6',m:'Graphic Design'}];
-  var m=document.getElementById('who-viewed-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='who-viewed-modal';m.className='mov open';m.style.zIndex='9998';
-  if(!isA){
-    // Locked reveal screen — same gating as "who liked you"
-    m.innerHTML='<div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;display:flex;flex-direction:column;background:radial-gradient(120% 60% at 50% 0%,#1a0f2e,#000000 70%);">'+
-      '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:8px var(--s) 4px;">'+
-        '<div><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;letter-spacing:.3px;">👀 SAW YOUR PROFILE</div>'+
-        '<div style="font-size:var(--fs-base);color:var(--fg2);margin-top:2px;">Personas que vieron tu perfil.</div></div>'+
-        '<button onclick="document.getElementById(\'who-viewed-modal\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:var(--fs-md);cursor:pointer;flex-shrink:0;">×</button>'+
-      '</div>'+
-      '<div style="padding:0 var(--s) 10px;font-size:var(--fs-sm);font-weight:500;color:#a9c4ff;">See who\'s checking you out!</div>'+
-      '<div style="display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:6px var(--s) 14px;">'+
-        viewers.map(function(v){return '<div onclick="document.getElementById(\'who-viewed-modal\').remove();revealWhoViewed()" style="flex-shrink:0;width:128px;height:172px;border-radius:var(--rad-lg);position:relative;overflow:hidden;border:1px solid rgba(61,123,255,0.25);cursor:pointer;background:linear-gradient(160deg,'+v.c+',rgba(0,0,0,0.6));">'+
-          '<div style="position:absolute;inset:0;background:linear-gradient(160deg,'+v.c+',rgba(0,0,0,0.6));filter:blur(16px);transform:scale(1.3);"></div>'+
-          '<div style="position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);">👤</div>'+
-          '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;"><div style="width:46px;height:46px;border-radius:var(--rad-md);background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);">'+icon('lock',16)+'</div></div>'+
-          '<div style="position:absolute;left:0;right:0;bottom:0;height:40px;display:flex;align-items:center;justify-content:center;background:linear-gradient(transparent,rgba(0,0,0,0.55));font-size:var(--fs-md);">👁️</div>'+
-        '</div>';}).join('')+
-      '</div>'+
-      '<div style="flex:1;"></div>'+
-      '<div onclick="document.getElementById(\'who-viewed-modal\').remove();sw(\'premium\',\'Plans\')" style="margin:0 var(--s) 22px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));border-radius:var(--rad-lg);padding:16px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:var(--el-3);">'+
-        '<div style="flex:1;"><div class="t-title-md">Unlock all viewers with A+</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.88);margin-top:2px;">See everyone who viewed your profile.</div></div>'+
-        '<div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:900;color:#fff;flex-shrink:0;">A+</div>'+
-      '</div></div>';
-    document.body.appendChild(m);return;
-  }
-  var rows=viewers.map(function(v){
-    return '<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">'+
-      '<div style="width:42px;height:42px;border-radius:50%;background:'+v.c+';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;">'+v.i+'</div>'+
-      '<div style="flex:1;"><div class="t-body-strong">'+v.n+'</div><div class="t-meta">'+v.m+'</div></div>'+
-      '<button onclick="document.getElementById(\'who-viewed-modal\').remove();viewUserUnicrush(null,\''+v.n+'\',\''+v.c+'\')" style="padding:6px 12px;border-radius:var(--rad-md);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:600;cursor:pointer;">💘 View</button>'+
-    '</div>';
-  }).join('');
-  m.innerHTML='<div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;display:flex;flex-direction:column;"><div class="mhnd"></div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:0 var(--s) 8px;"><div class="t-title">👀 '+viewers.length+' viewed you'+(curPlan==='aplus'?'':' <span style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;">· free reveal</span>')+'</div><button onclick="document.getElementById(\'who-viewed-modal\').remove()" style="background:rgba(255,255,255,0.1);border:none;border-radius:50%;width:30px;height:30px;color:#fff;font-size:var(--fs-md);cursor:pointer;">×</button></div>'+
-    '<div style="flex:1;overflow-y:auto;padding:0 var(--s) 16px;">'+rows+'</div>'+
-  '</div>';
-  document.body.appendChild(m);
-}
 // ── ACHIEVEMENT BADGES (unlock from real, app-recorded activity) ──
 var BADGES=[
   {id:'verified',e:'✅',t:'Verified',d:'Verify your student ID',chk:function(){return typeof verified!=='undefined'&&verified;}},
@@ -15755,10 +15760,14 @@ function _spotlightCard(r,i,opts){
   var p=r.p;var safe=p.name.replace(/'/g,"");
   var cover=(p.photos&&p.photos[0])?'background-image:url('+p.photos[0]+');background-size:cover;background-position:center;':'background:linear-gradient(160deg,'+p.bg+',rgba(0,0,0,0.6));';
   
-  // High-end neon borders per rank
-  var brd = opts.other 
-    ? 'rgba(61, 123, 255, 0.65)' 
-    : (i === 0 ? '#f59e0b' : (i === 1 ? '#06b6d4' : (i === 2 ? '#dc2626' : 'rgba(61, 123, 255, 0.55)')));
+  // High-end neon borders per rank. opts.plain rows are not leaderboards — they
+  // already drop the #1 rosette — so a gold/silver/bronze edge there would keep
+  // implying an order the row does not have. One neutral edge instead.
+  var brd = opts.plain
+    ? 'rgba(255, 255, 255, 0.14)'
+    : (opts.other
+      ? 'rgba(61, 123, 255, 0.65)'
+      : (i === 0 ? '#f59e0b' : (i === 1 ? '#06b6d4' : (i === 2 ? '#dc2626' : 'rgba(61, 123, 255, 0.55)'))));
   
   var glow = opts.other
     ? ';'
@@ -15800,7 +15809,9 @@ function _spotlightCard(r,i,opts){
       // order the row doesn't have.
       (opts.plain?'':'<div style="position:absolute;top:10px;left:10px;'+rankBg+'font-size:var(--fs-xs);font-weight:700;padding:4px 11px;border-radius:var(--rad-lg);display:flex;align-items:center;gap:4px;z-index:2;">'+rankIco+' #'+(i+1)+'</div>')+
       (opts.plain?'':likeBadgeHtml)+
-      '<div style="position:absolute;left:0;right:0;bottom:0;padding:50px 12px 14px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 65%, transparent 100%);">'+
+      // Taller, more opaque scrim on the plain cards: with no badges up top the
+      // eye lands straight on the name, and it was competing with the photo.
+      '<div style="position:absolute;left:0;right:0;bottom:0;padding:'+(opts.plain?'66px':'50px')+' 12px 14px;background:linear-gradient(to top, rgba(0,0,0,0.99) 0%, rgba(0,0,0,0.82) 45%, rgba(0,0,0,0.35) 78%, transparent 100%);">'+
         '<div style="font-size:var(--fs-lg);font-weight:900;color:#ffffff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);">'+p.name+' '+(p.age||'')+(p.verified?_verBadge(15):'')+'</div>'+
         pillsHtml+
         (!opts.sport && studyLine ? '<div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+studyLine+'</div>' : '')+
@@ -15830,17 +15841,38 @@ function _fySeededPick(arr,seed,n){
   for(var i=a.length-1;i>0;i--){var j=_strHash(seed+':'+i)%(i+1);var t=a[i];a[i]=a[j];a[j]=t;}
   return a.slice(0,n);
 }
+// Shared empty state for the "For you" rows, in the same black-card + lit
+// underline language as the Discover banners. Previously an empty pool wrote ''
+// into the box and left the whole tab blank with no explanation.
+function _fyEmptyHtml(col, msg){
+  return '<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid '+col+'40;border-radius:var(--rad-xl);padding:24px 20px 26px;margin:0 var(--s) 12px;text-align:center;">'+
+    '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+col+',rgba(0,0,0,0.4));box-shadow:0 0 10px '+col+'aa;"></div>'+
+    '<div style="font-size:var(--fs-base);font-weight:800;color:#fff;letter-spacing:-0.2px;">Nada por aquí todavía</div>'+
+    '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:6px;font-weight:500;line-height:1.4;">'+msg+'</div>'+
+  '</div>';
+}
+
 function renderSpotlight(){
   var box=document.getElementById('crush-spotlight');if(!box||typeof crushDataAll==='undefined'||!crushDataAll)return;
-  var pool=crushDataAll.slice(); if(!pool.length){box.innerHTML='';return;}
+  var pool=crushDataAll.slice();
+  if(!pool.length){box.innerHTML=_fyEmptyHtml('#f59e0b','Todavía no hay perfiles que mostrarte. Vuelve más tarde.');return;}
   function _cp(x){return (typeof _megaCompat==='function')?(_megaCompat(x).pct||60):60;}
-  function hdr(t, col){
+  // Header on the house recipe: white label, the hue carried by a lit 3px rule
+  // underneath rather than by the text itself, and the count on the right.
+  function hdr(t, col, n){
     col = col || '#f59e0b';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px var(--s) 8px;">' +
-      '<div style="font-size:var(--fs-base);font-weight:700;color:' + col + ';letter-spacing:-0.2px;text-shadow:0 0 12px ' + col + '66;display:flex;align-items:center;gap:6px;">' + t + '</div>' +
+    return '<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;padding:16px var(--s) 9px;">' +
+      '<div style="min-width:0;">' +
+        '<div style="font-size:var(--fs-base);font-weight:800;color:#fff;letter-spacing:-0.2px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + t + '</div>' +
+        '<div style="height:3px;width:44px;margin-top:6px;border-radius:2px;background:' + col + ';box-shadow:0 0 10px ' + col + 'a6;"></div>' +
+      '</div>' +
+      (n ? '<div style="flex-shrink:0;font-size:var(--fs-2xs);font-weight:700;color:' + col + ';background:' + col + '22;border:1px solid ' + col + '80;border-radius:var(--rad-xs);padding:2.5px 8px;letter-spacing:0.4px;">' + n + '</div>' : '') +
     '</div>';
   }
-  function row(cards){return '<div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 10px;-webkit-overflow-scrolling:touch;">'+cards+'</div>';}
+  // scroll-snap-type lives on the scroller, not the items. The cards have
+  // carried scroll-snap-align since they were written, but with nothing
+  // declaring the type the snapping never actually engaged.
+  function row(cards){return '<div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 10px;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scroll-padding-left:var(--s);overscroll-behavior-x:contain;">'+cards+'</div>';}
   var pref = (typeof crushGenderPref !== 'undefined') ? crushGenderPref : 'female';
 
   // Apply university filter for free users
@@ -15860,17 +15892,20 @@ function renderSpotlight(){
     .map(function(x){return {p:x,likes:200+(_strHash((x.name||'')+'clk')%2800),compat:_cp(x)};})
     .sort(function(a,b){return b.compat-a.compat;});
   var bestPool = ranked.slice(0, Math.max(FY_N, Math.min(ranked.length, FY_N * 3)));
-  var best = _fySeededPick(bestPool, 'fy-best-' + _fyDayKey(), FY_N)
-    .map(function(r,i){return _spotlightCard(r,i,{plain:true});}).join('');
+  var bestPicks = _fySeededPick(bestPool, 'fy-best-' + _fyDayKey(), FY_N);
+  var best = bestPicks.map(function(r,i){return _spotlightCard(r,i,{plain:true});}).join('');
 
   // New Picks: rotates once a week off the same pool, no tag on the cards.
-  var fresh = _fySeededPick(datingPool, 'fy-new-' + _fyWeekKey(), FY_N)
-    .map(function(x,i){var h=_strHash((x.name||'')+'neww');
+  var freshPicks = _fySeededPick(datingPool, 'fy-new-' + _fyWeekKey(), FY_N);
+  var fresh = freshPicks.map(function(x,i){var h=_strHash((x.name||'')+'neww');
       return _spotlightCard({p:x,likes:100+(h%400),uni:x.uni||null},i,{plain:true});}).join('');
 
+  var noUniMsg = 'Aún no hay más estudiantes de tu universidad. Con A+ ves perfiles de todos los campus.';
   box.innerHTML=
-    hdr('✨ Best Picks For You', '#f59e0b')+row(best)+
-    hdr('🆕 New Picks This Week', '#4ade80')+row(fresh);
+    hdr('✨ Best Picks For You', '#f59e0b', bestPicks.length)+
+      (best ? row(best) : _fyEmptyHtml('#f59e0b', noUniMsg))+
+    hdr('🆕 New Picks This Week', '#4ade80', freshPicks.length)+
+      (fresh ? row(fresh) : _fyEmptyHtml('#4ade80', noUniMsg));
 }
 var SPOTLIGHT_LIKE_BONUS=20;
 var spotlightState={day:null};
@@ -16750,6 +16785,71 @@ function _refreshRelationBars(name) {
   if (det) det.innerHTML = _relationBarHtml(name);
 }
 
+// Bottom strip for a profile opened from Likes Sent. The like / super-like /
+// pass buttons make no sense there — the like is already sent — so this states
+// where things stand and offers the one action that is still available.
+// It deliberately reuses id="uc-relation-bar": _applyUcActionBar() removes that
+// id before rendering, so any other id would stack up a new strip per repaint.
+function _sentStatusBarHtml(u) {
+  var kind = _sentLikeKind(u && u.sentType);
+  var label = (kind.lbl === 'LIKE') ? 'Ya le diste like' : 'Ya le enviaste un ' + kind.lbl.toLowerCase();
+  return '<div id="uc-relation-bar" style="display:flex;align-items:center;gap:12px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000;flex-shrink:0;">' +
+    '<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background:rgba(0,0,0,0.6);border:1.5px solid ' + kind.hue + ';">' + kind.ico + '</div>' +
+    '<div style="flex:1;min-width:0;">' +
+      '<div style="font-size:var(--fs-sm);font-weight:800;color:#fff;letter-spacing:-0.1px;">' + label + '</div>' +
+      '<div style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;margin-top:2px;">Esperando su respuesta</div>' +
+    '</div>' +
+    '<button onclick="_unsendSentLike()" style="flex-shrink:0;padding:10px 16px;' +
+      _gradSkin('var(--wine)', false, { radius: 'var(--rad-pill)' }) +
+      'font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap;">Quitar like</button>' +
+  '</div>';
+}
+
+// "Quitar like" — retracts the swipe so the person leaves Likes Sent for good.
+function _unsendSentLike() {
+  var u = window._ucViewUser || {};
+  var name = u.name || 'esta persona';
+  var id = u.sentTargetId;
+
+  ugzConfirm({
+    type: 'warning',
+    title: 'Quitar like',
+    message: '¿Quitar tu like a ' + name + '? Dejará de aparecer en Likes Sent y no sabrá que le diste like.',
+    confirmText: 'Quitar like',
+    cancelText: 'Cancelar',
+    onConfirm: function () {
+      function done() {
+        // Drop them from the cached list so the grid repaints without them
+        // instead of waiting out the 5s refetch window in _renderLikedYouReveal.
+        if (window._sentLikesData) {
+          window._sentLikesData = window._sentLikesData.filter(function (x) {
+            return id ? x.id !== id : x.name !== u.name;
+          });
+        }
+        var m = document.getElementById('user-crush-modal');
+        if (m) m.classList.remove('open');
+        if (typeof _renderLikedYouReveal === 'function') _renderLikedYouReveal(curPlan === 'aplus');
+        if (typeof ugzAlert === 'function') ugzAlert('Quitaste tu like a ' + name + '.');
+      }
+
+      // No id means a demo/seeded profile that was never persisted — there is
+      // nothing on the backend to delete, so just drop it locally.
+      if (!id || typeof apiClient === 'undefined' || !apiClient.getAccessToken()) { done(); return; }
+
+      apiClient.unsendLike(id).then(done).catch(function (err) {
+        if (err && err.status === 409) {
+          if (typeof ugzAlert === 'function') ugzAlert('Ya hicieron match — el like no se puede retirar.');
+        } else if (err && err.status === 404) {
+          // Already gone on the backend; the local list is what is stale.
+          done();
+        } else if (typeof ugzAlert === 'function') {
+          ugzAlert('No se pudo quitar el like: ' + ((err && err.message) ? err.message : 'error'));
+        }
+      });
+    }
+  });
+}
+
 // Swaps the swipe bar for the relationship bar inside #user-crush-modal.
 function _applyUcActionBar() {
   var bar = document.getElementById('uc-action-bar');
@@ -16757,7 +16857,11 @@ function _applyUcActionBar() {
   var prev = document.getElementById('uc-relation-bar');
   if (prev) prev.remove();
   var u = window._ucViewUser || {};
-  if (u.origin === 'search' || u.origin === 'chat') {
+  if (u.origin === 'sent') {
+    // Same cascade problem as below: .crush-actions carries display:flex !important.
+    bar.style.setProperty('display', 'none', 'important');
+    bar.insertAdjacentHTML('afterend', _sentStatusBarHtml(u));
+  } else if (u.origin === 'search' || u.origin === 'chat') {
     // .crush-actions carries display:flex !important, so a plain style.display
     // assignment loses the cascade.
     bar.style.setProperty('display', 'none', 'important');
@@ -23034,6 +23138,24 @@ async function sendCrushFriendRequest(userId, btn) {
     btn.textContent = 'Add +';
     alert(e.message || "Failed to send friend request. They might already be your friend or have a pending request!");
   }
+}
+
+// Spanish sibling of _timeAgo, for the Discover sections — their copy is in
+// Spanish, and _timeAgo's "3d ago" reads as a leftover next to it.
+function _agoEs(dateStr) {
+  if (!dateStr) return '';
+  var seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
+  if (isNaN(seconds)) return '';
+  if (seconds < 60) return 'ahora';
+  var minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return 'hace ' + minutes + 'm';
+  var hours = Math.floor(minutes / 60);
+  if (hours < 24) return 'hace ' + hours + 'h';
+  var days = Math.floor(hours / 24);
+  if (days < 7) return 'hace ' + days + 'd';
+  var weeks = Math.floor(days / 7);
+  if (weeks < 5) return 'hace ' + weeks + 'sem';
+  return 'hace ' + Math.floor(days / 30) + 'mes';
 }
 
 function _timeAgo(dateStr) {

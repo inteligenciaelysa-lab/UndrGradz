@@ -117,7 +117,12 @@ class ApiClient {
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Request failed');
+        // Carry the HTTP status on the error: callers that need to tell one
+        // failure from another (409 vs 404 on un-sending a like, say) have no
+        // other way to, since the message is free text from the backend.
+        const err = new Error(data.message || 'Request failed');
+        err.status = response.status;
+        throw err;
       }
 
       return data;
@@ -342,6 +347,15 @@ class ApiClient {
   async getSentLikes() {
     const result = await this.request('/campus/sent-likes');
     return result.data.sentLikes || result.data.likes;
+  }
+
+  // Retract a like from "Likes Sent". Rejects with a 409 once the other person
+  // liked back — the backend refuses to delete a swipe under an active Match.
+  async unsendLike(targetId) {
+    const result = await this.request('/campus/sent-likes/' + encodeURIComponent(targetId), {
+      method: 'DELETE'
+    });
+    return result.data;
   }
 
   // ==========================================

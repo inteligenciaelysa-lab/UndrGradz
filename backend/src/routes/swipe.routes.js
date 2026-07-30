@@ -28,6 +28,7 @@ router.post('/views', swipeController.recordView);
 router.get('/views', swipeController.getViews);
 router.get('/admirers', swipeController.getAdmirers);
 router.get('/sent-likes', swipeController.getSentLikes);
+router.delete('/sent-likes/:targetId', swipeController.unsendLike);
 router.post('/swipe', swipeController.swipe);
 
 module.exports = router;
