@@ -11247,7 +11247,11 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
   max-width: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  background: #000;
+  /* Give the strip a body so it isn't invisible black-on-black, and a soft
+     accent border so it reads as a card. */
+  background: linear-gradient(135deg, color-mix(in srgb, var(--prof-accent, #fbbf24) 12%, #000), #000);
+  border: 1px solid color-mix(in srgb, var(--prof-accent, #fbbf24) 28%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--prof-accent, #fbbf24) 12%, transparent);
 }
 
 /* ── Los botones Change / Verify / Switch toman el color de su sección ──
