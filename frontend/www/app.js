@@ -2443,6 +2443,9 @@ function _ob4Steps(){
     if(i>0)h+='<div class="ob4-line'+(n<=_ob4Phase?' on':'')+'"></div>';
     h+='<div class="ob4-step'+(cur?' cur':'')+(done?' done':'')+'" '+((done||cur)?'style="cursor:pointer;" onclick="_ob4Go('+n+', true)"':'')+'><div class="ob4-dot">'+(done?'✓':n)+'</div><div class="ob4-lbl">'+L[i]+'</div></div>';}
   box.innerHTML=h;
+  // Recolour the dots along the primary→secondary gradient on every step render
+  // (the stepper HTML is rebuilt here, so the inline dot colours must be re-applied).
+  if(typeof _ob4UpdateUniTheme==='function')try{_ob4UpdateUniTheme();}catch(e){}
 }
 // The PROFILE STRENGTH ring was removed from the header by request. This is
 // left in place and simply no-ops on the missing node, so the percentage it
@@ -6207,7 +6210,23 @@ function filterChatBySection() {
   });
 
   var empty = document.getElementById('chat-empty-section');
-  if (empty) empty.style.display = anyVisible ? 'none' : 'block';
+  if (empty) {
+    empty.style.display = anyVisible ? 'none' : 'block';
+    if (!anyVisible) {
+      var _es = {
+        matches: { ico: '💘', t: 'No matches yet', b: 'Like people in Crush and your matches land here.', cta: 'Open Crush', act: "sw('unicrush','Crush')" },
+        friends: { ico: '🤝', t: 'No friend chats yet', b: 'Add friends on campus to start a chat.', cta: 'Find people', act: "sw('unicrush','Crush')" },
+        events:  { ico: '🎉', t: 'No event chats yet', b: 'Join a hangout to unlock its group chat.', cta: 'Explore hangouts', act: "sw('hangouts','Hangouts')" },
+        all:     { ico: '💬', t: 'No conversations yet', b: 'Match with someone or join a hangout to start chatting.', cta: 'Explore', act: "sw('hangouts','Hangouts')" }
+      };
+      var _e = _es[sec] || _es.all;
+      empty.innerHTML =
+        '<div style="width:70px;height:70px;border-radius:50%;background:color-mix(in srgb, var(--p) 14%, transparent);border:1px solid color-mix(in srgb, var(--p) 35%, transparent);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 12px;">' + _e.ico + '</div>' +
+        '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;margin-bottom:4px;">' + _e.t + '</div>' +
+        '<div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.5;max-width:240px;margin:0 auto 14px;">' + _e.b + '</div>' +
+        '<button class="gbtn" onclick="' + _e.act + '" style="background:var(--p);width:auto;padding:9px 22px;display:inline-block;">' + _e.cta + '</button>';
+    }
+  }
 
   var searchWrap = document.getElementById('chat-search');
   if (searchWrap && searchWrap.parentElement) searchWrap.parentElement.style.display = '';
@@ -8265,7 +8284,41 @@ function _evFiltToggle(h){var s=(h&&h.closest)?h.closest('.evfilt'):null;if(s)s.
 // in card 2, which is absolutely positioned to escape its card.
 // The handler lives on .ehsec rather than being delegated on #evp-create: the
 // .evfilt rows in card 6 are siblings of .ehsec, so their clicks never reach it.
-function _ehCardToggle(h){var c=(h&&h.closest)?h.closest('.ehcard'):null;if(c)c.classList.toggle('collapsed');}
+function _ehCardToggle(h){
+  var c=(h&&h.closest)?h.closest('.ehcard'):null;if(!c)return;
+  var opening=c.classList.contains('collapsed');
+  if(opening){
+    // Accordion: only one step open at a time. Collapsing the others marks the
+    // valid ones as done, so progress advances as you move down the flow.
+    document.querySelectorAll('#evp-create .ehcard').forEach(function(o){
+      if(o!==c&&!o.classList.contains('collapsed')){
+        o.classList.add('collapsed');
+        if(_ehStepValid(o))o.classList.add('done');
+      }
+    });
+    c.classList.remove('collapsed');
+    c.classList.remove('done'); // it's the step you're on now
+  }else{
+    c.classList.add('collapsed');
+    if(_ehStepValid(c))c.classList.add('done');
+  }
+  _ehUpdateProgress();
+}
+// Step 1 needs a name; the rest are optional or pre-filled, so visiting them counts.
+function _ehStepValid(c){
+  var step=c.getAttribute('data-step');
+  if(step==='1'){var n=document.getElementById('ev-nm');return !!(n&&n.value.trim());}
+  return true; // other steps are optional or pre-filled — visiting them counts
+}
+function _ehUpdateProgress(){
+  var cards=document.querySelectorAll('#evp-create .ehcard');
+  var total=Math.max(1,cards.length);
+  var done=document.querySelectorAll('#evp-create .ehcard.done').length;
+  var fill=document.getElementById('eh-progress-fill');
+  var lbl=document.getElementById('eh-progress-lbl');
+  if(fill)fill.style.width=Math.min(100,Math.round(done/total*100))+'%';
+  if(lbl)lbl.textContent=done+' of '+total+' done';
+}
 // Open a step card by number and bring it into view. Used by anything that has
 // to reach content which may be collapsed.
 function _ehOpenStep(n){
@@ -12679,15 +12732,25 @@ function updateChatWindowBubbleColors(style, partnerUni) {
   if (!win) return;
   
   // Resolve primary color c1
-  var c1 = '#3d7bff'; // fallback
+  var c1 = '';
   if (partnerUni) {
-    c1 = partnerUni.p || c1;
+    c1 = partnerUni.p || '';
   } else if (typeof uni !== 'undefined' && uni) {
-    c1 = uni._schoolP || uni.p || c1;
+    c1 = uni._schoolP || uni.p || '';
   }
+  // If we didn't get a concrete hex (empty, or a 'var(--p)'/gradient string), read
+  // the live computed --p so the sent bubble tracks the university colour instead
+  // of silently falling back to the old hardcoded pink.
+  if (!c1 || c1.charAt(0) !== '#') {
+    try {
+      var _pc = getComputedStyle(document.documentElement).getPropertyValue('--p').trim();
+      if (_pc && _pc.charAt(0) === '#') c1 = _pc;
+    } catch (e) {}
+  }
+  if (!c1 || c1.charAt(0) !== '#') c1 = '#3d7bff';
 
-  // Parse hex to rgb
-  var r = 255, g = 45, b = 120; // Default fallback rgb
+  // Parse hex to rgb (defaults to the blue fallback, never pink)
+  var r = 61, g = 123, b = 255;
   if (c1.startsWith('#')) {
     var hex = c1.substring(1);
     if (hex.length === 3) {
@@ -13409,9 +13472,29 @@ function renderMsgs(){
   var hist=chatHistory[curChatId]||[];
   console.log('[CHAT DEBUG] renderMsgs() executing for curChatId:', curChatId, '| messages count in chatHistory:', hist.length, hist);
   box.innerHTML='';
-  if(hist.length){var d=document.createElement('div');d.style.cssText='align-self:center;font-size:var(--fs-2xs);font-weight:800;color:var(--fg2);background:rgba(255,255,255,0.08);border-radius:var(--rad-sm);padding:3px 12px;margin:2px 0 4px;';d.textContent='Today';box.appendChild(d);}
+  // Empty thread → an inviting prompt instead of a black void (worst moment for a
+  // fresh match). Auto-surface the icebreakers too.
+  if(!hist.length){
+    var _enm=(_curChatUser&&_curChatUser.name)||'them';
+    var _eic=(_curChatUser&&_curChatUser.init)||_enm.charAt(0).toUpperCase();
+    var _ecl=(_curChatUser&&_curChatUser.color)||'var(--p)';
+    box.innerHTML='<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px;gap:12px;">'+
+      '<div style="width:64px;height:64px;border-radius:50%;background:'+_ecl+';display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.45);">'+_e(_eic)+'</div>'+
+      '<div style="font-size:var(--fs-md);font-weight:800;color:#fff;">'+(isGrp?_e(_enm):('You matched with '+_e(_enm)))+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);">Say something 👀</div>'+
+    '</div>';
+    try{ if(typeof renderIcebreakers==='function')renderIcebreakers(curChatId); var _ib0=document.getElementById('icebreaker-bar'); if(_ib0)_ib0.style.display=''; }catch(e){}
+    return;
+  }
   var RX=['❤️','🔥','👍'];var COLS=['#e91e63','#3b82f6','#3d7bff','#f59e0b','#22c55e','#0ea5e9'];
+  var _lastDay=null;
   hist.forEach(function(m){
+    // Real date separator — only when a message actually carries a timestamp, so
+    // we never print a fake "Today" over undated demo history.
+    if(m.at){
+      var _dayKey=new Date(m.at).toDateString();
+      if(_dayKey!==_lastDay){_lastDay=_dayKey;var _dc=document.createElement('div');_dc.className='msg-datesep';_dc.textContent=(typeof _ugzDayLabel==='function'?_ugzDayLabel(m.at):'');box.appendChild(_dc);}
+    }
     var div=document.createElement('div');div.className='msg '+(m.out?'out':'in');
 
     // 1. See-Once media handling
@@ -13579,8 +13662,45 @@ function renderMsgs(){
     div.textContent=m.txt||'';
     box.appendChild(div);
   });
+  // Instagram-style "seen": the recipient's mini avatar under YOUR last message,
+  // shown only while your message is the newest thing in the thread.
+  if(!isGrp && hist.length && hist[hist.length-1] && hist[hist.length-1].out){
+    var _outs=box.querySelectorAll('.msg.out');
+    if(_outs.length){
+      var _scl=(_curChatUser&&_curChatUser.color)||'var(--p)';
+      var _sic=(_curChatUser&&_curChatUser.init)||'•';
+      var _sn=document.createElement('div');
+      _sn.className='msg-seen';
+      _sn.innerHTML='<div title="Seen" style="width:16px;height:16px;border-radius:50%;background:'+_scl+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+_e(_sic)+'</div>';
+      box.appendChild(_sn);
+    }
+  }
   box.scrollTop=box.scrollHeight;
   console.log('[CHAT DEBUG] renderMsgs() finished, DOM children count in #cmsgs:', box.children.length);
+}
+// Typing indicator: a dots bubble in-thread + restore the REAL subtitle (member
+// names for groups) instead of clobbering it with a hardcoded "Online".
+function _cwSetTyping(on){
+  var sub=document.getElementById('cwsub');
+  if(sub){
+    if(on){ if(sub.dataset.base==null)sub.dataset.base=sub.textContent; sub.textContent='typing…'; }
+    else if(sub.dataset.base!=null){ sub.textContent=sub.dataset.base; delete sub.dataset.base; }
+  }
+  var box=document.getElementById('cmsgs');if(!box)return;
+  var ex=document.getElementById('cw-typing');
+  if(on){
+    if(!ex){var t=document.createElement('div');t.id='cw-typing';t.className='msg in typing-bubble';t.innerHTML='<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>';box.appendChild(t);box.scrollTop=box.scrollHeight;}
+  }else if(ex){ex.remove();}
+}
+// "Today" / "Yesterday" / "Mon, 3 Jun" for date separators.
+function _ugzDayLabel(ts){
+  var d=new Date(ts), now=new Date();
+  var a=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  var b=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var diff=Math.round((b-a)/86400000);
+  if(diff===0)return 'Today';
+  if(diff===1)return 'Yesterday';
+  return d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'});
 }
 function sendMsg(){
   var rawInpValue = document.getElementById('cinp') ? document.getElementById('cinp').value : '';
@@ -13616,7 +13736,7 @@ function sendMsg(){
   var isDbMatch = (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !curChatId.startsWith('biz_') && !curChatId.startsWith('net_') && !curChatId.startsWith('clist-') && !curChatId.includes('moment'));
   
   debugChatState('sendMsg BEFORE PUSH', curChatId);
-  chatHistory[curChatId].push({txt:txt,out:true});
+  chatHistory[curChatId].push({txt:txt,out:true,at:Date.now()});
   debugChatState('sendMsg AFTER PUSH', curChatId);
   console.log('[CHAT DEBUG] LOCAL MESSAGE INSERTED, local count in chatHistory[' + curChatId + ']:', chatHistory[curChatId].length);
   
@@ -13662,7 +13782,7 @@ function sendMsg(){
     apiClient.sendTypingStatus(curChatId, false);
   } else {
     setTimeout(function(){
-      chatHistory[curChatId].push({txt:'Got it! 👍',out:false});
+      chatHistory[curChatId].push({txt:'Got it! 👍',out:false,at:Date.now()});
       renderMsgs();
     },1200);
   }
@@ -13829,8 +13949,8 @@ function _injectBgStyles() {
       background: rgba(255,255,255,0.06);\
     }\
     .bg-main-opt.active {\
-      background: rgba(43,95,217,0.14);\
-      border-color: rgba(43,95,217,0.5);\
+      background: color-mix(in srgb, var(--p) 14%, transparent);\
+      border-color: color-mix(in srgb, var(--p) 55%, transparent);\
     }\
     .bg-preview-circle {\
       width: 48px;\
@@ -13877,8 +13997,8 @@ function _injectBgStyles() {
       border-color: rgba(255,255,255,0.4);\
     }\
     .uni-design-btn.active {\
-      border-color: #3d7bff;\
-      box-shadow: 0 0 16px rgba(61,123,255,0.55);\
+      border-color: var(--p);\
+      box-shadow: 0 0 16px color-mix(in srgb, var(--p) 55%, transparent);\
     }\
     .uni-design-label {\
       position: absolute;\
@@ -13900,14 +14020,7 @@ function _injectBgStyles() {
       border-top: 1px solid rgba(255,255,255,0.08);\
     }\
     .uni-design-anim-badge {\
-      position: absolute;\
-      top: 4px;\
-      right: 4px;\
-      background: rgba(0,0,0,0.65);\
-      border-radius: 4px;\
-      padding: 1px 4px;\
-      font-size: 9px;\
-      color: #fbbf24;\
+      display: none;\
     }\
     .ugz-custom-bg-container {\
       position: absolute;\
@@ -17893,12 +18006,8 @@ function conectarChatEnVivo() {
       }
     },
     onTypingStatus: function(data) {
-      console.log("✍️ Typing status update:", data);
       if (curChatId === data.matchId && data.userId !== userPro.id) {
-        var sub = document.getElementById('cwsub');
-        if (sub) {
-          sub.textContent = data.isTyping ? "Typing..." : "Online";
-        }
+        if (typeof _cwSetTyping === 'function') _cwSetTyping(!!data.isTyping);
       }
     }
   });
@@ -18545,18 +18654,21 @@ function _ob4UpdateUniTheme(){
     gEl.style.textShadow = BLACK_3D;
   });
 
-  // Step circles: solid fill of the university colour, no gradient, no coloured glow.
-  // setProperty(...'important') so it beats the CSS !important background rule.
-  var curDot = document.querySelector('.ob4-step.cur .ob4-dot');
-  if(curDot){
-    curDot.style.setProperty('background', col, 'important');
-    curDot.style.borderColor = '#ffffff';
-    curDot.style.boxShadow = 'none';
-  }
-  document.querySelectorAll('.ob4-step.done .ob4-dot').forEach(function(dot){
-    dot.style.setProperty('background', col, 'important');
-    dot.style.borderColor = 'rgba(255,255,255,0.85)';
+  // Step circles ride the primary→secondary gradient: dot 1 = primary, dot 5 =
+  // secondary, dot 3 = a 50/50 blend — so the whole stepper reads as one gradient
+  // sweeping across the five steps. Future steps wear the same colour, dimmed.
+  var _allSteps = document.querySelectorAll('.ob4-step');
+  var _nSteps = _allSteps.length || 1;
+  _allSteps.forEach(function(step, i){
+    var dot = step.querySelector('.ob4-dot');
+    if(!dot) return;
+    var f = (_nSteps > 1) ? Math.round((i / (_nSteps - 1)) * 100) : 0;
+    var stepCol = 'color-mix(in srgb, ' + col2 + ' ' + f + '%, ' + col + ')';
+    var reached = step.classList.contains('done') || step.classList.contains('cur');
+    dot.style.setProperty('background', stepCol, 'important');
+    dot.style.borderColor = step.classList.contains('cur') ? '#ffffff' : (reached ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.22)');
     dot.style.boxShadow = 'none';
+    dot.style.opacity = reached ? '1' : '0.4';
   });
   document.querySelectorAll('.ob4-line.on').forEach(function(line){
     line.style.background = 'linear-gradient(90deg, ' + col + ', ' + col2 + ')';

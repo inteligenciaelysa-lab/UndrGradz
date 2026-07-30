@@ -1917,10 +1917,16 @@ textarea.gi {
   font-size:var(--fs-md);
   font-weight:600;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cwsub {
   font-size:var(--fs-xs);
   color: var(--fg2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cw-bg-btn {
   margin-left: auto;
@@ -1960,9 +1966,50 @@ textarea.gi {
   background: var(--chat-out-bg, var(--p));
   color: #fff;
   border-radius:var(--rad-lg) 18px 4px 18px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ── Message grouping, date chips, "seen" avatar, typing dots ── */
+/* Tighten a same-sender run (the 8px flex gap stays between different senders). */
+.cmsgs .msg.out + .msg.out,
+.cmsgs .msg.in + .msg.in { margin-top: -5px; }
+/* Only the LAST bubble of a run keeps its tail corner. */
+.cmsgs .msg.out:has(+ .msg.out) { border-bottom-right-radius: var(--rad-lg); }
+.cmsgs .msg.in:has(+ .msg.in) { border-bottom-left-radius: var(--rad-lg); }
+
+.msg-datesep {
+  align-self: center;
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  color: var(--fg2);
+  background: rgba(2, 3, 8, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: var(--rad-pill);
+  padding: 3px 12px;
+  margin: 4px 0;
+}
+.msg-seen { align-self: flex-end; margin: -3px 2px 0 0; }
+
+.typing-bubble {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  padding: 11px 14px !important;
+  align-self: flex-start;
+}
+.typing-bubble .tdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--fg2);
+  animation: tdotb 1.2s infinite ease-in-out;
+}
+.typing-bubble .tdot:nth-child(2) { animation-delay: 0.15s; }
+.typing-bubble .tdot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes tdotb {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
 }
 /* Unified Audio Player & Icebreaker Card Styles */
 .msg-audio-player-wrapper {
@@ -4501,7 +4548,7 @@ svg {
    which caps at 1000px (card 6 is taller than that) and would clip the date
    picker popup in card 2. */
 #evp-create .ehcard {
-  --step-hue: var(--c-blue);
+  --step-hue: rgba(255, 255, 255, 0.34);
   position: relative;
   z-index: 1;
   background: #000;
@@ -4512,14 +4559,16 @@ svg {
   box-shadow: inset 0 0 12px color-mix(in srgb, var(--step-hue) 8%, transparent);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-#evp-create .ehcard[data-step="1"] { --step-hue: var(--c-blue); } /* blue   */
-#evp-create .ehcard[data-step="2"] { --step-hue: var(--c-cyan); } /* cyan   */
-#evp-create .ehcard[data-step="3"] { --step-hue: var(--c-red-ink); } /* red    */
-#evp-create .ehcard[data-step="4"] { --step-hue: var(--c-lime); } /* lime   */
-#evp-create .ehcard[data-step="5"] { --step-hue: var(--c-pink); } /* pink   */
-#evp-create .ehcard[data-step="6"] { --step-hue: var(--c-violet); } /* purple */
-#evp-create .ehcard[data-step="7"] { --step-hue: var(--c-amber); } /* amber  */
-#evp-create .ehcard[data-step="8"] { --step-hue: var(--c-green); } /* green  */
+/* Each step keeps its own colour so the flow stays lively; the STATE layers on
+   top (open = a lit card in that hue, done = a green ✓). */
+#evp-create .ehcard[data-step="1"] { --step-hue: var(--c-blue); }
+#evp-create .ehcard[data-step="2"] { --step-hue: var(--c-cyan); }
+#evp-create .ehcard[data-step="3"] { --step-hue: var(--c-red-ink); }
+#evp-create .ehcard[data-step="4"] { --step-hue: var(--c-lime); }
+#evp-create .ehcard[data-step="5"] { --step-hue: var(--c-pink); }
+#evp-create .ehcard[data-step="6"] { --step-hue: var(--c-violet); }
+#evp-create .ehcard[data-step="7"] { --step-hue: var(--c-amber); }
+#evp-create .ehcard[data-step="8"] { --step-hue: var(--c-green); }
 
 /* The step number and the title follow the card. The inline colours these
    titles used to carry are gone from index.html, or they would win over this. */
@@ -5424,9 +5473,7 @@ svg {
   margin: 0;
   background: transparent;
   border: none;
-  /* 6% white was invisible on the black canvas; 14% reads as a soft divider
-     without becoming a hard rule. */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: none;
   border-radius: 0;
   box-shadow: none;
   backdrop-filter: none;
@@ -5434,11 +5481,19 @@ svg {
   cursor: pointer;
   transition: background var(--dur) ease;
 }
-/* Now that the line is actually visible, the trailing one under the last chat
-   would read as a stray rule. */
-.citem:last-child {
-  border-bottom: none;
+/* iMessage-style inset divider — starts past the avatar column instead of
+   slicing edge-to-edge under it. */
+.citem::after {
+  content: '';
+  position: absolute;
+  left: calc(var(--s) + 64px);
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.10);
+  pointer-events: none;
 }
+.citem:last-child::after { display: none; }
 
 .citem:hover,
 .citem:active {
@@ -5485,7 +5540,7 @@ svg {
 
 .citem .ctm {
   font-size:var(--fs-2xs);
-  color: #7aa5ff;
+  color: var(--fg3);
   font-weight:500;
 }
 
@@ -5493,10 +5548,20 @@ svg {
   font-size:var(--fs-2xs);
   font-weight:700;
   color: #fff;
-  border-radius:var(--rad-xs);
-  padding: 1.5px 6px;
-  
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--rad-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* Unread rows earn a heavier name, a brighter preview and an accent time, so the
+   list has a read/unread rhythm instead of one flat weight. */
+.citem:has(.cunrd) .cnm { font-weight: 800; }
+.citem:has(.cunrd) .cpre { color: #fff; font-weight: 600; }
+.citem:has(.cunrd) .ctm { color: var(--p); font-weight: 700; }
 
 .chat-grp-hdr {
   font-size:var(--fs-2xs);
@@ -6999,7 +7064,7 @@ button.jbtn {
 
 /* ---- chat bubbles: neon sent bubble ---- */
 .msg.out {
-  background: var(--chat-out-bg, var(--grad-purple)) !important;
+  background: var(--chat-out-bg, var(--p)) !important;
   box-shadow: var(--chat-out-shadow, 0 3px 14px rgba(61, 123, 255, 0.35)) !important;
 }
 
@@ -8367,7 +8432,7 @@ body.is-ios .screen::before {
 }
 
 .cunrd {
-  background: linear-gradient(135deg, var(--p), #2563eb) !important;
+  background: var(--p) !important;
   color: #ffffff !important;
   font-weight:700 !important;
 }
@@ -10716,64 +10781,116 @@ body:not(.aplus-on) #match-filters-wrap .love-filter-section:has(> .love-filter-
 /* The country headings inside the box are not chips — keep them out of it. */
 .uni-chips-box .uni-grp-head::after { content: none; }
 
-/* ══ CREATE EVENT — los 8 pasos como acordeon ══
-   Overrides the block at ~4214. The card frame goes away; what is left is a
-   header (number · emoji · title · chevron) over a 2px underline in the step's
-   own hue, matching the Settings sections. */
+/* ══ CREATE EVENT — todo / doing / done accordion ══
+   Three colours doing three jobs: neutral = to-do (collapsed row), --p = the
+   step you're on (a lit workspace card), green = done (a ✓). --step-hue carries
+   the state colour and every part (number, icon tile, underline, chevron, title)
+   reads from it. */
+/* Done wins over the per-step hue — a finished step turns green regardless of
+   which step it was. */
+#evp-create .ehcard.done { --step-hue: var(--c-green, #22c55e); }
+
 #evp-create .ehcard {
   background: transparent !important;
-  border: none !important;
-  border-radius: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rad-lg) !important;
   box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 0 6px !important;
+  padding: 0 6px !important;
+  margin: 0 0 3px !important;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
-/* The collapse itself: everything but the header is hidden. Same mechanism as
-   .evfilt.collapsed, which already works two levels down inside card 6. */
-#evp-create .ehcard.collapsed > *:not(.ehsec) {
-  display: none !important;
+/* OPEN step = a lit workspace card in the step's own colour. */
+#evp-create .ehcard:not(.collapsed) {
+  background: color-mix(in srgb, var(--step-hue) 7%, rgba(255, 255, 255, 0.03)) !important;
+  border: 1px solid color-mix(in srgb, var(--step-hue) 45%, transparent) !important;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--step-hue) 14%, transparent) !important;
+  padding: 2px 14px 14px !important;
+  margin: 0 0 12px !important;
 }
+#evp-create .ehcard.collapsed > *:not(.ehsec) { display: none !important; }
+
+/* Header row. Collapsed rows share one quiet hairline; the open step gets a
+   thick accent underline. */
 #evp-create .ehsec {
   cursor: pointer;
   user-select: none;
   position: relative;
-  gap: 8px;
+  gap: 10px;
+  margin: 0 !important;
+  padding: 11px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+#evp-create .ehcard:not(.collapsed) .ehsec {
   margin: 0 0 12px !important;
-  padding: 13px 2px 11px;
-  border-bottom: 2px solid color-mix(in srgb, var(--step-hue) 70%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--step-hue) 75%, transparent);
 }
-#evp-create .ehcard.collapsed .ehsec {
-  margin-bottom: 0 !important;
+/* Emoji sits in a small state-coloured tile instead of floating naked. */
+#evp-create .ehsec .ehic {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--step-hue) 16%, #000);
+  border: 1px solid color-mix(in srgb, var(--step-hue) 30%, transparent);
+  border-radius: var(--rad-sm);
+  font-size: var(--fs-base);
+  flex-shrink: 0;
 }
-/* Chevron via ::after, the way .evfilt-h does it — no JS needed to build or
-   rotate it. */
+/* Step number: a hollow ring in the state colour. */
+#evp-create .ehsec .ehnum {
+  width: 22px;
+  height: 22px;
+  border-radius: 50% !important;
+  border: 1.5px solid color-mix(in srgb, var(--step-hue) 60%, transparent) !important;
+  background: transparent !important;
+  color: var(--step-hue) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+#evp-create .ehsec .ehtitle { color: var(--step-hue) !important; }
+
+/* DONE: the number becomes a filled green ✓ and the title dims. */
+#evp-create .ehcard.done .ehnum {
+  background: var(--c-green, #22c55e) !important;
+  border-color: var(--c-green, #22c55e) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+}
+#evp-create .ehcard.done .ehnum::after {
+  content: "\2713";
+  font-size: var(--fs-xs);
+  font-weight: 900;
+  color: #04150c;
+}
+#evp-create .ehcard.done .ehtitle { color: rgba(255, 255, 255, 0.62) !important; }
+
+/* Chevron rotates open/closed instead of swapping glyphs. */
 #evp-create .ehsec::after {
-  content: "\25BE";
+  content: "\25B8";
   margin-left: auto;
   color: var(--step-hue);
   font-size: var(--fs-sm);
   font-weight: 600;
+  transition: transform 0.2s var(--ease);
 }
-#evp-create .ehcard.collapsed .ehsec::after {
-  content: "\25B8";
-}
-/* The step number: a small figure ahead of the title instead of a filled
-   circle. An 8-step form is hard to place without it. */
-#evp-create .ehsec .ehnum {
-  width: auto;
-  height: auto;
-  border: none !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  color: var(--step-hue) !important;
-  font-size: var(--fs-sm);
-  font-weight: 800;
-  opacity: 0.85;
-}
-/* The body of an open step, now that there is no card padding to sit in. */
-#evp-create .ehcard > *:not(.ehsec) {
+#evp-create .ehcard:not(.collapsed) .ehsec::after { transform: rotate(90deg); }
+
+/* The open body fades/slides in. */
+#evp-create .ehcard:not(.collapsed) > *:not(.ehsec) {
   margin-left: 2px;
   margin-right: 2px;
+  animation: ehIn 0.18s ease;
+}
+@keyframes ehIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Publish is the destination — give it a real glow. */
+#ev-publish-btn {
+  box-shadow: 0 6px 24px -4px color-mix(in srgb, var(--p) 50%, transparent) !important;
 }
 
 /* ══════════ SIGN UP / ONBOARDING: TODO A SUBRAYADO NEÓN ══════════
