@@ -53,55 +53,55 @@
             window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false });
           } catch (e) {}
         }
-        // Lift the chat window by the keyboard's EXACT height the moment iOS
-        // announces it, applied instantly (no CSS transition) so there is no lag.
+        // Set the lift height DIRECTLY on the open chat window (inline px, not a
+        // CSS var) so WebKit actually runs the .cwin `transition: padding-bottom`.
+        // Driven off keyboardWillShow/Hide — which fire exactly when iOS starts
+        // the keyboard's animation — so the bar glides in lockstep with the
+        // keyboard's own curve, like Instagram/WhatsApp. No focusin pre-pop.
+        var liftChat = (px) => {
+          document.querySelectorAll('.cwin').forEach((w) => { w.style.paddingBottom = px + 'px'; });
+        };
+        // Keep the last message glued to the bottom edge EVERY FRAME while the
+        // window resizes, so the messages glide up in lockstep with the bar
+        // instead of snapping. Only follow if the user is already near the bottom
+        // (don't yank them up while they're reading history).
+        var pinBottom = (ms) => {
+          var sc = document.querySelector('.cwin.open .cmsgs');
+          if (!sc) return;
+          if ((sc.scrollHeight - sc.scrollTop - sc.clientHeight) > 160) return;
+          var end = null;
+          var step = (t) => {
+            if (end == null) end = t + ms;
+            sc.scrollTop = sc.scrollHeight;
+            if (t < end) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        };
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillShow', (info) => {
           this.isKeyboardOpen = true;
           var kh = (info && info.keyboardHeight) ? Math.round(info.keyboardHeight) : 0;
           if (kh) window._kbH = kh;
-          document.documentElement.style.setProperty('--kb', kh + 'px');
+          liftChat(kh);
           document.body.classList.add('keyboard-open');
           try { window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false }); } catch (e) {}
-          var sc = document.querySelector('.cwin.open .cmsgs');
-          if (sc) sc.scrollTop = sc.scrollHeight;
-        });
-        window.Capacitor.Plugins.Keyboard.addListener('keyboardDidShow', () => {
-          var sc = document.querySelector('.cwin.open .cmsgs');
-          if (sc) sc.scrollTop = sc.scrollHeight;
+          pinBottom(340);
         });
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillHide', () => {
           this.isKeyboardOpen = false;
-          document.documentElement.style.setProperty('--kb', '0px');
+          liftChat(0);
           document.body.classList.remove('keyboard-open');
+          pinBottom(340);
         });
       }
 
-      // focusin fires the instant the field is tapped — BEFORE keyboardWillShow —
-      // so raise the bar right away using the cached keyboard height. The bar is
-      // already up as the keyboard starts sliding, so there is no perceived delay.
+      // On focus, only re-hide the iOS accessory bar — the lift itself is driven
+      // by keyboardWillShow so it tracks the keyboard's real animation.
       document.addEventListener('focusin', (e) => {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
-          this.isKeyboardOpen = true;
-          if (window._kbH) {
-            document.documentElement.style.setProperty('--kb', window._kbH + 'px');
-            document.body.classList.add('keyboard-open');
-          }
           var K0 = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard;
           if (K0 && typeof K0.setAccessoryBarVisible === 'function') {
             try { K0.setAccessoryBarVisible({ isVisible: false }); } catch (err) {}
           }
-        }
-      });
-      document.addEventListener('focusout', (e) => {
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
-          setTimeout(() => {
-            var a = document.activeElement;
-            if (!a || !(a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) {
-              this.isKeyboardOpen = false;
-              document.documentElement.style.setProperty('--kb', '0px');
-              document.body.classList.remove('keyboard-open');
-            }
-          }, 100);
         }
       });
     }

@@ -5145,7 +5145,10 @@ function openMatchFilters(){
   },250);
 }
 function _initFilterAccordion(){
-  var panel=document.getElementById('ptab-panel-crush');if(!panel)return;
+  // The filter sections live in #ptab-panel-filters (they were moved out of the
+  // crush/My-Card panel). Querying the old panel left the accordion dead, so the
+  // whole tab rendered fully expanded.
+  var panel=document.getElementById('ptab-panel-filters')||document.getElementById('ptab-panel-crush');if(!panel)return;
   var secs=panel.querySelectorAll('.love-filter-section');
   Array.prototype.forEach.call(secs,function(sec,i){
     var title=sec.querySelector('.love-filter-title');if(!title)return;
@@ -5164,6 +5167,13 @@ function _initFilterAccordion(){
     if(i>0)sec.classList.add('collapsed');else sec.classList.remove('collapsed');
     var car=title.querySelector('.acc-caret');if(car)car.textContent=sec.classList.contains('collapsed')?'▸':'▾';
     _updateFilterBadge(sec);
+  });
+  // Premium gating was a dead end — the dimmed A+ sections opened nothing. Make
+  // the gold "A+ Student" tag tappable so it routes to the paywall.
+  Array.prototype.forEach.call(panel.querySelectorAll('.love-filter-section .tag.gold'),function(tag){
+    if(tag.__paywall)return;tag.__paywall=1;
+    tag.style.cursor='pointer';
+    tag.addEventListener('click',function(e){e.stopPropagation();if(typeof premAlert==='function')premAlert();});
   });
 }
 function openEdit(){var m=document.getElementById('edit-modal');if(m)m.classList.add('open');setTimeout(function(){var em=document.getElementById('ed-major');if(em&&em.tagName==='SELECT'&&typeof MAJORS!=='undefined'&&em.children.length<=1){em.innerHTML='<option value="">Select major…</option>'+MAJORS.map(function(x){return '<option>'+x+'</option>';}).join('');em.value=(userPro&&userPro.major)||'';}var en=document.getElementById('ed-minor');if(en&&en.tagName==='SELECT'&&typeof MINORS!=='undefined'&&en.children.length<=1){en.innerHTML='<option value="">None</option>'+MINORS.filter(function(x){return x!=='None';}).map(function(x){return '<option>'+x+'</option>';}).join('');en.value=(userPro&&userPro.minor)||'';}},20);var mode=obMode||userMode||'student';var sheet=m.querySelector('.msheet');if(mode==='business'){sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Edit Business Profile</div>'+
@@ -6736,64 +6746,35 @@ var _hangoutUniScope='mine';
 function _setHangoutUniScope(v){if((v==='near'||v==='pick')&&curPlan!=='aplus'){if(typeof premAlert==='function')premAlert();return;}_hangoutUniScope=v;_uniScopeBy.ev=v;var ch=document.getElementById('ev-uni-chooser');if(ch)ch.style.display=(v==='pick')?'':'none';var row=document.getElementById('ev-uni-scope');if(row)row.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',c.getAttribute('data-scope')===v);});if(typeof renderHangouts==='function')renderHangouts();}
 function _uniScopeBannerHtml(){
   var isA = (typeof curPlan !== 'undefined' && curPlan === 'aplus');
-
-  var mineOn = _hangoutUniScope === 'mine';
-  var pickOn = _hangoutUniScope === 'pick';
-  
-  var capSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
-  var landSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark-icon lucide-landmark"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg>';
-  var lockSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lock-icon lucide-lock"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
-
-  // Los dos dejan _gradSkin y llevan receta propia. My University elegido va con
-  // el MISMO degradado que el CONTINUE del registro (--cta-grad) y sin borde;
-  // sin elegir se queda en negro con el tono en el filo, que es como estaba.
-  var _uniBtnBase = 'border-radius:var(--rad-md);box-shadow:none;text-shadow:none;';
-  var mineSkin = mineOn
-    ? (_uniBtnBase + 'background:var(--cta-grad, var(--p));border:none;color:#fff;')
-    : (_uniBtnBase + 'background:#000;border:1.5px solid color-mix(in srgb, var(--p) 40%, transparent);color:var(--p);');
-  var mineBtn = '<button onclick="_setHangoutUniScope(\'mine\')" style="' + mineSkin + 'flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;text-align:left;transition:all var(--dur) ease;font-family:var(--font);">'+
-    // No colour of its own — it inherits currentColor from the button, which is
-    // #fff when picked and the hue when idle. Pinning it to var(--p) made the
-    // icon vanish on the picked button, whose fill is that same var(--p).
-    '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+capSvg+'</div>'+
-    '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
-      '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">My University</span>'+
-      // The acronym, not the full name: "Universidad Tecnológica del Norte de
-      // Coahuila" only ever showed as "Universidad Tecnológica d…" in this width.
-      '<span style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+((typeof _uniAcronymOf === 'function' && _uniAcronymOf(null)) || 'University')+'</span>'+
-    '</div>'+
-  '</button>';
-
-  // Other Universities: fondo negro y el degradado en el BORDE. Se consigue con
-  // dos capas de background — el negro por padding-box y el degradado por
-  // border-box —, que es la única forma de pintar un borde en degradado sin
-  // envolver el botón en otro elemento. Elegido enciende el degradado; sin
-  // elegir el mismo degradado va al 45%, apagado.
-  //
-  // El negro se escribe como linear-gradient(#000,#000) y NO como `#000`: en el
-  // atajo `background` el color solo puede ir en la ÚLTIMA capa, así que
-  // ponerlo el primero invalida la declaración entera y no se pinta nada.
-  var _uniEdge = 'var(--cta-grad, linear-gradient(100deg, var(--p), var(--p2)))';
-  var pickSkin = _uniBtnBase + 'border:1.5px solid transparent;color:#fff;' +
-    (pickOn
-      ? ('background:linear-gradient(#000,#000) padding-box, ' + _uniEdge + ' border-box;')
-      : 'background:linear-gradient(#000,#000) padding-box, linear-gradient(100deg, color-mix(in srgb, var(--p) 45%, transparent), color-mix(in srgb, var(--p2) 45%, transparent)) border-box;');
-  var pickBtn = '<button onclick="_setHangoutUniScope(\'pick\')" style="' + pickSkin + 'flex: 1 1 50%; width: 50%; box-sizing: border-box; min-width: 0; display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;cursor:pointer;text-align:left;transition:all var(--dur) ease;position:relative;font-family:var(--font);">'+
-    '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;overflow:hidden;">'+
-      '<div style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+landSvg+'</div>'+
-      '<div style="display:flex;flex-direction:column;min-width:0;flex:1;overflow:hidden;">'+
-        '<span style="font-size:var(--fs-sm);font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Other Universities</span>'+
-        // "Unlock with A+" is normally blue, but the picked button's fill is
-        // that same blue, so it goes white there to stay readable.
-        '<span style="font-size:var(--fs-xs);color:'+(isA?'#34d399':(pickOn?'rgba(255,255,255,0.85)':'#3d7bff'))+';margin-top:1px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(isA?'Unlocked':'Unlock with A+')+'</span>'+
-      '</div>'+
-    '</div>'+
-    (!isA?'<div style="display:flex;align-items:center;flex-shrink:0;margin-left:4px;">'+lockSvg+'</div>':'')+
-  '</button>';
-
-  return '<div style="display:flex;align-items:stretch;gap:8px;margin:0 0 12px;padding:4px;border-radius:var(--rad-md);background:rgba(255,255,255,0.01);box-sizing:border-box;width:100%;">'+
-    mineBtn + pickBtn +
-  '</div>';
+  var scope = (_hangoutUniScope === 'pick') ? 'pick' : 'mine';
+  // White label, neon underline in the ACTIVE school colour: primary (--p) for
+  // "My University", secondary (--p2) for "Other Universities". --p/--p2 are what
+  // applyColors() writes from the student's school (--uni-p was the stale default).
+  var hue = (scope === 'pick') ? 'var(--p2)' : 'var(--p)';
+  // Matches the Sort control next to it. "Other Universities" carries a 🔒 until
+  // the student is A+ (gated in the onchange).
+  return '<select class="ev-ctrl-sel" id="ev-uniscope-sel" style="--ctl-hue:' + hue + ';" onchange="_uniScopeSelChange(this)">' +
+      '<option value="mine"' + (scope === 'mine' ? ' selected' : '') + '>🎓 My University</option>' +
+      '<option value="pick"' + (scope === 'pick' ? ' selected' : '') + '>🏛️ Other Universities</option>' +
+    '</select>';
+}
+// Gate "Other Universities" behind A+: on a non-A+ student it fires the paywall
+// and snaps the pill back to their own university.
+function _uniScopeSelChange(sel){
+  var v = sel.value;
+  if (v === 'pick' && (typeof curPlan === 'undefined' || curPlan !== 'aplus')) {
+    if (typeof premAlert === 'function') premAlert();
+    sel.value = (_hangoutUniScope === 'pick') ? 'pick' : 'mine';
+    return;
+  }
+  _hangoutUniScope = v;
+  if (typeof _uniScopeBy !== 'undefined') _uniScopeBy.ev = v;
+  // Recolor the underline immediately so the switch feels instant (renderHangouts
+  // rebuilds it too). Text stays white — only the neon underline changes hue.
+  sel.style.setProperty('--ctl-hue', (v === 'pick') ? 'var(--p2)' : 'var(--p)');
+  var ch = document.getElementById('ev-uni-chooser');
+  if (ch) ch.style.display = (v === 'pick') ? '' : 'none';
+  if (typeof renderHangouts === 'function') renderHangouts();
 }
 // 🔍 Rush interest — shown in the Greek Life section to students not already in a house
 function _rushInterestBannerHtml(){
@@ -6937,13 +6918,27 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
 
   var coverStyle = e.cover ? ('url(\''+e.cover+'\') center/cover') : _hxGrad(e.section);
 
-  // Avatars + "N going" — hidden on your own events (you know who's coming, it's your event)
+  // "View ›" affordance so Nearby cards (which have no buttons) read as tappable.
+  var isNearby = !isMyEvent && !isJoinedView;
+  // A neutral round "go" button — just an arrow, so it reads on any photo and
+  // combines with every section colour. Frosted white with a dark arrow + a soft
+  // lift shadow so it never looks flat.
+  var viewPill = isNearby ?
+    '<div style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:linear-gradient(155deg,#ffffff,#e9edf5);box-shadow:0 5px 13px -4px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.9);flex-shrink:0;">' +
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#14151c" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
+    '</div>' : '';
+
+  // Avatars + "N going" — hidden on your own events (you know who's coming, it's your event).
+  // The "+N" pill was dropped: the "N going" text already states the count.
   var goingRowHtml = isMyEvent ? '' :
-    '<div style="display:flex;align-items:center;gap:10px;min-width:0;margin-top:12px;">' +
-      '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + extraPill + '</div>' +
-      '<div style="display:flex;align-items:center;gap:4px;font-size:var(--fs-base);font-weight:700;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-        '<span>🔥</span><span>' + totalGoing + ' going</span>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;margin-top:12px;">' +
+      '<div style="display:flex;align-items:center;gap:10px;min-width:0;">' +
+        '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + '</div>' +
+        '<div style="display:flex;align-items:center;gap:4px;font-size:var(--fs-base);font-weight:700;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
+          '<span>🔥</span><span>' + totalGoing + ' going</span>' +
+        '</div>' +
       '</div>' +
+      viewPill +
     '</div>';
 
   var safeName = (e.name || '').replace(/'/g, "\\'");
@@ -6968,18 +6963,30 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       '</div>';
   }
 
+  // Time is the #1 scan datum → a glass badge pinned to the top-left of the poster.
+  var timeBadgeHtml =
+    '<div style="display:flex;align-items:center;gap:6px;font-size:var(--fs-xs);font-weight:700;color:' + (_live ? '#4ade80' : '#fff') + ';padding:5px 11px;border-radius:var(--rad-pill);background:rgba(0,0,0,0.42);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.18);white-space:nowrap;">' +
+      (_live
+        ? '<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;animation:fomoPulse 1.6s infinite ease-in-out;"></span>'
+        : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#a9c4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>') +
+      '<span>' + formattedTime + '</span>' +
+    '</div>';
+
   // Full-bleed poster: the whole card IS the photo, everything sits on a bottom scrim.
   var secCol = _secColor(e.section);
   return '<div class="hangout-item-card" onclick="openHangoutDetailModal(\''+evtId+'\')" style="min-height:360px;background:'+coverStyle+';background-color:#0b0b0e;border:1.5px solid '+secCol+';border-radius:var(--rad-xl);overflow:hidden;margin-bottom:20px;box-shadow:var(--el-3), inset 0 1px 0 rgba(255,255,255,0.1);position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:14px 16px 18px;box-sizing:border-box;transition:transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);">' +
     // Category accent — a hairline of the section colour along the top edge
     '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+secCol+';z-index:3;"></div>' +
-    // Scrim: clear at the top so the photo reads, deep at the bottom so the text does
-    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.42) 0%,rgba(0,0,0,0) 28%,rgba(0,0,0,0.72) 58%,rgba(0,0,0,0.96) 100%);pointer-events:none;"></div>' +
+    // Scrim: lighter so the photo stays the hook; still legible at the bottom.
+    '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.28) 0%,rgba(0,0,0,0) 38%,rgba(0,0,0,0.55) 66%,rgba(0,0,0,0.92) 100%);pointer-events:none;"></div>' +
 
-    // Badges row (top)
+    // Top row: time badge (left) · promo / scarcity badges (right)
     '<div style="position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;width:100%;gap:8px;min-height:1px;">' +
-      badgeHtml +
-      capFlagHtml +
+      timeBadgeHtml +
+      '<div style="display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap;justify-content:flex-end;">' +
+        badgeHtml +
+        capFlagHtml +
+      '</div>' +
     '</div>' +
 
     // Info block (bottom): title · date · location · who's going · actions
@@ -6987,16 +6994,8 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       // Clamped to 2 lines so a runaway title can never grow the block and swallow the photo
       '<div style="font-size:var(--fs-lg);font-weight:900;color:#fff;line-height:1.25;font-family:var(--font);letter-spacing:-0.3px;text-shadow:0 2px 12px rgba(0,0,0,0.95);margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">' + e.name + ' ' + evtEmoji + '</div>' +
 
-      '<div style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);font-weight:' + (_live ? '800' : '600') + ';color:' + (_live ? '#4ade80' : 'rgba(255,255,255,0.94)') + ';margin-bottom:5px;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
-        (_live
-          // A live dot reads as "happening" the way a calendar never can.
-          ? '<span style="width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;animation:fomoPulse 1.6s infinite ease-in-out;"></span>'
-          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>') +
-        '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + formattedTime + '</span>' +
-      '</div>' +
-
       '<div style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);font-weight:600;color:#e0e7ff;text-shadow:0 1px 6px rgba(0,0,0,0.8);">' +
-        '<span style="color:#dc2626;flex-shrink:0;font-size:var(--fs-base);line-height:1;">'+icon('mapPin',16)+'</span>' +
+        '<span style="color:rgba(255,255,255,0.6);flex-shrink:0;font-size:var(--fs-base);line-height:1;">'+icon('mapPin',16)+'</span>' +
         '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + evtAddr + '</span>' +
       '</div>' +
 
@@ -8809,11 +8808,11 @@ function _actEvRowHtml(e){
   var d=(typeof _parseEventDate==='function')?_parseEventDate(e):null;
   var when=(d&&!isNaN(d.getTime()))?d.toLocaleDateString([],{day:'2-digit',month:'short'}).toUpperCase():(e.time||'');
   var meta=[e.addr||'', (e.spots!=null?e.spots+' going':'')].filter(Boolean).join(' \u00b7 ');
-  return '<div onclick="openHangoutDetailModal(\'' + id + '\')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:8px;background:#000;border:1.5px solid '+hue+';border-radius:var(--rad-md);cursor:pointer;">'+
-    '<div style="width:48px;flex-shrink:0;text-align:center;font-size:var(--fs-2xs);font-weight:800;letter-spacing:0.4px;line-height:1.25;color:'+hue+';">'+when+'</div>'+
+  return '<div onclick="openHangoutDetailModal(\'' + id + '\')" style="display:flex;align-items:center;gap:12px;padding:11px 13px;margin-bottom:8px;background:color-mix(in srgb, '+hue+' 8%, #000);border:1px solid color-mix(in srgb, '+hue+' 35%, transparent);box-shadow:0 0 12px color-mix(in srgb, '+hue+' 12%, transparent);border-radius:var(--rad-md);cursor:pointer;">'+
+    '<div style="width:48px;flex-shrink:0;text-align:center;font-size:var(--fs-2xs);font-weight:800;letter-spacing:0.4px;line-height:1.25;background:color-mix(in srgb, '+hue+' 16%, #000);border-radius:var(--rad-sm);padding:6px 2px;color:'+hue+';">'+when+'</div>'+
     '<div style="flex:1;min-width:0;">'+
       '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(e.emoji?e.emoji+' ':'')+(e.name||'Event')+'</div>'+
-      (meta?'<div style="font-size:var(--fs-xs);color:#a9c4ff;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+meta+'</div>':'')+
+      (meta?'<div style="font-size:var(--fs-xs);color:color-mix(in srgb, '+hue+' 60%, #fff);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+meta+'</div>':'')+
     '</div>'+
     '<span style="flex-shrink:0;color:'+hue+';font-size:var(--fs-lg);line-height:1;">\u203a</span>'+
   '</div>';
@@ -8828,9 +8827,15 @@ function _actEventsHtml(){
     return '<div class="adm-sub-btn'+(tab===id?' on':'')+'" data-sub="act-'+id+'" onclick="_setActEvTab(\''+id+'\')">'+
       '<span>'+lbl+'</span><span style="opacity:0.75;font-weight:800;">'+n+'</span></div>';
   }
+  var _ecta=(tab==='joined')
+    ? {ico:'🎟️',msg:'No events joined yet.',lbl:'Explore hangouts →',act:"sw('hangouts','Hangouts');if(typeof switchEvTab==='function')switchEvTab('nearby')"}
+    : {ico:'🎉',msg:'No events created yet.',lbl:'Create an event',act:"sw('hangouts','Hangouts');if(typeof switchEvTab==='function')switchEvTab('create')"};
   var rows=list.length?list.map(_actEvRowHtml).join(''):
-    '<div style="text-align:center;font-size:var(--fs-sm);color:var(--fg3);padding:22px 14px;">'+
-      (tab==='joined'?'You have not joined any upcoming events yet.':'You have not created any events yet.')+'</div>';
+    '<div style="text-align:center;padding:26px 16px;border:1px dashed color-mix(in srgb, var(--prof-accent,#fbbf24) 40%, transparent);border-radius:var(--rad-lg);background:rgba(255,255,255,0.02);">'+
+      '<div style="font-size:34px;margin-bottom:8px;">'+_ecta.ico+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);font-weight:600;margin-bottom:14px;">'+_ecta.msg+'</div>'+
+      '<button onclick="'+_ecta.act+'" style="background:var(--prof-accent,#fbbf24);border:none;color:#111;font-family:var(--font);font-weight:800;font-size:var(--fs-sm);padding:10px 20px;border-radius:var(--rad-pill);cursor:pointer;">'+_ecta.lbl+'</button>'+
+    '</div>';
   return '<div class="act-events">'+
     '<div style="display:flex;gap:6px;margin:0 0 12px;">'+btn('created','Events Created',created.length)+btn('joined','Events Joined',joined.length)+'</div>'+
     rows +
@@ -8853,6 +8858,23 @@ function renderActivityLog() {
   // append, not prepend: #act-stats is declared in the markup and has to stay on
   // top as the summary of everything the list below spells out.
   if (evBlock) panel.appendChild(evBlock);
+  if (typeof _animateActStats === 'function') _animateActStats();
+}
+// Count each stat up from 0 so the strip feels alive when the tab opens.
+function _animateActStats(){
+  ['prof-stat-friends','prof-stat-matches','prof-stat-events'].forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    var target=parseInt((el.textContent||'0').replace(/[^0-9]/g,''),10)||0;
+    if(target<=0){el.textContent='0';return;}
+    var start=null,dur=520;
+    var step=function(t){
+      if(start==null)start=t;
+      var p=Math.min(1,(t-start)/dur);
+      el.textContent=Math.round(target*(1-Math.pow(1-p,3)));
+      if(p<1)requestAnimationFrame(step);else el.textContent=target;
+    };
+    requestAnimationFrame(step);
+  });
 }
 
 function addToActivity(txt){
@@ -21428,9 +21450,13 @@ var emergencyContacts=[],_emergLoaded=false;
 function _emergLoad(){if(_emergLoaded)return;_emergLoaded=true;try{var s=JSON.parse(localStorage.getItem('ugz_emergency'));if(Array.isArray(s))emergencyContacts=s;}catch(e){}}
 function _emergSave(){try{localStorage.setItem('ugz_emergency',JSON.stringify(emergencyContacts));}catch(e){}}
 function _safetyPanelToggleFriend(name){_safetyLoad();var i=safetyContacts.indexOf(name);if(i>-1)safetyContacts.splice(i,1);else{if(safetyContacts.length>=3){alert('You can pick up to 3 friends for live location.');return;}safetyContacts.push(name);}_safetySave();renderSafetyPanel();}
-function addEmergencyContact(){_emergLoad();if(emergencyContacts.length>=2){alert('Up to 2 emergency contacts.');return;}var name=(prompt('Name (optional):')||'').trim();var phone=(prompt('Phone number — include country code, e.g. +1 555 123 4567:')||'').trim();if(!phone)return;emergencyContacts.push({name:name,phone:phone});_emergSave();renderSafetyPanel();}
+var _emergFormOpen=false;
+// Inline form instead of native prompt() (which feels broken in a WKWebView).
+function addEmergencyContact(){_emergLoad();if(emergencyContacts.length>=2){return;}_emergFormOpen=true;renderSafetyPanel();setTimeout(function(){var el=document.getElementById('emerg-phone');if(el&&el.focus)el.focus();},60);}
+function _emergCancelForm(){_emergFormOpen=false;renderSafetyPanel();}
+function _emergSaveForm(){_emergLoad();var nm=((document.getElementById('emerg-name')||{}).value||'').trim();var ph=((document.getElementById('emerg-phone')||{}).value||'').trim();if(!ph){var pe=document.getElementById('emerg-phone');if(pe)pe.style.borderColor='#dc2626';return;}emergencyContacts.push({name:nm,phone:ph});_emergFormOpen=false;_emergSave();renderSafetyPanel();}
 function removeEmergencyContact(i){_emergLoad();emergencyContacts.splice(i,1);_emergSave();renderSafetyPanel();}
-function _safetyPanelShareLoc(){_safetyLoad();if(!safetyContacts.length){alert('Pick at least one friend above to share your live location with.');return;}_locShareActive=safetyContacts.join(', ');renderSafetyPanel();setTimeout(function(){alert('📍 Live location ON — sharing with '+_locShareActive+'. Tap Stop anytime.');},80);}
+function _safetyPanelShareLoc(){_safetyLoad();if(!safetyContacts.length){alert('Pick at least one friend above to share your live location with.');return;}_locShareActive=safetyContacts.join(', ');renderSafetyPanel();}
 function _safetyPanelStopLoc(){_locShareActive=null;renderSafetyPanel();}
 function renderSafetyPanel(){
   var box=document.getElementById('ptab-panel-safety');if(!box)return;
@@ -21439,39 +21465,60 @@ function renderSafetyPanel(){
 
   var friendChips=friends.map(function(f){
     var on=safetyContacts.indexOf(f.n)>-1;
-    var borderStyle=on?'1.5px solid #22c55e':'1px solid rgba(61,123,255,0.3)';
+    var borderStyle=on?'1.5px solid #22c55e':'1px solid color-mix(in srgb, var(--p) 30%, transparent)';
     var bgStyle=on?'linear-gradient(135deg,rgba(34,197,94,0.2),rgba(16,185,129,0.1))':'rgba(13,13,17,0.6)';
-    var shadowStyle=on?';':'';
-    return '<div onclick="_safetyPanelToggleFriend(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rad-md);border:'+borderStyle+';background:'+bgStyle+';margin-bottom:8px;'+shadowStyle+'transition:all 0.2s ease;">'+
+    return '<div onclick="_safetyPanelToggleFriend(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rad-md);border:'+borderStyle+';background:'+bgStyle+';margin-bottom:8px;transition:all 0.2s ease;">'+
       '<div style="width:34px;height:34px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:700;color:#fff;flex-shrink:0;">'+f.i+'</div>'+
       '<div style="flex:1;font-size:var(--fs-base);font-weight:700;color:#fff;">'+f.n+'</div>'+
-      (on?'<span style="color:#4ade80;font-weight:700;font-size:var(--fs-md);">✓</span>':'<span style="color:#7aa5ff;font-size:var(--fs-lg);font-weight:900;">+</span>')+
+      (on?'<span style="color:#4ade80;font-weight:700;font-size:var(--fs-md);">✓</span>':'<span style="color:var(--p);font-size:var(--fs-lg);font-weight:900;">+</span>')+
     '</div>';
   }).join('');
 
+  // Resting state is neutral glass — red is reserved for the remove action only,
+  // so the card doesn't read as a permanent alarm.
   var emerg=emergencyContacts.map(function(c,i){
-    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(13,13,17,0.7);border:1.5px solid rgba(239,68,68,0.4);border-radius:var(--rad-md);margin-bottom:8px;"><div style="flex:1;min-width:0;"><div class="t-body-black">'+(c.name||c.phone)+'</div>'+(c.name?'<div style="font-size:var(--fs-xs);color:#fca5a5;font-weight:500;">'+c.phone+'</div>':'')+'</div><span onclick="removeEmergencyContact('+i+')" style="cursor:pointer;color:#dc2626;font-weight:700;flex-shrink:0;">✕</span></div>';
-  }).join('')||'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:6px 0;font-weight:500;">Sin contactos de emergencia aún.</div>';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(13,13,17,0.7);border:1px solid var(--gbdl, rgba(255,255,255,0.12));border-radius:var(--rad-md);margin-bottom:8px;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);flex-shrink:0;">👤</div><div style="flex:1;min-width:0;"><div class="t-body-black">'+(c.name||c.phone)+'</div>'+(c.name?'<div style="font-size:var(--fs-xs);color:var(--fg2);font-weight:500;">'+c.phone+'</div>':'')+'</div><span onclick="removeEmergencyContact('+i+')" style="cursor:pointer;color:#dc2626;font-weight:700;flex-shrink:0;padding:6px 10px;">✕</span></div>';
+  }).join('')||(_emergFormOpen?'':'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:6px 0;font-weight:500;">No emergency contacts yet.</div>');
+
+  var emergForm=_emergFormOpen?
+    '<div style="margin-top:8px;padding:12px;border-radius:var(--rad-md);border:1px solid var(--gbdl, rgba(255,255,255,0.14));background:rgba(255,255,255,0.03);">'+
+      '<input class="gi" id="emerg-name" placeholder="Name (optional)" style="margin-bottom:8px;font-size:var(--fs-sm);padding:10px 12px;"/>'+
+      '<input class="gi" id="emerg-phone" type="tel" inputmode="tel" placeholder="Phone — e.g. +1 555 123 4567" style="margin-bottom:10px;font-size:var(--fs-sm);padding:10px 12px;"/>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<button onclick="_emergCancelForm()" style="flex:1;padding:10px;border-radius:var(--rad-md);border:1px solid var(--gbdl, rgba(255,255,255,0.14));background:transparent;color:var(--fg2);font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">Cancel</button>'+
+        '<button onclick="_emergSaveForm()" style="flex:1;padding:10px;border-radius:var(--rad-md);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">Save contact</button>'+
+      '</div>'+
+    '</div>':'';
+
+  // Truthful status — a live checklist of what's actually set up, no fake score.
+  var locOn=!!_locShareActive, fN=safetyContacts.length, eN=emergencyContacts.length;
+  var chk=function(done,label){return '<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);font-weight:600;color:'+(done?'#a7f3d0':'rgba(255,255,255,0.7)')+';margin-top:6px;"><span style="width:16px;height:16px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;background:'+(done?'#16a34a':'rgba(255,255,255,0.12)')+';color:#fff;">'+(done?'✓':'')+'</span>'+label+'</div>';};
 
   box.innerHTML=
-    '<div style="margin:0 0 16px;padding:16px;background:linear-gradient(135deg,rgba(16,185,129,0.18),rgba(6,182,212,0.18));border:1.5px solid rgba(16,185,129,0.5);border-radius:var(--rad-xl);display:flex;align-items:center;gap:12px;max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
-      '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);color:#fff;flex-shrink:0;">🛡️</div>'+
-      '<div style="flex:1;"><div class="t-body-black">Nivel de Seguridad del Perfil: ALTO (98%)</div><div style="font-size:var(--fs-xs);color:#a7f3d0;font-weight:500;margin-top:2px;">Tus amigos seleccionados reciben alertas en tiempo real al salir a un Hangout.</div></div>'+
+    '<div style="margin:0 0 16px;padding:16px;background:linear-gradient(135deg,rgba(16,185,129,0.16),rgba(6,182,212,0.14));border:1px solid rgba(16,185,129,0.4);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
+      '<div style="display:flex;align-items:center;gap:12px;">'+
+        '<div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#10b981,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);color:#fff;flex-shrink:0;">🛡️</div>'+
+        '<div style="flex:1;"><div class="t-body-black">Your safety setup</div><div style="font-size:var(--fs-xs);color:#a7f3d0;font-weight:500;margin-top:2px;">Your trusted friends get real-time alerts when you head out to a Hangout.</div></div>'+
+      '</div>'+
+      chk(fN>0, fN+' trusted friend'+(fN===1?'':'s')+' picked')+
+      chk(locOn, 'Live location '+(locOn?'on':'off'))+
+      chk(eN>0, eN+' emergency contact'+(eN===1?'':'s'))+
     '</div>'+
-    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
+    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1px solid color-mix(in srgb, var(--p) 40%, transparent);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
       '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">'+icon('mapPin',16)+' Live location</div>'+
-      '<div style="font-size:var(--fs-xs);color:#d6e4ff;margin-bottom:12px;line-height:1.4;font-weight:500;">Selecciona hasta 3 amigos que puedan ver tu ubicación en tiempo real cuando salgas a un evento o cita.</div>'+
+      '<div style="font-size:var(--fs-xs);color:#d6e4ff;margin-bottom:12px;line-height:1.4;font-weight:500;">Pick up to 3 friends who can see your live location when you head out to an event or date.</div>'+
       friendChips+
-      '<div style="font-size:var(--fs-2xs);color:#a9c4ff;margin-top:4px;font-weight:600;">'+safetyContacts.length+'/3 amigos seleccionados</div>'+
+      '<div style="font-size:var(--fs-2xs);color:#a9c4ff;margin-top:4px;font-weight:600;">'+fN+'/3 friends selected</div>'+
       (_locShareActive
-        ? '<div style="margin-top:12px;display:flex;align-items:center;gap:9px;background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;border-radius:var(--rad-md);padding:12px;"><div style="font-size:var(--fs-sm);font-weight:700;color:#4ade80;flex:1;min-width:0;">'+icon('mapPin',16)+' Ubicación en vivo ACTIVADA · compartiendo con '+_locShareActive+'</div><button onclick="_safetyPanelStopLoc()" style="background:rgba(255,255,255,0.15);border:none;border-radius:var(--rad-sm);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;">Detener</button></div>'
-        : '<button onclick="_safetyPanelShareLoc()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--rad-md);border:none;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;box-shadow:var(--glow-primary);">'+icon('mapPin',16)+' Compartir mi ubicación en vivo</button>')+
+        ? '<div style="margin-top:12px;display:flex;align-items:center;gap:9px;background:rgba(34,197,94,0.15);border:1.5px solid #22c55e;border-radius:var(--rad-md);padding:12px;"><span style="width:9px;height:9px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;flex-shrink:0;animation:fomoPulse 1.6s infinite ease-in-out;"></span><div style="font-size:var(--fs-sm);font-weight:700;color:#4ade80;flex:1;min-width:0;">Live location ON · sharing with '+_locShareActive+'</div><button onclick="_safetyPanelStopLoc()" style="background:rgba(255,255,255,0.15);border:none;border-radius:var(--rad-sm);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;">Stop</button></div>'
+        : '<button onclick="_safetyPanelShareLoc()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--rad-md);border:none;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;box-shadow:0 0 18px rgba(34,197,94,0.32);'+(fN===0?'opacity:0.5;':'')+'">'+icon('mapPin',16)+' Share my live location</button>')+
     '</div>'+
-    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1.5px solid rgba(239,68,68,0.45);border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
-      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">🚨 Contactos de emergencia</div>'+
-      '<div style="font-size:var(--fs-xs);color:#fca5a5;margin-bottom:12px;line-height:1.4;font-weight:500;">Hasta 2 contactos a los que alertaremos automáticamente en caso de emergencia.</div>'+
+    '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1px solid var(--gbdl, rgba(255,255,255,0.12));border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">🚨 Emergency contacts</div>'+
+      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:12px;line-height:1.4;font-weight:500;">Up to 2 contacts we\'ll alert automatically in an emergency.</div>'+
       emerg+
-      (emergencyContacts.length<2?'<button onclick="addEmergencyContact()" style="width:100%;margin-top:8px;padding:11px;border-radius:var(--rad-md);border:1.5px dashed rgba(239,68,68,0.5);background:rgba(239,68,68,0.1);color:#fca5a5;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">＋ Agregar contacto de emergencia</button>':'')+
+      emergForm+
+      ((emergencyContacts.length<2&&!_emergFormOpen)?'<button onclick="addEmergencyContact()" style="width:100%;margin-top:8px;padding:11px;border-radius:var(--rad-md);border:1px dashed var(--gbdl, rgba(255,255,255,0.2));background:rgba(255,255,255,0.03);color:var(--fg2);font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">＋ Add emergency contact</button>':'')+
     '</div>';
 }
 function toggleSafetyContact(name){
