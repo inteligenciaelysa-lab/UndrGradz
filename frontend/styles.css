@@ -1038,7 +1038,7 @@ textarea.gi {
   -webkit-overflow-scrolling: touch;
 }
 .topbar {
-  position: absolute;
+  position: fixed; /* pinned to the top across the whole app — never scrolls away */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1046,8 +1046,11 @@ textarea.gi {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
-  background: transparent;
+  max-width: 440px;
+  margin: 0 auto;
+  z-index: 200;
+  /* subtle fade so content scrolling underneath doesn't bleed through the gaps */
+  background: linear-gradient(180deg, rgba(9, 4, 20, 0.96) 45%, rgba(9, 4, 20, 0.72) 78%, transparent);
   pointer-events: none;
 }
 .topbar > * {
@@ -1717,6 +1720,12 @@ textarea.gi {
   flex-direction: column;
   background: var(--bg, #0a0518);
 }
+/* Lift the whole chat window above the keyboard by its exact height, applied
+   INSTANTLY (no transition) so there is no lag — the bar snaps to the keyboard's
+   top the moment it appears and the keyboard slides up to meet it. */
+body.keyboard-open .cwin {
+  padding-bottom: var(--kb, 0px);
+}
 .cwin.open {
   display: flex;
 }
@@ -1731,9 +1740,17 @@ textarea.gi {
 .cwbgo {
   position: absolute;
   inset: 0;
-  background: rgba(4, 2, 10, 0.42) !important;
+  background: rgba(4, 2, 10, 0.6) !important;
   pointer-events: none;
   z-index: 1;
+}
+/* Freeze the animated chat background — the continuously-animating SVG/glow
+   layers lag iOS and compete with the bubbles. Keep it static and dim. */
+#chat-flow-bg, .chat-flow-bg { opacity: 0.32 !important; }
+#chat-flow-bg *, .chat-flow-bg *,
+.chat-glow-magenta, .chat-glow-blue, .chat-glow-violet,
+.chat-layer-bg-deep, .chat-layer-main, .chat-layer-threads, .chat-flow-svg {
+  animation: none !important;
 }
 
 .chat-flow-bg {
@@ -2052,12 +2069,10 @@ textarea.gi {
 }
 .msg.in {
   align-self: flex-start;
-  background: var(--chat-in-bg, rgba(255, 255, 255, 0.1));
+  background: var(--chat-in-bg, rgba(22, 28, 48, 0.86));
   color: var(--fg);
   border-radius:var(--rad-lg) 18px 18px 4px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .msnd {
   font-size:var(--fs-2xs);
@@ -2089,7 +2104,7 @@ textarea.gi {
 .cbar-btn-ic {
   background: transparent;
   border: none;
-  color: #8696a0;
+  color: rgba(169, 196, 255, 0.7);
   cursor: pointer;
   padding: 6px;
   display: flex;
@@ -2130,8 +2145,10 @@ textarea.gi {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  background: #ffffff !important;
-  color: #111b21 !important;
+  /* University colors — uses the JS-set --chat-send-btn-bg (uni color) or falls
+     back to the school primary→secondary gradient, never a generic blue. */
+  background: var(--chat-send-btn-bg, linear-gradient(135deg, var(--uni-p, var(--p)), var(--uni-p2, var(--p2)))) !important;
+  color: #fff !important;
   border: none !important;
   outline: none !important;
   display: flex;
@@ -2139,12 +2156,12 @@ textarea.gi {
   justify-content: center;
   flex-shrink: 0;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 3px 14px color-mix(in srgb, var(--uni-p, var(--p)) 45%, transparent) !important;
   transition: transform var(--dur) ease, background-color var(--dur) ease;
 }
 .chat-standalone-btn:active {
   transform: scale(0.93);
-  background: #e2e8f0 !important;
+  filter: brightness(1.1);
 }
 .sbtn {
   width: 36px;
@@ -2236,11 +2253,15 @@ textarea.gi {
   display: block;
 }
 .crush-card-wrap {
-  padding: 14px var(--s) 16px;
+  /* Fill the area under the tabs and center the (smaller) card; reserve room at
+     the bottom for the fixed action dock so nothing hides behind it. */
+  min-height: calc(100dvh - 110px - env(safe-area-inset-top));
+  padding: 6px var(--s) calc(96px + env(safe-area-inset-bottom));
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 .crush-card-wrap > .crush-card {
   width: 100%;
@@ -2254,7 +2275,9 @@ textarea.gi {
   width: 100%;
   max-width: 380px;
   margin: 0 auto;
-  max-height: calc(100dvh - 240px);
+  /* 240→190: the global bottom-nav is hidden on the deck (body.crush-deck-on),
+     so we no longer reserve its space — the photo gets taller, gap disappears. */
+  max-height: calc(100dvh - 190px);
   display: flex;
   flex-direction: column;
 }
@@ -2659,12 +2682,14 @@ textarea.gi {
 }
 /* ── Crush swipe dock: one bar that slides between [actions] ↔ [nav] ────── */
 .crush-dock {
-  position: sticky;
-  bottom: 8px;
+  position: fixed; /* pinned to the bottom so the action buttons always "follow" */
+  left: 0;
+  right: 0;
+  bottom: calc(10px + env(safe-area-inset-bottom));
   z-index: 60;
-  width: 100%;
+  width: calc(100% - 24px);
   max-width: 380px;
-  margin: 12px auto 0;
+  margin: 0 auto;
   overflow: hidden;
 }
 .crush-dock-track {
@@ -2694,24 +2719,55 @@ textarea.gi {
   display: flex;
   gap: 6px;
   justify-content: center;
-  margin-top: 7px;
+  margin-top: 4px;
+  padding: 4px 0; /* larger tap area without larger dots */
 }
 .crush-dock-dots span {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.28);
-  transition: background 0.2s, width 0.2s;
+  background: rgba(255, 255, 255, 0.35);
+  opacity: 0.6;
+  transition: opacity 0.2s, width 0.2s, background 0.2s;
 }
 .crush-dock-dots span.on {
   background: #fff;
-  width: 16px;
+  width: 18px;
+  opacity: 1;
   border-radius: 3px;
 }
 /* while the Crush deck is on screen, the global bottom nav is replaced by the
    dock's second page — hide the global one to avoid two navs. */
 body.crush-deck-on .bot-nav {
   display: none !important;
+}
+/* The Crush swipe deck is a fixed card + fixed dock — the whole section must not
+   scroll (other sections still scroll normally). */
+body.crush-deck-on #app-scroll {
+  overflow: hidden !important;
+}
+/* Deck card is a fixed, non-scrolling photo that fills the card (no black gap,
+   no scroll). The full profile scrolls only inside the details modal (tap photo). */
+#crush-card {
+  height: calc(100dvh - 240px - env(safe-area-inset-top)) !important;
+  max-height: 640px !important;
+}
+#crush-card .crush-card-inner,
+#crush-card .crush-scroll,
+#crush-card .crush-gallery {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  flex: none !important;
+}
+/* First-run "tap to see profile" hint: breathes for attention, then fades away. */
+@keyframes crushTapBreath {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.09); }
+}
+@keyframes crushTapFade { to { opacity: 0; } }
+.crush-tap-hint {
+  animation: crushTapBreath 1.3s ease-in-out infinite, crushTapFade 0.5s ease 4.5s forwards;
 }
 .crb {
   width: 46px;
@@ -4041,11 +4097,15 @@ html.acc-white .nav-pill {
   }
 }
 ::-webkit-scrollbar {
-  width: 0;
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.13);
-  border-radius: 2px;
+  background: transparent !important;
+}
+* {
+  scrollbar-width: none;
 }
 .ev-cal-day {
   text-align: center;
@@ -5518,10 +5578,10 @@ svg {
 }
 
 .cav {
-  width: 40px !important;
-  height: 40px !important;
+  width: 52px !important;
+  height: 52px !important;
   border-radius: 50%;
-  font-size:var(--fs-md) !important;
+  font-size:var(--fs-lg) !important;
   flex-shrink: 0;
   position: relative;
 }
@@ -8406,8 +8466,7 @@ body.is-ios .screen::before {
 }
 
 .cunrd {
-  background: linear-gradient(135deg, #791515, #791515) !important;
-  
+  background: linear-gradient(135deg, var(--p), #2563eb) !important;
   color: #ffffff !important;
   font-weight:700 !important;
 }
@@ -9930,10 +9989,15 @@ body::after,
 }
 /* The composer bar carried a WhatsApp teal-navy; neutralise it too. */
 .cbar {
-  background: #08080a !important;
+  background: rgba(11, 14, 28, 0.97) !important;
 }
 .cbar-capsule {
-  background: #15151a !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+/* Hide the camera icon while typing so the text field gets the room */
+.cbar-capsule.typing .cbar-cam {
+  display: none;
 }
 /* Chrome's autofill fill was slate navy. */
 input:-webkit-autofill,

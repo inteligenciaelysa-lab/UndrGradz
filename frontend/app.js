@@ -9849,6 +9849,20 @@ function sendPhotoReaction(name,emoji){
   var p=(typeof crushData!=='undefined'&&crushData||[]).filter(function(x){return x.name===name;})[0]||(typeof crushDataAll!=='undefined'&&crushDataAll||[]).filter(function(x){return x.name===name;})[0];
   if(p&&Math.random()>0.4)setTimeout(function(){showMatch(p,false);},950);
 }
+// Tap-to-open tutorial: a breathing "👆 tap" hint shown on the first 5 profiles
+// (in varying spots), then it disappears — and stops for good once the user has
+// opened any profile. No permanent button.
+function _shouldShowCrushTapHint(){
+  try{
+    if(localStorage.getItem('ugz_crush_tapped')==='1')return -1;
+    var c=parseInt(localStorage.getItem('ugz_crush_tut')||'0',10)||0;
+    return c>=5?-1:c;
+  }catch(e){return -1;}
+}
+function _bumpCrushTapHint(){
+  try{ if(localStorage.getItem('ugz_crush_tapped')==='1')return; var c=parseInt(localStorage.getItem('ugz_crush_tut')||'0',10)||0; localStorage.setItem('ugz_crush_tut',String(c+1)); }catch(e){}
+}
+function _markCrushTapped(){ try{ localStorage.setItem('ugz_crush_tapped','1'); }catch(e){} }
 function buildHingeStackHtml(p,opts){
   opts=opts||{};
   var isSelf=!!opts.isSelf;
@@ -9922,11 +9936,20 @@ function buildHingeStackHtml(p,opts){
       (p.bio?'<div style="font-size:'+_cf(12.5)+'px;color:rgba(255,255,255,0.95);font-style:italic;line-height:1.4;margin-bottom:5px;text-shadow:0 1px 4px rgba(0,0,0,0.7);">"'+p.bio+'"</div>':'')+
       (uniName?'<div style="font-size:'+_cf(11)+'px;color:rgba(255,255,255,0.85);font-family:\'Graduate\',serif;margin-top:5px;text-shadow:0 1px 3px rgba(0,0,0,0.855);">'+uniName+gradSuffix+'</div>':'')+
     '</div>';
+  // First-run "tap to see profile" hint — breathes, fades, moves per profile, then gone
+  var _tapHint='';
+  if(!_embed && !isSelf){
+    var _thi=_shouldShowCrushTapHint();
+    if(_thi>=0){
+      var _thPos=(_thi%3===0)?'top:14%;':((_thi%3===1)?'top:43%;':'bottom:26%;');
+      _tapHint='<div class="crush-tap-hint" style="position:absolute;left:50%;'+_thPos+'z-index:7;pointer-events:none;"><div style="display:inline-flex;align-items:center;gap:7px;font-size:var(--fs-sm);font-weight:800;color:#fff;background:rgba(10,8,22,0.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.42);border-radius:var(--rad-pill);padding:9px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.55);white-space:nowrap;">👆 '+(window.currentLang==='es'?'Toca para ver el perfil':'Tap to see the profile')+'</div></div>';
+    }
+  }
   // Build the scrollable stack
   var slides='';
   // ── PHOTO GALLERY: all photos in one swipe-through gallery at the top (tap right = next, left = back) ──
   // _embed defined above (near coverInfo). Deck: fixed viewport height. Preview: 3/4 card shape.
-  var _galH=_embed?'':'clamp(400px,calc(100vh - 290px),620px)';
+  var _galH=_embed?'':'clamp(360px,calc(100dvh - 300px),560px)';
   var _galAR=_embed?'aspect-ratio:3/4;':'';// preview is a normal card-shaped frame (no black square, no natural-aspect gaps)
   var _galPos=p.photoPositions||[];
   var _galSlides=photos.map(function(src,i){
@@ -9944,7 +9967,7 @@ function buildHingeStackHtml(p,opts){
   ):'';
   slides+='<div class="crush-gallery" data-idx="0" style="position:relative;width:100%;'+(_galH?'height:'+_galH+';':'')+_galAR+'overflow:hidden;background:#000000;'+_frameCss+'">'+
     '<div class="crush-gallery-track" style="display:flex;height:100%;transition:transform 0.3s ease;">'+_galSlides+'</div>'+
-    _galDots+_galArrows+_stickerHtml+uniBadgeHtml+coverInfo+'</div>';
+    _galDots+_galArrows+_stickerHtml+uniBadgeHtml+_tapHint+coverInfo+'</div>';
   if(opts.onlyCover) return slides;
   // ── Build content blocks, then interleave with photos: picture, section, picture, section … ──
   var _reply=function(key){return '<button class="crush-reply" onclick="replyToSection(\''+p.name.replace(/'/g,"\\'")+'\',\''+key+'\')">'+icon('chat',16)+' Reply</button>';};
@@ -10769,7 +10792,11 @@ function renderCrush(){
   
   var p=crushData[crushIdx];
 
-  var currentSlides = buildHingeStackHtml(p,{isSelf:false, onlyCover:false});
+  // Deck card = photo + hero only (name/age/major/bio/uni). All the detail blocks
+  // (mutuals, "matched on", ethnicity, religion, interests…) live behind a tap →
+  // openCrushDetailsModal(). Keeps the deck short so the action buttons stay reachable.
+  var currentSlides = buildHingeStackHtml(p,{isSelf:false, onlyCover:true});
+  if(typeof _shouldShowCrushTapHint==='function' && _shouldShowCrushTapHint()>=0) _bumpCrushTapHint();
 
   var nextHtml = '<div class="crush-card-inner next">' +
     '<div class="neon-placeholder-container">' +
@@ -10811,6 +10838,19 @@ function renderCrush(){
     if(sc)sc.scrollTop=0;
     try{
       document.querySelectorAll('.cge').forEach(function(g){_fitCrushGallery(g);});
+    }catch(e){}
+    // Tap anywhere on the photo (not the ‹ › arrows / buttons) opens the full profile.
+    // A swipe captures the pointer so no click fires — the two gestures don't clash.
+    try{
+      var galEl=card.querySelector('.crush-card-inner.current .crush-gallery');
+      if(galEl && !galEl._tapBound){
+        galEl._tapBound=1;
+        galEl.style.cursor='pointer';
+        galEl.addEventListener('click',function(e){
+          if(e.target.closest('button'))return; // let arrows / View profile handle themselves
+          openCrushDetailsModal();
+        });
+      }
     }catch(e){}
   },0);
 }
@@ -11982,8 +12022,7 @@ function _likedSawHtml(pool,unlimited){
         '<div style="font-size:var(--fs-2xs);font-weight:700;color:#a9c4ff;margin-top:6px;letter-spacing:0.8px;text-shadow:0 0 8px #4d84ff;">QUIÉN TE VIO</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
-        '<div style="font-size:var(--fs-xs);font-weight:700;color:#ffffff;text-align:center;text-shadow:0 1px 4px rgba(0,0,0,0.8);">Un estudiante te observó 👁️</div>'+
-        '<div style="margin-top:6px;background:linear-gradient(135deg,rgba(61,123,255,0.4),rgba(240,62,90,0.4));border:1px solid #3d7bff;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">'+icon('search',16)+' DESCUBRIR AHORA</div>'+
+        '<div style="background:linear-gradient(135deg,rgba(61,123,255,0.4),rgba(240,62,90,0.4));border:1px solid #3d7bff;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:5.5px;border-radius:var(--rad-sm);letter-spacing:0.5px;">'+icon('search',16)+' DESCUBRIR AHORA</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -12564,19 +12603,19 @@ function updateChatWindowBubbleColors(style, partnerUni) {
   if (style === '#050505') {
     // Deep Black - elegant translucent white glass
     win.style.setProperty('--chat-out-bg', 'rgba(255, 255, 255, 0.16)');
-    win.style.setProperty('--chat-in-bg', 'rgba(255, 255, 255, 0.08)');
+    win.style.setProperty('--chat-in-bg', 'rgba(24, 30, 52, 0.92)');
     win.style.setProperty('--chat-out-shadow', 'none');
     win.style.setProperty('--chat-send-btn-bg', 'rgba(255, 255, 255, 0.25)');
   } else if (style && style !== 'linear-gradient(135deg,#1a0a2e,#0d1a3a)') {
     // Custom background
-    win.style.setProperty('--chat-out-bg', 'rgba(' + r + ',' + g + ',' + b + ',0.45)');
-    win.style.setProperty('--chat-in-bg', 'rgba(255, 255, 255, 0.08)');
+    win.style.setProperty('--chat-out-bg', 'rgba(' + r + ',' + g + ',' + b + ',0.9)');
+    win.style.setProperty('--chat-in-bg', 'rgba(24, 30, 52, 0.92)');
     win.style.setProperty('--chat-out-shadow', 'none');
     win.style.setProperty('--chat-send-btn-bg', 'rgb(' + r + ',' + g + ',' + b + ')');
   } else {
     // Default background, but themed with university color!
-    win.style.setProperty('--chat-out-bg', 'rgba(' + r + ',' + g + ',' + b + ',0.45)');
-    win.style.setProperty('--chat-in-bg', 'rgba(255, 255, 255, 0.08)');
+    win.style.setProperty('--chat-out-bg', 'rgba(' + r + ',' + g + ',' + b + ',0.9)');
+    win.style.setProperty('--chat-in-bg', 'rgba(24, 30, 52, 0.92)');
     win.style.setProperty('--chat-out-shadow', 'none');
     win.style.setProperty('--chat-send-btn-bg', 'rgb(' + r + ',' + g + ',' + b + ')');
   }
@@ -12816,7 +12855,7 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
     var requestId = window._currentChatRequestId;
 
     console.log('[CHAT DEBUG] Requesting DB messages for matchId:', id, '| requestId:', requestId);
-    if (csub) csub.textContent = 'Loading messages...';
+    if (csub && !isGrp) csub.textContent = 'Loading messages...';
     debugChatState('openChat BEFORE GET RESOLVE', id);
     apiClient.getChatMessages(id).then(function(dbMsgs) {
       if (window._currentChatRequestId !== requestId || curChatId !== id) {
@@ -12834,10 +12873,10 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
       console.log('[CHAT DEBUG] NORMALIZED & UPDATED chatHistory[' + id + ']:', chatHistory[id].length, 'messages');
       renderMsgs();
       debugChatState('openChat AFTER renderMsgs FOR GET', id);
-      if (csub) csub.textContent = online ? 'Online' : 'Last seen recently';
+      if (csub && !isGrp) csub.textContent = online ? 'Online' : 'Last seen recently';
     }).catch(function(err) {
       console.error("[CHAT DEBUG ERROR] Failed to load chat history:", err);
-      if (csub) csub.textContent = 'Error loading history';
+      if (csub && !isGrp) csub.textContent = 'Error loading history';
     });
     apiClient.joinChatRoom(id);
   }
@@ -13018,14 +13057,19 @@ function _cwApplyChatHead(id,nm,color,isGrp){
   var meta = _getGroupMeta(id);
   var members = meta.members || [];
   var memberCount = members.length || 8;
-  if(sub)sub.textContent=memberCount+' participants';
+  // Instagram-style subtitle: the members' first names (never "Error loading").
+  if(sub){
+    var _gnames=members.map(function(m){return (m.name||'').split(' ')[0];}).filter(Boolean);
+    sub.textContent=_gnames.length?_gnames.join(', '):(memberCount+' participants');
+  }
 
   // Group photo in the chat header. openChat() treats its `av` argument as text
   // (it writes textContent), so a group avatar has to be applied here instead.
   _cwApplyGroupAvatar(meta);
 
+  // Group banner (purple cover + member-avatar row) removed per design.
   if(head){
-    head.style.display='block';
+    head.style.display='none';return;
     var cov=document.getElementById('cw-eventcover');
     if(cov){
       if(meta.bannerUrl){
@@ -16949,6 +16993,7 @@ function _handleCinpInput() {
   var sendSvg = document.getElementById('chat-action-svg-send');
   if (inp && micSvg && sendSvg) {
     var val = inp.value.trim();
+    var _cap = inp.closest('.cbar-capsule'); if(_cap) _cap.classList.toggle('typing', val.length>0);
     if (val.length > 0) {
       micSvg.style.display = 'none';
       sendSvg.style.display = 'block';
@@ -22083,9 +22128,8 @@ function _autoOrient(imgId){
   var img=document.getElementById(imgId);if(!img)return;
   var apply=function(){
     if(!img.naturalWidth)return;
-    // Never crop — always show the whole photo, with a dark letterbox behind it
-    img.style.objectFit='contain';
-    img.style.background='#000000';
+    // Fill the card — crop to cover so there's no black letterbox above the photo
+    img.style.objectFit='cover';
   };
   if(img.complete)apply();else img.onload=apply;
 }
@@ -22854,8 +22898,9 @@ function openProfileCardByName(name) {
     if (p2) {
       var modal = document.getElementById('crush-details-modal');
       if (modal && typeof buildHingeStackHtml === 'function') {
+        var _u2=(p2.uni&&p2.uni.name)?p2.uni.name:'';
         var title = document.getElementById('crush-details-title');
-        if (title) title.textContent = (window.currentLang === 'es' ? 'Sobre ' : 'About ') + (p2.name ? p2.name.split(' ')[0] : 'estudiante');
+        if (title) title.innerHTML = (p2.name||'') + (_u2?'<div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);font-family:var(--font);margin-top:3px;">🎓 '+_u2+'</div>':'');
         var content = document.getElementById('crush-details-content');
         if (content) {
           content.innerHTML = buildHingeStackHtml(p2, {isSelf: false, onlyDetails: true});
@@ -23344,10 +23389,11 @@ function openCrushDetailsModal() {
   if (!p) return;
   var modal = document.getElementById('crush-details-modal');
   if (!modal) return;
+  var _uName = (p.uni && p.uni.name) ? p.uni.name : ((typeof uni!=='undefined'&&uni&&uni.name)||'');
   var title = document.getElementById('crush-details-title');
   if (title) {
-    var fn = p.name ? p.name.split(' ')[0] : 'them';
-    title.textContent = (window.currentLang === 'es' ? 'Sobre ' : 'About ') + fn;
+    title.innerHTML = (p.name||'') +
+      (_uName?'<div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);font-family:var(--font);margin-top:3px;letter-spacing:0.3px;">🎓 '+_uName+'</div>':'');
   }
   var content = document.getElementById('crush-details-content');
   if (content) {
@@ -23363,6 +23409,7 @@ function openCrushDetailsModal() {
     content.innerHTML = bioHtml + detailsHtml;
   }
   modal.classList.add('open');
+  _markCrushTapped(); // opening a profile ends the tap tutorial for good
 }
 
 function closeCrushDetailsModal() {

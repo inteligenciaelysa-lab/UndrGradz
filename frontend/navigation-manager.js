@@ -53,32 +53,52 @@
             window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false });
           } catch (e) {}
         }
-        window.Capacitor.Plugins.Keyboard.addListener('keyboardWillShow', () => {
+        // Lift the chat window by the keyboard's EXACT height the moment iOS
+        // announces it, applied instantly (no CSS transition) so there is no lag.
+        window.Capacitor.Plugins.Keyboard.addListener('keyboardWillShow', (info) => {
           this.isKeyboardOpen = true;
+          var kh = (info && info.keyboardHeight) ? Math.round(info.keyboardHeight) : 0;
+          if (kh) window._kbH = kh;
+          document.documentElement.style.setProperty('--kb', kh + 'px');
           document.body.classList.add('keyboard-open');
+          try { window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false }); } catch (e) {}
+          var sc = document.querySelector('.cwin.open .cmsgs');
+          if (sc) sc.scrollTop = sc.scrollHeight;
+        });
+        window.Capacitor.Plugins.Keyboard.addListener('keyboardDidShow', () => {
+          var sc = document.querySelector('.cwin.open .cmsgs');
+          if (sc) sc.scrollTop = sc.scrollHeight;
         });
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillHide', () => {
           this.isKeyboardOpen = false;
+          document.documentElement.style.setProperty('--kb', '0px');
           document.body.classList.remove('keyboard-open');
         });
       }
 
-      // Fallback virtual keyboard state tracking via focus events
+      // focusin fires the instant the field is tapped — BEFORE keyboardWillShow —
+      // so raise the bar right away using the cached keyboard height. The bar is
+      // already up as the keyboard starts sliding, so there is no perceived delay.
       document.addEventListener('focusin', (e) => {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
           this.isKeyboardOpen = true;
-          document.body.classList.add('keyboard-open');
-          if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard && typeof window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible === 'function') {
-            try { window.Capacitor.Plugins.Keyboard.setAccessoryBarVisible({ isVisible: false }); } catch (err) {}
+          if (window._kbH) {
+            document.documentElement.style.setProperty('--kb', window._kbH + 'px');
+            document.body.classList.add('keyboard-open');
+          }
+          var K0 = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Keyboard;
+          if (K0 && typeof K0.setAccessoryBarVisible === 'function') {
+            try { K0.setAccessoryBarVisible({ isVisible: false }); } catch (err) {}
           }
         }
       });
       document.addEventListener('focusout', (e) => {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
           setTimeout(() => {
-            const active = document.activeElement;
-            if (!active || !(active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+            var a = document.activeElement;
+            if (!a || !(a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) {
               this.isKeyboardOpen = false;
+              document.documentElement.style.setProperty('--kb', '0px');
               document.body.classList.remove('keyboard-open');
             }
           }, 100);
@@ -509,7 +529,7 @@
       if (handle) {
         sheet = handle.closest('.sheet, .bg-sheet, .gif-sheet, .modal, .cpanel, .msheet');
       } else {
-        const fullSheet = target.closest('#settings-modal .msheet, #notif-modal .msheet, #chat-settings-modal .msheet, #chat-create-menu .msheet, .vertical-sheet-modal .msheet');
+        const fullSheet = target.closest('#settings-modal .msheet, #notif-modal .msheet, #chat-settings-modal .msheet, #chat-create-menu .msheet, #crush-details-modal .msheet, .vertical-sheet-modal .msheet');
         if (fullSheet && fullSheet.scrollTop <= 0) {
           const rect = fullSheet.getBoundingClientRect();
           if (e.touches[0].clientY - rect.top <= 90) {
