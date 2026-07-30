@@ -2,8 +2,12 @@ const { z } = require('zod');
 const billingService = require('../services/billing.service');
 const AppError = require('../errors/appError');
 
+// 'APLUS' was missing, so every A+ purchase the app sent was rejected here with
+// a 400 before it ever reached the service (which has always accepted it) —
+// the plan looked bought client-side and was gone on the next reload.
 const purchaseSchema = z.object({
-  tier: z.enum(['GOLD', 'PLATINUM', 'FREE']),
+  tier: z.enum(['GOLD', 'PLATINUM', 'FREE', 'APLUS']),
+  period: z.enum(['mo', '6mo', 'yr']).optional(),
 });
 
 class BillingController {
@@ -18,8 +22,8 @@ class BillingController {
         throw new AppError(messages, 400);
       }
 
-      const { tier } = parseResult.data;
-      const result = await billingService.purchasePremium(userId, tier);
+      const { tier, period } = parseResult.data;
+      const result = await billingService.purchasePremium(userId, tier, period);
 
       res.status(200).json({
         status: 'success',

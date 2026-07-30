@@ -514,10 +514,14 @@ class ApiClient {
   // ==========================================
   // BILLING & PREMIUM ROUTES
   // ==========================================
-  async purchasePremium(tier) {
+  // `period` is 'mo' | '6mo' | 'yr'. The backend needs it to set the real
+  // expiry and to reject a downgrade (409) while a longer plan is still running.
+  async purchasePremium(tier, period) {
+    const body = { tier };
+    if (period) body.period = period;
     const result = await this.request('/billing/purchase', {
       method: 'POST',
-      body: JSON.stringify({ tier })
+      body: JSON.stringify(body)
     });
     return result.data;
   }

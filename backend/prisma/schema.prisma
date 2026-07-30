@@ -105,8 +105,12 @@ model UserProfile {
   maxDistanceKm    Int       @default(20)
   lastActive       DateTime  @default(now())
   isGhostMode      Boolean   @default(false)
-  subscriptionTier String    @default("FREE") // 'FREE', 'GOLD', 'PLATINUM'
+  subscriptionTier String    @default("FREE") // 'FREE', 'GOLD', 'PLATINUM', 'APLUS'
   subscriptionEnds DateTime?
+  // Which billing period was bought: 'mo' | '6mo' | 'yr'. Needed to rank the
+  // subscription — a longer plan cannot be downgraded while it is still active,
+  // only upgraded, and the tier alone doesn't say which one you are on.
+  subscriptionPeriod String?
   boostEndsAt      DateTime?
   fcmToken         String?
 

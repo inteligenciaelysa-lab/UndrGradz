@@ -1474,6 +1474,7 @@ function _saveSessionState(){
   try{
     var snap={
       userPro:userPro,userMode:userMode,obMode:obMode,curPlan:curPlan,
+      curPlanPeriod:curPlanPeriod,curPlanEnds:curPlanEnds?curPlanEnds.toISOString():null,
       uni:uni,verified:verified,
       selectedHobbies:typeof selectedHobbies!=='undefined'?selectedHobbies:[],
       selectedFlags:typeof selectedFlags!=='undefined'?selectedFlags:[],
@@ -1503,6 +1504,9 @@ var anonMode = false, commentsOn = true, pollOpen = false;
 var chatHistory = {}, curChatId = null;
 var verified = false, netConnectTarget = {}, popupCurrentUser = null;
 var usernameLastChanged = null, curPlan = 'free', curPayPlan = '';
+// Which A+ billing period is active and when it runs out. Together they decide
+// whether a plan card is the current one, an upgrade, or a locked downgrade.
+var curPlanPeriod = '', curPlanEnds = null;
 var notifications = [];
 var userPro = {name:'',handle:'@user',age:20,bio:'',major:'',minor:'',grad:"May '26",ig:'',org:'',langs:['English'],interests:[],lgbtq:false,isVerified:false,uniNameStyle:'full',uniNameColor:'uni',uniOutline:'secondary'};
 
@@ -1596,6 +1600,8 @@ function _restoreSession(){
     if(snap.userMode)userMode=snap.userMode;
     if(snap.obMode)obMode=snap.obMode;
     if(snap.curPlan)curPlan=snap.curPlan;
+    if(snap.curPlanPeriod)curPlanPeriod=snap.curPlanPeriod;
+    if(snap.curPlanEnds)curPlanEnds=new Date(snap.curPlanEnds);
     if(snap.uni)uni=snap.uni;
     if(typeof snap.verified!=='undefined')verified=snap.verified;
     if(snap.selectedHobbies)selectedHobbies=snap.selectedHobbies;
@@ -2194,6 +2200,8 @@ async function doLoginAuth(){
     userMode = profile.subscriptionTier === 'PLATINUM' ? 'alumni' : 'student';
     obMode = userMode;
     curPlan = profile.subscriptionTier ? profile.subscriptionTier.toLowerCase() : 'free';
+    curPlanPeriod = profile.subscriptionPeriod || '';
+    curPlanEnds = profile.subscriptionEnds ? new Date(profile.subscriptionEnds) : null;
     verified = dbProfile.isEmailVerified;
 
     // Connect WebSockets
@@ -5686,6 +5694,32 @@ async function syncVerificationStatus(){
 function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🔵 Blue badge active';}
 function addLink(){var url=prompt('Enter URL (Instagram, YouTube, LinkedIn, etc.)');if(!url)return;if(!url.startsWith('http'))url='https://'+url;var list=document.getElementById('links-list');if(!list)return;var icon=''+icon('link',16)+'';if(url.includes('instagram'))icon=''+icon('camera',16)+'';else if(url.includes('youtube'))icon='▶️';else if(url.includes('linkedin'))icon='💼';var d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:8px var(--s);font-size:var(--fs-base);color:var(--fg2);';d.innerHTML=icon+' <a href="'+url+'" target="_blank" style="color:var(--fg2);text-decoration:none;">'+url.replace('https://','').split('/')[0]+'</a>';list.appendChild(d);}
 
+// ── TOP-BAR LEFT SLOT ─────────────────────────────────────────────────────
+// #tb-mode-icon is normally a passive indicator of the account mode. Screens you
+// enter "sideways" — Hangouts sub-tabs, Plans — borrow it as a back button,
+// since neither has any other way out. These two helpers are the whole contract
+// so the swap can't drift between callers.
+function _tbBackIcon(onBack, label){
+  var el=document.getElementById('tb-mode-icon');
+  if(!el)return;
+  el.innerHTML=(typeof icon==='function')?icon('chevronLeft',22):'‹';
+  el.style.cursor='pointer';
+  el.setAttribute('role','button');
+  el.setAttribute('tabindex','0');
+  el.setAttribute('aria-label',label||'Back');
+  el.onclick=onBack;
+}
+function _tbModeIcon(name){
+  var el=document.getElementById('tb-mode-icon');
+  if(!el)return;
+  if(typeof icon==='function')el.innerHTML=icon(name||'grad',22);
+  el.style.cursor='';
+  el.onclick=null;
+  el.removeAttribute('role');
+  el.removeAttribute('tabindex');
+  el.removeAttribute('aria-label');
+}
+
 // ── HANGOUTS ──
 function switchEvTab(tab){
   ['nearby','my','create','joined'].forEach(function(t){
@@ -5699,21 +5733,10 @@ function switchEvTab(tab){
     }
     if(p)p.classList.toggle('active',t===tab);
   });
-  var modeIcon = document.getElementById('tb-mode-icon');
-  if (modeIcon) {
-    if (tab === 'create' || tab === 'my' || tab === 'joined') {
-      modeIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-chevron-left-icon lucide-chevron-left" style="cursor:pointer;"><path d="m15 18-6-6 6-6"/></svg>';
-      modeIcon.style.cursor = 'pointer';
-      modeIcon.onclick = function() {
-        switchEvTab('nearby');
-      };
-    } else {
-      if (typeof icon === 'function') {
-        modeIcon.innerHTML = icon('group3', 22);
-      }
-      modeIcon.style.cursor = '';
-      modeIcon.onclick = null;
-    }
+  if (tab === 'create' || tab === 'my' || tab === 'joined') {
+    _tbBackIcon(function(){ switchEvTab('nearby'); }, 'Volver');
+  } else {
+    _tbModeIcon('group3');
   }
   // The FAB is a shortcut *to* Create — pointless while you're already on it
   var _fab=document.getElementById('hangouts-fab');
@@ -16474,16 +16497,36 @@ function processPayment() {
     alert('🎉 Purchase complete! Your boost is now active.');
     return;
   }
+  // Remember the state to roll back to: the purchase is applied locally first so
+  // the UI reacts immediately, but the server can still refuse it (a downgrade
+  // while a longer plan is running comes back as 409).
+  var _prevPlan = curPlan, _prevPeriod = curPlanPeriod, _prevEnds = curPlanEnds;
   curPlan = curPayPlan;
+  if (curPayPlan === 'aplus') curPlanPeriod = _aplusBillSel;
   if (typeof _applyPlanLocks === 'function') _applyPlanLocks();
   if (curPayPlan === 'silver' || curPayPlan === 'gold' || curPayPlan === 'aplus') userDatingTier = curPayPlan;
   if (!isBiz && curPayPlan !== 'cheat' && typeof apiClient !== 'undefined') {
-    apiClient.purchasePremium(curPayPlan.toUpperCase()).then(function() {
-      console.log("Plan updated in DB");
+    var _period = (curPayPlan === 'aplus') ? _aplusBillSel : null;
+    apiClient.purchasePremium(curPayPlan.toUpperCase(), _period).then(function(data) {
+      // Take the expiry and period from the server rather than recomputing them
+      // here — it owns the duration table.
+      if (data) {
+        if (data.subscriptionPeriod) curPlanPeriod = data.subscriptionPeriod;
+        if (data.subscriptionEnds) curPlanEnds = new Date(data.subscriptionEnds);
+      }
+      if (typeof showPlansForGender === 'function') showPlansForGender();
       if (typeof loadCrushFeed === 'function') loadCrushFeed();
       if (typeof fetchAndRenderHangouts === 'function') fetchAndRenderHangouts();
     }).catch(function(e) {
       console.error("DB update failed", e);
+      curPlan = _prevPlan; curPlanPeriod = _prevPeriod; curPlanEnds = _prevEnds;
+      if (typeof _applyPlanLocks === 'function') _applyPlanLocks();
+      if (typeof showPlansForGender === 'function') showPlansForGender();
+      if (typeof ugzAlert === 'function') {
+        ugzAlert(e && e.status === 409
+          ? 'No se pudo cambiar de plan: ' + e.message
+          : 'No se pudo completar la compra: ' + ((e && e.message) ? e.message : 'error'));
+      }
     });
   }
   if (isBiz) {
@@ -20271,142 +20314,31 @@ var _APLUS_BILL={
   yr:{price:'$149.99',unit:'/yr',sub:'That\'s $12.50/mo — best value',name:'A+ Student · 1 Year',pay:'$149.99',tag:'BEST VALUE'}
 };
 var _aplusBillSel='yr';
-function _selAplusBill(p){
-  _aplusBillSel=p;var b=_APLUS_BILL[p];if(!b)return;
-  ['mo','6mo','yr'].forEach(function(k){var el=document.getElementById('abill-'+k);if(el){var on=k===p;el.style.borderColor=on?'var(--p)':'var(--gbdl)';el.style.background=on?'rgba(61,123,255,0.10)':'rgba(255,255,255,0.04)';}});
-  var pr=document.getElementById('aplus-price');if(pr)pr.innerHTML=b.price+'<span class="t-body">'+b.unit+'</span>';
-  var sb=document.getElementById('aplus-subprice');if(sb)sb.textContent=b.sub;
-  var ct=document.getElementById('aplus-cta');if(ct)ct.setAttribute('onclick','openPayment(\'aplus\',\''+b.pay+'\',\''+b.name+'\')');
+// Set once the user picks a card by hand, so re-rendering the screen stops
+// snapping the selection back to the plan they already own.
+var _plansSelTouched=false;
+
+// ── A+ plan ranking ────────────────────────────────────────────────────────
+// Mirrors PERIOD_RANK in backend/src/services/billing.service.js. While a
+// subscription is still running you may move UP to a longer plan but not down
+// to a shorter one; the server enforces it with a 409, this is what lets the
+// screen say so before you get there.
+var _APLUS_RANK={mo:1,'6mo':2,yr:3};
+var _APLUS_TERM={mo:'1 mes','6mo':'6 meses',yr:'12 meses'};
+function _aplusActive(){
+  return curPlan==='aplus' && (!curPlanEnds || curPlanEnds>new Date());
+}
+function _planRank(id){return _APLUS_RANK[id]||0;}
+function _planIsCurrent(id){return _aplusActive() && id===curPlanPeriod;}
+function _planLocked(id){return _aplusActive() && _planRank(id)<_planRank(curPlanPeriod);}
+function _planEndsLabel(){
+  if(!curPlanEnds)return '';
+  try{return curPlanEnds.toLocaleDateString(window.currentLang==='es'?'es-MX':'en-US',{day:'numeric',month:'long',year:'numeric'});}
+  catch(e){return curPlanEnds.toISOString().slice(0,10);}
 }
 var _plansTab='plans';
 function _plansTabSet(t){_plansTab=t;showPlansForGender();}
-var CHEATS=[
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-star-icon lucide-star"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>',
-    n:'Super Likes',
-    d:'They see you liked them first \u2014 stand out.',
-    c:'#06b6d4',
-    opts:[['5','$2.99',''],['15','$6.99','BEST VALUE']]
-  },
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rose-icon lucide-rose"><path d="M17 10h-1a4 4 0 1 1 4-4v.534"/><path d="M17 6h1a4 4 0 0 1 1.42 7.74l-2.29.87a6 6 0 0 1-5.339-10.68l2.069-1.31"/><path d="M4.5 17c2.8-.5 4.4 0 5.5.8s1.8 2.2 2.3 3.7c-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2"/><path d="M9.77 12C4 15 2 22 2 22"/><circle cx="17" cy="8" r="2"/></svg>',
-    n:'Roses',
-    d:'A rare like that always gets noticed.',
-    c:'#dc2626',
-    opts:[['3','$3.99',''],['10','$9.99','BEST VALUE']]
-  },
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-spotlight-icon lucide-spotlight"><path d="M15.295 19.562 16 22"/><path d="m17 16 3.758 2.098"/><path d="m19 12.5 3.026-.598"/><path d="M7.61 6.3a3 3 0 0 0-3.92 1.3l-1.38 2.79a3 3 0 0 0 1.3 3.91l6.89 3.597a1 1 0 0 0 1.342-.447l3.106-6.211a1 1 0 0 0-.447-1.341z"/><path d="M8 9V2"/></svg>',
-    n:'Campus Spotlight',
-    d:'Be the star on campus for 24 hours.',
-    c:'#fbbf24',
-    opts:[['1 Day','$9.99',''],['3 Days','$24.99','SAVE 20%']]
-  },
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3e635" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>',
-    n:'Profile Boost',
-    d:'Appear 10x more often in others\u2019 Crush for 30 min.',
-    c:'#a3e635',
-    opts:[['1','$3.99',''],['5','$14.99','POPULAR']]
-  },
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>',
-    n:'Hangout Boost',
-    d:'Get your event to the top and more people.',
-    c:'#f59e0b',
-    opts:[['1','$3.99',''],['5','$14.99','']]
-  },
-  {
-    e:'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3d7bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>',
-    n:'See Who Liked You',
-    d:'See everyone who already liked your profile.',
-    c:'#3d7bff',
-    single:true,
-    opts:[['Unlock','$6.99','']]
-  }
-];
-function buyCheat(name,price){if(typeof openPayment==='function')openPayment('cheat',price,name);}
-function _planCardHtml(k){
-  var b=_APLUS_BILL[k];
-  var title=(k==='mo'?'1 Month':k==='6mo'?'6 Months':'12 Months');
-  var badge=(k==='mo'?'STARTER':k==='6mo'?'MOST POPULAR':'BEST VALUE');
-  var color=(k==='mo'?'#38bdf8':k==='6mo'?'#facc15':'#f97316');
-  var glow=(k==='mo'?'rgba(56,189,248,0.5)':k==='6mo'?'rgba(250,204,21,0.5)':'rgba(249,115,22,0.5)');
-  var grad=(k==='mo')?'linear-gradient(160deg,#1e3a5f,#0f172a)':(k==='6mo')?'linear-gradient(160deg,#3f3513,#1c1917)':'linear-gradient(160deg,#4a2118,#1c0d09)';
-  return '<div style="flex:0 0 178px;scroll-snap-align:center;background:'+grad+';border:2px solid '+color+';'+glow+';border-radius:var(--rad-lg);padding:16px 15px;position:relative;">'+
-    '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:var(--fs-2xs);font-weight:700;background:'+color+';color:#000;padding:3px 12px;border-radius:var(--rad-sm);white-space:nowrap;'+color+';">'+badge+'</div>'+
-    '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;text-align:center;margin-bottom:6px;margin-top:2px;">'+title+'</div>'+
-    '<div style="text-align:center;font-size:var(--fs-2xl);font-weight:900;color:#fff;">'+b.price+'<span style="font-size:var(--fs-sm);font-weight:400;color:rgba(255,255,255,0.7);">'+b.unit+'</span></div>'+
-    '<div style="text-align:center;font-size:var(--fs-2xs);color:rgba(255,255,255,0.78);margin-bottom:12px;min-height:14px;">'+b.sub+'</div>'+
-    // The box-shadow here was malformed (`var(--glow-primary)` concatenated to
-    // `glow` with no comma), so the browser dropped the whole declaration. No
-    // halo wanted anyway — removed rather than repaired.
-    '<button class="gbtn" style="background:'+color+';color:#000;font-size:var(--fs-md);font-weight:700;" onclick="openPayment(\'aplus\',\''+b.pay+'\',\''+b.name+'\')">A+</button>'+
-  '</div>';
-}
-function _cheatCardHtml(c){
-  var tiers = c.opts.map(function(o){
-    var badgeStyle = 'position:absolute;top:-8px;right:-5px;font-size:7.5px;font-weight:900;background:' + c.c + ';color:#000;padding:2px 6px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.3px;box-shadow:var(--el-1);text-transform:uppercase;';
-    var badge = o[2] ? '<div style="' + badgeStyle + '">' + o[2] + '</div>' : '';
-    
-    var neonColor = c.c;
-    // Black fill so the coloured border and halo are the only light in the
-    // control — that contrast is what makes the neon read.
-    var glowStr = '0 0 10px ' + neonColor + '66, inset 0 0 8px ' + neonColor + '1f';
-    var btnStyle = 'position:relative;background:#000;border:1.5px solid ' + neonColor + ';box-shadow:' + glowStr + ';border-radius:var(--rad-sm);padding:8px 9px;min-width:50px;text-align:center;cursor:pointer;transition:all var(--dur) ease;font-family:var(--font);';
-    if (c.single) {
-      btnStyle += 'min-width:86px;padding:10px;';
-    }
-
-    // Hover brightens the halo only; the fill stays black.
-    var hoverEnter = "this.style.boxShadow='0 0 18px " + neonColor + "aa, inset 0 0 10px " + neonColor + "33';this.style.transform='translateY(-1px) scale(1.04)';";
-    var hoverLeave = "this.style.boxShadow='" + glowStr + "';this.style.transform='';";
-
-    var countColor = neonColor;
-
-    return '<button class="pu-tier" onclick="buyCheat(\''+c.n+' \u2014 '+o[0]+'\',\''+o[1]+'\')" style="' + btnStyle + '" onmouseenter="' + hoverEnter + '" onmouseleave="' + hoverLeave + '">' +
-      badge +
-      '<div style="font-size:var(--fs-base);font-weight:700;color:' + countColor + ';text-shadow:0 0 8px ' + neonColor + '99;">' + o[0] + '</div>' +
-      '<div style="font-size:var(--fs-2xs);color:var(--fg2);margin-top:1px;">' + o[1] + '</div>' +
-    '</button>';
-  }).join('');
-
-  // The row carries the item's own colour as a neon outline (it used to be a flat
-  // grey border), so the whole card reads as one coloured unit with its icon,
-  // buttons and badge instead of a grey box holding coloured bits.
-  var rowStyle = 'display:flex;align-items:center;gap:12px;background:#000;border:1.5px solid ' + c.c + ';box-shadow:0 0 12px ' + c.c + '55, inset 0 0 12px ' + c.c + '14;border-radius:var(--rad-lg);padding:12px 14px;margin-bottom:12px;transition:all var(--dur) ease;width:calc(100% - 32px);margin-left:16px;margin-right:16px;box-sizing:border-box;';
-  // The glow here used to be dropped on the floor: the value was concatenated
-  // without the `box-shadow:` property name, so the browser discarded it and the
-  // icon tiles rendered with no halo at all.
-  var iconStyle = 'width:46px;height:46px;border-radius:var(--rad-md);background:#000;border:2.5px solid ' + c.c + ';box-shadow:0 0 12px ' + c.c + '88, inset 0 0 8px ' + c.c + '44;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);flex-shrink:0;text-shadow:0 0 6px ' + c.c + ';transition:transform 0.2s;';
-
-  var nameColor = '#fff';
-
-  return '<div class="pu-row" style="' + rowStyle + '" onmouseenter="var ic=this.querySelector(\'.pu-ic-glow\');if(ic)ic.style.transform=\'scale(1.08)\';" onmouseleave="var ic=this.querySelector(\'.pu-ic-glow\');if(ic)ic.style.transform=\'scale(1)\';">' +
-    '<div class="pu-ic-glow" style="' + iconStyle + '">' + c.e + '</div>' +
-    '<div style="flex:1;min-width:0;text-align:left;">' +
-      '<div style="font-size:var(--fs-base);font-weight:600;color:' + nameColor + ';">' + c.n + '</div>' +
-      '<div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.35;margin-top:2px;">' + c.d + '</div>' +
-    '</div>' +
-    '<div class="pu-tiers" style="display:flex;gap:6px;flex-shrink:0;">' + tiers + '</div>' +
-  '</div>';
-}
 function _inviteCopy(t){try{navigator.clipboard.writeText(t);}catch(e){}if(typeof _prettyAlert==='function')_prettyAlert('📋 Copied: '+t);else alert('Copied: '+t);}
-var _userReferralData = null;
-
-function _refLoad() {
-  if (typeof apiClient !== 'undefined' && apiClient.getAccessToken() && !_userReferralData) {
-    apiClient.getReferralStats().then(function(res) {
-      if (res) {
-        _userReferralData = res;
-        if (_plansTab === 'invite') {
-          showPlansForGender();
-        }
-      }
-    }).catch(function(e) {});
-  }
-}
-
 var _userReferralData = null;
 
 function _refLoad() {
@@ -20492,7 +20424,10 @@ function renderInviteEarn(){
     {lv:3, req:10, ic:'💎', n:'Invite 10 friends', r:'10% OFF A+'},
     {lv:4, req:20, ic:'🎁', n:'Invite 20 friends', r:'Mystery Reward'}
   ];
-  var _qrSvg = '<div style="width:84px;height:84px;background:rgba(255,255,255,0.05);border:1.5px solid #ec4899;box-shadow:0 0 12px #ec489945, inset 0 0 12px #ec489912;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:center;box-sizing:border-box;color:#dc2626;box-shadow:var(--el-2);"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code-icon lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg></div>';
+  // Had `box-shadow` declared twice — the trailing var(--el-2) overwrote the
+  // neon halo, so the pink edge never lit. One declaration, and the frame now
+  // comes from .neon-card like everything else on this panel.
+  var _qrSvg = '<div class="neon-card" style="--neon:#a855f7;width:84px;height:84px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:center;box-sizing:border-box;color:var(--fg2);flex-shrink:0;"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-qr-code-icon lucide-qr-code"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg></div>';
   var _waSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:20px;height:20px;fill:currentColor;"><path d="M476.9 161.1C435 119.1 379.2 96 319.9 96C197.5 96 97.9 195.6 97.9 318C97.9 357.1 108.1 395.3 127.5 429L96 544L213.7 513.1C246.1 530.8 282.6 540.1 319.8 540.1L319.9 540.1C442.2 540.1 544 440.5 544 318.1C544 258.8 518.8 203.1 476.9 161.1zM319.9 502.7C286.7 502.7 254.2 493.8 225.9 477L219.2 473L149.4 491.3L168 423.2L163.6 416.2C145.1 386.8 135.4 352.9 135.4 318C135.4 216.3 218.2 133.5 320 133.5C369.3 133.5 415.6 152.7 450.4 187.6C485.2 222.5 506.6 268.8 506.5 318.1C506.5 419.9 421.6 502.7 319.9 502.7zM421.1 364.5C415.6 361.7 388.3 348.3 383.2 346.5C378.1 344.6 374.4 343.7 370.7 349.3C367 354.9 356.4 367.3 353.1 371.1C349.9 374.8 346.6 375.3 341.1 372.5C308.5 356.2 287.1 343.4 265.6 306.5C259.9 296.7 271.3 297.4 281.9 276.2C283.7 272.5 282.8 269.3 281.4 266.5C280 263.7 268.9 236.4 264.3 225.3C259.8 214.5 255.2 216 251.8 215.8C248.6 215.6 244.9 215.6 241.2 215.6C237.5 215.6 231.5 217 226.4 222.5C221.3 228.1 207 241.5 207 268.8C207 296.1 226.9 322.5 229.6 326.2C232.4 329.9 268.7 385.9 324.4 410C359.6 425.2 373.4 426.5 391 423.9C401.7 422.3 423.8 410.5 428.4 397.5C433 384.5 433 373.4 431.6 371.1C430.3 368.6 426.6 367.2 421.1 364.5z"/></svg>';
   var _igSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:20px;height:20px;fill:currentColor;"><path d="M320.3 205C256.8 204.8 205.2 256.2 205 319.7C204.8 383.2 256.2 434.8 319.7 435C383.2 435.2 383.8 383.8 435 320.3C435.2 256.8 383.8 205.2 320.3 205zM319.7 245.4C360.9 245.2 394.4 278.5 394.6 319.7C394.8 360.9 361.5 394.4 320.3 394.6C279.1 394.8 245.6 361.5 245.4 320.3C245.2 279.1 278.5 245.6 319.7 245.4zM413.1 200.3C413.1 185.5 425.1 173.5 439.9 173.5C454.7 173.5 466.7 185.5 466.7 200.3C466.7 215.1 454.7 227.1 439.9 227.1C425.1 227.1 413.1 215.1 413.1 200.3zM542.8 227.5C541.1 191.6 532.9 159.8 506.6 133.6C480.4 107.4 448.6 99.2 412.7 97.4C375.7 95.3 264.8 95.3 227.8 97.4C192 99.1 160.2 107.3 133.9 133.5C107.6 159.7 99.5 191.5 97.7 227.4C95.6 264.4 95.6 375.3 97.7 412.3C99.4 448.2 107.6 480 133.9 506.2C160.2 532.4 191.9 540.6 227.8 542.4C264.8 544.5 375.7 544.5 412.7 542.4C448.6 540.7 480.4 532.5 506.6 506.2C532.8 480 541 448.2 542.8 412.3C544.9 375.3 544.9 264.5 542.8 227.5zM495 452C487.2 471.6 472.1 486.7 452.4 494.6C422.9 506.3 352.9 503.6 320.3 503.6C287.7 503.6 217.6 506.2 188.2 494.6C168.6 486.8 153.5 471.7 145.6 452C133.9 422.5 136.6 352.5 136.6 319.9C136.6 287.3 134 217.2 145.6 187.8C153.4 168.2 168.5 153.1 188.2 145.2C217.7 133.5 287.7 136.2 320.3 136.2C352.9 136.2 423 133.6 452.4 145.2C472 153 487.1 168.1 495 187.8C506.7 217.3 504 287.3 504 319.9C504 352.5 506.7 422.6 495 452z"/></svg>';
   var _msgSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" style="width:20px;height:20px;fill:currentColor;"><path d="M267.7 576.9C267.7 576.9 267.7 576.9 267.7 576.9L229.9 603.6C222.6 608.8 213 609.4 205 605.3C197 601.2 192 593 192 584L192 512L160 512C107 512 64 469 64 416L64 192C64 139 107 96 160 96L480 96C533 96 576 139 576 192L576 416C576 469 533 512 480 512L359.6 512L267.7 576.9zM332 472.8C340.1 467.1 349.8 464 359.7 464L480 464C506.5 464 528 442.5 528 416L528 192C528 165.5 506.5 144 480 144L160 144C133.5 144 112 165.5 112 192L112 416C112 442.5 133.5 464 160 464L216 464C226.4 464 235.3 470.6 238.6 479.9C239.5 482.4 240 485.1 240 488L240 537.7C272.7 514.6 303.3 493 331.9 472.8z"/></svg>';
@@ -20553,22 +20488,41 @@ function renderInviteEarn(){
       'No top recruiters yet 👑<br><span style="font-size:var(--fs-2xs);color:var(--fg2);">Be the first on the leaderboard!</span>' +
     '</div>';
   }
+  // Every panel below used to hand-roll its own neon edge in its own hue —
+  // #c084fc, #fb923c, #ec4899, #22d3ee, #a3e635 — each with a permanent
+  // `box-shadow: 0 0 12px <hue>45`. Five cards glowing at once is exactly what
+  // .neon-card exists to prevent: at rest a card is a frame, and the halo marks
+  // the ONE thing that matters. They now share the Invite tab's violet, and only
+  // the level card (the live one) is lit with .on. Bonus: .neon-card follows the
+  // per-university theme, which the hardcoded hues could not.
+  var IV = '#a855f7';
   return ''+
-  '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
-  '<img class="ap-banner" src="images/banner_invite.png" style="width:calc(100% - 32px);height:auto;border-radius:30px;margin: 0 16px 16px 16px;display:block;box-sizing:border-box;" />'+
-  '<div style="background:rgba(255,255,255,0.03);border:1.5px solid #c084fc;box-shadow:0 0 12px #c084fc45, inset 0 0 12px #c084fc12;border-radius:var(--rad-lg);padding:15px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:600;color:#000;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:#791515;width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#dc2626;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#dc2626;">'+toNext+' more friends</b> to unlock <b style="color:#dc2626;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
-  '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.6px;margin:0 16px 10px 16px;text-align:left;">Rewards path</div><div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 16px 6px 16px;margin-bottom:14px;width:100%;box-sizing:border-box;">'+PATH.map(function(x){return _iePath(x,c,nextT);}).join('')+'</div>'+
-  '<div style="background:rgba(255,255,255,0.03);border:1.5px solid #fb923c;box-shadow:0 0 12px #fb923c45, inset 0 0 12px #fb923c12;border-radius:var(--rad-md);padding:14px;margin:0 16px 12px 16px;width:calc(100% - 32px);box-sizing:border-box;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:left;">Your invite code</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed rgba(240,62,90,0.5);background:rgba(240,62,90,0.04);border-radius:var(--rad-sm);padding:12px 14px;margin-bottom:14px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#dc2626;letter-spacing:1px;">'+code+'</div><div onclick="_inviteCopy(\''+code+'\')" style="cursor:pointer;font-size:var(--fs-md);color:#fff;">📋</div></div>'+
+  '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
+  '<img class="ap-banner" src="images/banner_invite.png" style="width:100%;height:auto;border-radius:30px;margin-bottom:16px;display:block;" />'+
+  '<div class="neon-card on" style="--neon:'+IV+';border-radius:var(--rad-lg);padding:15px;margin-bottom:14px;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:700;color:#fff;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:#791515;width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#dc2626;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#dc2626;">'+toNext+' more friends</b> to unlock <b style="color:#dc2626;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
+  '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;text-align:left;">Rewards path</div><div class="plans-bleed" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:6px;margin-bottom:14px;">'+PATH.map(function(x){return _iePath(x,c,nextT);}).join('')+'</div>'+
+  '<div class="neon-card" style="--neon:'+IV+';border-radius:var(--rad-md);padding:14px;margin-bottom:12px;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:left;">Your invite code</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed rgba(240,62,90,0.5);background:rgba(240,62,90,0.04);border-radius:var(--rad-sm);padding:12px 14px;margin-bottom:14px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#dc2626;letter-spacing:1px;">'+code+'</div><div onclick="_inviteCopy(\''+code+'\')" style="cursor:pointer;font-size:var(--fs-md);color:#fff;">📋</div></div>'+
   '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:left;">Share your link</div><div style="display:flex;gap:6px;margin-bottom:14px;">'+shareBtn(_waSvg,'WhatsApp','whatsapp','#25D366')+shareBtn(_igSvg,'Instagram','instagram','linear-gradient(135deg,#f58529,#dd2a7b,#8134af)')+shareBtn(_msgSvg,'Messages','sms','#22c55e')+shareBtn(_moreSvg,'More','more','rgba(255,255,255,0.1)')+'</div>'+
   '<div style="display:flex;gap:12px;align-items:center;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;"><span style="font-size:var(--fs-sm);color:var(--fg2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">'+icon('link',16)+' undrgradz.app/i/'+code+'</span><span onclick="_inviteCopy(\'https://undrgradz.app/i/'+code+'\')" style="font-size:var(--fs-sm);font-weight:600;color:#3d7bff;cursor:pointer;">Copy</span></div></div>'+_qrSvg+'</div></div>'+
-  '<div style="display:flex;gap:10px;margin:0 16px 14px 16px;width:calc(100% - 32px);box-sizing:border-box;flex-wrap:wrap;"><div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1.5px solid #22d3ee;box-shadow:0 0 12px #22d3ee45, inset 0 0 12px #22d3ee12;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
-  '<div style="flex:1;min-width:150px;background:rgba(255,255,255,0.03);border:1.5px solid #a3e635;box-shadow:0 0 12px #a3e63545, inset 0 0 12px #a3e63512;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
-  '<button class="gbtn" style="background:linear-gradient(90deg,#9e1b1b,#791515 55%,#fb923c);font-size:var(--fs-md);font-weight:700;margin:0 16px 16px 16px;width:calc(100% - 32px);box-sizing:border-box;border:none;color:#fff;padding:14px;border-radius:var(--rad-md);cursor:pointer;box-shadow:var(--el-2);" onclick="_inviteShare(\'more\')">Invite Friends Now ›</button>'+
+  '<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><div class="neon-card" style="--neon:'+IV+';flex:1;min-width:150px;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
+  '<div class="neon-card" style="--neon:'+IV+';flex:1;min-width:150px;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
+  '<button class="gbtn" style="background:linear-gradient(100deg,#d946ef,#30175c);font-size:var(--fs-md);font-weight:700;margin-bottom:16px;width:100%;border:none;color:#fff;padding:14px;border-radius:var(--rad-md);cursor:pointer;box-shadow:var(--el-2);" onclick="_inviteShare(\'more\')">Invite Friends Now ›</button>'+
   '<div style="height:8px;"></div>';
 }
 
 function _selectAplusPlan(id) {
+  // A shorter plan than the one you are on is not selectable while the current
+  // one is still running — say why instead of silently ignoring the tap.
+  if (_planLocked(id)) {
+    if (typeof ugzAlert === 'function') {
+      ugzAlert('Tu plan A+ de ' + (_APLUS_TERM[curPlanPeriod] || 'A+') + ' sigue activo' +
+        (curPlanEnds ? ' hasta el ' + _planEndsLabel() : '') +
+        '. Puedes mejorar a un plan más largo, pero no cambiar a uno más corto hasta que termine.');
+    }
+    return;
+  }
   _aplusBillSel = id;
+  _plansSelTouched = true;
   showPlansForGender();
 }
 
@@ -20625,6 +20579,13 @@ function showPlansForGender(){
     + '</div>';
   if(_plansTab==='invite'){sec.innerHTML=tabs+renderInviteEarn();return;}
   if(_plansTab==='plans'){
+    // With a live subscription the default selection is the plan you are on, not
+    // the hardcoded 'yr' — otherwise the screen opens pre-selected on something
+    // you would be buying rather than on what you already have. And a selection
+    // left on a now-locked shorter plan is pulled back up to the current one.
+    if(_aplusActive() && curPlanPeriod && (_planLocked(_aplusBillSel) || !_plansSelTouched)){
+      _aplusBillSel = curPlanPeriod;
+    }
     var selectedBill = _APLUS_BILL[_aplusBillSel] || _APLUS_BILL.yr;
     var feats = [
       ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>', 'See who liked you', 'View likes instantly', '#dc2626'],
@@ -20634,10 +20595,12 @@ function showPlansForGender(){
       ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-icon lucide-calendar"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>', '30+ event spots', 'Access exclusive events', '#10b981'],
       ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>', 'Profile boost & top slot', 'Stand out on campus', '#dc2626']
     ];
+    // One frame colour for the whole grid — the A+ hue. Six different edges plus
+    // the three the plan cards used below meant nine colours competing on one
+    // screen and no hierarchy at all. The ICONS keep their own colour: at 20px
+    // they identify a feature without shouting.
     var featsHtml = feats.map(function(f) {
-      // Uses the shared .neon-card recipe; only the hue varies per feature.
-      var c = f[3] || '#dc2626';
-      return '<div class="ap-feat neon-card grad" style="--neon:'+c+';display:flex;gap:9px;align-items:center;padding:10px 11px;">' +
+      return '<div class="ap-feat neon-card grad" style="--neon:var(--accent);display:flex;gap:9px;align-items:center;padding:10px 11px;">' +
         '<div class="ap-feat-ic" style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;">' + f[0] + '</div>' +
         '<div style="min-width:0;flex:1;text-align:left;">' +
           '<div style="font-size:var(--fs-sm);font-weight:600;color:#fff;line-height:1.3;word-break:break-word;">' + f[1] + '</div>' +
@@ -20647,63 +20610,113 @@ function showPlansForGender(){
     }).join('');
 
     var plans = [
-      { id: 'mo', title: '1 Month', price: '$19.99', unit: '/mo', sub: 'Billed monthly', badge: 'STARTER', border: '#38bdf8', glow: 'rgba(56,189,248,0.7)', glowSubtle: 'rgba(56,189,248,0.22)', badgeBg: 'linear-gradient(135deg,#0284c7,#38bdf8)' },
-      { id: '6mo', title: '6 Months', price: '$99.99', unit: '/6 mo', sub: 'Save 17%', badge: 'MOST POPULAR', border: '#facc15', glow: 'rgba(250,204,21,0.75)', glowSubtle: 'rgba(250,204,21,0.25)', badgeBg: 'linear-gradient(135deg,#ca8a04,#facc15)' },
-      { id: 'yr', title: '12 Months', price: '$149.99', unit: '/yr', sub: 'Save 37%', badge: 'BEST VALUE', border: '#f97316', glow: 'rgba(249,115,22,0.75)', glowSubtle: 'rgba(249,115,22,0.25)', badgeBg: 'linear-gradient(135deg,#ea580c,#fb923c)' }
+      { id: 'mo', title: '1 Month', price: '$19.99', unit: '/mo', sub: 'Billed monthly', badge: 'STARTER' },
+      { id: '6mo', title: '6 Months', price: '$99.99', unit: '/6 mo', sub: 'Save 17%', badge: 'MOST POPULAR' },
+      { id: 'yr', title: '12 Months', price: '$149.99', unit: '/yr', sub: 'Save 37%', badge: 'BEST VALUE' }
     ];
 
+    var _active = _aplusActive();
+
+    // All three cards now sit on .neon-card in the A+ hue and the selected one
+    // gets .on. That is the house rule: at rest a card carries no outer halo, so
+    // a row reads as three frames with one lit. Before, every card had its own
+    // colour AND its own permanent glow, so nothing stood out. The selected card
+    // also no longer lifts with translateY/scale — in a 3-up row with an 8px gap
+    // it climbed over its neighbours.
     var plansHtml = plans.map(function(p) {
       var isSelected = (_aplusBillSel === p.id);
-      var borderStyle = isSelected ? ('2.5px solid ' + p.border) : ('1.5px solid ' + p.border);
-      // These were emitted WITHOUT the `box-shadow:` property name, so the browser
-      // threw them away — the plan cards had no glow at all despite p.glow /
-      // p.glowSubtle being defined. Also needs the 0 0 Npx offsets, which the
-      // array values don't carry.
-      var shadowStyle = isSelected
-        ? ('box-shadow: 0 0 18px ' + p.glow + ', inset 0 0 14px ' + p.glowSubtle + ';')
-        : ('box-shadow: 0 0 10px ' + p.glowSubtle + ';');
-      // Both states are black; selection reads through the thicker border, the
-      // stronger halo and the lift below.
-      var bgStyle = 'background: #000;';
-      var transformStyle = isSelected ? 'transform: translateY(-4px) scale(1.03);' : 'transform: translateY(0) scale(1);';
-      
-      var badgeHtml = '<div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:700;background:' + p.badgeBg + ';color:#000;padding:3px 9px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.4px;box-shadow:' + (isSelected ? ('0 0 12px ' + p.border) : '0 2px 6px rgba(0,0,0,0.4)') + ';z-index:2;">' + p.badge + '</div>';
+      var locked = _planLocked(p.id);
+      var current = _planIsCurrent(p.id);
 
-      return '<div onclick="_selectAplusPlan(\'' + p.id + '\')" style="position:relative;flex:1;min-width:0;' + bgStyle + 'border:' + borderStyle + ';border-radius:var(--rad-lg);padding:18px 4px 14px;text-align:center;cursor:pointer;' + shadowStyle + transformStyle + 'transition:all var(--dur) cubic-bezier(0.16, 1, 0.3, 1);">' +
+      var badgeText = current ? 'TU PLAN' : (locked ? 'INCLUIDO' : (_active ? 'MEJORAR' : p.badge));
+      var badgeBg = current
+        ? 'linear-gradient(135deg,var(--accent),var(--accent-light))'
+        : (locked ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg,#ea580c,#fb923c)');
+      var badgeHtml = '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:var(--fs-2xs);font-weight:700;background:' + badgeBg + ';color:' + (locked ? 'var(--fg2)' : '#000') + ';padding:3px 9px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.4px;z-index:2;">' + badgeText + '</div>';
+
+      // A shorter plan than the live one is not buyable until the current term
+      // ends, so it reads as unavailable instead of pretending to be an option.
+      var lockStyle = locked ? 'opacity:.45;' : '';
+      var cls = 'neon-card' + ((isSelected && !locked) ? ' on' : '');
+
+      return '<div class="' + cls + '" onclick="_selectAplusPlan(\'' + p.id + '\')" style="--neon:var(--accent);position:relative;flex:1;min-width:0;border-radius:var(--rad-lg);padding:18px 4px 14px;text-align:center;cursor:pointer;' + lockStyle + 'transition:box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease), opacity var(--dur) var(--ease);">' +
         badgeHtml +
         '<div style="font-size:var(--fs-xs);font-weight:700;color:' + (isSelected ? '#fff' : 'rgba(255,255,255,0.85)') + ';margin-bottom:6px;">' + p.title + '</div>' +
         '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">' + p.price + '</div>' +
         '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.6);margin-top:2px;">' + p.unit + '</div>' +
-        '<div style="font-size:var(--fs-2xs);font-weight:600;color:' + (isSelected ? p.border : 'rgba(255,255,255,0.65)') + ';margin-top:10px;">' + p.sub + '</div>' +
+        '<div style="font-size:var(--fs-2xs);font-weight:600;color:' + (isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.65)') + ';margin-top:10px;display:flex;align-items:center;justify-content:center;gap:3px;">' +
+          (locked ? icon('lock', 12) : '') + (locked ? 'Activo' : p.sub) +
+        '</div>' +
       '</div>';
     }).join('');
 
+    // The CTA used to say "Get A+ Now" to people who already pay for A+.
+    var ctaLabel, ctaDisabled = false;
+    if (!_active) {
+      ctaLabel = 'Get A+ Now';
+    } else if (_planIsCurrent(_aplusBillSel)) {
+      ctaLabel = 'Tu plan activo' + (curPlanEnds ? ' · renueva el ' + _planEndsLabel() : '');
+      ctaDisabled = true;
+    } else {
+      ctaLabel = 'Mejorar a ' + (_APLUS_TERM[_aplusBillSel] || 'A+');
+    }
+    var ctaHtml = '<button class="gbtn"' + (ctaDisabled ? ' disabled' : '') +
+      ' style="width:100%;background:' + (ctaDisabled ? 'rgba(255,255,255,0.10)' : 'linear-gradient(135deg,var(--accent),var(--accent-deep))') +
+      ';font-size:var(--fs-md);font-weight:700;margin-top:12px;box-shadow:' + (ctaDisabled ? 'none' : 'var(--el-3)') +
+      ';padding:14px;border-radius:var(--rad-md);border:none;color:' + (ctaDisabled ? 'var(--fg2)' : '#fff') +
+      ';cursor:' + (ctaDisabled ? 'default' : 'pointer') + ';"' +
+      (ctaDisabled ? '' : ' onclick="openPayment(\'aplus\',\'' + selectedBill.pay + '\',\'' + selectedBill.name + '\')"') +
+      '>' + ctaLabel + '</button>';
+
+    // Gutters come from #plans-content's padding now — no per-element
+    // `margin:0 16px` + `width:calc(100% - 32px)` repeated on every line.
     sec.innerHTML = tabs
-      + '<img class="ap-banner" src="images/banner_plans.png" style="width:calc(100% - 32px);height:auto;border-radius:30px;margin: 0 16px 0 16px;display:block;box-sizing:border-box;" />'
-      + '<div style="text-align:center;font-size:var(--fs-base);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:linear-gradient(90deg,#f59e0b,#dc2626);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin: 18px 12px 14px 10px;">⚡ Unleash A+ Privileges ⚡</div>'
-      + '<div class="ap-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin: 0 16px 16px 16px;width:calc(100% - 32px);box-sizing:border-box;">' + featsHtml + '</div>'
-      + '<div style="display:flex;gap:8px;margin:30px 16px 18px 16px;width:calc(100% - 32px);box-sizing:border-box;">' + plansHtml + '</div>'
-      + '<button class="gbtn" style="width:calc(100% - 32px);background:linear-gradient(135deg,var(--accent),var(--accent-deep));font-size:var(--fs-md);font-weight:700;margin:12px 16px 0 16px;box-shadow:var(--el-3);padding:14px;border-radius:var(--rad-md);border:none;color:#fff;cursor:pointer;box-sizing:border-box;" onclick="openPayment(\'aplus\',\''+selectedBill.pay+'\',\''+selectedBill.name+'\')">Get A+ Now</button>'
-      + '<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:10px 0 16px;">Cancel anytime</div>';
+      + '<img class="ap-banner" src="images/banner_plans.png" style="width:100%;height:auto;border-radius:30px;display:block;" />'
+      + '<div style="text-align:center;font-size:var(--fs-base);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:linear-gradient(90deg,#f59e0b,#dc2626);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:18px 0 14px;">⚡ Unleash A+ Privileges ⚡</div>'
+      + '<div class="ap-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;">' + featsHtml + '</div>'
+      + '<div style="display:flex;gap:8px;margin:30px 0 18px;">' + plansHtml + '</div>'
+      + ctaHtml
+      + '<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:10px 0 16px;">'
+        + (_active && curPlanEnds ? 'Tu A+ de ' + (_APLUS_TERM[curPlanPeriod] || '') + ' termina el ' + _planEndsLabel() : 'Cancel anytime')
+      + '</div>';
   }
   // El panel de Cheats se quitó por petición: A+ es el unico contenido de
   // esta pantalla ademas de Invite, que sale antes con su propio return.
 }
 
 // Show plans when navigating to premium
+// Leaving Plans. It is not a bottom-nav destination, so it is always entered
+// sideways (Settings, a paywall) and needs its own way out. Invite is a sub-tab
+// of the same screen, so the first press returns to A+ — the same rule the
+// Hangouts sub-tabs follow — and only then does the section itself close.
+function _plansBack(){
+  if(_plansTab!=='plans'){_plansTabSet('plans');return;}
+  if(window.NavigationManager&&typeof window.NavigationManager.goBack==='function'){
+    window.NavigationManager.goBack({source:'topbar'});
+  }
+}
+
 var _origSw2=sw;
 sw=function(id,label){
   _origSw2(id,label);
-  var _mi=document.getElementById('tb-mode-icon');
-  if(_mi){
-    _mi.onclick=null;
-    _mi.style.cursor='';
-    var _im={hangouts:'group3',unicrush:'heart',discover:'grad',chats:'chat',profile:'user',premium:'sparkles',alumnihub:'grad'}[id];
-    if(_im&&typeof icon==='function')_mi.innerHTML=icon(_im,22);
+  var _im={hangouts:'group3',unicrush:'heart',discover:'grad',chats:'chat',profile:'user',premium:'sparkles',alumnihub:'grad'}[id];
+  if(id==='premium'){
+    _plansTab='plans'; // always land on A+, never on whichever tab was left open
+    _tbBackIcon(_plansBack,'Volver');
+  }else{
+    // Always run for non-premium sections, even for ids missing from the map
+    // above (network, events…): otherwise the chevron and its click handler stay
+    // behind after leaving Plans and a tap there navigates back from the wrong
+    // screen. _tbModeIcon falls back to the default icon.
+    _tbModeIcon(_im||((typeof obMode!=='undefined'&&obMode==='business')?'briefcase':'grad'));
   }
+  // Plans runs full-bleed: the bottom nav would only offer to leave for another
+  // section, which is what the chevron is for. Same body-class mechanism the
+  // Crush deck uses to hide it (styles.css).
+  document.body.classList.toggle('plans-fullscreen', id==='premium');
   if(id==='hangouts'&&typeof switchEvTab==='function')switchEvTab('nearby');
   if(id==='premium')showPlansForGender();
-  
+
   if(id==='discover'&&typeof renderDiscover==='function')renderDiscover('foryou');
 };
 function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['swipe','foryou','liked','search','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});var aw=document.getElementById('unicrush-age-wall');if(aw&&aw.parentElement!==pn.parentElement)pn.parentElement.appendChild(aw);}

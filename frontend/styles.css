@@ -2741,6 +2741,16 @@ body.keyboard-open .cwin {
 body.crush-deck-on .bot-nav {
   display: none !important;
 }
+/* Plans is not a bottom-nav destination — the nav there could only take you to
+   a different section, never back to where you came from. The top-bar chevron
+   does that instead, so the nav goes away and its 90px of scroll clearance with
+   it. Same body-class mechanism as the Crush deck above. */
+body.plans-fullscreen .bot-nav {
+  display: none !important;
+}
+body.plans-fullscreen .app-scroll {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+}
 /* The Crush swipe deck is a fixed card + fixed dock — the whole section must not
    scroll (other sections still scroll normally). */
 body.crush-deck-on #app-scroll {
@@ -4701,123 +4711,20 @@ svg {
   box-shadow:var(--el-3);
 }
 
-/* ===== Power Ups (Cheat Sheets) — Diseno 1 ===== */
-#plans-content .pu-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: #791515;
-  border-radius:var(--rad-lg);
-  padding: 16px 18px;
-  margin-bottom: 16px;
-  box-shadow:var(--el-3);
-}
-#plans-content .pu-banner-t {
-  font-size:var(--fs-xl);
-  font-weight: 900;
-  color: #fff;
-}
-#plans-content .pu-banner-s {
-  font-size:var(--fs-sm);
-  color: rgba(255, 255, 255, 0.88);
-  margin-top: 3px;
-  line-height: 1.35;
-}
-#plans-content .pu-banner-ic {
-  font-size: 30px;
-  flex-shrink: 0;
-}
-#plans-content .pu-row {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--gbdl);
-  border-radius:var(--rad-md);
-  padding: 11px 12px;
-  margin-bottom: 10px;
-}
-#plans-content .pu-ic {
-  width: 46px;
-  height: 46px;
-  border-radius:var(--rad-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size:var(--fs-xl);
-  flex-shrink: 0;
-}
-#plans-content .pu-txt {
-  flex: 1;
-  min-width: 0;
-}
-#plans-content .pu-name {
-  font-size:var(--fs-base);
-  font-weight:600;
-  color: #fff;
-}
-#plans-content .pu-desc {
-  font-size:var(--fs-xs);
-  color: var(--fg2);
-  line-height: 1.3;
-}
-#plans-content .pu-tiers {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-#plans-content .pu-tier {
-  position: relative;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--gbdl);
-  border-radius:var(--rad-sm);
-  padding: 8px 9px;
-  min-width: 50px;
-  text-align: center;
-  cursor: pointer;
-}
-#plans-content .pu-tier.pu-single {
-  background: rgba(240, 62, 90, 0.18);
-  border-color: rgba(240, 62, 90, 0.5);
-  min-width: 86px;
-  padding: 10px;
-}
-#plans-content .pu-count {
-  font-size:var(--fs-base);
-  font-weight:700;
-  color: #fff;
-}
-#plans-content .pu-price {
-  font-size:var(--fs-xs);
-  color: var(--fg2);
-  margin-top: 1px;
-}
-#plans-content .pu-single .pu-count {
-  color: #dc2626;
-}
-#plans-content .pu-badge {
-  position: absolute;
-  top: -8px;
-  right: -5px;
-  font-size: 7px;
-  font-weight:700;
-  background: #2b5fd9;
-  color: #fff;
-  padding: 2px 5px;
-  border-radius:var(--rad-xs);
-  white-space: nowrap;
-  letter-spacing: 0.2px;
-}
-#plans-content .pu-foot {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--gbdl);
-  border-radius:var(--rad-md);
-  padding: 14px 15px;
-  margin-top: 10px;
-}
 
 /* ===== A+ Plans (planes2) ===== */
+/* One gutter for the whole screen. Every child used to carry its own
+   `margin:0 16px` + `width:calc(100% - 32px)` + `box-sizing:border-box` — a dozen
+   copies of the same number, none of them the app's own --s. Children are plain
+   blocks now; anything that must bleed to the edge (the Rewards path scroller)
+   cancels it with .plans-bleed below. */
+#plans-content {
+  padding: 0 var(--s);
+}
+#plans-content .plans-bleed {
+  margin-inline: calc(var(--s) * -1);
+  padding-inline: var(--s);
+}
 #plans-content .ap-banner {
   display: flex;
   align-items: center;
@@ -4846,49 +4753,6 @@ svg {
 #plans-content .ap-feat-ic {
   font-size:var(--fs-lg);
   flex-shrink: 0;
-}
-#plans-content .ap-cmp {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--gbdl);
-  border-radius:var(--rad-md);
-  overflow: hidden;
-}
-#plans-content .ap-cmp-row {
-  display: grid;
-  grid-template-columns: 1fr 60px 60px;
-  align-items: center;
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-#plans-content .ap-cmp-row:last-child {
-  border-bottom: none;
-}
-#plans-content .ap-cmp-f {
-  font-size:var(--fs-sm);
-  color: #fff;
-}
-#plans-content .ap-cmp-x {
-  text-align: center;
-  color: var(--fg3);
-  font-weight:700;
-}
-#plans-content .ap-cmp-c {
-  text-align: center;
-  color: #4ade80;
-  font-weight:700;
-}
-#plans-content .ap-stats {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-#plans-content .ap-stat {
-  flex: 1;
-  text-align: center;
-  background: rgba(43, 95, 217, 0.1);
-  border: 1px solid rgba(43, 95, 217, 0.28);
-  border-radius:var(--rad-md);
-  padding: 12px 6px;
 }
 /* Neon Category Chips for Chats - Exact Unselected & Selected Neon Colors */
 .chatsec-chip {
