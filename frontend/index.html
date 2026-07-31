@@ -732,10 +732,12 @@
       <div class="crush-tab-panel" id="cpanel-search">
         <div style="padding:14px var(--s);">
           <div style="position:relative;margin-bottom:16px;">
-            <input type="text" id="crush-search-input" placeholder="Search students..." oninput="handleCrushSearch(this.value)"/>
+            <input type="text" id="crush-search-input" placeholder="Search students..." oninput="handleCrushSearch(this.value)" style="padding-right:116px;"/>
             <!-- El input ya reservaba 44px de padding a la izquierda para esto.
                  pointer-events:none para que un toque encima caiga en el campo. -->
             <svg id="crush-search-ico" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.55);pointer-events:none;"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+            <!-- Botón Mezclar DENTRO de la barra (reshuffle de la lista por defecto). -->
+            <button id="crush-search-shuffle" onclick="var i=document.getElementById('crush-search-input');if(i)i.value='';handleCrushSearch('');" aria-label="Mezclar" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#000;border:1.5px solid #fde047;border-radius:var(--rad-md);padding:7px 11px;color:#fde047;font-size:var(--fs-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 0 10px rgba(253,224,71,0.38);z-index:3;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw-icon"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg><span>Mezclar</span></button>
           </div>
           <div id="crush-search-results" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
@@ -1456,7 +1458,6 @@
 
 <!-- View another user's Crush card (from search / profile popup) -->
 <div class="mov" id="user-crush-modal"><div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;padding-top:0;display:flex;flex-direction:column;position:relative;background:#000000;">
-  <div style="position:absolute;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 64px);background:linear-gradient(180deg,rgba(0,0,0,0.6),transparent);z-index:90;pointer-events:none;"></div>
   <button onclick="document.getElementById('user-crush-modal').classList.remove('open')" aria-label="Close" style="position:absolute;top:calc(env(safe-area-inset-top) + 10px);left:14px;z-index:100;background:rgba(0,0,0,0.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:40px;height:40px;color:#fff;font-size:var(--fs-xl);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:transform 0.15s ease;">‹</button>
   <div id="user-crush-title" style="display:none;"></div>
   <div style="display:none;">
@@ -1464,7 +1465,7 @@
     <button id="uc-tab-events"></button>
     <button id="uc-addfriend"></button>
   </div>
-  <div id="user-crush-body" style="flex:1;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;overflow-y:auto;padding:0 var(--s) 14px;position:relative;"></div>
+  <div id="user-crush-body" style="flex:1;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;overflow-y:auto;padding:calc(env(safe-area-inset-top) + 54px) var(--s) 14px;position:relative;"></div>
   <div id="uc-action-bar" class="crush-actions" style="display:flex;justify-content:center;align-items:center;gap:18px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000000;flex-shrink:0;">
     <button class="crb crb-neon-x" onclick="_ucPass()" title="Pass">
       <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

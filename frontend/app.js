@@ -1376,7 +1376,17 @@ function _getLangFlag(l) {
   var f = (typeof FLAGS !== 'undefined' ? FLAGS : []).find(function(x){ return x.l === l; });
   return f ? f.f : '🗣️';
 }
-var LANGUAGES = ['English','Spanish','French','Portuguese','German','Italian','Dutch','Swedish','Norwegian','Danish','Polish','Greek','Russian','Ukrainian','Turkish','Japanese','Korean','Mandarin','Cantonese','Vietnamese','Thai','Indonesian','Tagalog','Hindi','Urdu','Bengali','Arabic','Hebrew','Persian','ASL'];
+// Clean language label for display: strips the "mx·"/"us·" UID prefix and any
+// trailing country parenthetical ("English (US)" → "English"), since the flag
+// already conveys the country. Just the bare language name is shown next to it.
+function _langLabel(l) {
+  if (!l) return '';
+  var s = String(l);
+  s = s.replace(/^[a-z]{2,4}·/i, '');       // drop "xx·" UID prefix
+  s = s.replace(/\s*\([^)]*\)\s*$/, '');          // drop trailing "(US)" etc.
+  return s.trim();
+}
+var LANGUAGES =['English','Spanish','French','Portuguese','German','Italian','Dutch','Swedish','Norwegian','Danish','Polish','Greek','Russian','Ukrainian','Turkish','Japanese','Korean','Mandarin','Cantonese','Vietnamese','Thai','Indonesian','Tagalog','Hindi','Urdu','Bengali','Arabic','Hebrew','Persian','ASL'];
 // Shared major + Greek lists — used by Student Registration AND the Hangouts / Crush filters so they stay in sync
 var MAJORS = ["Accounting", "Acoustical Engineering", "Acoustics", "Actuarial Science", "Adult Education", "Advertising", "Aeronautics", "Aerospace Engineering", "African American Studies", "African Languages", "African Studies", "Agribusiness", "Agricultural & Biological Engineering", "Agricultural Communications", "Agricultural Economics", "Agricultural Education", "Agricultural Engineering", "Agricultural Engineering Technology", "Agricultural Sciences", "Agronomy", "Air Traffic Management", "American Sign Language", "American Studies", "Analytics", "Animal Behavior", "Animal Science", "Animation", "Anthropology", "Apparel Design", "Applied Mathematics", "Applied Music", "Applied Physics", "Applied Statistics", "Aquaculture", "Aquatic Biology", "Arabic", "Archaeology", "Architectural Engineering", "Architecture", "Art Education", "Art History", "Art Therapy", "Artificial Intelligence", "Arts Administration", "Asian Studies", "Assyriology", "Astronomy", "Astrophysics", "Athletic Training", "Atmospheric Chemistry", "Atmospheric Science", "Audio Engineering", "Audiology", "Automation Engineering", "Automotive Engineering", "Automotive Technology", "Aviation", "Aviation Maintenance", "Aviation Management", "Ballet", "Behavioral Economics", "Behavioral Neuroscience", "Behavioral Science", "Biblical Languages", "Bilingual Education", "Biochemical Engineering", "Biochemistry", "Bioinformatics", "Biological Engineering", "Biological Sciences", "Biology", "Biomanufacturing", "Biomedical Engineering", "Biomedical Sciences", "Biophysics", "Biostatistics", "Biotechnology", "Border Security", "Botany", "Brewing Science", "Broadcast Journalism", "Building Construction", "Business Administration", "Business Analytics", "Business Economics", "Business Management", "Cardiopulmonary Science", "Cardiovascular Technology", "Cartography", "Cell Biology", "Ceramic Engineering", "Ceramics", "Chemical Biology", "Chemical Engineering", "Chemical Physics", "Chemistry", "Child Development", "Chinese", "Chiropractic", "Christian Ministry", "Cinema Studies", "Cinematography", "City Planning", "Civil & Environmental Engineering", "Civil Engineering", "Classical Studies", "Classics", "Climate & Sustainability", "Climate Science", "Clinical Laboratory Science", "Clinical Psychology", "Cloud & Systems", "Cloud Computing", "Cognitive Neuroscience", "Cognitive Science", "Commerce", "Communication Studies", "Communications", "Community Development", "Community Health", "Comparative Literature", "Comparative Politics", "Composition", "Computational Biology", "Computational Finance", "Computational Linguistics", "Computational Physics", "Computational Science", "Computer & Electrical Engineering", "Computer Engineering", "Computer Information Systems", "Computer Science", "Conducting", "Conservation Biology", "Construction Engineering", "Construction Engineering Technology", "Construction Management", "Consumer Economics", "Corporate Communication", "Corrections", "Costume Design", "Court Reporting", "Creative Writing", "Criminal Justice", "Criminal Psychology", "Criminology", "Culinary Arts", "Culinary Management", "Cultural Anthropology", "Cultural Studies", "Curriculum & Instruction", "Cybercrime", "Cybersecurity", "Dairy Science", "Dance", "Data Analytics", "Data Engineering", "Data Science", "Database Administration", "Demography", "Dental Assisting", "Dental Hygiene", "Dentistry / Pre-Dental", "Design & Technology", "Development Studies", "Developmental Biology", "Diagnostic Imaging", "Dietetics", "Digital Arts", "Digital Forensics", "Digital Humanities", "Digital Media", "Diplomacy", "Disability Studies", "Drama", "Drawing", "E-Commerce", "Early Childhood Education", "Earth & Space Science", "East Asian Studies", "Ecology", "Econometrics", "Economics", "Ecotourism", "Education", "Educational Leadership", "Educational Psychology", "Educational Technology", "Electrical Engineering", "Electrical Engineering Technology", "Electromechanical Technology", "Electronic Media", "Electronics Engineering", "Elementary Education", "Elementary Statistics", "Emergency Management", "Emergency Medical Services", "Energy Engineering", "Energy Management", "Engineering Management", "Engineering Physics", "Engineering Science", "Engineering Technology", "English", "English Education", "English Literature", "English as a Second Language", "Entomology", "Entrepreneurship", "Environmental Chemistry", "Environmental Engineering", "Environmental Health", "Environmental Law", "Environmental Management", "Environmental Policy", "Environmental Science", "Environmental Studies", "Environmental Systems Engineering", "Epidemiology", "Equine Science", "Esports Management", "Ethnic Studies", "European Studies", "Event Management", "Evolutionary Biology", "Exercise Physiology", "Exercise Science", "Experimental Psychology", "Facilities Management", "Family Studies", "Fashion Business", "Fashion Design", "Fashion Marketing", "Fashion Merchandising", "Fermentation Science", "Film & Media Studies", "Film Production", "Film Scoring", "Finance", "Financial Economics", "Financial Engineering", "Financial Mathematics", "Financial Planning", "Fine Arts", "Fire Protection Engineering", "Fire Science", "Fisheries & Wildlife", "Fisheries Science", "Floral Design", "Fluid Dynamics", "Folklore", "Food & Nutrition", "Food Engineering", "Food Science", "Food Service Management", "Foreign Affairs", "Foreign Languages", "Forensic Accounting", "Forensic Chemistry", "Forensic Nursing", "Forensic Psychology", "Forensic Science", "Forestry", "French", "Game Art", "Game Design", "Game Development", "Gender Studies", "Genetic Counseling", "Genetics", "Geochemistry", "Geography", "Geological Engineering", "Geology", "Geomatics Engineering", "Geophysics", "Geospatial Science", "Geotechnical Engineering", "German", "Gerontology", "Global Health Studies", "Global Studies", "Golf Management", "Graphic Design", "Greek", "Health Administration", "Health Communication", "Health Education", "Health Informatics", "Health Information Management", "Health Policy", "Health Sciences", "Healthcare Administration", "Hebrew", "Higher Education", "Hindi", "Historic Preservation", "History", "Homeland Security", "Horticultural Science", "Horticulture", "Hospitality & Tourism", "Hospitality Management", "Hotel Management", "Human Biology", "Human Development", "Human Factors", "Human Nutrition", "Human Resource Development", "Human Resources Management", "Human Services", "Human-Computer Interaction", "Humanities", "Hydrology", "IT Management", "Illustration", "Immunology", "Indigenous Studies", "Industrial Design", "Industrial Design Technology", "Industrial Distribution", "Industrial Engineering", "Industrial Hygiene", "Industrial Management", "Industrial Technology", "Information Assurance", "Information Science", "Information Systems", "Information Technology", "Instructional Design", "Insurance & Risk Management", "Integrated Marketing", "Intelligence Studies", "Interactive Media", "Interdisciplinary Arts", "Interdisciplinary Studies", "Interior Architecture", "Interior Design", "International Business", "International Development", "International Economics", "International Finance", "International Relations", "International Studies", "Investment Management", "Islamic Studies", "Italian", "Japanese", "Jazz Studies", "Jewelry Design", "Journalism", "Kinesiology", "Korean", "Labor Relations", "Landscape Architecture", "Landscape Design", "Landscape Management", "Language Studies", "Latin", "Latin American Studies", "Law / Pre-Law", "Law Enforcement", "Leadership Studies", "Learning Sciences", "Legal Studies", "Liberal Arts", "Liberal Studies", "Library Science", "Life Sciences", "Linguistics", "Logistics", "Machine Learning", "Management", "Management Information Systems", "Manufacturing Engineering", "Marine Affairs", "Marine Biology", "Marine Engineering", "Marine Science", "Marine Systems Engineering", "Marketing", "Marketing Analytics", "Mass Communication", "Materials Engineering", "Materials Science", "Math Education", "Mathematical Sciences", "Mathematics", "Mechanical Engineering", "Mechanical Engineering Technology", "Mechatronics", "Media Arts", "Media Production", "Media Studies", "Medical Anthropology", "Medical Illustration", "Medical Laboratory Science", "Medical Sociology", "Medical Technology", "Medicine / Pre-Med", "Medieval Studies", "Merchandising", "Metallurgical Engineering", "Meteorology", "Microbiology", "Middle Eastern Studies", "Midwifery", "Military Science (ROTC)", "Mining Engineering", "Molecular Biology", "Molecular Genetics", "Motion Picture Arts", "Multidisciplinary Studies", "Multimedia Design", "Museum Studies", "Music", "Music Business", "Music Composition", "Music Education", "Music Performance", "Music Production", "Music Technology", "Music Therapy", "Musical Theater", "Musicology", "Mycology", "Nanoengineering", "Nanoscience", "Nanotechnology", "Natural Resource Management", "Natural Sciences", "Naval Architecture", "Network Administration", "Neuroscience", "Nonprofit Management", "Nuclear Engineering", "Nuclear Engineering Technology", "Nursing", "Nursing Science", "Nutrition", "Occupational Health", "Occupational Safety", "Occupational Therapy", "Ocean Engineering", "Oceanography", "Operations Management", "Operations Research", "Optical Engineering", "Optometry / Pre-Opt", "Organizational Communication", "Organizational Leadership", "Ornithology", "Packaging Science", "Painting", "Painting & Drawing", "Paleontology", "Paralegal Studies", "Paramedic Science", "Parks & Recreation", "Peace & Conflict Studies", "Performance Studies", "Petroleum Engineering", "Pharmaceutical Sciences", "Pharmacology", "Pharmacy / Pre-Pharm", "Philosophy", "Photography", "Photonics", "Physical Education", "Physical Sciences", "Physical Therapy", "Physical Therapy Assistant", "Physician Assistant Studies", "Physics", "Physiology", "Piano Performance", "Planetary Science", "Plant Biology", "Plant Pathology", "Plant Science", "Plastics Engineering", "Playwriting", "Podiatry", "Poetry", "Political Communication", "Political Economy", "Political Science", "Portuguese", "Poultry Science", "Power Engineering", "Pre-Dentistry", "Pre-Nursing", "Pre-Optometry", "Pre-Pharmacy", "Pre-Physical Therapy", "Precision Agriculture", "Printmaking", "Product Design", "Professional Writing", "Project Management", "Psychology", "Public Administration", "Public Health", "Public Policy", "Public Relations", "Public Safety", "Quantitative Economics", "Quantum Computing", "Radio & Television", "Radiologic Technology", "Railroad Engineering", "Range Management", "Real Estate", "Recording Arts", "Recreation Management", "Recreation Therapy", "Rehabilitation Sciences", "Religious Studies", "Renewable Energy", "Respiratory Therapy", "Restaurant Management", "Retail Management", "Rhetoric", "Robotics Engineering", "Russian", "STEM Education", "Sales", "Science Education", "Screenwriting", "Sculpture", "Secondary Education", "Security Studies", "Set Design", "Sign Language Studies", "Small Business Management", "Social Innovation", "Social Psychology", "Social Work", "Sociology", "Software Development", "Software Engineering", "Software Systems Engineering", "Soil Science", "Sound Design", "Space Science", "Spanish", "Special Education", "Speech Communication", "Speech-Language Pathology", "Sport Business", "Sport Management", "Sports Analytics", "Sports Communication", "Sports Journalism", "Sports Management", "Sports Medicine", "Sports Nutrition", "Stagecraft", "Statistics", "Strategic Communication", "Strategic Management", "Structural Engineering", "Studio Art", "Studio Recording", "Substance Abuse Counseling", "Supply Chain Management", "Surveying", "Sustainability", "Sustainable Agriculture", "Sustainable Design", "Sustainable Engineering", "Systems Administration", "Systems Biology", "Systems Engineering", "TESOL / ESL", "Taxation", "Teaching English", "Technical Communication", "Telecommunications Engineering", "Textile Design", "Textile Engineering", "Textiles", "Theatre", "Theatre Arts", "Theatre Design", "Theatre Education", "Theology", "Theoretical Physics", "Therapeutic Recreation", "Tourism Management", "Toxicology", "Translation & Interpretation", "Transportation Engineering", "Turfgrass Science", "UX/UI Design", "Urban Design", "Urban Education", "Urban Planning", "Urban Studies", "User Experience Design", "Veterinary Science / Pre-Vet", "Virology", "Visual Arts", "Viticulture", "Vocational Education", "Voice Performance", "Water Resources", "Web Design", "Web Development", "Welding Engineering", "Wildlife Biology", "Wildlife Ecology", "Wildlife Management", "Wine & Beverage Management", "Women's & Gender Studies", "World Religions", "Writing", "Youth Ministry", "Zoology", "Undecided"];
 var MINORS = ["None", "Accounting", "Acting", "Actuarial Studies", "Advertising", "Aerospace Engineering", "Aerospace Studies", "African American History", "African American Studies", "African Studies", "American History", "American Sign Language", "American Studies", "Analytics", "Animal Studies", "Animation", "Anthropology", "Applied Mathematics", "Applied Statistics", "Aquatic Biology", "Arabic", "Arabic Studies", "Archaeology", "Architecture", "Architecture Studies", "Art History", "Art Therapy", "Arts Management", "Asian Studies", "Astrobiology", "Astronomy", "Astrophysics", "Athletic Coaching", "Behavioral Science", "Biblical Languages", "Biblical Studies", "Biochemistry", "Bioengineering", "Bioethics", "Bioinformatics", "Biology", "Biomedical Studies", "Biotechnology", "Business", "Business Administration", "Business Analytics", "Business Law", "Chemistry", "Chemistry Education", "Child Development", "Chinese", "Chinese Studies", "Christian Studies", "Cinema Production", "Cinema Studies", "Civic Engagement", "Civil Engineering", "Classics", "Climate Studies", "Coaching", "Coaching Education", "Cognitive Science", "Communication", "Comparative Literature", "Comparative Religion", "Composition", "Computer Engineering", "Computer Science", "Conducting", "Conflict Resolution", "Consumer Behavior", "Corporate Finance", "Counseling", "Creative Writing", "Criminal Justice", "Criminology", "Cultural Anthropology", "Cybercrime", "Cybersecurity", "Dance", "Dance Education", "Data Analytics", "Data Science", "Data Visualization", "Design", "Design Thinking", "Developmental Psychology", "Digital Marketing", "Digital Media", "Digital Studies", "Diplomacy", "Disability Studies", "Documentary Studies", "Drawing", "Earth Science", "East Asian Languages", "East Asian Studies", "Ecology", "Ecology & Evolution", "Economic History", "Economics", "Education", "Educational Studies", "Educational Technology", "Electrical Engineering", "Electronics", "Emergency Management", "Energy Studies", "Engineering Design", "Engineering Management", "Engineering Studies", "English", "English Literature", "Entomology", "Entrepreneurship", "Environmental Engineering", "Environmental Policy", "Environmental Science", "Environmental Studies", "Ethics", "Ethnic Studies", "Ethnomusicology", "European Studies", "Event Planning", "Family Science", "Family Studies", "Fashion Studies", "Film Studies", "Filmmaking", "Finance", "Financial Economics", "Fine Art Photography", "Fine Arts", "Fisheries", "Folklore", "Food Science", "Food Studies", "Forensic Psychology", "Forensic Science", "Forestry", "French", "French Studies", "Game Design", "Game Studies", "Gender Studies", "Genetics", "Geographic Information Systems", "Geography", "Geology", "German", "German Studies", "Gerontology", "Global Business", "Global Health", "Global Studies", "Graphic Design", "Greek", "Health Communication", "Health Informatics", "Health Policy", "Health Studies", "Hebrew", "Hebrew Studies", "Historic Preservation", "History", "Holocaust Studies", "Horticulture", "Hospitality", "Human Biology", "Human Factors", "Human Nutrition", "Human Rights", "Human Services", "Illustration", "Immunology", "Industrial Design", "Industrial Engineering", "Information Security", "Information Systems", "Information Technology", "Innovation", "Interactive Design", "Interior Design", "International Business", "International Development", "International Economics", "International Relations", "International Studies", "Islamic Studies", "Italian", "Italian Studies", "Japanese", "Japanese Studies", "Jazz Performance", "Jazz Studies", "Jewish Studies", "Journalism", "Journalism Studies", "Judaic Studies", "Kinesiology", "Korean", "Korean Studies", "LGBTQ Studies", "Labor Studies", "Landscape Studies", "Language & Culture", "Latin", "Latin American History", "Latin American Studies", "Law & Society", "Leadership", "Leadership Studies", "Learning & Cognition", "Legal Studies", "Legal Writing", "Life Sciences", "Linguistics", "Literature", "Logic", "Management", "Management Studies", "Manufacturing Engineering", "Marine Biology", "Marketing", "Materials Engineering", "Materials Science", "Mathematical Modeling", "Mathematics", "Mechanical Engineering", "Media Production", "Media Studies", "Medical Humanities", "Medieval Studies", "Meteorology", "Microbiology", "Middle Eastern Languages", "Middle Eastern Studies", "Military History", "Military Science", "Molecular Biology", "Multimedia", "Museum Studies", "Music", "Music Business", "Music Performance", "Music Technology", "Musical Composition", "Musical Theatre", "Nanoscience", "Nanotechnology", "Native American Studies", "Natural Resources", "Naval Science", "Neuroeconomics", "Neuroscience", "Nonprofit Management", "Nonprofit Studies", "Nutrition", "Nutrition Science", "Oceanography", "Organizational Behavior", "Painting", "Peace Studies", "Performance", "Persian Studies", "Pharmacology", "Philosophy", "Philosophy of Science", "Photography", "Physical Education", "Physics", "Physiology", "Planetary Science", "Plant Biology", "Playwriting", "Poetry", "Political Communication", "Political Economy", "Political Science", "Popular Culture", "Portuguese", "Portuguese Studies", "Pre-Health", "Pre-Law", "Pre-Med", "Pre-Vet", "Printmaking", "Professional Communication", "Professional Writing", "Project Management", "Psychology", "Public Health", "Public Policy", "Public Relations", "Public Speaking", "Quantitative Methods", "Queer Studies", "Race & Ethnicity", "Real Estate", "Recreation", "Religion & Culture", "Religious Studies", "Renewable Energy", "Rhetoric", "Robotics", "Robotics Engineering", "Russian", "Russian Studies", "STEM", "Sales", "Sales Leadership", "Science & Technology Studies", "Science Communication", "Screenwriting", "Sculpture", "Set Design", "Slavic Studies", "Social Entrepreneurship", "Social Innovation", "Social Justice", "Social Media", "Social Work", "Sociology", "Software Engineering", "Songwriting", "Sound Design", "Spanish", "Spanish Studies", "Sport Management", "Sport Psychology", "Sports Analytics", "Stagecraft", "Statistics", "Statistics & Data", "Studio Art", "Studio Recording", "Supply Chain", "Sustainability", "Sustainable Development", "Systems Engineering", "Systems Thinking", "TESOL", "Teaching", "Technical Writing", "Textiles", "Theatre", "Theatre Production", "Theology", "Toxicology", "Translation", "Urban Design", "Urban Studies", "Video Production", "Visual Culture", "Water Science", "Web Design", "Wildlife Studies", "Wine Studies", "Women's Studies", "World History", "World Languages", "World Music", "Writing", "Youth Development", "Zoology"];
@@ -5426,7 +5436,7 @@ function updateProfileUI(){
     pieces=pieces.concat(_getVerifiedInvolvementPills());
     var userLangs = (userPro && (userPro.languages || userPro.langs || userPro.flags || (userPro.background && userPro.background.languages))) || [];
     if(userLangs && userLangs.length){
-      pieces=pieces.concat(userLangs.slice(0,8).map(function(l){var flagIco = _getLangFlag(l); return '<div class="cpill">'+flagIco+' '+l+'</div>';}));
+      pieces=pieces.concat(userLangs.slice(0,8).map(function(l){var flagIco = _getLangFlag(l); return '<div class="cpill">'+flagIco+' '+_langLabel(l)+'</div>';}));
     }
     flr.innerHTML=pieces.join('');
   }
@@ -10450,8 +10460,14 @@ function buildHingeStackHtml(p,opts){
   var slides='';
   // ── PHOTO GALLERY: all photos in one swipe-through gallery at the top (tap right = next, left = back) ──
   // _embed defined above (near coverInfo). Deck: fixed viewport height. Preview: 3/4 card shape.
-  var _galH=_embed?'':'clamp(360px,calc(100dvh - 300px),560px)';
-  var _galAR=_embed?'aspect-ratio:3/4;':'';// preview is a normal card-shaped frame (no black square, no natural-aspect gaps)
+  // compact = modales de "ver perfil" (amigos / likes sent). Usan proporción 4/5
+  // (no viewport-math): así la foto SIEMPRE escala con la card y nunca sale
+  // gigante ni casi cuadrada. El deck (no compact) se queda en su alto de siempre.
+  var _compact=!!(opts&&opts.compact);
+  var _galH=(_embed||_compact)?'':'clamp(360px,calc(100dvh - 300px),560px)';
+  // compact usa 3/4 (más alto que 4/5) para que la foto se vea MÁS grande sin
+  // cambiar la posición del card. embed (preview propio) se queda en 3/4 también.
+  var _galAR=(_embed||_compact)?'aspect-ratio:3/4;':'';// preview/compact = marco proporcional (sin barras negras)
   var _galPos=p.photoPositions||[];
   var _galSlides=photos.map(function(src,i){
     var op=_galPos[i]||'center';
@@ -10576,15 +10592,22 @@ function buildHingeStackHtml(p,opts){
   }
   // Likes / Speaks (split into separate sections so they can be ordered independently)
   var speaksList = isSelf ? (userPro.languages || userPro.langs || userPro.flags || []) : (p.flags || (p.background && p.background.languages) || p.languages || []);
-  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
+  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+_langLabel(f)+'</div>';}).join('')+'</div></div></div>';
   if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div class="ln-chip" style="--ln-hue:#dc2626;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div></div>';
-  // Ethnicity
-  if(p.ethnicity)bEthnicity='<div class="crush-info-block">'+'<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;">🌎 <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Ethnicity</b>'+p.ethnicity+'</span></div></div>';
-  // Religion + Politics — FIRST (before Clubs)
-  var infoParts=[];
-  if(p.religion&&!p.religionHideOnUnicrush)infoParts.push('<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;margin-bottom:6px;">✝️ <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Religion</b>'+p.religion+'</span></div>');
-  if(p.politics&&!p.politicsHideOnUnicrush)infoParts.push('<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;margin-bottom:6px;">🗳️ <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Politics</b>'+p.politics+'</span></div>');
-  if(infoParts.length)bReligion='<div class="crush-info-block">'+infoParts.join('')+'</div>';
+  // Ethnicity / Religion / Politics — misma plantilla que "Idiomas que hablo" y
+  // "Lo que me gusta": header en color con subrayado + opciones como ln-chip
+  // subrayadas. Cada uno con su color.
+  var _idBlock = function(emoji, title, hue, valRaw){
+    var arr = Array.isArray(valRaw) ? valRaw : String(valRaw).split(/,\s*/);
+    arr = arr.map(function(v){return String(v).trim();}).filter(Boolean);
+    if(!arr.length) return '';
+    var rgb = hue;
+    return '<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:'+rgb+';text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px color-mix(in srgb,'+rgb+' 40%,transparent);">'+emoji+' '+title+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+arr.map(function(v){return '<div class="ln-chip" style="--ln-hue:'+rgb+';font-size:var(--fs-sm);">'+v+'</div>';}).join('')+'</div></div></div>';
+  };
+  var bPolitics='';
+  if(p.ethnicity)bEthnicity=_idBlock('🌎','ETHNICITY','#22c55e',p.ethnicity);
+  if(p.religion&&!p.religionHideOnUnicrush)bReligion=_idBlock('🙏','RELIGION','#a855f7',p.religion);
+  if(p.politics&&!p.politicsHideOnUnicrush)bPolitics=_idBlock('🗳️','POLITICS','#f59e0b',p.politics);
   // Clubs
   if(p.clubs&&p.clubs.length)bClubs='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;color:#3d7bff;">'+icon('target',16)+' Clubs</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+p.clubs.map(function(c){return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);padding:4px 9px;background:rgba(255,255,255,0.10);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-weight:500;">'+icon('clubShield',12)+c+'</div>';}).join('')+'</div></div>';
   // 🎙️ Voice prompt block (one per card)
@@ -10621,7 +10644,8 @@ function buildHingeStackHtml(p,opts){
   _add(bQuick);_add(bMatched);   // identity chips + "you matched on" highlights
   _add(bSpeaks);      // Speaks
   _add(bEthnicity);   // Ethnicity
-  _add(bReligion);    // Religion + Politics (+ faith)
+  _add(bReligion);    // Religion
+  _add(bPolitics);    // Politics
   _add(bLikes);       // Likes
   _add(bClubs);       // Clubs (with likes)
   _add(bLifestyle);   // Lifestyle
@@ -11565,16 +11589,15 @@ function openSentLikeProfile(likeId){
   var idx=parseInt(row.dataset.profileIdx);
   if(isNaN(idx)||!crushData[idx])return;
   var p=crushData[idx];
-  var slides=buildHingeStackHtml(p,{isSelf:false});
+  var slides=buildHingeStackHtml(p,{isSelf:false,compact:true});
   var modal=document.createElement('div');
   modal.className='mov open';modal.style.zIndex='9999';
-  modal.innerHTML='<div class="msheet" style="max-width:380px;padding:0;background:#000000;overflow:hidden;border-radius:var(--rad-xl);">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.4);border-bottom:1px solid var(--gbdl);">'+
-      '<div class="t-body-strong">Profile · '+p.name+'</div>'+
-      '<button onclick="this.closest(\'.mov\').remove()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:var(--fs-base);cursor:pointer;">✕</button>'+
-    '</div>'+
-    '<div class="crush-card" style="max-width:none;border:none;margin:0;border-radius:0;max-height:75vh;">'+
-      '<div class="crush-scroll" style="padding-bottom:14px;">'+slides+'</div>'+
+  // Mismo chrome que "ver perfil" de amigos: hoja redondeada + botón ‹ flotante
+  // sobre la foto (sin barra de header). El nombre ya sale en la card.
+  modal.innerHTML='<div class="msheet" style="max-width:400px;padding:0;background:#0b0818;overflow:hidden;border-radius:var(--rad-xl);max-height:90dvh;display:flex;flex-direction:column;position:relative;">'+
+    '<button onclick="this.closest(\'.mov\').remove()" aria-label="Close" style="position:absolute;top:12px;left:12px;z-index:100;background:rgba(0,0,0,0.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:38px;height:38px;color:#fff;font-size:var(--fs-xl);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);">‹</button>'+
+    '<div class="crush-card" style="max-width:none;margin:0;flex:1;min-height:0;">'+
+      '<div class="crush-scroll" style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px;">'+slides+'</div>'+
     '</div>'+
   '</div>';
   document.body.appendChild(modal);
@@ -12386,17 +12409,22 @@ function _getSentLikesHtml(pool){
     var kind=_sentLikeKind(p.swipeType);
     var ago=(typeof _agoEs==='function')?_agoEs(p.createdAt):'';
 
-    var pills='<div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">'+
-      '<span style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;background:rgba(61,123,255,0.28);border:1px solid rgba(61,123,255,0.65);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;">🏛️ '+un+'</span>'+
-      (p.major?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.22);border:1px solid rgba(245,158,11,0.6);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">🎓 '+p.major+'</span>':'')+
-    '</div>';
+    // Mismo formato que "For You": carrera · año en una línea y UNIVERSIDAD 'yy
+    // debajo (fuente Graduate), en vez de pills.
+    var yis=(typeof _yearInSchoolFromGrad==='function')?_yearInSchoolFromGrad(p.grad):'';
+    var majorLine=[(p.major||''),(yis||'')].filter(Boolean).join(' · ');
+    var gradYr=p.grad?String(p.grad).replace(/[^0-9]/g,'').slice(-2):'';
+    var uniLine=(un||'')+(gradYr?" '"+gradYr:'');
+    var meta=''+
+      (majorLine?'<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.96);margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,0.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+majorLine+'</div>':'')+
+      (uniLine?'<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.82);font-family:\'Graduate\',serif;margin-top:2px;letter-spacing:0.3px;text-shadow:0 1px 3px rgba(0,0,0,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+uniLine+'</div>':'');
 
     return '<div class="sent-like-card" onclick="_openSentLikeProfile('+i+')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(245,158,11,0.42);background:#0b0b0e;position:relative;height:216px;'+cover+'">'+
       '<div style="position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:3px;font-size:var(--fs-2xs);font-weight:700;color:'+kind.hue+';padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid '+kind.hue+';z-index:2;">'+kind.ico+' '+kind.lbl+'</div>'+
       (ago?'<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:rgba(255,255,255,0.82);padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.72);z-index:2;">'+ago+'</div>':'')+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:44px 10px 11px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.72) 62%, transparent 100%);">'+
         '<div style="font-size:var(--fs-base);font-weight:900;color:#fff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.name+' '+(p.age||'')+'</div>'+
-        pills+
+        meta+
       '</div>'+
     '</div>';
   }).join('');
@@ -17597,8 +17625,10 @@ function viewUserUnicrush(handle,name,bg,uniName,origin){
 // standard iOS sheet dismiss — in addition to the ‹ button.
 function _ucEnableSwipeClose(m){
   if(!m||m.__swipeClose)return;m.__swipeClose=1;
-  var sheet=m.querySelector('.msheet');var sy=0,sx=0,active=false;
-  m.addEventListener('touchstart',function(e){if(e.touches.length!==1){active=false;return;}sy=e.touches[0].clientY;sx=e.touches[0].clientX;active=(!sheet||sheet.scrollTop<=2);},{passive:true});
+  var sy=0,sx=0,active=false;
+  // El scroller real es .crush-scroll (o #user-crush-body), NO .msheet — se
+  // re-renderiza al cambiar de tab, así que lo re-consultamos en cada touchstart.
+  m.addEventListener('touchstart',function(e){if(e.touches.length!==1){active=false;return;}var sheet=m.querySelector('.crush-scroll')||m.querySelector('#user-crush-body')||m.querySelector('.msheet');sy=e.touches[0].clientY;sx=e.touches[0].clientX;active=(!sheet||sheet.scrollTop<=2);},{passive:true});
   m.addEventListener('touchmove',function(e){if(!active||e.touches.length!==1)return;var dy=e.touches[0].clientY-sy,dx=e.touches[0].clientX-sx;if(dy>75&&Math.abs(dy)>Math.abs(dx)*1.4){m.classList.remove('open');active=false;}},{passive:true});
   m.addEventListener('touchend',function(){active=false;},{passive:true});
 }
@@ -17617,7 +17647,7 @@ function switchUserCrushTab(tab){
   if(tab==='events'){
     body.innerHTML='<div style="padding:6px 0;">'+_userEventsHtml((u.name||'This user'))+'</div>';
   }else{
-    var cardHtml=buildHingeStackHtml(u.p||{name:u.name||'User',init:(u.name||'?').charAt(0),photos:[],ints:[],flags:[],prompts:[]},{isSelf:false}).replace(/<button class="crush-reply"[^>]*>[\s\S]*?<\/button>/g,'');
+    var cardHtml=buildHingeStackHtml(u.p||{name:u.name||'User',init:(u.name||'?').charAt(0),photos:[],ints:[],flags:[],prompts:[]},{isSelf:false,compact:true}).replace(/<button class="crush-reply"[^>]*>[\s\S]*?<\/button>/g,'');
     body.innerHTML='<div class="crush-card" style="margin:0 auto;"><div class="crush-scroll">'+cardHtml+'</div></div>';
   }
 }
@@ -21253,7 +21283,10 @@ function showPlansForGender(){
       var current = _planIsCurrent(p.id);
       var isRec = (p.id === '6mo');
       var pc = _planHue[p.id] || '#fbbf24';
-      var lit = (isSelected || isRec) && !locked;
+      // Los TRES planes van "prendidos" (cada uno con su neón). El seleccionado se
+      // distingue con un realce extra: borde/glow más fuerte + una palomita.
+      var lit = !locked;
+      var sel = isSelected && !locked;
 
       var badgeText = current ? 'TU PLAN' : (locked ? 'INCLUIDO' : (_active ? 'MEJORAR' : p.badge));
       var badgeBg = current
@@ -21262,19 +21295,24 @@ function showPlansForGender(){
       var badgeFg = (locked || (!lit && !current)) ? 'var(--fg2)' : '#0a0518';
       var badgeHtml = '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:var(--fs-2xs);font-weight:800;background:' + badgeBg + ';color:' + badgeFg + ';padding:3px 9px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.4px;z-index:2;box-shadow:' + (lit ? '0 3px 10px -3px color-mix(in srgb,' + pc + ' 70%,transparent)' : 'none') + ';">' + badgeText + '</div>';
 
+      // Palomita de selección (arriba-derecha) para marcar el plan elegido.
+      var selMark = sel ? '<div style="position:absolute;top:9px;right:9px;width:19px;height:19px;border-radius:50%;background:' + pc + ';color:#0a0518;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;box-shadow:0 0 9px ' + pc + ';z-index:3;">✓</div>' : '';
+
       var lockStyle = locked ? 'opacity:.42;' : '';
-      // Border colour + intensity scale with the plan: rec is brightest.
-      var bw = isRec ? 2 : 1.5;
-      var edgeMix = isRec ? 55 : (isSelected ? 48 : 40);
-      var fillMix = isRec ? 16 : (isSelected ? 12 : 8);
+      // Intensidad del neón: todos prendidos; el seleccionado el más fuerte, luego
+      // el recomendado, y el resto en su nivel base (pero siempre encendidos).
+      var bw = (sel || isRec) ? 2 : 1.5;
+      var edgeMix = sel ? 68 : (isRec ? 55 : 46);
+      var fillMix = sel ? 18 : (isRec ? 15 : 11);
+      var innerMix = sel ? 34 : (isRec ? 28 : 20);
+      var dropMix = sel ? 90 : (isRec ? 80 : 60);
       var border = 'linear-gradient(160deg, ' + pc + ', color-mix(in srgb, ' + pc + ' ' + edgeMix + '%, #fff)) border-box';
       var fill = 'linear-gradient(160deg, color-mix(in srgb, ' + pc + ' ' + fillMix + '%, #0a0518), #0a0518) padding-box';
-      var glow = lit
-        ? 'inset 0 0 16px color-mix(in srgb,' + pc + ' ' + (isRec ? 30 : 20) + '%,transparent), 0 9px 22px -12px color-mix(in srgb,' + pc + ' ' + (isRec ? 85 : 60) + '%,transparent)'
-        : 'inset 0 0 9px color-mix(in srgb,' + pc + ' 9%,transparent)';
+      var glow = 'inset 0 0 16px color-mix(in srgb,' + pc + ' ' + innerMix + '%,transparent), 0 9px 22px -12px color-mix(in srgb,' + pc + ' ' + dropMix + '%,transparent)' +
+        (sel ? ', 0 0 0 2px color-mix(in srgb,' + pc + ' 45%,transparent)' : '');
 
       return '<div onclick="_selectAplusPlan(\'' + p.id + '\')" style="position:relative;flex:' + (isRec ? '1.28' : '1') + ';min-width:0;border-radius:var(--rad-lg);border:' + bw + 'px solid transparent;background:' + fill + ',' + border + ';box-shadow:' + glow + ';padding:' + (isRec ? '22px 4px 16px' : '18px 4px 14px') + ';text-align:center;cursor:pointer;' + lockStyle + 'transition:box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);">' +
-        badgeHtml +
+        badgeHtml + selMark +
         '<div style="font-size:var(--fs-xs);font-weight:700;color:' + (lit ? '#fff' : 'rgba(255,255,255,0.85)') + ';margin-bottom:6px;">' + p.title + '</div>' +
         '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">' + p.price + '</div>' +
         '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.6);margin-top:2px;">' + p.unit + '</div>' +
@@ -23740,21 +23778,10 @@ async function handleCrushSearch(query) {
   const q = (query || '').trim();
   if (!q) {
     var students = _getUniversityStudents(8);
-    var headerHtml = 
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px;">' +
-        '<div style="font-size:var(--fs-sm);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(61,123,255,0.4);">' +
-          '⚡ ESTUDIANTES DE ' + myUniAcronym +
-        '</div>' +
-        // Neon yellow, black fill. The icon is stroke="currentColor" so it
-        // follows the button colour instead of being a fixed-colour emoji.
-        '<button onclick="handleCrushSearch(\'\')" style="background:#000;border:1.5px solid #fde047;border-radius:var(--rad-md);padding:5px 12px;color:#fde047;font-size:var(--fs-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 0 10px rgba(253,224,71,0.38);">' +
-          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw-icon lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>' +
-          '<span>Mezclar</span>' +
-        '</button>' +
-      '</div>';
-    
+    // El label "ESTUDIANTES DE …" y el botón Mezclar suelto se quitaron: Mezclar
+    // ahora vive DENTRO de la barra de búsqueda (index.html #crush-search-shuffle).
     var cardsHtml = students.map(_renderSearchStudentCard).join('');
-    container.innerHTML = headerHtml + cardsHtml;
+    container.innerHTML = cardsHtml;
     return;
   }
   

@@ -8235,6 +8235,23 @@ body.is-ios .screen::before {
   transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
+/* En los modales de "ver perfil" (amigos) y "likes sent" la card se APLANA: el
+   radio y la orilla los pone el modal/.msheet, no la card. Antes el borde azul
+   de 2px !important quedaba DENTRO de la hoja = doble marco que se veía roto. */
+#user-crush-modal .crush-card,
+.mov .msheet .crush-card {
+  border: none !important;
+  border-radius: var(--rad-xl) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* La foto (galería) toma la esquina redondeada de la card que la contiene. */
+#user-crush-modal .crush-card .crush-gallery,
+.mov .msheet .crush-card .crush-gallery {
+  border-radius: var(--rad-xl) !important;
+}
+
 .crush-actions {
   display: flex !important;
   align-items: center !important;
@@ -8348,7 +8365,7 @@ body.is-ios .screen::before {
 }
 
 .crush-info-block {
-  margin: 12px 0 !important;
+  margin: 12px 12px !important;
   padding: 16px 18px !important;
   background: rgba(22, 14, 42, 0.85) !important;
   border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
