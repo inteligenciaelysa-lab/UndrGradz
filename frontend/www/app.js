@@ -1387,7 +1387,17 @@ function _getLangFlag(l) {
   var f = (typeof FLAGS !== 'undefined' ? FLAGS : []).find(function(x){ return x.l === l; });
   return f ? f.f : '🗣️';
 }
-var LANGUAGES = ['English','Spanish','French','Portuguese','German','Italian','Dutch','Swedish','Norwegian','Danish','Polish','Greek','Russian','Ukrainian','Turkish','Japanese','Korean','Mandarin','Cantonese','Vietnamese','Thai','Indonesian','Tagalog','Hindi','Urdu','Bengali','Arabic','Hebrew','Persian','ASL'];
+// Clean language label for display: strips the "mx·"/"us·" UID prefix and any
+// trailing country parenthetical ("English (US)" → "English"), since the flag
+// already conveys the country. Just the bare language name is shown next to it.
+function _langLabel(l) {
+  if (!l) return '';
+  var s = String(l);
+  s = s.replace(/^[a-z]{2,4}·/i, '');       // drop "xx·" UID prefix
+  s = s.replace(/\s*\([^)]*\)\s*$/, '');          // drop trailing "(US)" etc.
+  return s.trim();
+}
+var LANGUAGES =['English','Spanish','French','Portuguese','German','Italian','Dutch','Swedish','Norwegian','Danish','Polish','Greek','Russian','Ukrainian','Turkish','Japanese','Korean','Mandarin','Cantonese','Vietnamese','Thai','Indonesian','Tagalog','Hindi','Urdu','Bengali','Arabic','Hebrew','Persian','ASL'];
 // Shared major + Greek lists — used by Student Registration AND the Hangouts / Crush filters so they stay in sync
 var MAJORS = ["Accounting", "Acoustical Engineering", "Acoustics", "Actuarial Science", "Adult Education", "Advertising", "Aeronautics", "Aerospace Engineering", "African American Studies", "African Languages", "African Studies", "Agribusiness", "Agricultural & Biological Engineering", "Agricultural Communications", "Agricultural Economics", "Agricultural Education", "Agricultural Engineering", "Agricultural Engineering Technology", "Agricultural Sciences", "Agronomy", "Air Traffic Management", "American Sign Language", "American Studies", "Analytics", "Animal Behavior", "Animal Science", "Animation", "Anthropology", "Apparel Design", "Applied Mathematics", "Applied Music", "Applied Physics", "Applied Statistics", "Aquaculture", "Aquatic Biology", "Arabic", "Archaeology", "Architectural Engineering", "Architecture", "Art Education", "Art History", "Art Therapy", "Artificial Intelligence", "Arts Administration", "Asian Studies", "Assyriology", "Astronomy", "Astrophysics", "Athletic Training", "Atmospheric Chemistry", "Atmospheric Science", "Audio Engineering", "Audiology", "Automation Engineering", "Automotive Engineering", "Automotive Technology", "Aviation", "Aviation Maintenance", "Aviation Management", "Ballet", "Behavioral Economics", "Behavioral Neuroscience", "Behavioral Science", "Biblical Languages", "Bilingual Education", "Biochemical Engineering", "Biochemistry", "Bioinformatics", "Biological Engineering", "Biological Sciences", "Biology", "Biomanufacturing", "Biomedical Engineering", "Biomedical Sciences", "Biophysics", "Biostatistics", "Biotechnology", "Border Security", "Botany", "Brewing Science", "Broadcast Journalism", "Building Construction", "Business Administration", "Business Analytics", "Business Economics", "Business Management", "Cardiopulmonary Science", "Cardiovascular Technology", "Cartography", "Cell Biology", "Ceramic Engineering", "Ceramics", "Chemical Biology", "Chemical Engineering", "Chemical Physics", "Chemistry", "Child Development", "Chinese", "Chiropractic", "Christian Ministry", "Cinema Studies", "Cinematography", "City Planning", "Civil & Environmental Engineering", "Civil Engineering", "Classical Studies", "Classics", "Climate & Sustainability", "Climate Science", "Clinical Laboratory Science", "Clinical Psychology", "Cloud & Systems", "Cloud Computing", "Cognitive Neuroscience", "Cognitive Science", "Commerce", "Communication Studies", "Communications", "Community Development", "Community Health", "Comparative Literature", "Comparative Politics", "Composition", "Computational Biology", "Computational Finance", "Computational Linguistics", "Computational Physics", "Computational Science", "Computer & Electrical Engineering", "Computer Engineering", "Computer Information Systems", "Computer Science", "Conducting", "Conservation Biology", "Construction Engineering", "Construction Engineering Technology", "Construction Management", "Consumer Economics", "Corporate Communication", "Corrections", "Costume Design", "Court Reporting", "Creative Writing", "Criminal Justice", "Criminal Psychology", "Criminology", "Culinary Arts", "Culinary Management", "Cultural Anthropology", "Cultural Studies", "Curriculum & Instruction", "Cybercrime", "Cybersecurity", "Dairy Science", "Dance", "Data Analytics", "Data Engineering", "Data Science", "Database Administration", "Demography", "Dental Assisting", "Dental Hygiene", "Dentistry / Pre-Dental", "Design & Technology", "Development Studies", "Developmental Biology", "Diagnostic Imaging", "Dietetics", "Digital Arts", "Digital Forensics", "Digital Humanities", "Digital Media", "Diplomacy", "Disability Studies", "Drama", "Drawing", "E-Commerce", "Early Childhood Education", "Earth & Space Science", "East Asian Studies", "Ecology", "Econometrics", "Economics", "Ecotourism", "Education", "Educational Leadership", "Educational Psychology", "Educational Technology", "Electrical Engineering", "Electrical Engineering Technology", "Electromechanical Technology", "Electronic Media", "Electronics Engineering", "Elementary Education", "Elementary Statistics", "Emergency Management", "Emergency Medical Services", "Energy Engineering", "Energy Management", "Engineering Management", "Engineering Physics", "Engineering Science", "Engineering Technology", "English", "English Education", "English Literature", "English as a Second Language", "Entomology", "Entrepreneurship", "Environmental Chemistry", "Environmental Engineering", "Environmental Health", "Environmental Law", "Environmental Management", "Environmental Policy", "Environmental Science", "Environmental Studies", "Environmental Systems Engineering", "Epidemiology", "Equine Science", "Esports Management", "Ethnic Studies", "European Studies", "Event Management", "Evolutionary Biology", "Exercise Physiology", "Exercise Science", "Experimental Psychology", "Facilities Management", "Family Studies", "Fashion Business", "Fashion Design", "Fashion Marketing", "Fashion Merchandising", "Fermentation Science", "Film & Media Studies", "Film Production", "Film Scoring", "Finance", "Financial Economics", "Financial Engineering", "Financial Mathematics", "Financial Planning", "Fine Arts", "Fire Protection Engineering", "Fire Science", "Fisheries & Wildlife", "Fisheries Science", "Floral Design", "Fluid Dynamics", "Folklore", "Food & Nutrition", "Food Engineering", "Food Science", "Food Service Management", "Foreign Affairs", "Foreign Languages", "Forensic Accounting", "Forensic Chemistry", "Forensic Nursing", "Forensic Psychology", "Forensic Science", "Forestry", "French", "Game Art", "Game Design", "Game Development", "Gender Studies", "Genetic Counseling", "Genetics", "Geochemistry", "Geography", "Geological Engineering", "Geology", "Geomatics Engineering", "Geophysics", "Geospatial Science", "Geotechnical Engineering", "German", "Gerontology", "Global Health Studies", "Global Studies", "Golf Management", "Graphic Design", "Greek", "Health Administration", "Health Communication", "Health Education", "Health Informatics", "Health Information Management", "Health Policy", "Health Sciences", "Healthcare Administration", "Hebrew", "Higher Education", "Hindi", "Historic Preservation", "History", "Homeland Security", "Horticultural Science", "Horticulture", "Hospitality & Tourism", "Hospitality Management", "Hotel Management", "Human Biology", "Human Development", "Human Factors", "Human Nutrition", "Human Resource Development", "Human Resources Management", "Human Services", "Human-Computer Interaction", "Humanities", "Hydrology", "IT Management", "Illustration", "Immunology", "Indigenous Studies", "Industrial Design", "Industrial Design Technology", "Industrial Distribution", "Industrial Engineering", "Industrial Hygiene", "Industrial Management", "Industrial Technology", "Information Assurance", "Information Science", "Information Systems", "Information Technology", "Instructional Design", "Insurance & Risk Management", "Integrated Marketing", "Intelligence Studies", "Interactive Media", "Interdisciplinary Arts", "Interdisciplinary Studies", "Interior Architecture", "Interior Design", "International Business", "International Development", "International Economics", "International Finance", "International Relations", "International Studies", "Investment Management", "Islamic Studies", "Italian", "Japanese", "Jazz Studies", "Jewelry Design", "Journalism", "Kinesiology", "Korean", "Labor Relations", "Landscape Architecture", "Landscape Design", "Landscape Management", "Language Studies", "Latin", "Latin American Studies", "Law / Pre-Law", "Law Enforcement", "Leadership Studies", "Learning Sciences", "Legal Studies", "Liberal Arts", "Liberal Studies", "Library Science", "Life Sciences", "Linguistics", "Logistics", "Machine Learning", "Management", "Management Information Systems", "Manufacturing Engineering", "Marine Affairs", "Marine Biology", "Marine Engineering", "Marine Science", "Marine Systems Engineering", "Marketing", "Marketing Analytics", "Mass Communication", "Materials Engineering", "Materials Science", "Math Education", "Mathematical Sciences", "Mathematics", "Mechanical Engineering", "Mechanical Engineering Technology", "Mechatronics", "Media Arts", "Media Production", "Media Studies", "Medical Anthropology", "Medical Illustration", "Medical Laboratory Science", "Medical Sociology", "Medical Technology", "Medicine / Pre-Med", "Medieval Studies", "Merchandising", "Metallurgical Engineering", "Meteorology", "Microbiology", "Middle Eastern Studies", "Midwifery", "Military Science (ROTC)", "Mining Engineering", "Molecular Biology", "Molecular Genetics", "Motion Picture Arts", "Multidisciplinary Studies", "Multimedia Design", "Museum Studies", "Music", "Music Business", "Music Composition", "Music Education", "Music Performance", "Music Production", "Music Technology", "Music Therapy", "Musical Theater", "Musicology", "Mycology", "Nanoengineering", "Nanoscience", "Nanotechnology", "Natural Resource Management", "Natural Sciences", "Naval Architecture", "Network Administration", "Neuroscience", "Nonprofit Management", "Nuclear Engineering", "Nuclear Engineering Technology", "Nursing", "Nursing Science", "Nutrition", "Occupational Health", "Occupational Safety", "Occupational Therapy", "Ocean Engineering", "Oceanography", "Operations Management", "Operations Research", "Optical Engineering", "Optometry / Pre-Opt", "Organizational Communication", "Organizational Leadership", "Ornithology", "Packaging Science", "Painting", "Painting & Drawing", "Paleontology", "Paralegal Studies", "Paramedic Science", "Parks & Recreation", "Peace & Conflict Studies", "Performance Studies", "Petroleum Engineering", "Pharmaceutical Sciences", "Pharmacology", "Pharmacy / Pre-Pharm", "Philosophy", "Photography", "Photonics", "Physical Education", "Physical Sciences", "Physical Therapy", "Physical Therapy Assistant", "Physician Assistant Studies", "Physics", "Physiology", "Piano Performance", "Planetary Science", "Plant Biology", "Plant Pathology", "Plant Science", "Plastics Engineering", "Playwriting", "Podiatry", "Poetry", "Political Communication", "Political Economy", "Political Science", "Portuguese", "Poultry Science", "Power Engineering", "Pre-Dentistry", "Pre-Nursing", "Pre-Optometry", "Pre-Pharmacy", "Pre-Physical Therapy", "Precision Agriculture", "Printmaking", "Product Design", "Professional Writing", "Project Management", "Psychology", "Public Administration", "Public Health", "Public Policy", "Public Relations", "Public Safety", "Quantitative Economics", "Quantum Computing", "Radio & Television", "Radiologic Technology", "Railroad Engineering", "Range Management", "Real Estate", "Recording Arts", "Recreation Management", "Recreation Therapy", "Rehabilitation Sciences", "Religious Studies", "Renewable Energy", "Respiratory Therapy", "Restaurant Management", "Retail Management", "Rhetoric", "Robotics Engineering", "Russian", "STEM Education", "Sales", "Science Education", "Screenwriting", "Sculpture", "Secondary Education", "Security Studies", "Set Design", "Sign Language Studies", "Small Business Management", "Social Innovation", "Social Psychology", "Social Work", "Sociology", "Software Development", "Software Engineering", "Software Systems Engineering", "Soil Science", "Sound Design", "Space Science", "Spanish", "Special Education", "Speech Communication", "Speech-Language Pathology", "Sport Business", "Sport Management", "Sports Analytics", "Sports Communication", "Sports Journalism", "Sports Management", "Sports Medicine", "Sports Nutrition", "Stagecraft", "Statistics", "Strategic Communication", "Strategic Management", "Structural Engineering", "Studio Art", "Studio Recording", "Substance Abuse Counseling", "Supply Chain Management", "Surveying", "Sustainability", "Sustainable Agriculture", "Sustainable Design", "Sustainable Engineering", "Systems Administration", "Systems Biology", "Systems Engineering", "TESOL / ESL", "Taxation", "Teaching English", "Technical Communication", "Telecommunications Engineering", "Textile Design", "Textile Engineering", "Textiles", "Theatre", "Theatre Arts", "Theatre Design", "Theatre Education", "Theology", "Theoretical Physics", "Therapeutic Recreation", "Tourism Management", "Toxicology", "Translation & Interpretation", "Transportation Engineering", "Turfgrass Science", "UX/UI Design", "Urban Design", "Urban Education", "Urban Planning", "Urban Studies", "User Experience Design", "Veterinary Science / Pre-Vet", "Virology", "Visual Arts", "Viticulture", "Vocational Education", "Voice Performance", "Water Resources", "Web Design", "Web Development", "Welding Engineering", "Wildlife Biology", "Wildlife Ecology", "Wildlife Management", "Wine & Beverage Management", "Women's & Gender Studies", "World Religions", "Writing", "Youth Ministry", "Zoology", "Undecided"];
 var MINORS = ["None", "Accounting", "Acting", "Actuarial Studies", "Advertising", "Aerospace Engineering", "Aerospace Studies", "African American History", "African American Studies", "African Studies", "American History", "American Sign Language", "American Studies", "Analytics", "Animal Studies", "Animation", "Anthropology", "Applied Mathematics", "Applied Statistics", "Aquatic Biology", "Arabic", "Arabic Studies", "Archaeology", "Architecture", "Architecture Studies", "Art History", "Art Therapy", "Arts Management", "Asian Studies", "Astrobiology", "Astronomy", "Astrophysics", "Athletic Coaching", "Behavioral Science", "Biblical Languages", "Biblical Studies", "Biochemistry", "Bioengineering", "Bioethics", "Bioinformatics", "Biology", "Biomedical Studies", "Biotechnology", "Business", "Business Administration", "Business Analytics", "Business Law", "Chemistry", "Chemistry Education", "Child Development", "Chinese", "Chinese Studies", "Christian Studies", "Cinema Production", "Cinema Studies", "Civic Engagement", "Civil Engineering", "Classics", "Climate Studies", "Coaching", "Coaching Education", "Cognitive Science", "Communication", "Comparative Literature", "Comparative Religion", "Composition", "Computer Engineering", "Computer Science", "Conducting", "Conflict Resolution", "Consumer Behavior", "Corporate Finance", "Counseling", "Creative Writing", "Criminal Justice", "Criminology", "Cultural Anthropology", "Cybercrime", "Cybersecurity", "Dance", "Dance Education", "Data Analytics", "Data Science", "Data Visualization", "Design", "Design Thinking", "Developmental Psychology", "Digital Marketing", "Digital Media", "Digital Studies", "Diplomacy", "Disability Studies", "Documentary Studies", "Drawing", "Earth Science", "East Asian Languages", "East Asian Studies", "Ecology", "Ecology & Evolution", "Economic History", "Economics", "Education", "Educational Studies", "Educational Technology", "Electrical Engineering", "Electronics", "Emergency Management", "Energy Studies", "Engineering Design", "Engineering Management", "Engineering Studies", "English", "English Literature", "Entomology", "Entrepreneurship", "Environmental Engineering", "Environmental Policy", "Environmental Science", "Environmental Studies", "Ethics", "Ethnic Studies", "Ethnomusicology", "European Studies", "Event Planning", "Family Science", "Family Studies", "Fashion Studies", "Film Studies", "Filmmaking", "Finance", "Financial Economics", "Fine Art Photography", "Fine Arts", "Fisheries", "Folklore", "Food Science", "Food Studies", "Forensic Psychology", "Forensic Science", "Forestry", "French", "French Studies", "Game Design", "Game Studies", "Gender Studies", "Genetics", "Geographic Information Systems", "Geography", "Geology", "German", "German Studies", "Gerontology", "Global Business", "Global Health", "Global Studies", "Graphic Design", "Greek", "Health Communication", "Health Informatics", "Health Policy", "Health Studies", "Hebrew", "Hebrew Studies", "Historic Preservation", "History", "Holocaust Studies", "Horticulture", "Hospitality", "Human Biology", "Human Factors", "Human Nutrition", "Human Rights", "Human Services", "Illustration", "Immunology", "Industrial Design", "Industrial Engineering", "Information Security", "Information Systems", "Information Technology", "Innovation", "Interactive Design", "Interior Design", "International Business", "International Development", "International Economics", "International Relations", "International Studies", "Islamic Studies", "Italian", "Italian Studies", "Japanese", "Japanese Studies", "Jazz Performance", "Jazz Studies", "Jewish Studies", "Journalism", "Journalism Studies", "Judaic Studies", "Kinesiology", "Korean", "Korean Studies", "LGBTQ Studies", "Labor Studies", "Landscape Studies", "Language & Culture", "Latin", "Latin American History", "Latin American Studies", "Law & Society", "Leadership", "Leadership Studies", "Learning & Cognition", "Legal Studies", "Legal Writing", "Life Sciences", "Linguistics", "Literature", "Logic", "Management", "Management Studies", "Manufacturing Engineering", "Marine Biology", "Marketing", "Materials Engineering", "Materials Science", "Mathematical Modeling", "Mathematics", "Mechanical Engineering", "Media Production", "Media Studies", "Medical Humanities", "Medieval Studies", "Meteorology", "Microbiology", "Middle Eastern Languages", "Middle Eastern Studies", "Military History", "Military Science", "Molecular Biology", "Multimedia", "Museum Studies", "Music", "Music Business", "Music Performance", "Music Technology", "Musical Composition", "Musical Theatre", "Nanoscience", "Nanotechnology", "Native American Studies", "Natural Resources", "Naval Science", "Neuroeconomics", "Neuroscience", "Nonprofit Management", "Nonprofit Studies", "Nutrition", "Nutrition Science", "Oceanography", "Organizational Behavior", "Painting", "Peace Studies", "Performance", "Persian Studies", "Pharmacology", "Philosophy", "Philosophy of Science", "Photography", "Physical Education", "Physics", "Physiology", "Planetary Science", "Plant Biology", "Playwriting", "Poetry", "Political Communication", "Political Economy", "Political Science", "Popular Culture", "Portuguese", "Portuguese Studies", "Pre-Health", "Pre-Law", "Pre-Med", "Pre-Vet", "Printmaking", "Professional Communication", "Professional Writing", "Project Management", "Psychology", "Public Health", "Public Policy", "Public Relations", "Public Speaking", "Quantitative Methods", "Queer Studies", "Race & Ethnicity", "Real Estate", "Recreation", "Religion & Culture", "Religious Studies", "Renewable Energy", "Rhetoric", "Robotics", "Robotics Engineering", "Russian", "Russian Studies", "STEM", "Sales", "Sales Leadership", "Science & Technology Studies", "Science Communication", "Screenwriting", "Sculpture", "Set Design", "Slavic Studies", "Social Entrepreneurship", "Social Innovation", "Social Justice", "Social Media", "Social Work", "Sociology", "Software Engineering", "Songwriting", "Sound Design", "Spanish", "Spanish Studies", "Sport Management", "Sport Psychology", "Sports Analytics", "Stagecraft", "Statistics", "Statistics & Data", "Studio Art", "Studio Recording", "Supply Chain", "Sustainability", "Sustainable Development", "Systems Engineering", "Systems Thinking", "TESOL", "Teaching", "Technical Writing", "Textiles", "Theatre", "Theatre Production", "Theology", "Toxicology", "Translation", "Urban Design", "Urban Studies", "Video Production", "Visual Culture", "Water Science", "Web Design", "Wildlife Studies", "Wine Studies", "Women's Studies", "World History", "World Languages", "World Music", "Writing", "Youth Development", "Zoology"];
@@ -5437,7 +5447,7 @@ function updateProfileUI(){
     pieces=pieces.concat(_getVerifiedInvolvementPills());
     var userLangs = (userPro && (userPro.languages || userPro.langs || userPro.flags || (userPro.background && userPro.background.languages))) || [];
     if(userLangs && userLangs.length){
-      pieces=pieces.concat(userLangs.slice(0,8).map(function(l){var flagIco = _getLangFlag(l); return '<div class="cpill">'+flagIco+' '+l+'</div>';}));
+      pieces=pieces.concat(userLangs.slice(0,8).map(function(l){var flagIco = _getLangFlag(l); return '<div class="cpill">'+flagIco+' '+_langLabel(l)+'</div>';}));
     }
     flr.innerHTML=pieces.join('');
   }
@@ -10461,8 +10471,14 @@ function buildHingeStackHtml(p,opts){
   var slides='';
   // ── PHOTO GALLERY: all photos in one swipe-through gallery at the top (tap right = next, left = back) ──
   // _embed defined above (near coverInfo). Deck: fixed viewport height. Preview: 3/4 card shape.
-  var _galH=_embed?'':'clamp(360px,calc(100dvh - 300px),560px)';
-  var _galAR=_embed?'aspect-ratio:3/4;':'';// preview is a normal card-shaped frame (no black square, no natural-aspect gaps)
+  // compact = modales de "ver perfil" (amigos / likes sent). Usan proporción 4/5
+  // (no viewport-math): así la foto SIEMPRE escala con la card y nunca sale
+  // gigante ni casi cuadrada. El deck (no compact) se queda en su alto de siempre.
+  var _compact=!!(opts&&opts.compact);
+  var _galH=(_embed||_compact)?'':'clamp(360px,calc(100dvh - 300px),560px)';
+  // compact usa 3/4 (más alto que 4/5) para que la foto se vea MÁS grande sin
+  // cambiar la posición del card. embed (preview propio) se queda en 3/4 también.
+  var _galAR=(_embed||_compact)?'aspect-ratio:3/4;':'';// preview/compact = marco proporcional (sin barras negras)
   var _galPos=p.photoPositions||[];
   var _galSlides=photos.map(function(src,i){
     var op=_galPos[i]||'center';
@@ -10587,15 +10603,22 @@ function buildHingeStackHtml(p,opts){
   }
   // Likes / Speaks (split into separate sections so they can be ordered independently)
   var speaksList = isSelf ? (userPro.languages || userPro.langs || userPro.flags || []) : (p.flags || (p.background && p.background.languages) || p.languages || []);
-  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+f+'</div>';}).join('')+'</div></div></div>';
+  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+_langLabel(f)+'</div>';}).join('')+'</div></div></div>';
   if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div class="ln-chip" style="--ln-hue:#dc2626;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div></div>';
-  // Ethnicity
-  if(p.ethnicity)bEthnicity='<div class="crush-info-block">'+'<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;">🌎 <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Ethnicity</b>'+p.ethnicity+'</span></div></div>';
-  // Religion + Politics — FIRST (before Clubs)
-  var infoParts=[];
-  if(p.religion&&!p.religionHideOnUnicrush)infoParts.push('<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;margin-bottom:6px;">✝️ <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Religion</b>'+p.religion+'</span></div>');
-  if(p.politics&&!p.politicsHideOnUnicrush)infoParts.push('<div style="display:flex;align-items:center;gap:8px;font-size:var(--fs-base);color:#fff;margin-bottom:6px;">🗳️ <span><b style="color:var(--fg2);font-weight:500;font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:2px;">Politics</b>'+p.politics+'</span></div>');
-  if(infoParts.length)bReligion='<div class="crush-info-block">'+infoParts.join('')+'</div>';
+  // Ethnicity / Religion / Politics — misma plantilla que "Idiomas que hablo" y
+  // "Lo que me gusta": header en color con subrayado + opciones como ln-chip
+  // subrayadas. Cada uno con su color.
+  var _idBlock = function(emoji, title, hue, valRaw){
+    var arr = Array.isArray(valRaw) ? valRaw : String(valRaw).split(/,\s*/);
+    arr = arr.map(function(v){return String(v).trim();}).filter(Boolean);
+    if(!arr.length) return '';
+    var rgb = hue;
+    return '<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:'+rgb+';text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px color-mix(in srgb,'+rgb+' 40%,transparent);">'+emoji+' '+title+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+arr.map(function(v){return '<div class="ln-chip" style="--ln-hue:'+rgb+';font-size:var(--fs-sm);">'+v+'</div>';}).join('')+'</div></div></div>';
+  };
+  var bPolitics='';
+  if(p.ethnicity)bEthnicity=_idBlock('🌎','ETHNICITY','#22c55e',p.ethnicity);
+  if(p.religion&&!p.religionHideOnUnicrush)bReligion=_idBlock('🙏','RELIGION','#a855f7',p.religion);
+  if(p.politics&&!p.politicsHideOnUnicrush)bPolitics=_idBlock('🗳️','POLITICS','#f59e0b',p.politics);
   // Clubs
   if(p.clubs&&p.clubs.length)bClubs='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;color:#3d7bff;">'+icon('target',16)+' Clubs</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+p.clubs.map(function(c){return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);padding:4px 9px;background:rgba(255,255,255,0.10);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-weight:500;">'+icon('clubShield',12)+c+'</div>';}).join('')+'</div></div>';
   // 🎙️ Voice prompt block (one per card)
@@ -10632,7 +10655,8 @@ function buildHingeStackHtml(p,opts){
   _add(bQuick);_add(bMatched);   // identity chips + "you matched on" highlights
   _add(bSpeaks);      // Speaks
   _add(bEthnicity);   // Ethnicity
-  _add(bReligion);    // Religion + Politics (+ faith)
+  _add(bReligion);    // Religion
+  _add(bPolitics);    // Politics
   _add(bLikes);       // Likes
   _add(bClubs);       // Clubs (with likes)
   _add(bLifestyle);   // Lifestyle
@@ -11576,16 +11600,15 @@ function openSentLikeProfile(likeId){
   var idx=parseInt(row.dataset.profileIdx);
   if(isNaN(idx)||!crushData[idx])return;
   var p=crushData[idx];
-  var slides=buildHingeStackHtml(p,{isSelf:false});
+  var slides=buildHingeStackHtml(p,{isSelf:false,compact:true});
   var modal=document.createElement('div');
   modal.className='mov open';modal.style.zIndex='9999';
-  modal.innerHTML='<div class="msheet" style="max-width:380px;padding:0;background:#000000;overflow:hidden;border-radius:var(--rad-xl);">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.4);border-bottom:1px solid var(--gbdl);">'+
-      '<div class="t-body-strong">Profile · '+p.name+'</div>'+
-      '<button onclick="this.closest(\'.mov\').remove()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:var(--fs-base);cursor:pointer;">✕</button>'+
-    '</div>'+
-    '<div class="crush-card" style="max-width:none;border:none;margin:0;border-radius:0;max-height:75vh;">'+
-      '<div class="crush-scroll" style="padding-bottom:14px;">'+slides+'</div>'+
+  // Mismo chrome que "ver perfil" de amigos: hoja redondeada + botón ‹ flotante
+  // sobre la foto (sin barra de header). El nombre ya sale en la card.
+  modal.innerHTML='<div class="msheet" style="max-width:400px;padding:0;background:#0b0818;overflow:hidden;border-radius:var(--rad-xl);max-height:90dvh;display:flex;flex-direction:column;position:relative;">'+
+    '<button onclick="this.closest(\'.mov\').remove()" aria-label="Close" style="position:absolute;top:12px;left:12px;z-index:100;background:rgba(0,0,0,0.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:38px;height:38px;color:#fff;font-size:var(--fs-xl);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);">‹</button>'+
+    '<div class="crush-card" style="max-width:none;margin:0;flex:1;min-height:0;">'+
+      '<div class="crush-scroll" style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px;">'+slides+'</div>'+
     '</div>'+
   '</div>';
   document.body.appendChild(modal);
@@ -12397,17 +12420,22 @@ function _getSentLikesHtml(pool){
     var kind=_sentLikeKind(p.swipeType);
     var ago=(typeof _agoEs==='function')?_agoEs(p.createdAt):'';
 
-    var pills='<div style="display:flex;align-items:center;gap:4px;margin-top:5px;flex-wrap:wrap;">'+
-      '<span style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;background:rgba(61,123,255,0.28);border:1px solid rgba(61,123,255,0.65);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;">🏛️ '+un+'</span>'+
-      (p.major?'<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.22);border:1px solid rgba(245,158,11,0.6);border-radius:var(--rad-xs);padding:2px 6px;letter-spacing:0.4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">🎓 '+p.major+'</span>':'')+
-    '</div>';
+    // Mismo formato que "For You": carrera · año en una línea y UNIVERSIDAD 'yy
+    // debajo (fuente Graduate), en vez de pills.
+    var yis=(typeof _yearInSchoolFromGrad==='function')?_yearInSchoolFromGrad(p.grad):'';
+    var majorLine=[(p.major||''),(yis||'')].filter(Boolean).join(' · ');
+    var gradYr=p.grad?String(p.grad).replace(/[^0-9]/g,'').slice(-2):'';
+    var uniLine=(un||'')+(gradYr?" '"+gradYr:'');
+    var meta=''+
+      (majorLine?'<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.96);margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,0.8);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+majorLine+'</div>':'')+
+      (uniLine?'<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.82);font-family:\'Graduate\',serif;margin-top:2px;letter-spacing:0.3px;text-shadow:0 1px 3px rgba(0,0,0,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+uniLine+'</div>':'');
 
     return '<div class="sent-like-card" onclick="_openSentLikeProfile('+i+')" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid rgba(245,158,11,0.42);background:#0b0b0e;position:relative;height:216px;'+cover+'">'+
       '<div style="position:absolute;top:8px;left:8px;display:flex;align-items:center;gap:3px;font-size:var(--fs-2xs);font-weight:700;color:'+kind.hue+';padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid '+kind.hue+';z-index:2;">'+kind.ico+' '+kind.lbl+'</div>'+
       (ago?'<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:rgba(255,255,255,0.82);padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.72);z-index:2;">'+ago+'</div>':'')+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:44px 10px 11px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.72) 62%, transparent 100%);">'+
         '<div style="font-size:var(--fs-base);font-weight:900;color:#fff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+p.name+' '+(p.age||'')+'</div>'+
-        pills+
+        meta+
       '</div>'+
     '</div>';
   }).join('');
@@ -17608,8 +17636,10 @@ function viewUserUnicrush(handle,name,bg,uniName,origin){
 // standard iOS sheet dismiss — in addition to the ‹ button.
 function _ucEnableSwipeClose(m){
   if(!m||m.__swipeClose)return;m.__swipeClose=1;
-  var sheet=m.querySelector('.msheet');var sy=0,sx=0,active=false;
-  m.addEventListener('touchstart',function(e){if(e.touches.length!==1){active=false;return;}sy=e.touches[0].clientY;sx=e.touches[0].clientX;active=(!sheet||sheet.scrollTop<=2);},{passive:true});
+  var sy=0,sx=0,active=false;
+  // El scroller real es .crush-scroll (o #user-crush-body), NO .msheet — se
+  // re-renderiza al cambiar de tab, así que lo re-consultamos en cada touchstart.
+  m.addEventListener('touchstart',function(e){if(e.touches.length!==1){active=false;return;}var sheet=m.querySelector('.crush-scroll')||m.querySelector('#user-crush-body')||m.querySelector('.msheet');sy=e.touches[0].clientY;sx=e.touches[0].clientX;active=(!sheet||sheet.scrollTop<=2);},{passive:true});
   m.addEventListener('touchmove',function(e){if(!active||e.touches.length!==1)return;var dy=e.touches[0].clientY-sy,dx=e.touches[0].clientX-sx;if(dy>75&&Math.abs(dy)>Math.abs(dx)*1.4){m.classList.remove('open');active=false;}},{passive:true});
   m.addEventListener('touchend',function(){active=false;},{passive:true});
 }
@@ -17628,7 +17658,7 @@ function switchUserCrushTab(tab){
   if(tab==='events'){
     body.innerHTML='<div style="padding:6px 0;">'+_userEventsHtml((u.name||'This user'))+'</div>';
   }else{
-    var cardHtml=buildHingeStackHtml(u.p||{name:u.name||'User',init:(u.name||'?').charAt(0),photos:[],ints:[],flags:[],prompts:[]},{isSelf:false}).replace(/<button class="crush-reply"[^>]*>[\s\S]*?<\/button>/g,'');
+    var cardHtml=buildHingeStackHtml(u.p||{name:u.name||'User',init:(u.name||'?').charAt(0),photos:[],ints:[],flags:[],prompts:[]},{isSelf:false,compact:true}).replace(/<button class="crush-reply"[^>]*>[\s\S]*?<\/button>/g,'');
     body.innerHTML='<div class="crush-card" style="margin:0 auto;"><div class="crush-scroll">'+cardHtml+'</div></div>';
   }
 }
@@ -20923,7 +20953,7 @@ var _APLUS_BILL={
   '6mo':{price:'$99.99',unit:'/6 mo',sub:'That\'s $16.67/mo — save 17%',name:'A+ Student · 6 Months',pay:'$99.99',tag:'SAVE 17%'},
   yr:{price:'$149.99',unit:'/yr',sub:'That\'s $12.50/mo — best value',name:'A+ Student · 1 Year',pay:'$149.99',tag:'BEST VALUE'}
 };
-var _aplusBillSel='yr';
+var _aplusBillSel='6mo';
 // Set once the user picks a card by hand, so re-rendering the screen stops
 // snapping the selection back to the plan they already own.
 var _plansSelTouched=false;
@@ -20980,40 +21010,44 @@ function _inviteShare(p){
 function _iePath(x,c,nextT){
   var done = c >= x.req;
   var prog = (!done && x.req === nextT);
-  var border = 'rgba(255,255,255,0.08)';
-  var glowShadow = '';
-  var badgeBg = 'rgba(255,255,255,0.05)';
-  var badgeColor = 'var(--fg3)';
-  var badgeText = 'LOCKED';
-  var circleBg = 'rgba(255,255,255,0.1)';
+  // Cada nivel tiene su propio color; incluso bloqueado conserva un tinte de su
+  // hue en vez de gris, para que el carril de recompensas sea multicolor.
+  var hue = x.col || '#a855f7';
+  var border, glowShadow = '', badgeBg, badgeColor, badgeText, circleBg;
   if (done) {
-    border = '#3d7bff';
-    glowShadow = ';';
-    badgeBg = '#3d7bff';
-    badgeColor = '#000';
-    badgeText = 'UNLOCKED';
-    circleBg = '#3d7bff';
+    border = hue;
+    glowShadow = 'box-shadow:0 0 14px -4px color-mix(in srgb,' + hue + ' 70%,transparent);';
+    badgeBg = hue; badgeColor = '#0a0518'; badgeText = 'UNLOCKED'; circleBg = hue;
   } else if (prog) {
-    border = '#f59e0b';
-    glowShadow = ';';
-    badgeBg = '#f59e0b';
-    badgeColor = '#000';
-    badgeText = 'IN PROGRESS';
-    circleBg = '#f59e0b';
+    border = hue;
+    glowShadow = 'box-shadow:0 0 16px -3px color-mix(in srgb,' + hue + ' 75%,transparent);';
+    badgeBg = hue; badgeColor = '#0a0518'; badgeText = 'IN PROGRESS'; circleBg = hue;
+  } else {
+    border = 'color-mix(in srgb,' + hue + ' 34%,transparent)';
+    badgeBg = 'color-mix(in srgb,' + hue + ' 14%,transparent)';
+    badgeColor = 'color-mix(in srgb,' + hue + ' 85%,#fff)';
+    badgeText = 'LOCKED';
+    circleBg = 'color-mix(in srgb,' + hue + ' 22%,transparent)';
   }
-  var cardBg = prog ? 'rgba(245,158,11,0.08)' : 'rgba(255,255,255,0.03)';
-  var levelBadgeColor = done ? '#a9c4ff' : (prog ? '#fbbf24' : '#fff');
+  var cardBg = (done || prog) ? 'color-mix(in srgb,' + hue + ' 12%,#0a0518)' : 'color-mix(in srgb,' + hue + ' 6%,#0a0518)';
+  var levelBadgeColor = (done || prog) ? 'color-mix(in srgb,' + hue + ' 80%,#fff)' : '#fff';
   var badgeHtml = '<div style="font-size:var(--fs-2xs);font-weight:700;color:' + badgeColor + ';background:' + badgeBg + ';border-radius:var(--rad-xs);padding:4px 0;margin-top:8px;letter-spacing:0.3px;">' + badgeText + '</div>';
   return '<div style="flex:0 0 128px;border:1.5px solid ' + border + ';border-radius:var(--rad-md);padding:12px 10px;text-align:center;background:' + cardBg + ';' + glowShadow + 'transition:all 0.2s;box-sizing:border-box;">' +
-    '<div style="width:24px;height:24px;border-radius:50%;background:' + circleBg + ';color:' + (done || prog ? '#000' : '#fff') + ';font-size:var(--fs-xs);font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">' + (done ? '✓' : x.lv) + '</div>' +
+    '<div style="width:24px;height:24px;border-radius:50%;background:' + circleBg + ';color:' + (done || prog ? '#0a0518' : '#fff') + ';font-size:var(--fs-xs);font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;">' + (done ? '✓' : x.lv) + '</div>' +
     '<div style="font-size:var(--fs-sm);font-weight:700;color:' + levelBadgeColor + ';">Level ' + x.lv + '</div>' +
-    '<div style="font-size:var(--fs-2xl);margin:7px 0;text-shadow:' + (done ? '0 0 8px #3d7bff' : (prog ? '0 0 8px #f59e0b' : 'none')) + ';">' + x.ic + '</div>' +
+    '<div style="font-size:var(--fs-2xl);margin:7px 0;text-shadow:' + ((done || prog) ? '0 0 8px ' + hue : 'none') + ';">' + x.ic + '</div>' +
     '<div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.2;min-height:26px;display:flex;align-items:center;justify-content:center;">' + x.n + '</div>' +
     '<div style="font-size:var(--fs-sm);font-weight:700;color:#fff;margin-top:4px;">' + x.r + '</div>' +
     badgeHtml +
   '</div>';
 }
 
+// Copy the code + swap the label to "Copied ✓" inline (no blocking alert).
+function _ieCopyCode(el, code){
+  try{ if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code); }catch(e){}
+  var lbl = el.querySelector('#ie-copy-lbl');
+  if(lbl){ if(lbl.dataset.o==null)lbl.dataset.o=lbl.textContent; lbl.textContent='Copied ✓'; lbl.style.color='#4ade80'; setTimeout(function(){lbl.textContent=lbl.dataset.o;lbl.style.color='';},1500); }
+}
 function renderInviteEarn(){
   if(typeof _refLoad==='function')try{_refLoad();}catch(e){}
   var c = (_userReferralData && typeof _userReferralData.referredCount !== 'undefined') ? _userReferralData.referredCount : (typeof referralState!=='undefined'&&referralState?referralState.count:0);
@@ -21024,15 +21058,16 @@ function renderInviteEarn(){
   // solo "Level N". La tabla se queda por si vuelven, ya sin uso.
   var LN = ['','Freshman Recruiter','Sophomore Recruiter','Junior Recruiter','Campus Legend'];
   var nextT = c < 1 ? 1 : (c < 5 ? 5 : (c < 10 ? 10 : 20));
+  var prevT = c < 1 ? 0 : (c < 5 ? 1 : (c < 10 ? 5 : 10));
   var toNext = Math.max(0, nextT - c);
-  var pct = Math.min(100, Math.round(c / nextT * 100));
+  var pct = Math.min(100, Math.max(0, Math.round((c - prevT) / Math.max(1, (nextT - prevT)) * 100)));
   var _giftSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-gift-icon lucide-gift" style="display:inline-block;vertical-align:middle;"><path d="M12 7v14"/><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="M7.5 7a1 1 0 0 1 0-5A4.8 4.8 0 0 1 12 7a4.8 4.8 0 0 1 4.5-5 1 1 0 0 1 0 5"/><rect x="3" y="7" width="18" height="4" rx="1"/></svg>';
   var _spotlightSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-spotlight-icon lucide-spotlight" style="display:inline-block;vertical-align:middle;"><path d="M15.295 19.562 16 22"/><path d="m17 16 3.758 2.098"/><path d="m19 12.5 3.026-.598"/><path d="M7.61 6.3a3 3 0 0 0-3.92 1.3l-1.38 2.79a3 3 0 0 0 1.3 3.91l6.89 3.597a1 1 0 0 0 1.342-.447l3.106-6.211a1 1 0 0 0-.447-1.341z"/><path d="M8 9V2"/></svg>';
   var PATH = [
-    {lv:1, req:1, ic:'🌟', n:'Invite 1 friend', r:'Spotlight'},
-    {lv:2, req:5, ic:'❤️', n:'Invite 5 friends', r:'+12 Likes/day'},
-    {lv:3, req:10, ic:'💎', n:'Invite 10 friends', r:'10% OFF A+'},
-    {lv:4, req:20, ic:'🎁', n:'Invite 20 friends', r:'Mystery Reward'}
+    {lv:1, req:1, ic:'🌟', n:'Invite 1 friend', r:'Spotlight', col:'#fbbf24'},
+    {lv:2, req:5, ic:'❤️', n:'Invite 5 friends', r:'+12 Likes/day', col:'#f43f6a'},
+    {lv:3, req:10, ic:'💎', n:'Invite 10 friends', r:'10% OFF A+', col:'#22d3ee'},
+    {lv:4, req:20, ic:'🎁', n:'Invite 20 friends', r:'Mystery Reward', col:'#a855f7'}
   ];
   // Had `box-shadow` declared twice — the trailing var(--el-2) overwrote the
   // neon halo, so the pink edge never lit. One declaration, and the frame now
@@ -21106,18 +21141,30 @@ function renderInviteEarn(){
   // the level card (the live one) is lit with .on. Bonus: .neon-card follows the
   // per-university theme, which the hardcoded hues could not.
   var IV = '#a855f7';
+  // Hues por sección para dar variedad de color (el .neon-card lo pisa el override
+  // de la universidad, así que estas secciones llevan borde inline con su hue).
+  var CY = '#22d3ee', GR = '#22c55e', GD = '#fbbf24';
+  var _secCard = function(hue){
+    return 'border:1.5px solid transparent;background:linear-gradient(160deg, color-mix(in srgb, '+hue+' 8%, #0a0518), #0a0518) padding-box, linear-gradient(160deg, '+hue+', color-mix(in srgb, '+hue+' 45%, #fff)) border-box;box-shadow:inset 0 0 12px color-mix(in srgb, '+hue+' 10%, transparent), 0 0 12px -6px color-mix(in srgb, '+hue+' 55%, transparent);';
+  };
   return ''+
+  '<img class="ap-banner" src="images/banner_invite.png" style="width:100%;height:auto;border-radius:var(--rad-xl);display:block;margin:12px 0 4px;box-shadow:0 12px 36px -10px rgba(168,85,247,0.5), 0 0 0 1px rgba(217,70,239,0.18);" />'+
   '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
-  '<img class="ap-banner" src="images/banner_invite.png" style="width:100%;height:auto;border-radius:30px;margin-bottom:16px;display:block;" />'+
-  '<div class="neon-card on" style="--neon:'+IV+';border-radius:var(--rad-lg);padding:15px;margin-bottom:14px;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:700;color:#fff;background:#2b5fd9;border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:#791515;width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:#dc2626;text-shadow:0 0 10px rgba(244,63,94,0.35);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:#dc2626;">'+toNext+' more friends</b> to unlock <b style="color:#dc2626;">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
+  '<div onclick="_ieCopyCode(this,\''+code+'\')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;border:1.5px dashed color-mix(in srgb, '+IV+' 60%, transparent);background:color-mix(in srgb, '+IV+' 12%, rgba(255,255,255,0.02));border-radius:var(--rad-lg);padding:14px 16px;margin-bottom:16px;">'+
+    '<div style="text-align:left;min-width:0;"><div id="ie-copy-lbl" style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;">Your code · tap to copy</div><div style="font-size:var(--fs-2xl);font-weight:900;color:'+IV+';letter-spacing:2px;line-height:1;margin-top:4px;">'+code+'</div></div>'+
+    '<div style="font-size:var(--fs-lg);flex-shrink:0;">📋</div>'+
+  '</div>'+
+  '<div class="neon-card on" style="--neon:'+IV+';border-radius:var(--rad-lg);padding:15px;margin-bottom:14px;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:700;color:#fff;background:'+IV+';border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:linear-gradient(90deg,#a855f7,#d946ef);box-shadow:0 0 8px color-mix(in srgb, '+IV+' 55%, transparent);width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:'+IV+';text-shadow:0 0 10px color-mix(in srgb, '+IV+' 40%, transparent);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:'+IV+';">'+toNext+' more friends</b> to unlock <b style="color:'+IV+';">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
   '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;text-align:left;">Rewards path</div><div class="plans-bleed" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:6px;margin-bottom:14px;">'+PATH.map(function(x){return _iePath(x,c,nextT);}).join('')+'</div>'+
-  '<div class="neon-card" style="--neon:'+IV+';border-radius:var(--rad-md);padding:14px;margin-bottom:12px;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;text-align:left;">Your invite code</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed rgba(240,62,90,0.5);background:rgba(240,62,90,0.04);border-radius:var(--rad-sm);padding:12px 14px;margin-bottom:14px;"><div style="font-size:var(--fs-lg);font-weight:900;color:#dc2626;letter-spacing:1px;">'+code+'</div><div onclick="_inviteCopy(\''+code+'\')" style="cursor:pointer;font-size:var(--fs-md);color:#fff;">📋</div></div>'+
-  '<div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:left;">Share your link</div><div style="display:flex;gap:6px;margin-bottom:14px;">'+shareBtn(_waSvg,'WhatsApp','whatsapp','#25D366')+shareBtn(_igSvg,'Instagram','instagram','linear-gradient(135deg,#f58529,#dd2a7b,#8134af)')+shareBtn(_msgSvg,'Messages','sms','#22c55e')+shareBtn(_moreSvg,'More','more','rgba(255,255,255,0.1)')+'</div>'+
-  '<div style="display:flex;gap:12px;align-items:center;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;"><span style="font-size:var(--fs-sm);color:var(--fg2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">'+icon('link',16)+' undrgradz.app/i/'+code+'</span><span onclick="_inviteCopy(\'https://undrgradz.app/i/'+code+'\')" style="font-size:var(--fs-sm);font-weight:600;color:#3d7bff;cursor:pointer;">Copy</span></div></div>'+_qrSvg+'</div></div>'+
-  '<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><div class="neon-card" style="--neon:'+IV+';flex:1;min-width:150px;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
-  '<div class="neon-card" style="--neon:'+IV+';flex:1;min-width:150px;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
-  '<button class="gbtn" style="background:linear-gradient(100deg,#d946ef,#30175c);font-size:var(--fs-md);font-weight:700;margin-bottom:16px;width:100%;border:none;color:#fff;padding:14px;border-radius:var(--rad-md);cursor:pointer;box-shadow:var(--el-2);" onclick="_inviteShare(\'more\')">Invite Friends Now ›</button>'+
-  '<div style="height:8px;"></div>';
+  '<div style="'+_secCard(CY)+'border-radius:var(--rad-md);padding:14px;margin-bottom:12px;">'+
+  '<div style="font-size:var(--fs-2xs);font-weight:700;color:'+CY+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;text-align:left;">Share your link</div><div style="display:flex;gap:6px;margin-bottom:14px;">'+shareBtn(_waSvg,'WhatsApp','whatsapp','#25D366')+shareBtn(_igSvg,'Instagram','instagram','linear-gradient(135deg,#f58529,#dd2a7b,#8134af)')+shareBtn(_msgSvg,'Messages','sms','#22c55e')+shareBtn(_moreSvg,'More','more','rgba(255,255,255,0.1)')+'</div>'+
+  '<div style="display:flex;gap:12px;align-items:center;"><div style="flex:1;min-width:0;"><div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;"><span style="font-size:var(--fs-sm);color:var(--fg2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;">'+icon('link',16)+' undrgradz.app/i/'+code+'</span><span onclick="_inviteCopy(\'https://undrgradz.app/i/'+code+'\')" style="font-size:var(--fs-sm);font-weight:600;color:'+CY+';cursor:pointer;">Copy</span></div></div>'+_qrSvg+'</div></div>'+
+  '<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;"><div style="'+_secCard(GR)+'flex:1;min-width:150px;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:'+GR+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Friends you invited</div>'+friendsInvitedHtml+'</div>'+
+  '<div style="'+_secCard(GD)+'flex:1;min-width:150px;border-radius:var(--rad-md);padding:13px;text-align:left;"><div style="font-size:var(--fs-2xs);font-weight:700;color:'+GD+';text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Top recruiters 👑</div>'+topRecruitersHtml+'</div></div>'+
+  '<div style="height:calc(96px + env(safe-area-inset-bottom));"></div>'+
+  '<div style="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:14px 16px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(transparent, var(--bg,#0a0518) 26%);">'+
+    '<button class="gbtn" style="background:linear-gradient(100deg,#22d3ee,#a855f7,#f43f6a);font-size:var(--fs-md);font-weight:800;width:100%;border:none;color:#fff;padding:14px;border-radius:var(--rad-md);cursor:pointer;box-shadow:0 6px 22px -6px color-mix(in srgb, '+IV+' 65%, transparent);" onclick="_inviteShare(\'more\')">Invite Friends Now ›</button>'+
+  '</div>';
 }
 
 function _selectAplusPlan(id) {
@@ -21147,16 +21194,17 @@ function showPlansForGender(){
   // border, glow and idle state.
   var tab = function(t, iconSvg, lbl, color, grad) {
     var on = (_plansTab === t);
-    var style = 'flex:1;text-align:center;padding:10px 8px;font-size:var(--fs-base);font-weight:800;cursor:pointer;transition:all var(--dur) ease;display:flex;align-items:center;justify-content:center;gap:6px;';
-
-    // No colour of its own: the icon inherits currentColor from the tab, which
-    // is #fff when active and the hue when idle. It used to be hard-pinned to
-    // `color`, so on the active tab the icon was the same colour as its own
-    // background and effectively disappeared.
-    var iconHtml = '<span style="display:inline-flex;align-items:center;">' + iconSvg + '</span>';
-
-    style += _gradSkin(color, on, { grad: grad });
-    return '<div onclick="_plansTabSet(\'' + t + '\')" style="' + style + '">' + iconHtml + '<span>' + lbl + '</span></div>';
+    // Underline tab (no pill/rectangle): white label + a NEON GRADIENT underline
+    // in the tab's colour when active (rounded bar with a glow), softened grey
+    // hairline when idle. The gradient can't live on border-bottom, so it's a
+    // positioned child bar.
+    var style = 'position:relative;flex:1;text-align:center;padding:12px 8px 15px;font-size:var(--fs-base);font-weight:800;cursor:pointer;transition:all var(--dur) ease;display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:none;border-radius:0;'+
+      'color:'+(on?'#fff':'rgba(255,255,255,0.5)')+';';
+    var underline = on
+      ? '<div style="position:absolute;left:16%;right:16%;bottom:0;height:3px;border-radius:3px;background:'+(grad||color)+';box-shadow:0 0 8px '+color+', 0 0 16px -1px '+color+', 0 1px 3px '+color+';"></div>'
+      : '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:2px;background:rgba(255,255,255,0.10);"></div>';
+    var iconHtml = '<span style="display:inline-flex;align-items:center;color:'+(on?color:'inherit')+';">' + iconSvg + '</span>';
+    return '<div onclick="_plansTabSet(\'' + t + '\')" style="' + style + '">' + iconHtml + '<span>' + lbl + '</span>' + underline + '</div>';
   };
 
   // ── Los dos degradados, rehechos ────────────────────────────────────────────
@@ -21180,12 +21228,12 @@ function showPlansForGender(){
   // (0.541 → 0.591); por eso ninguno se leía como degradado.
   var _redOrangeGrad = 'linear-gradient(100deg,#f97316,#601313)';        /* L 0.705 → 0.324 */
   var _violetMagentaGrad = 'linear-gradient(100deg,#d946ef,#30175c)';    /* L 0.667 → 0.285 */
-  var tabs = '<div style="display:flex;gap:8px;background:transparent;border:none;box-shadow:none;padding:0;margin: 0 16px 16px 16px;">'
-    + tab('plans', _gradCapSvgNav, 'A+', '#fb923c', _redOrangeGrad)
+  var tabs = '<div style="display:flex;gap:0;background:transparent;border:none;box-shadow:none;padding:0;margin: 0 16px 16px 16px;">'
+    + tab('plans', _gradCapSvgNav, 'A+', '#fb923c', 'linear-gradient(90deg,#fbbf24,#f97316,#f43f6a)')
     // La pestaña Cheats se quitó por petición. Quedan A+ e Invite.
-    // El color suelto marca el borde y el estado apagado, así que Invite pasa a
-    // morado para acompañar a su nuevo degradado.
-    + tab('invite', _giftSvgNav, 'Invite', '#a855f7', _violetMagentaGrad)
+    // Subrayado neón brillante de dos/tres paradas (no la vieja versión que
+    // caía a un tono oscuro a mitad de la barra).
+    + tab('invite', _giftSvgNav, 'Invite', '#a855f7', 'linear-gradient(90deg,#22d3ee,#a855f7,#d946ef)')
     + '</div>';
   if(_plansTab==='invite'){sec.innerHTML=tabs+renderInviteEarn();return;}
   if(_plansTab==='plans'){
@@ -21198,20 +21246,20 @@ function showPlansForGender(){
     }
     var selectedBill = _APLUS_BILL[_aplusBillSel] || _APLUS_BILL.yr;
     var feats = [
-      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>', 'See who liked you', 'View likes instantly', '#dc2626'],
+      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f43f6a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>', 'See who liked you', 'View likes instantly', '#f43f6a'],
       ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3d7bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-globe-icon lucide-globe"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>', 'Match any university', 'Connect beyond campus', '#3d7bff'],
-      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw-icon lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>', 'Unlimited go-backs', 'Go back as much as you want', '#0ea5e9'],
-      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-plus-icon lucide-funnel-plus"><path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/></svg>', 'Advanced filters', 'Find your perfect match', '#eab308'],
-      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-icon lucide-calendar"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>', '30+ event spots', 'Access exclusive events', '#10b981'],
-      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>', 'Profile boost & top slot', 'Stand out on campus', '#dc2626']
+      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-ccw-icon lucide-refresh-ccw"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>', 'Unlimited go-backs', 'Go back as much as you want', '#22d3ee'],
+      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-funnel-plus-icon lucide-funnel-plus"><path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/></svg>', 'Advanced filters', 'Find your perfect match', '#fbbf24'],
+      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-icon lucide-calendar"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>', '30+ event spots', 'Access exclusive events', '#22c55e'],
+      ['<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-rocket-icon lucide-rocket"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>', 'Profile boost & top slot', 'Stand out on campus', '#a855f7']
     ];
     // One frame colour for the whole grid — the A+ hue. Six different edges plus
     // the three the plan cards used below meant nine colours competing on one
     // screen and no hierarchy at all. The ICONS keep their own colour: at 20px
     // they identify a feature without shouting.
     var featsHtml = feats.map(function(f) {
-      return '<div class="ap-feat neon-card grad" style="--neon:var(--accent);display:flex;gap:9px;align-items:center;padding:10px 11px;">' +
-        '<div class="ap-feat-ic" style="display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;">' + f[0] + '</div>' +
+      return '<div class="ap-feat" style="display:flex;gap:10px;align-items:center;padding:11px 11px;border-radius:var(--rad-md);border:1.5px solid transparent;background:linear-gradient(135deg, color-mix(in srgb, '+f[3]+' 9%, #0a0518), #0a0518) padding-box, linear-gradient(135deg, '+f[3]+', color-mix(in srgb, '+f[3]+' 45%, #fff)) border-box;box-shadow:inset 0 0 12px color-mix(in srgb, '+f[3]+' 12%, transparent), 0 0 10px -4px color-mix(in srgb, '+f[3]+' 55%, transparent);">' +
+        '<div class="ap-feat-ic" style="display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb, '+f[3]+' 20%, transparent);border:1px solid color-mix(in srgb, '+f[3]+' 35%, transparent);">' + f[0] + '</div>' +
         '<div style="min-width:0;flex:1;text-align:left;">' +
           '<div style="font-size:var(--fs-sm);font-weight:600;color:#fff;line-height:1.3;word-break:break-word;">' + f[1] + '</div>' +
           '<div style="font-size:var(--fs-2xs);color:var(--fg2);line-height:1.3;margin-top:2px;word-break:break-word;">' + f[2] + '</div>' +
@@ -21233,28 +21281,53 @@ function showPlansForGender(){
     // colour AND its own permanent glow, so nothing stood out. The selected card
     // also no longer lifts with translateY/scale — in a 3-up row with an 8px gap
     // it climbed over its neighbours.
+    // Per-plan hue + neon intensity: 1-month cool blue (low), 6-month gold (hero,
+    // brightest), 12-month violet (rich). No .neon-card here — the uni override
+    // (html.theme-uni .neon-card{--neon:uni!important}) forced all three to one
+    // hue, and .on's symmetric 18px halo bled into vertical bands between cards.
+    // We use the gradient-border trick + a contained DOWNWARD drop shadow so the
+    // glow never spills sideways onto a neighbour.
+    var _planHue = { mo: '#3d7bff', '6mo': '#fbbf24', yr: '#a855f7' };
     var plansHtml = plans.map(function(p) {
       var isSelected = (_aplusBillSel === p.id);
       var locked = _planLocked(p.id);
       var current = _planIsCurrent(p.id);
+      var isRec = (p.id === '6mo');
+      var pc = _planHue[p.id] || '#fbbf24';
+      // Los TRES planes van "prendidos" (cada uno con su neón). El seleccionado se
+      // distingue con un realce extra: borde/glow más fuerte + una palomita.
+      var lit = !locked;
+      var sel = isSelected && !locked;
 
       var badgeText = current ? 'TU PLAN' : (locked ? 'INCLUIDO' : (_active ? 'MEJORAR' : p.badge));
       var badgeBg = current
-        ? 'linear-gradient(135deg,var(--accent),var(--accent-light))'
-        : (locked ? 'rgba(255,255,255,0.18)' : 'linear-gradient(135deg,#ea580c,#fb923c)');
-      var badgeHtml = '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:var(--fs-2xs);font-weight:700;background:' + badgeBg + ';color:' + (locked ? 'var(--fg2)' : '#000') + ';padding:3px 9px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.4px;z-index:2;">' + badgeText + '</div>';
+        ? 'linear-gradient(135deg,' + pc + ',color-mix(in srgb,' + pc + ' 55%,#fff))'
+        : (locked ? 'rgba(255,255,255,0.18)' : (lit ? 'linear-gradient(135deg,' + pc + ',color-mix(in srgb,' + pc + ' 50%,#fff))' : 'rgba(255,255,255,0.12)'));
+      var badgeFg = (locked || (!lit && !current)) ? 'var(--fg2)' : '#0a0518';
+      var badgeHtml = '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:var(--fs-2xs);font-weight:800;background:' + badgeBg + ';color:' + badgeFg + ';padding:3px 9px;border-radius:var(--rad-sm);white-space:nowrap;letter-spacing:0.4px;z-index:2;box-shadow:' + (lit ? '0 3px 10px -3px color-mix(in srgb,' + pc + ' 70%,transparent)' : 'none') + ';">' + badgeText + '</div>';
 
-      // A shorter plan than the live one is not buyable until the current term
-      // ends, so it reads as unavailable instead of pretending to be an option.
-      var lockStyle = locked ? 'opacity:.45;' : '';
-      var cls = 'neon-card' + ((isSelected && !locked) ? ' on' : '');
+      // Palomita de selección (arriba-derecha) para marcar el plan elegido.
+      var selMark = sel ? '<div style="position:absolute;top:9px;right:9px;width:19px;height:19px;border-radius:50%;background:' + pc + ';color:#0a0518;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;box-shadow:0 0 9px ' + pc + ';z-index:3;">✓</div>' : '';
 
-      return '<div class="' + cls + '" onclick="_selectAplusPlan(\'' + p.id + '\')" style="--neon:var(--accent);position:relative;flex:1;min-width:0;border-radius:var(--rad-lg);padding:18px 4px 14px;text-align:center;cursor:pointer;' + lockStyle + 'transition:box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease), opacity var(--dur) var(--ease);">' +
-        badgeHtml +
-        '<div style="font-size:var(--fs-xs);font-weight:700;color:' + (isSelected ? '#fff' : 'rgba(255,255,255,0.85)') + ';margin-bottom:6px;">' + p.title + '</div>' +
+      var lockStyle = locked ? 'opacity:.42;' : '';
+      // Intensidad del neón: todos prendidos; el seleccionado el más fuerte, luego
+      // el recomendado, y el resto en su nivel base (pero siempre encendidos).
+      var bw = (sel || isRec) ? 2 : 1.5;
+      var edgeMix = sel ? 68 : (isRec ? 55 : 46);
+      var fillMix = sel ? 18 : (isRec ? 15 : 11);
+      var innerMix = sel ? 34 : (isRec ? 28 : 20);
+      var dropMix = sel ? 90 : (isRec ? 80 : 60);
+      var border = 'linear-gradient(160deg, ' + pc + ', color-mix(in srgb, ' + pc + ' ' + edgeMix + '%, #fff)) border-box';
+      var fill = 'linear-gradient(160deg, color-mix(in srgb, ' + pc + ' ' + fillMix + '%, #0a0518), #0a0518) padding-box';
+      var glow = 'inset 0 0 16px color-mix(in srgb,' + pc + ' ' + innerMix + '%,transparent), 0 9px 22px -12px color-mix(in srgb,' + pc + ' ' + dropMix + '%,transparent)' +
+        (sel ? ', 0 0 0 2px color-mix(in srgb,' + pc + ' 45%,transparent)' : '');
+
+      return '<div onclick="_selectAplusPlan(\'' + p.id + '\')" style="position:relative;flex:' + (isRec ? '1.28' : '1') + ';min-width:0;border-radius:var(--rad-lg);border:' + bw + 'px solid transparent;background:' + fill + ',' + border + ';box-shadow:' + glow + ';padding:' + (isRec ? '22px 4px 16px' : '18px 4px 14px') + ';text-align:center;cursor:pointer;' + lockStyle + 'transition:box-shadow var(--dur) var(--ease), transform var(--dur) var(--ease);">' +
+        badgeHtml + selMark +
+        '<div style="font-size:var(--fs-xs);font-weight:700;color:' + (lit ? '#fff' : 'rgba(255,255,255,0.85)') + ';margin-bottom:6px;">' + p.title + '</div>' +
         '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">' + p.price + '</div>' +
         '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.6);margin-top:2px;">' + p.unit + '</div>' +
-        '<div style="font-size:var(--fs-2xs);font-weight:600;color:' + (isSelected ? 'var(--accent)' : 'rgba(255,255,255,0.65)') + ';margin-top:10px;display:flex;align-items:center;justify-content:center;gap:3px;">' +
+        '<div style="font-size:var(--fs-2xs);font-weight:600;color:' + (lit ? pc : 'rgba(255,255,255,0.65)') + ';margin-top:10px;display:flex;align-items:center;justify-content:center;gap:3px;">' +
           (locked ? icon('lock', 12) : '') + (locked ? 'Activo' : p.sub) +
         '</div>' +
       '</div>';
@@ -21263,7 +21336,7 @@ function showPlansForGender(){
     // The CTA used to say "Get A+ Now" to people who already pay for A+.
     var ctaLabel, ctaDisabled = false;
     if (!_active) {
-      ctaLabel = 'Get A+ Now';
+      ctaLabel = 'Get A+ · ' + (selectedBill.pay || '');
     } else if (_planIsCurrent(_aplusBillSel)) {
       ctaLabel = 'Tu plan activo' + (curPlanEnds ? ' · renueva el ' + _planEndsLabel() : '');
       ctaDisabled = true;
@@ -21281,13 +21354,16 @@ function showPlansForGender(){
     // Gutters come from #plans-content's padding now — no per-element
     // `margin:0 16px` + `width:calc(100% - 32px)` repeated on every line.
     sec.innerHTML = tabs
-      + '<img class="ap-banner" src="images/banner_plans.png" style="width:100%;height:auto;border-radius:30px;display:block;" />'
-      + '<div style="text-align:center;font-size:var(--fs-base);font-weight:700;text-transform:uppercase;letter-spacing:1px;background:linear-gradient(90deg,#f59e0b,#dc2626);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:18px 0 14px;">⚡ Unleash A+ Privileges ⚡</div>'
+      + '<img class="ap-banner" src="images/banner_plans.png" style="width:100%;height:auto;border-radius:var(--rad-xl);display:block;box-shadow:0 10px 34px -10px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);" />'
+      + '<div style="text-align:center;font-size:var(--fs-base);font-weight:800;text-transform:uppercase;letter-spacing:1px;background:linear-gradient(90deg,#fbbf24,#f59e0b,#dc2626);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin:20px 0 14px;">⚡ Unleash A+ Privileges ⚡</div>'
       + '<div class="ap-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;">' + featsHtml + '</div>'
-      + '<div style="display:flex;gap:8px;margin:30px 0 18px;">' + plansHtml + '</div>'
-      + ctaHtml
-      + '<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:10px 0 16px;">'
-        + (_active && curPlanEnds ? 'Tu A+ de ' + (_APLUS_TERM[curPlanPeriod] || '') + ' termina el ' + _planEndsLabel() : 'Cancel anytime')
+      + '<div style="display:flex;gap:8px;align-items:stretch;margin:30px 0 6px;">' + plansHtml + '</div>'
+      + '<div style="height:calc(118px + env(safe-area-inset-bottom));"></div>'
+      + '<div style="position:fixed;left:0;right:0;bottom:0;z-index:50;padding:14px 16px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(transparent, var(--bg,#0a0518) 26%);">'
+        + ctaHtml
+        + '<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:8px 0 0;">'
+          + (_active && curPlanEnds ? 'Tu A+ de ' + (_APLUS_TERM[curPlanPeriod] || '') + ' termina el ' + _planEndsLabel() : 'Cancel anytime')
+        + '</div>'
       + '</div>';
   }
   // El panel de Cheats se quitó por petición: A+ es el unico contenido de
@@ -23713,21 +23789,10 @@ async function handleCrushSearch(query) {
   const q = (query || '').trim();
   if (!q) {
     var students = _getUniversityStudents(8);
-    var headerHtml = 
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px;">' +
-        '<div style="font-size:var(--fs-sm);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(61,123,255,0.4);">' +
-          '⚡ ESTUDIANTES DE ' + myUniAcronym +
-        '</div>' +
-        // Neon yellow, black fill. The icon is stroke="currentColor" so it
-        // follows the button colour instead of being a fixed-colour emoji.
-        '<button onclick="handleCrushSearch(\'\')" style="background:#000;border:1.5px solid #fde047;border-radius:var(--rad-md);padding:5px 12px;color:#fde047;font-size:var(--fs-xs);font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 0 10px rgba(253,224,71,0.38);">' +
-          '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-refresh-cw-icon lucide-refresh-cw"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>' +
-          '<span>Mezclar</span>' +
-        '</button>' +
-      '</div>';
-    
+    // El label "ESTUDIANTES DE …" y el botón Mezclar suelto se quitaron: Mezclar
+    // ahora vive DENTRO de la barra de búsqueda (index.html #crush-search-shuffle).
     var cardsHtml = students.map(_renderSearchStudentCard).join('');
-    container.innerHTML = headerHtml + cardsHtml;
+    container.innerHTML = cardsHtml;
     return;
   }
   

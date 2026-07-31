@@ -14,7 +14,8 @@ const exclude = new Set([
   'package-lock.json',
   'build.js',
   '.git',
-  '.vscode'
+  '.vscode',
+  'landing' // sitio web público (landing page) — no forma parte del bundle de la app
 ]);
 
 if (fs.existsSync(destDir)) {

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>UndrGradz — Your Campus. One App.</title>
+  <meta name="description" content="UndrGradz is the social network for verified college students. Meet people at your university, discover events, join communities, find study groups — and maybe someone special." />
+  <meta name="theme-color" content="#050508" />
+  <meta property="og:title" content="UndrGradz — Your Campus. One App." />
+  <meta property="og:description" content="The social network for verified college students." />
+  <meta property="og:image" content="assets/logo-full.png" />
+  <link rel="icon" type="image/png" href="assets/logo-mark.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Boldonse&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/landing.css" />
+</head>
+<body>
+
+  <!-- ══ ICON SPRITE (lucide-style, stroke = currentColor) ══ -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-msg" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m5 15 7-7 7 7"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m19 9-7 7-7-7"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 2v13"/><path d="m16 6-4-4-4 4"/><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/></symbol>
+    <symbol id="i-ig" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+  </svg>
+
+  <!-- ══ PRELOADER ══ -->
+  <div class="loader" id="loader" aria-hidden="true">
+    <img class="loader-shield" src="assets/logo-mark.png" alt="" width="72" height="72" />
+    <div class="loader-word">UNDR<em>GRADZ</em></div>
+  </div>
+
+  <!-- ══ NAV ══ -->
+  <header class="nav" id="nav">
+    <a class="nav-brand" href="#top" aria-label="UndrGradz home">
+      <img src="assets/logo-mark.png" alt="" width="34" height="34" />
+      <span class="nav-word">UNDR<em>GRADZ</em></span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#story">Story</a>
+      <a href="#chapters">The App</a>
+      <a href="#life">Campus Life</a>
+      <a href="#download">Download</a>
+    </nav>
+    <a class="btn btn-solid nav-cta" href="#download"><span>Get the app</span></a>
+  </header>
+
+  <main id="top">
+
+    <!-- ══ HERO — full-bleed photo + giant wordmark (landonorris-style) ══ -->
+    <section class="hero" id="hero">
+      <div class="hero-media" aria-hidden="true">
+        <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=2000&q=80" alt="" fetchpriority="high" />
+        <div class="hero-scrim"></div>
+      </div>
+
+      <div class="hero-content">
+        <p class="hero-eyebrow">The social network for verified college students</p>
+        <h1 class="hero-name" aria-label="UndrGradz">
+          <span class="hn-u">UNDR</span><span class="hn-g">GRADZ</span>
+        </h1>
+        <p class="hero-sub">Your campus. One app. Events, friends, study groups — and maybe someone special.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-solid" href="#download"><span>Download the app</span></a>
+          <a class="btn btn-ghost" href="#story"><span>See how it works</span></a>
+        </div>
+        <ul class="hero-trust">
+          <li><svg class="ic"><use href="#i-cap"/></svg> .edu verified</li>
+          <li><svg class="ic"><use href="#i-lock"/></svg> Students only</li>
+          <li><svg class="ic"><use href="#i-zap"/></svg> Free to join</li>
+        </ul>
+      </div>
+
+      <div class="hero-scrollcue" aria-hidden="true"><span></span></div>
+    </section>
+
+    <!-- university ticker -->
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track" data-marquee>
+        <span>UT AUSTIN</span><i></i><span>SMU</span><i></i><span>TCU</span><i></i><span>RICE</span><i></i><span>NYU</span><i></i><span>UANL</span><i></i><span>TEC DE MONTERREY</span><i></i><span>UDEM</span><i></i><span>BAYLOR</span><i></i><span>TEXAS A&amp;M</span><i></i>
+      </div>
+    </div>
+
+    <!-- ══ MANIFESTO (unchanged — approved) ══ -->
+    <section class="manifesto" id="story">
+      <p class="kicker k-red reveal">Why we built this</p>
+      <h2 class="mani-text" id="manifesto">
+        College is <b class="k1">1,460 days.</b> The friends, the all-nighters, the
+        parties, the person — everything that will matter to you in ten years is
+        walking around your campus <b class="k2">right now.</b> UndrGradz exists
+        so you <b class="k3">don't miss them.</b>
+      </h2>
+    </section>
+
+    <!-- ══ CAMPUS LIFE — photo gallery strip ══ -->
+    <section class="life" id="life">
+      <div class="life-grid">
+        <figure class="life-card reveal" style="--lh:#ff2e3f">
+          <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=900&q=80" alt="Concert night" loading="lazy" />
+          <figcaption>THE NIGHTS</figcaption>
+        </figure>
+        <figure class="life-card reveal" data-delay="90" style="--lh:#3d7bff">
+          <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=80" alt="Students studying together" loading="lazy" />
+          <figcaption>THE ALL-NIGHTERS</figcaption>
+        </figure>
+        <figure class="life-card reveal" data-delay="180" style="--lh:#fbbf24">
+          <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=900&q=80" alt="Stadium game day" loading="lazy" />
+          <figcaption>THE GAMES</figcaption>
+        </figure>
+        <figure class="life-card reveal" data-delay="270" style="--lh:#ff2e63">
+          <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=900&q=80" alt="Friends laughing" loading="lazy" />
+          <figcaption>THE PEOPLE</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ══ CHAPTERS — photo + hand-built app UI panels (no phone frames) ══ -->
+    <section class="chapters" id="chapters">
+
+      <header class="ch-index reveal">
+        <p class="kicker">The whole campus, in four moves</p>
+        <ol>
+          <li><a href="#ch-meet"    style="--hue:#3d7bff"><b>01</b> Meet</a></li>
+          <li><a href="#ch-happen"  style="--hue:#ff2e3f"><b>02</b> Happen</a></li>
+          <li><a href="#ch-belong"  style="--hue:#fbbf24"><b>03</b> Belong</a></li>
+          <li><a href="#ch-fall"    style="--hue:#ff2e63"><b>04</b> Fall</a></li>
+        </ol>
+      </header>
+
+      <!-- 01 · MEET — Campus directory panel -->
+      <article class="chapter" id="ch-meet" style="--ch:#3d7bff">
+        <div class="ch-copy">
+          <p class="ch-no reveal">Chapter 01</p>
+          <h3 class="ch-title reveal" data-delay="80">REAL STUDENTS.<br/>REAL PROFILES.</h3>
+          <p class="ch-body reveal" data-delay="160">
+            No randoms, no bots, no catfish. Every account is verified with a
+            university email — and photo-verified profiles earn the badge.
+            When you see a face on UndrGradz, that face is on your campus.
+          </p>
+          <ul class="ch-points reveal" data-delay="240">
+            <li><i><svg class="ic"><use href="#i-cap"/></svg></i> .edu / university email verification</li>
+            <li><i><svg class="ic"><use href="#i-shield"/></svg></i> Photo verification badge</li>
+            <li><i><svg class="ic"><use href="#i-users"/></svg></i> Friends, roommates &amp; networking</li>
+          </ul>
+        </div>
+
+        <div class="ch-visual reveal" data-delay="140">
+          <img class="ch-photo" src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=1100&q=80" alt="University campus" loading="lazy" data-parallax="0.05" />
+          <div class="ui-panel" data-parallax="-0.04">
+            <div class="ui-head">
+              <span class="ui-logo">CAMPUS</span>
+              <span class="ui-tabs">
+                <b class="on" style="--t:#22d3ee"><svg class="ic"><use href="#i-search"/></svg> Search</b>
+                <b style="--t:#ff2e63"><svg class="ic"><use href="#i-heart"/></svg> Crush</b>
+                <b style="--t:#fbbf24"><svg class="ic"><use href="#i-flame"/></svg> Discover</b>
+              </span>
+            </div>
+            <div class="ui-search"><svg class="ic"><use href="#i-search"/></svg> Search students at UT AUSTIN…</div>
+            <div class="ui-row">
+              <span class="ui-av" style="--rg:linear-gradient(135deg,#3d7bff,#ff2e3f)"><img src="https://randomuser.me/api/portraits/women/68.jpg" alt="" loading="lazy"/></span>
+              <span class="ui-id"><strong>Laura G. <u style="color:#3d7bff">✓</u> <em>22</em></strong><small>@laurag • Psychology</small></span>
+              <span class="ui-btn">View Profile</span>
+            </div>
+            <div class="ui-row">
+              <span class="ui-av" style="--rg:linear-gradient(135deg,#fbbf24,#ff2e3f)"><img src="https://randomuser.me/api/portraits/women/79.jpg" alt="" loading="lazy"/></span>
+              <span class="ui-id"><strong>Sofía R. <u style="color:#fbbf24">✓</u> <em>20</em></strong><small>@sofar • Design</small></span>
+              <span class="ui-btn">View Profile</span>
+            </div>
+            <div class="ui-row">
+              <span class="ui-av" style="--rg:linear-gradient(135deg,#22d3ee,#3d7bff)"><img src="https://randomuser.me/api/portraits/men/52.jpg" alt="" loading="lazy"/></span>
+              <span class="ui-id"><strong>Marco R. <u style="color:#3d7bff">✓</u> <em>22</em></strong><small>@marcor • Finance</small></span>
+              <span class="ui-btn">View Profile</span>
+            </div>
+            <div class="ui-stamp">VERIFIED</div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 02 · HAPPEN — Hangouts panel -->
+      <article class="chapter chapter-rev" id="ch-happen" style="--ch:#ff2e3f">
+        <div class="ch-copy">
+          <p class="ch-no reveal">Chapter 02</p>
+          <h3 class="ch-title reveal" data-delay="80">SOMETHING'S<br/>ALWAYS ON.</h3>
+          <p class="ch-body reveal" data-delay="160">
+            Hangouts is your campus radar. Pre-games, study sessions, pickup
+            games, club mixers — see what's live, who's going, and claim your
+            spot before it fills.
+          </p>
+          <ul class="ch-points reveal" data-delay="240">
+            <li><i><svg class="ic"><use href="#i-flame"/></svg></i> Live events with real capacity</li>
+            <li><i><svg class="ic"><use href="#i-pin"/></svg></i> Everything happens on campus</li>
+            <li><i><svg class="ic"><use href="#i-cal"/></svg></i> One tap to join — or host your own</li>
+          </ul>
+        </div>
+
+        <div class="ch-visual reveal" data-delay="140">
+          <img class="ch-photo" src="https://images.unsplash.com/photo-1543807535-eceef0bc6599?auto=format&fit=crop&w=1100&q=80" alt="Party night" loading="lazy" data-parallax="0.05" />
+          <div class="ui-panel" data-parallax="-0.04">
+            <div class="ui-head">
+              <span class="ui-logo">HANGOUTS</span>
+              <span class="ui-tabs">
+                <b style="--t:#22c55e">All</b>
+                <b class="on" style="--t:#ff2e3f">Nightlife</b>
+                <b style="--t:#3d7bff">Study</b>
+                <b style="--t:#a3e635">Sports</b>
+              </span>
+            </div>
+            <div class="ui-event" style="--eh:#ff2e3f">
+              <img src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=700&q=70" alt="" loading="lazy" />
+              <div class="ui-event-ov"></div>
+              <span class="ui-time">10 PM</span>
+              <span class="ui-live"><b class="live-dot"></b> LIVE</span>
+              <div class="ui-event-info">
+                <strong>Karaoke at The Local</strong>
+                <small><svg class="ic"><use href="#i-pin"/></svg> The Local Bar</small>
+                <div class="ui-event-foot">
+                  <span class="ui-avs">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="" loading="lazy"/>
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="" loading="lazy"/>
+                    <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="" loading="lazy"/>
+                  </span>
+                  <em>7 going</em>
+                  <span class="ui-go"><svg class="ic"><use href="#i-arrow"/></svg></span>
+                </div>
+              </div>
+            </div>
+            <div class="ui-event ui-event-mini" style="--eh:#3d7bff">
+              <div class="ui-event-info">
+                <span class="ui-time ui-time-in">WED · 3 PM</span>
+                <strong>CS 311 Study Group</strong>
+                <i class="ui-bar"><b style="width:58%; background:linear-gradient(90deg,#3d7bff,#22d3ee)"></b></i>
+                <small>7 of 12 going</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 03 · BELONG — Campus feed panel -->
+      <article class="chapter" id="ch-belong" style="--ch:#fbbf24">
+        <div class="ch-copy">
+          <p class="ch-no reveal">Chapter 03</p>
+          <h3 class="ch-title reveal" data-delay="80">FIND YOUR<br/>PEOPLE.</h3>
+          <p class="ch-body reveal" data-delay="160">
+            Your group chats live where campus lives. Every class gets its own
+            group — find study partners by course code — and every event you
+            join comes with a chat that fills itself with people going.
+          </p>
+          <ul class="ch-points reveal" data-delay="240">
+            <li><i><svg class="ic"><use href="#i-book"/></svg></i> Study groups by course code</li>
+            <li><i><svg class="ic"><use href="#i-msg"/></svg></i> Group chats for every event you join</li>
+            <li><i><svg class="ic"><use href="#i-users"/></svg></i> Clubs, communities &amp; alumni network</li>
+          </ul>
+        </div>
+
+        <div class="ch-visual reveal" data-delay="140">
+          <img class="ch-photo" src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1100&q=80" alt="Library" loading="lazy" data-parallax="0.05" />
+          <div class="ui-panel" data-parallax="-0.04">
+            <div class="ui-head">
+              <span class="ui-logo">CHATS</span>
+              <span class="ui-tabs">
+                <b class="on" style="--t:#22c55e">All</b>
+                <b style="--t:#fb923c">Friends</b>
+                <b style="--t:#ff2e3f">Matches</b>
+                <b style="--t:#3d7bff">Events</b>
+              </span>
+            </div>
+            <div class="ui-crow" style="--cc:#3d7bff">
+              <span class="ui-cav"><svg class="ic"><use href="#i-book"/></svg></span>
+              <span class="ui-cmeta"><strong>CS 311 · Study Group</strong><small>library 3rd floor, we got a table</small></span>
+              <span class="ui-cside"><em>2m</em><b class="ui-unread">3</b></span>
+            </div>
+            <div class="ui-crow" style="--cc:#22c55e">
+              <span class="ui-cav"><svg class="ic"><use href="#i-cal"/></svg></span>
+              <span class="ui-cmeta"><strong>Movie Night · Inception</strong><small>starts in 20 min — who's here?</small></span>
+              <span class="ui-cside"><em>9m</em><b class="ui-unread">12</b></span>
+            </div>
+            <div class="ui-crow" style="--cc:#ff2e63">
+              <span class="ui-cav ui-cav-photo"><img src="https://randomuser.me/api/portraits/women/65.jpg" alt="" loading="lazy"/></span>
+              <span class="ui-cmeta"><strong>Ana M.</strong><small>you: see you at 7</small></span>
+              <span class="ui-cside"><em>1h</em><u class="ui-seen"><svg class="ic"><use href="#i-check"/></svg></u></span>
+            </div>
+            <div class="ui-crow" style="--cc:#a855f7">
+              <span class="ui-cav"><svg class="ic"><use href="#i-users"/></svg></span>
+              <span class="ui-cmeta"><strong>Design Community</strong><small>Quinn joined the group</small></span>
+              <span class="ui-cside"><em>3h</em></span>
+            </div>
+            <div class="ui-cinput"><span>Message…</span><b><svg class="ic"><use href="#i-arrow"/></svg></b></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 04 · FALL — Crush deck panel -->
+      <article class="chapter chapter-rev" id="ch-fall" style="--ch:#ff2e63">
+        <div class="ch-copy">
+          <p class="ch-no reveal">Chapter 04</p>
+          <h3 class="ch-title reveal" data-delay="80">AND WHEN IT'S<br/>MORE THAN FRIENDS.</h3>
+          <p class="ch-body reveal" data-delay="160">
+            Crush is dating without the roulette. Only verified students, only
+            your campus scene. Match with people you'll actually run into —
+            between classes, at games, in line for coffee.
+          </p>
+          <ul class="ch-points reveal" data-delay="240">
+            <li><i><svg class="ic"><use href="#i-heart"/></svg></i> Matches between verified students</li>
+            <li><i><svg class="ic"><use href="#i-eye"/></svg></i> Secret admirers &amp; super likes</li>
+            <li><i><svg class="ic"><use href="#i-mic"/></svg></i> Voice prompts — hear the real them</li>
+          </ul>
+        </div>
+
+        <div class="ch-visual reveal" data-delay="140">
+          <img class="ch-photo" src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1100&q=80" alt="Friends at golden hour" loading="lazy" data-parallax="0.05" />
+          <div class="ui-panel ui-panel-deck" data-parallax="-0.04">
+            <div class="ui-deck">
+              <img src="https://randomuser.me/api/portraits/women/26.jpg" alt="" loading="lazy" />
+              <div class="ui-deck-ov"></div>
+              <span class="ui-deck-dots"><b class="on"></b><b></b><b></b></span>
+              <div class="ui-deck-id">
+                <strong>Valeria, 21 <u>✓</u></strong>
+                <small>Design · Junior</small>
+                <span class="ui-deck-uni">UT AUSTIN '27</span>
+              </div>
+            </div>
+            <div class="ui-actions">
+              <span class="ua" style="--a:#ff2e3f"><svg class="ic"><use href="#i-x"/></svg></span>
+              <span class="ua" style="--a:#fbbf24"><svg class="ic"><use href="#i-undo"/></svg></span>
+              <span class="ua" style="--a:#22d3ee"><svg class="ic"><use href="#i-star"/></svg></span>
+              <span class="ua ua-big" style="--a:#22c55e"><svg class="ic"><use href="#i-heart"/></svg></span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══ LIVE PROOF ══ -->
+    <section class="proof" aria-hidden="true">
+      <div class="ticker ticker-proof">
+        <div class="ticker-track" data-marquee>
+          <span class="toast t-red"><svg class="ic"><use href="#i-heart"/></svg> <b>Ana</b> matched with <b>Marco</b> · 2 min ago</span>
+          <span class="toast t-blue"><svg class="ic"><use href="#i-book"/></svg> CS 311 study group <b>filled up</b> at UT Austin</span>
+          <span class="toast t-gold"><svg class="ic"><use href="#i-zap"/></svg> <b>128 going</b> to Frat Row After-Party</span>
+          <span class="toast t-green"><svg class="ic"><use href="#i-shield"/></svg> <b>Sofía</b> just got photo-verified</span>
+          <span class="toast t-cyan"><svg class="ic"><use href="#i-cal"/></svg> Pickup soccer starts <b>in 20 min</b></span>
+          <span class="toast t-purple"><svg class="ic"><use href="#i-users"/></svg> <b>Quinn</b> joined the Design community</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ DOWNLOAD ══ -->
+    <section class="download" id="download">
+      <p class="kicker reveal">Free for students</p>
+      <h2 class="dl-title reveal" data-delay="80">GET IN.</h2>
+      <p class="dl-sub reveal" data-delay="160">
+        Verify with your university email and you're in.
+        Your campus is already here.
+      </p>
+
+      <div class="dl-cards">
+        <!-- REPLACE href with the official App Store URL -->
+        <a class="store-card sc-blue reveal" data-delay="220" href="#" data-store="appstore" aria-label="Download on the App Store">
+          <span class="store-light" aria-hidden="true"></span>
+          <svg class="store-logo" viewBox="0 0 384 512" aria-hidden="true"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+          <span class="store-copy"><em>Download on the</em><strong>App Store</strong></span>
+          <svg class="ic store-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
+        </a>
+
+        <!-- REPLACE href with the official Google Play URL -->
+        <a class="store-card sc-green reveal" data-delay="320" href="#" data-store="googleplay" aria-label="Get it on Google Play">
+          <span class="store-light" aria-hidden="true"></span>
+          <svg class="store-logo store-logo-play" viewBox="0 0 512 512" aria-hidden="true">
+            <path fill="#22d3ee" d="M48 59.5v393c0 8.2 8.9 13.4 16 9.2l3.9-2.2L293 256 67.9 52.5 64 50.3c-7.1-4.2-16 1-16 9.2z"/>
+            <path fill="#22c55e" d="M64 50.3l232.5 130.4 63.7-63.7L91.6 6.3C77.9-1.5 64 5.4 64 20.9v29.4z" transform="translate(-16 30) scale(0.94)"/>
+            <path fill="#fbbf24" d="M377.4 201.4L305 256l72.4 54.6 60.5-34.7c15.4-8.8 15.4-31 0-39.8l-60.5-34.7z"/>
+            <path fill="#ff2e3f" d="M67.9 459.5l292.3-167-63.7-63.7L64 461.7c8.2 4.6 3.9-2.2 3.9-2.2z" transform="translate(-6 -16) scale(0.99)"/>
+          </svg>
+          <span class="store-copy"><em>Get it on</em><strong>Google Play</strong></span>
+          <svg class="ic store-arrow" aria-hidden="true"><use href="#i-arrow"/></svg>
+        </a>
+      </div>
+
+      <p class="dl-note reveal" data-delay="420">iOS &amp; Android · No credit card, no invites — just your student email.</p>
+    </section>
+  </main>
+
+  <!-- ══ FOOTER ══ -->
+  <footer class="footer" id="footer">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <img src="assets/logo-mark.png" alt="UndrGradz shield" width="52" height="52" />
+        <p>The social network for verified college students.</p>
+        <div class="foot-stores">
+          <!-- REPLACE href with the official App Store URL -->
+          <a href="#" data-store="appstore">App Store</a>
+          <!-- REPLACE href with the official Google Play URL -->
+          <a href="#" data-store="googleplay">Google Play</a>
+        </div>
+      </div>
+      <nav class="foot-col" aria-label="Explore">
+        <h4>Explore</h4>
+        <a href="#story">Story</a>
+        <a href="#chapters">The App</a>
+        <a href="#life">Campus Life</a>
+        <a href="#download">Download</a>
+      </nav>
+      <nav class="foot-col" aria-label="Legal">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <a href="#">Community Guidelines</a>
+      </nav>
+      <nav class="foot-col" aria-label="Connect">
+        <h4>Connect</h4>
+        <a href="https://instagram.com" target="_blank" rel="noopener"><svg class="ic"><use href="#i-ig"/></svg> Instagram</a>
+        <a href="https://tiktok.com" target="_blank" rel="noopener"><svg class="ic"><use href="#i-music"/></svg> TikTok</a>
+        <a href="mailto:hello@undrgradz.app"><svg class="ic"><use href="#i-mail"/></svg> hello@undrgradz.app</a>
+      </nav>
+    </div>
+
+    <div class="foot-mega" id="megaWrap" aria-hidden="true">
+      <span class="mega" id="mega"><span class="mg-u">UNDR</span><span class="mg-g">GRADZ</span></span>
+      <span class="mega mega-face"><span class="mg-u">UNDR</span><span class="mg-g">GRADZ</span></span>
+      <span class="mega mega-shine" id="megaLight">UNDRGRADZ</span>
+    </div>
+
+    <div class="foot-base">
+      <span>© 2026 UndrGradz. All rights reserved.</span>
+      <span>Made for students, by students.</span>
+    </div>
+  </footer>
+
+  <script src="js/landing.js" defer></script>
+</body>
+</html>
