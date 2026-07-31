@@ -1218,7 +1218,7 @@ async function _loadUniversities() {
       if (apiData && apiData.data && Array.isArray(apiData.data.universities)) {
         apiData.data.universities.forEach(function(u) {
           if (!u || !u.domain) return;
-          UNI[u.domain] = {
+          var uniObj = {
             id: u.id,
             domain: u.domain,
             t: u.type || 'public',
@@ -1239,16 +1239,27 @@ async function _loadUniversities() {
             status: u.status || 'AVAILABLE',
             coverPhotos: (Array.isArray(u.coverPhotos) && u.coverPhotos.length > 0) ? u.coverPhotos : []
           };
+          // Register EVERY accepted domain (not just the primary) pointing at
+          // the same object, so detectUni()/_resolveUniDomain() resolve any of
+          // them unchanged — a university may accept several (tec.mx,
+          // alumnos.tec.mx, alumni.tec.mx...).
+          var acceptedDomains = (Array.isArray(u.domains) && u.domains.length) ? u.domains : [u.domain];
+          acceptedDomains.forEach(function(d){ if (d) UNI[d] = uniObj; });
         });
       }
     }
-      
-    // Step 3: Build UNI_LIST from full merged UNI
-    UNI_LIST = Object.keys(UNI).map(function(domain){
-      var u=UNI[domain];
-      var acr=u.acronym||domain.replace('.edu','').toUpperCase();
-      return {domain:domain,label:u.name+' ('+acr+')'};
-    }).sort(function(a,b){return a.label.localeCompare(b.label);});
+
+    // Step 3: Build UNI_LIST from full merged UNI, de-duplicated by university
+    // id — a school registered under several domains must appear only once.
+    var _seenUniIds = {};
+    UNI_LIST = Object.keys(UNI).reduce(function(list, domain){
+      var u = UNI[domain];
+      if (u.id && _seenUniIds[u.id]) return list;
+      if (u.id) _seenUniIds[u.id] = true;
+      var acr = u.acronym || domain.replace('.edu', '').toUpperCase();
+      list.push({domain: domain, label: u.name + ' (' + acr + ')'});
+      return list;
+    }, []).sort(function(a,b){return a.label.localeCompare(b.label);});
 
     // Populate filter chips now that UNI is loaded
     if (typeof _populateFilterChips === 'function') {

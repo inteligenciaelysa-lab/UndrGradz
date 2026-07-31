@@ -55,6 +55,18 @@ router.patch('/universities/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminCont
 router.delete('/universities/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.softDeleteUniversity);
 router.post('/universities/:id/restore', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.restoreUniversity);
 
+// Campus Management (locations under a University)
+router.get('/universities/:universityId/campuses', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getCampuses);
+router.post('/universities/:universityId/campuses', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.createCampus);
+router.patch('/campuses/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.updateCampus);
+router.delete('/campuses/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.softDeleteCampus);
+router.post('/campuses/:id/restore', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.restoreCampus);
+
+// Geo reference data (country/state/city cascading selects) — read-only, any admin role
+router.get('/geo/countries', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getGeoCountries);
+router.get('/geo/states', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getGeoStates);
+router.get('/geo/cities', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getGeoCities);
+
 // Events / Hangouts Management
 router.get('/events', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getEvents);
 router.patch('/events/:id/status', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.updateEventStatus);

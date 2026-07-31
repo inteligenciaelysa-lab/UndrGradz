@@ -67,7 +67,14 @@ class UserService {
     if (user.profile) {
       const domain = user.email ? user.email.split('@')[1] : '';
       if (domain) {
-        const dbUni = await prisma.university.findUnique({ where: { domain } });
+        // Match against ANY accepted domain, not just the legacy primary
+        // column — a university may accept several (tec.mx, alumni.tec.mx...).
+        // Still purely opportunistic/non-blocking: no match simply skips this.
+        const uniDomain = await prisma.universityDomain.findUnique({
+          where: { domain: domain.toLowerCase() },
+          include: { university: true },
+        });
+        const dbUni = uniDomain ? uniDomain.university : null;
         if (dbUni) {
           const oldName = user.profile.university;
           const oldUniId = user.profile.universityId;

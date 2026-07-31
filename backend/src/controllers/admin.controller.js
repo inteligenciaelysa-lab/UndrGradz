@@ -1,4 +1,5 @@
 const adminService = require('../services/admin.service');
+const geoService = require('../services/geo.service');
 
 class AdminController {
   async login(req, res, next) {
@@ -224,6 +225,112 @@ class AdminController {
         message: 'University restored successfully',
         data: { university },
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /* ==========================================================================
+     CAMPUS MANAGEMENT (locations under a University — see admin.service.js)
+     ========================================================================== */
+
+  async getCampuses(req, res, next) {
+    try {
+      const { universityId } = req.params;
+      const { includeDeleted } = req.query;
+      const campuses = await adminService.getCampuses(universityId, { includeDeleted: includeDeleted === 'true' });
+      res.status(200).json({
+        status: 'success',
+        data: { campuses },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createCampus(req, res, next) {
+    try {
+      const { universityId } = req.params;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+      const campus = await adminService.createCampus(req.user.id, universityId, req.body, ipAddress);
+      res.status(201).json({
+        status: 'success',
+        data: { campus },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateCampus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+      const campus = await adminService.updateCampus(req.user.id, id, req.body, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        data: { campus },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async softDeleteCampus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+      const campus = await adminService.softDeleteCampus(req.user.id, id, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        message: 'Campus soft-deleted successfully',
+        data: { campus },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restoreCampus(req, res, next) {
+    try {
+      const { id } = req.params;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+      const campus = await adminService.restoreCampus(req.user.id, id, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        message: 'Campus restored successfully',
+        data: { campus },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /* ==========================================================================
+     GEO REFERENCE DATA (country / state / city cascading selects)
+     ========================================================================== */
+
+  async getGeoCountries(req, res, next) {
+    try {
+      res.status(200).json({ status: 'success', data: { countries: geoService.getCountries() } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getGeoStates(req, res, next) {
+    try {
+      const { countryCode } = req.query;
+      res.status(200).json({ status: 'success', data: { states: geoService.getStates(countryCode) } });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getGeoCities(req, res, next) {
+    try {
+      const { countryCode, stateCode } = req.query;
+      res.status(200).json({ status: 'success', data: { cities: geoService.getCities(countryCode, stateCode) } });
     } catch (error) {
       next(error);
     }

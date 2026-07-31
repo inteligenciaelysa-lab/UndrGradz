@@ -176,6 +176,51 @@ class AdminApiClient {
     });
   }
 
+  // CAMPUSES (locations under a University)
+  async getCampuses(universityId, params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/universities/${universityId}/campuses?${query}`);
+  }
+
+  async createCampus(universityId, payload) {
+    return this.request(`/universities/${universityId}/campuses`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async updateCampus(id, payload) {
+    return this.request(`/campuses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  async softDeleteCampus(id) {
+    return this.request(`/campuses/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async restoreCampus(id) {
+    return this.request(`/campuses/${id}/restore`, {
+      method: 'POST',
+    });
+  }
+
+  // GEO REFERENCE DATA (country/state/city cascading selects)
+  async getGeoCountries() {
+    return this.request('/geo/countries');
+  }
+
+  async getGeoStates(countryCode) {
+    return this.request(`/geo/states?countryCode=${encodeURIComponent(countryCode || '')}`);
+  }
+
+  async getGeoCities(countryCode, stateCode) {
+    return this.request(`/geo/cities?countryCode=${encodeURIComponent(countryCode || '')}&stateCode=${encodeURIComponent(stateCode || '')}`);
+  }
+
   // EVENTS
   async getEvents(params = {}) {
     const query = new URLSearchParams(params).toString();

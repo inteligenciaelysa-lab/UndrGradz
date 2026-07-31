@@ -26,6 +26,61 @@ function isValidUrl(str) {
   }
 }
 
+/**
+ * Replaces a university's full set of accepted email domains with
+ * `desiredDomains`, keeping `University.domain` (the legacy scalar column
+ * every other reader still uses) in sync as a mirror of one surviving row.
+ *
+ * All domains are treated as equals — there is no "locked primary" — the only
+ * floor is that at least one must remain. Must run inside `tx`
+ * (a prisma.$transaction client) so a uniqueness collision on an added domain
+ * never leaves the university in a transiently domain-less state.
+ */
+async function syncDomains(tx, universityId, desiredDomains, currentMirrorDomain) {
+  const normalized = [...new Set(
+    (Array.isArray(desiredDomains) ? desiredDomains : [])
+      .map(d => normalizeDomain(d))
+      .filter(Boolean)
+  )];
+
+  if (normalized.length === 0) {
+    throw new AppError('At least one accepted domain is required', 400);
+  }
+
+  const existingRows = await tx.universityDomain.findMany({ where: { universityId } });
+  const existingSet = new Set(existingRows.map(r => r.domain));
+  const desiredSet = new Set(normalized);
+
+  const toCreate = normalized.filter(d => !existingSet.has(d));
+  const toDelete = existingRows.filter(r => !desiredSet.has(r.domain));
+
+  // Insert first: a collision with another university's domain must fail
+  // before anything is removed, so this university never ends up domain-less.
+  for (const domain of toCreate) {
+    try {
+      await tx.universityDomain.create({ data: { universityId, domain } });
+    } catch (e) {
+      if (e && e.code === 'P2002') {
+        throw new AppError(`Domain "${domain}" is already claimed by another university`, 409);
+      }
+      throw e;
+    }
+  }
+
+  if (toDelete.length) {
+    await tx.universityDomain.deleteMany({ where: { id: { in: toDelete.map(r => r.id) } } });
+  }
+
+  // Re-point the mirror only if the domain it currently points to was removed.
+  let newMirror = currentMirrorDomain;
+  if (!desiredSet.has(currentMirrorDomain)) {
+    newMirror = normalized[0];
+    await tx.university.update({ where: { id: universityId }, data: { domain: newMirror } });
+  }
+
+  return normalized;
+}
+
 class AdminService {
   /**
    * Records an audit log entry for administrative actions
@@ -752,13 +807,22 @@ class AdminService {
       where: { id },
       include: {
         userProfiles: { select: { id: true, userId: true } },
+        domains: true,
       },
     });
 
     if (!university) throw new AppError('University not found', 404);
 
+    // domains as a flat string[] (same shape convention already used by
+    // coverPhotos), falling back to the legacy scalar if the backfill hasn't
+    // run yet for this row.
+    const domainList = (university.domains && university.domains.length)
+      ? university.domains.map(d => d.domain)
+      : [university.domain];
+
     return {
       ...university,
+      domains: domainList,
       studentCount: university.userProfiles ? university.userProfiles.length : 0,
       userProfiles: undefined,
     };
@@ -768,14 +832,21 @@ class AdminService {
    * Create University with HEX color & URL validations
    */
   async createUniversity(adminId, data, ipAddress) {
-    const { name, acronym, domain, type, primaryColor, secondaryColor, website, city, state, country, logoUrl, isOfficial, status, coverPhotos } = data;
+    const { name, acronym, domain, domains, type, primaryColor, secondaryColor, website, city, state, country, logoUrl, isOfficial, status, coverPhotos } = data;
 
     if (!name || !name.trim()) throw new AppError('University name is required', 400);
-    if (!domain || !domain.trim()) throw new AppError('Institutional domain is required', 400);
 
-    const normDomain = normalizeDomain(domain);
-    const existing = await prisma.university.findUnique({ where: { domain: normDomain } });
-    if (existing) throw new AppError(`Domain "${normDomain}" already exists in university catalog`, 400);
+    // Preferred: `domains: string[]` (what the admin UI's chips editor sends).
+    // Fallback: legacy singular `domain` string, treated as a 1-element array.
+    const rawDomainList = Array.isArray(domains) && domains.length
+      ? domains
+      : (domain ? [domain] : []);
+    if (!rawDomainList.length) throw new AppError('At least one institutional domain is required', 400);
+
+    const normDomains = [...new Set(rawDomainList.map(d => normalizeDomain(d)).filter(Boolean))];
+    if (!normDomains.length) throw new AppError('At least one institutional domain is required', 400);
+
+    const normDomain = normDomains[0];
 
     if (primaryColor && !hexRegex.test(primaryColor.trim())) throw new AppError('Invalid primaryColor HEX code', 400);
     if (secondaryColor && !hexRegex.test(secondaryColor.trim())) throw new AppError('Invalid secondaryColor HEX code', 400);
@@ -788,24 +859,32 @@ class AdminService {
       ? coverPhotos.filter(u => isValidUrl(u))
       : [];
 
-    const university = await prisma.university.create({
-      data: {
-        domain: normDomain,
-        name: name.trim(),
-        acronym: acronym ? acronym.trim() : normDomain.split('.')[0].toUpperCase(),
-        type: type === 'private' ? 'private' : 'public',
-        primaryColor: primaryColor ? primaryColor.trim() : null,
-        secondaryColor: secondaryColor ? secondaryColor.trim() : null,
-        website: website ? website.trim() : null,
-        coverPhotos: validatedPhotos,
-        city: city ? city.trim() : null,
-        state: state ? state.trim() : null,
-        country: country || 'Mexico',
-        logoUrl: logoUrl || null,
-        isOfficial: isOfficial || false,
-        status: uniStatus,
-        isDeleted: false,
-      },
+    const university = await prisma.$transaction(async (tx) => {
+      const existing = await tx.university.findUnique({ where: { domain: normDomain } });
+      if (existing) throw new AppError(`Domain "${normDomain}" already exists in university catalog`, 400);
+
+      const created = await tx.university.create({
+        data: {
+          domain: normDomain,
+          name: name.trim(),
+          acronym: acronym ? acronym.trim() : normDomain.split('.')[0].toUpperCase(),
+          type: type === 'private' ? 'private' : 'public',
+          primaryColor: primaryColor ? primaryColor.trim() : null,
+          secondaryColor: secondaryColor ? secondaryColor.trim() : null,
+          website: website ? website.trim() : null,
+          coverPhotos: validatedPhotos,
+          city: city ? city.trim() : null,
+          state: state ? state.trim() : null,
+          country: country || 'Mexico',
+          logoUrl: logoUrl || null,
+          isOfficial: isOfficial || false,
+          status: uniStatus,
+          isDeleted: false,
+        },
+      });
+
+      await syncDomains(tx, created.id, normDomains, created.domain);
+      return created;
     });
 
     await this.createAuditLog({
@@ -813,7 +892,7 @@ class AdminService {
       action: 'UNIVERSITY_CREATED',
       targetType: 'UNIVERSITY',
       targetId: university.id,
-      details: { name: university.name, domain: university.domain, isOfficial: university.isOfficial },
+      details: { name: university.name, domain: university.domain, domains: normDomains, isOfficial: university.isOfficial },
       ipAddress,
     });
 
@@ -868,9 +947,20 @@ class AdminService {
       updateData.coverPhotos = data.coverPhotos.filter(u => isValidUrl(u));
     }
 
-    const university = await prisma.university.update({
-      where: { id },
-      data: updateData,
+    let syncedDomains;
+    const university = await prisma.$transaction(async (tx) => {
+      let updated = await tx.university.update({
+        where: { id },
+        data: updateData,
+      });
+
+      if (data.domains !== undefined) {
+        syncedDomains = await syncDomains(tx, id, data.domains, updated.domain);
+        // Re-read: syncDomains may have re-pointed the `domain` mirror.
+        updated = await tx.university.findUnique({ where: { id } });
+      }
+
+      return updated;
     });
 
     await this.createAuditLog({
@@ -878,7 +968,7 @@ class AdminService {
       action: 'UNIVERSITY_UPDATED',
       targetType: 'UNIVERSITY',
       targetId: id,
-      details: updateData,
+      details: syncedDomains ? { ...updateData, domains: syncedDomains } : updateData,
       ipAddress,
     });
 
@@ -953,6 +1043,121 @@ class AdminService {
     return updated;
   }
 
+  /* ==========================================================================
+     CAMPUS MANAGEMENT
+     Locations under a University (e.g. Tec de Monterrey campus Guadalajara).
+     Mirrors the University CRUD shape exactly. Brand-level fields (colors,
+     logo, domains, type) stay on the parent University, not duplicated here.
+     ========================================================================== */
+
+  async getCampuses(universityId, { includeDeleted = false } = {}) {
+    const university = await prisma.university.findUnique({ where: { id: universityId } });
+    if (!university) throw new AppError('University not found', 404);
+
+    return prisma.campus.findMany({
+      where: { universityId, ...(includeDeleted ? {} : { isDeleted: false }) },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  async createCampus(adminId, universityId, data, ipAddress) {
+    const { name, city, state, country } = data;
+    if (!name || !name.trim()) throw new AppError('Campus name is required', 400);
+
+    const university = await prisma.university.findUnique({ where: { id: universityId } });
+    if (!university || university.isDeleted) throw new AppError('University not found or deleted', 404);
+
+    const campus = await prisma.campus.create({
+      data: {
+        universityId,
+        name: name.trim(),
+        city: city ? city.trim() : null,
+        state: state ? state.trim() : null,
+        country: country ? country.trim() : 'Mexico',
+      },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'CAMPUS_CREATED',
+      targetType: 'CAMPUS',
+      targetId: campus.id,
+      details: { universityId, name: campus.name, city: campus.city, state: campus.state, country: campus.country },
+      ipAddress,
+    });
+
+    return campus;
+  }
+
+  async updateCampus(adminId, id, data, ipAddress) {
+    const existing = await prisma.campus.findUnique({ where: { id } });
+    if (!existing) throw new AppError('Campus not found', 404);
+
+    const updateData = {};
+    if (data.name !== undefined) {
+      if (!data.name || !data.name.trim()) throw new AppError('Campus name is required', 400);
+      updateData.name = data.name.trim();
+    }
+    if (data.city !== undefined) updateData.city = data.city ? data.city.trim() : null;
+    if (data.state !== undefined) updateData.state = data.state ? data.state.trim() : null;
+    if (data.country !== undefined) updateData.country = data.country ? data.country.trim() : 'Mexico';
+
+    const campus = await prisma.campus.update({ where: { id }, data: updateData });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'CAMPUS_UPDATED',
+      targetType: 'CAMPUS',
+      targetId: id,
+      details: updateData,
+      ipAddress,
+    });
+
+    return campus;
+  }
+
+  async softDeleteCampus(adminId, id, ipAddress) {
+    const campus = await prisma.campus.findUnique({ where: { id } });
+    if (!campus || campus.isDeleted) throw new AppError('Campus not found or already deleted', 404);
+
+    const updated = await prisma.campus.update({
+      where: { id },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'CAMPUS_SOFT_DELETE',
+      targetType: 'CAMPUS',
+      targetId: id,
+      details: { name: campus.name, universityId: campus.universityId },
+      ipAddress,
+    });
+
+    return updated;
+  }
+
+  async restoreCampus(adminId, id, ipAddress) {
+    const campus = await prisma.campus.findUnique({ where: { id } });
+    if (!campus) throw new AppError('Campus not found', 404);
+
+    const updated = await prisma.campus.update({
+      where: { id },
+      data: { isDeleted: false, deletedAt: null },
+    });
+
+    await this.createAuditLog({
+      adminId,
+      action: 'CAMPUS_RESTORED',
+      targetType: 'CAMPUS',
+      targetId: id,
+      details: { name: campus.name, universityId: campus.universityId },
+      ipAddress,
+    });
+
+    return updated;
+  }
+
   /**
    * Public Campus API endpoint for Student App autocomplete/selection
    */
@@ -993,10 +1198,17 @@ class AdminService {
         status: true,
         createdAt: true,
         updatedAt: true,
+        domains: { select: { domain: true } },
       },
     });
 
-    return universities;
+    // Every accepted domain, flattened to string[] (falls back to the legacy
+    // scalar for any row the backfill hasn't reached yet), so the student app
+    // can match onboarding emails against secondary domains too.
+    return universities.map(u => ({
+      ...u,
+      domains: u.domains.length ? u.domains.map(d => d.domain) : [u.domain],
+    }));
   }
 
   /**

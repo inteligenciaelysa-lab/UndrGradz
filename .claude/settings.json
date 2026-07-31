@@ -10,7 +10,30 @@
       "Bash(curl -s -o /dev/null -w \"estatico HTTP %{http_code}\\\\n\" http://localhost:8081/admin/index.html)",
       "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-admin.js\")",
       "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-signup.js\")",
-      "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }')"
+      "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }')",
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 14864 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(npm install *)",
+      "Bash(node -e \"const {Country}=require\\('country-state-city'\\); console.log\\('paises:', Country.getAllCountries\\(\\).length\\)\")",
+      "Bash(node --check src/services/admin.service.js)",
+      "Bash(node --check src/controllers/admin.controller.js)",
+      "Bash(node --check src/routes/admin.routes.js)",
+      "Bash(node --check src/services/geo.service.js)",
+      "Bash(node --check src/services/user.service.js)",
+      "Bash(node backfill-university-domains.js)",
+      "Bash(node --check admin-app.js)",
+      "Bash(node --check admin-api.js)",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/check-html.js\" \"c:/Users/IA ELYSA/Desktop/UndrGradz/frontend/admin/index.html\")",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/e2e-universities.js\")",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-universities.js\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/v1/admin/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"superadmin@undrgradz.com\",\"password\":\"AdminUndrGradz2026!\"}')",
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 18084 -Force -ErrorAction SilentlyContinue\")",
+      "Bash(node /tmp/uidebug2.js)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\); console.log\\('total estados:', j.data.states.length\\); console.log\\('Coahuila?', j.data.states.find\\(s=>s.name.includes\\('Coahuila'\\)\\)\\);}\\)\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{JSON.parse\\(d\\).data.states.forEach\\(s=>console.log\\(s.name\\)\\);}\\)\")",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-geo-submit.js\")",
+      "Bash(powershell -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object {$_.Id -eq 15904} | Stop-Process -Force')",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-final.js\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>console.log\\('restore:',JSON.parse\\(d\\).data.university.isDeleted===false\\)\\)\")"
     ]
   }
 }

@@ -1218,7 +1218,7 @@ async function _loadUniversities() {
       if (apiData && apiData.data && Array.isArray(apiData.data.universities)) {
         apiData.data.universities.forEach(function(u) {
           if (!u || !u.domain) return;
-          UNI[u.domain] = {
+          var uniObj = {
             id: u.id,
             domain: u.domain,
             t: u.type || 'public',
@@ -1239,16 +1239,27 @@ async function _loadUniversities() {
             status: u.status || 'AVAILABLE',
             coverPhotos: (Array.isArray(u.coverPhotos) && u.coverPhotos.length > 0) ? u.coverPhotos : []
           };
+          // Register EVERY accepted domain (not just the primary) pointing at
+          // the same object, so detectUni()/_resolveUniDomain() resolve any of
+          // them unchanged — a university may accept several (tec.mx,
+          // alumnos.tec.mx, alumni.tec.mx...).
+          var acceptedDomains = (Array.isArray(u.domains) && u.domains.length) ? u.domains : [u.domain];
+          acceptedDomains.forEach(function(d){ if (d) UNI[d] = uniObj; });
         });
       }
     }
-      
-    // Step 3: Build UNI_LIST from full merged UNI
-    UNI_LIST = Object.keys(UNI).map(function(domain){
-      var u=UNI[domain];
-      var acr=u.acronym||domain.replace('.edu','').toUpperCase();
-      return {domain:domain,label:u.name+' ('+acr+')'};
-    }).sort(function(a,b){return a.label.localeCompare(b.label);});
+
+    // Step 3: Build UNI_LIST from full merged UNI, de-duplicated by university
+    // id — a school registered under several domains must appear only once.
+    var _seenUniIds = {};
+    UNI_LIST = Object.keys(UNI).reduce(function(list, domain){
+      var u = UNI[domain];
+      if (u.id && _seenUniIds[u.id]) return list;
+      if (u.id) _seenUniIds[u.id] = true;
+      var acr = u.acronym || domain.replace('.edu', '').toUpperCase();
+      list.push({domain: domain, label: u.name + ' (' + acr + ')'});
+      return list;
+    }, []).sort(function(a,b){return a.label.localeCompare(b.label);});
 
     // Populate filter chips now that UNI is loaded
     if (typeof _populateFilterChips === 'function') {
@@ -9140,113 +9151,6 @@ async function createEv(){
     prevThumb.textContent = '🌟';
   }
 }
-
-// ── MAIN FEED ──
-function togglePoll(btn){pollOpen=!pollOpen;var box=document.getElementById('poll-box');if(box)box.style.display=pollOpen?'block':'none';if(btn)btn.classList.toggle('on',pollOpen);}
-function toggleCommentMode(btn){commentsOn=!commentsOn;if(btn){btn.textContent=commentsOn?'Comments On':'Comments Off';btn.classList.toggle('on',!commentsOn);}}
-function toggleAnon(){anonMode=!anonMode;var icon=document.getElementById('anon-icon');if(icon)icon.style.opacity=anonMode?'1':'0.5';var btn=document.getElementById('anon-btn');if(btn){btn.style.background=anonMode?'rgba(255,255,255,0.15)':'transparent';btn.style.color=anonMode?'#fff':'var(--fg2)';btn.style.borderColor=anonMode?'rgba(255,255,255,0.3)':'var(--gbdl)';}}
-function previewPostImg(inp){if(!inp.files[0])return;var url=URL.createObjectURL(inp.files[0]);var prev=document.getElementById('compose-img-preview');if(prev){prev.src=url;prev.style.display='block';}}
-
-function doPost(){
-  var ta=document.getElementById('compose-ta');var txt=ta?ta.value.trim():'';
-  var hasImg=document.getElementById('compose-img-preview')&&document.getElementById('compose-img-preview').style.display!=='none';
-  var hasPoll=pollOpen&&document.getElementById('poll-a')&&document.getElementById('poll-a').value.trim();
-  if(!txt&&!hasImg&&!hasPoll){alert('Write something first!');return;}
-  var color=uni?uni.p:'#3d7bff';var init=anonMode?'🕵️':(userPro.name||'U').charAt(0);var handle=anonMode?'Anonymous':(userPro.handle||'@you');
-  var avBg=anonMode?'#374151':color;var imgHtml='',pollHtml='';
-  if(hasImg){var src2=document.getElementById('compose-img-preview').src;imgHtml='<div style="padding:0 13px 10px;"><img src="'+src2+'" class="post-img-preview"/></div>';}
-  if(hasPoll){var optA=document.getElementById('poll-a').value.trim();var optB=document.getElementById('poll-b')&&document.getElementById('poll-b').value.trim()||'B';var pid='poll_'+Date.now();pollHtml='<div class="poll-rendered" id="'+pid+'"><div class="poll-opt-row" onclick="votePoll(this,0,\''+pid+'\')"><div class="poll-opt-bar"><div class="poll-opt-fill" style="background:'+color+';width:0%"></div><div class="poll-opt-label">'+optA+'</div><div class="poll-opt-pct">0%</div></div></div><div class="poll-opt-row" onclick="votePoll(this,1,\''+pid+'\')"><div class="poll-opt-bar"><div class="poll-opt-fill" style="background:'+color+';width:0%"></div><div class="poll-opt-label">'+optB+'</div><div class="poll-opt-pct">0%</div></div></div><div class="poll-voters" id="'+pid+'-voters">0 votes</div></div>';}
-  var commentsOnState=commentsOn;
-  var displayHandle=anonMode?'Anonymous':handle;
-  var displayInit=anonMode?'🕵️':init;
-  var postHtml='<div class="gc fp" data-mypost="1"><div class="pt">'+
-    '<div class="pav" style="background:'+avBg+';cursor:pointer;" onclick="'+(anonMode?'void 0':'openUserPopup({handle:\''+handle+'\',name:\''+userPro.name+'\',major:\''+userPro.major+'\',grad:\''+userPro.grad+'\',bio:\''+userPro.bio+'\',interests:[]})')+'">'+displayInit+'</div>'+
-    '<div style="flex:1;"><div class="pn">'+displayHandle+'</div><div class="pt2">Just now</div></div>'+
-    (userPro.major&&!anonMode?'<span class="tag">'+userPro.major+'</span>':'')+
-    '</div>'+
-    (txt?'<div class="pb" style="color:#fff;">'+txt+'</div>':'')+
-    imgHtml+pollHtml+
-    '<div class="pacts">'+
-      '<button class="pa" onclick="votePost(this,1)">▲ 0</button>'+
-      '<button class="pa" onclick="votePost(this,-1)">▼ 0</button>'+
-      (commentsOnState?'<button class="pa" onclick="toggleCommentBox(this)">'+icon('chat',16)+' Comment</button>':'')+
-      '<button class="pa" onclick="showShareModal(this)">'+icon('arrowUpRight',16)+' Share</button>'+
-    '</div>'+
-    (commentsOnState?'<div class="comments-section" style="display:none;"><div class="comment-input-row"><input class="comment-input" type="text" placeholder="Write a comment…" onkeydown="if(event.key===\'Enter\')postComment(this)"/><button class="comment-send" onclick="postComment(this.previousElementSibling)">↑</button></div></div>':'')+
-    '</div>';
-  var feed=document.getElementById('feed');if(feed){var tmp=document.createElement('div');tmp.innerHTML=postHtml;feed.insertBefore(tmp.firstChild,feed.firstChild);}
-  if(ta)ta.value='';
-  var prev=document.getElementById('compose-img-preview');if(prev){prev.src='';prev.style.display='none';}
-  pollOpen=false;var pb=document.getElementById('poll-box');if(pb)pb.style.display='none';
-  var bpoll=document.getElementById('btn-poll');if(bpoll)bpoll.classList.remove('on');
-  if(!anonMode)addToActivity(txt||'[Photo post]');
-}
-
-
-function toggleCommentBox(btn){var post=btn.closest('.gc');if(!post)return;var cs=post.querySelector('.comments-section');if(cs)cs.style.display=cs.style.display==='none'?'block':'none';}
-
-function postComment(inp){
-  if(!inp||!inp.value.trim())return;var cs=inp.closest('.comments-section');if(!cs)return;
-  var div=document.createElement('div');div.className='comment-item';div.dataset.mine='1';
-  var bg=uni?uni.p:'#3d7bff';var init=(userPro.name||'U').charAt(0);var txt=inp.value.trim();
-  div.innerHTML='<div class="comment-av" style="background:'+bg+';font-size:var(--fs-xs);">'+init+'</div>'+
-    '<div style="flex:1;"><div class="comment-bubble"><div class="comment-author">'+(userPro.handle||'@you')+'</div><div class="comment-text">'+txt+'</div></div>'+
-    '<div class="comment-actions"><button class="cact-btn" onclick="voteComment(this,1)">▲ 0</button><button class="cact-btn" onclick="voteComment(this,-1)">▼ 0</button><button class="cact-btn" onclick="replyComment(this)">↩ Reply</button><button class="cact-btn" onclick="deleteComment(this)" style="color:#dc2626;margin-left:4px;" title="Delete comment">🗑</button></div></div>';
-  cs.insertBefore(div,cs.querySelector('.comment-input-row'));inp.value='';
-}
-function deleteComment(btn){
-  var fp=btn.closest('.fp');var isMyPost=fp&&fp.dataset.mypost==='1';
-  var item=btn.closest('.comment-item');if(!item)return;
-  var isMine=item.dataset.mine==='1';
-  ugzConfirm({
-    type: 'warning',
-    title: 'Delete Comment',
-    message: 'Delete this comment?',
-    confirmText: 'Delete',
-    cancelText: 'Cancel',
-    onConfirm: function() {
-      item.style.transition='opacity 0.25s';item.style.opacity='0';
-      setTimeout(function(){item.remove();},250);
-    }
-  });
-}
-function voteComment(btn,dir){
-  var actions=btn.closest('.comment-actions');if(!actions)return;
-  var upBtn=actions.querySelector('[onclick*="voteComment"][onclick*=",1"]');
-  var downBtn=actions.querySelector('[onclick*="voteComment"][onclick*=",-1"]');
-  if(!upBtn||!downBtn)return;
-  var curVote=actions.dataset.vote||'none';
-  var upN=parseInt(upBtn.textContent.replace(/[^0-9]/g,''))||0;
-  var downN=parseInt(downBtn.textContent.replace(/[^0-9]/g,''))||0;
-  if(dir===1){
-    if(curVote==='up'){// undo upvote
-      upBtn.textContent='▲ '+(Math.max(0,upN-1));upBtn.style.color='';actions.dataset.vote='none';
-    }else{
-      if(curVote==='down'){downBtn.textContent='▼ '+Math.max(0,downN-1);downBtn.style.color='';}
-      upBtn.textContent='▲ '+(upN+1);upBtn.style.color='#4ade80';actions.dataset.vote='up';
-    }
-  }else{
-    if(curVote==='down'){// undo downvote
-      downBtn.textContent='▼ '+(Math.max(0,downN-1));downBtn.style.color='';actions.dataset.vote='none';
-    }else{
-      if(curVote==='up'){upBtn.textContent='▲ '+Math.max(0,upN-1);upBtn.style.color='';}
-      downBtn.textContent='▼ '+(downN+1);downBtn.style.color='#dc2626';actions.dataset.vote='down';
-    }
-  }
-}
-function replyComment(btn){var cs=btn.closest('.comments-section');if(!cs)return;var author=btn.closest('.comment-item')&&btn.closest('.comment-item').querySelector('.comment-author');var inp=cs.querySelector('.comment-input');if(inp&&author){inp.value='@'+author.textContent.replace('@','')+' ';inp.focus();}}
-
-function votePoll(row,opt,pid){var container=document.getElementById(pid);if(!container||container.dataset.voted)return;container.dataset.voted='1';var votes=[1,0];if(opt===1)votes=[0,1];var total=1;var rows=container.querySelectorAll('.poll-opt-row');rows.forEach(function(r,i){var fill=r.querySelector('.poll-opt-fill');var pct=r.querySelector('.poll-opt-pct');var pctVal=Math.round(votes[i]/total*100);if(fill)fill.style.width=pctVal+'%';if(pct)pct.textContent=pctVal+'%';r.style.cursor='default';});var voters=document.getElementById(pid+'-voters');if(voters)voters.textContent='1 vote';}
-
-function showShareModal(btn){
-  var friends=[{name:'Ana M.',handle:'@anam',color:'#e91e63'},{name:'Miguel R.',handle:'@miguelr',color:'#3b82f6'},{name:'Sofía T.',handle:'@sofiat',color:'#3d7bff'},{name:'Carlos M.',handle:'@carlosm',color:'#f59e0b'}];
-  var modal=document.getElementById('share-modal');
-  if(!modal){modal=document.createElement('div');modal.id='share-modal';modal.className='mov';modal.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Share with</div><div id="share-friends-list"></div><button class="gbtn-ghost" onclick="document.getElementById(\'share-modal\').classList.remove(' + "'open'" + ')" style="margin-top:10px;">Cancel</button></div>';document.body.appendChild(modal);}
-  var list=document.getElementById('share-friends-list');
-  if(list){list.innerHTML=friends.map(function(f){return '<div class="frr" style="justify-content:space-between;"><div style="display:flex;gap:10px;align-items:center;"><div style="width:36px;height:36px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;">'+f.name.charAt(0)+'</div><div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;">'+f.name+'</div><div class="t-meta">'+f.handle+'</div></div></div><button onclick="sendToFriend(\''+f.handle+'\',\''+f.name+'\',this)" style="padding:6px 14px;border-radius:var(--rad-lg);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">Send</button></div>';}).join('');}
-  modal.classList.add('open');
-}
-function sendToFriend(handle,name,btn){if(btn){btn.textContent='✅ Sent';btn.style.background='#16a34a';btn.disabled=true;}}
 
 // ══ ACTIVITY > EVENTS CREATED / JOINED ══
 // Two sub-buttons over a compact list. Rows reuse .adm-sub-btn (the app-wide
@@ -23179,308 +23083,6 @@ doSignupAuth=function(){
   if(pass!==pass2){alert('Passwords do not match.');return;}
   _origDoSignupAuth();
 };
-
-// Photos are now collected as the final onboarding step (obs6); no post-launch gate.
-
-// ══════════════ WELLNESS ══════════════
-// Difficulty tiers — exciting names; XP scales with effort
-var WL_TIERS={easy:{label:'⚡ Quick Win',xp:10,color:'#22c55e'},mid:{label:'🔥 Momentum',xp:20,color:'#f59e0b'},hard:{label:'💪 Power Move',xp:35,color:'#ef4444'}};
-var WELLNESS=[
-  {cat:'Move',color:'#16a34a',grad:'#0f766e,#16a34a',items:[
-    {id:'walk',tier:'easy',t:'Take a 15-min walk',emoji:'🚶'},
-    {id:'stairs',tier:'easy',t:'Take the stairs all day',emoji:'📈'},
-    {id:'stretch',tier:'easy',t:'Stretch for 10 minutes',emoji:'🙏'},
-    {id:'pushups',tier:'easy',t:'Do 20 push-ups in your room',emoji:'💪'},
-    {id:'squats',tier:'easy',t:'Do 50 bodyweight squats',emoji:'🦶'},
-    {id:'situps',tier:'easy',t:'Do 25 sit-ups',emoji:'🆙'},
-    {id:'plank',tier:'easy',t:'Hold a 1-minute plank',emoji:'⏳'},
-    {id:'gym',tier:'mid',t:'Go to the gym today',emoji:'🏋️'},
-    {id:'run',tier:'mid',t:'Go for a 2-mile run',emoji:'🏃'},
-    {id:'pr',tier:'hard',t:'Hit a new PR at the gym',emoji:'💥'},
-    {id:'hourwo',tier:'hard',t:'Crush a full 1-hour workout',emoji:'🏋️‍♀️'}
-  ]},
-  {cat:'Mind',color:'#2b5fd9',grad:'#5b21b6,#2b5fd9',items:[
-    {id:'read',tier:'easy',t:'Read 1 page of a book',emoji:'📖'},
-    {id:'breathe',tier:'easy',t:'5-minute breathing exercise',emoji:'🌬️'},
-    {id:'todo',tier:'easy',t:'Write your to-do list',emoji:'📝'},
-    {id:'study',tier:'mid',t:'Study for 25 minutes',emoji:'⏱️'},
-    {id:'journal',tier:'mid',t:'Journal a full page',emoji:'📓'},
-    {id:'meditate',tier:'mid',t:'Meditate for 10 minutes',emoji:'💡'},
-    {id:'chapter',tier:'hard',t:'Read a full chapter',emoji:'📕'},
-    {id:'deepstudy',tier:'hard',t:'1-hour focused study session',emoji:'📚'}
-  ]},
-  {cat:'Connect',color:'#0ea5e9',grad:'#0369a1,#0ea5e9',items:[
-    {id:'textfriend',tier:'easy',t:'Text an old friend',emoji:'💌'},
-    {id:'compliment',tier:'easy',t:'Compliment someone today',emoji:'😊'},
-    {id:'callfam',tier:'easy',t:'Call family',emoji:'📞'},
-    {id:'lunch',tier:'mid',t:'Grab lunch with a friend',emoji:'🍽️'},
-    {id:'walkfriend',tier:'mid',t:'Go for a walk with a friend',emoji:'🚶‍♀️'},
-    {id:'dormevent',tier:'hard',t:'Create an event at your dorm',emoji:'🏠'},
-    {id:'studygroup',tier:'hard',t:'Host a study group',emoji:'👥'}
-  ]},
-  {cat:'Grow',color:'#f59e0b',grad:'#b45309,#f59e0b',items:[
-    {id:'bed',tier:'easy',t:'Make your bed',emoji:'🛏️'},
-    {id:'water',tier:'easy',t:'Drink 6 glasses of water',emoji:'💧'},
-    {id:'tidy',tier:'easy',t:'Tidy your room',emoji:'🧼'},
-    {id:'sleep',tier:'mid',t:'Get 8 hours of sleep',emoji:'😴'},
-    {id:'mealprep',tier:'mid',t:'Meal-prep for tomorrow',emoji:'🥗'},
-    {id:'hw3',tier:'hard',t:'Finish 3 assignments due this week',emoji:'✅'},
-    {id:'planweek',tier:'hard',t:'Plan out your whole week',emoji:'🗓️'}
-  ]}
-];
-var wellnessState={xp:0,streak:0,done:{},lastDay:null,dayKey:null,completedToday:0};
-var WL_DAILY_CAP=6;
-function _wlTitle(id){for(var i=0;i<WELLNESS.length;i++){for(var j=0;j<WELLNESS[i].items.length;j++){if(WELLNESS[i].items[j].id===id)return WELLNESS[i].items[j].t;}}return 'this challenge';}
-function _wlSave(){try{localStorage.setItem('ugz_wellness',JSON.stringify(wellnessState));}catch(e){}}
-function _wlLoad(){
-  try{var s=JSON.parse(localStorage.getItem('ugz_wellness'));if(s&&typeof s==='object')wellnessState=s;}catch(e){}
-  if(!wellnessState.done)wellnessState.done={};
-  if(typeof wellnessState.completedToday!=='number')wellnessState.completedToday=0;
-  var today=new Date().toDateString();
-  if(!wellnessState.dayKey)wellnessState.dayKey=today;
-  if(wellnessState.dayKey!==today){
-    // New day: reset daily challenges; break the streak if a full day was skipped
-    var last=wellnessState.lastDay?new Date(wellnessState.lastDay):null;
-    var y=new Date();y.setDate(y.getDate()-1);
-    if(!last||isNaN(last)||last.toDateString()!==y.toDateString())wellnessState.streak=0;
-    wellnessState.done={};wellnessState.completedToday=0;wellnessState.dayKey=today;
-    _wlSave();
-  }
-}
-var _wlFriends=[{name:'Ana M.',init:'A',color:'#e91e63',lvl:4,streak:6},{name:'Miguel R.',init:'M',color:'#3b82f6',lvl:2,streak:1},{name:'Sofía T.',init:'S',color:'#3d7bff',lvl:6,streak:12},{name:'Carlos M.',init:'C',color:'#f59e0b',lvl:3,streak:0}];
-function _wlLevel(xp){return Math.floor(xp/100)+1;}
-function _wlCatEmoji(c){return c==='Move'?'🏃':c==='Mind'?'💡':c==='Connect'?'💬':'🌱';}
-function renderWellness(){
-  var box=document.getElementById('wellness-content');if(!box)return;
-  var lvl=_wlLevel(wellnessState.xp),prog=wellnessState.xp%100;
-  var hero='<div style="padding:18px var(--s) 8px;">'+
-    '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">🌱 Wellness</div>'+
-    '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:14px;">Small daily actions for a healthier college life.</div>'+
-    '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
-      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Lv <span data-count="'+lvl+'">'+lvl+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Level</div></div>'+
-      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fbbf24;"><span class="flame-pulse">🔥</span> <span data-count="'+wellnessState.streak+'">'+wellnessState.streak+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Day streak</div></div>'+
-      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#4ade80;"><span data-count="'+wellnessState.xp+'">'+wellnessState.xp+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Total XP</div></div>'+
-    '</div>'+
-    '<div style="background:rgba(255,255,255,0.08);border-radius:var(--rad-xs);height:10px;overflow:hidden;margin-bottom:2px;"><div style="height:100%;width:'+prog+'%;background:linear-gradient(90deg,#16a34a,#4ade80);animation:barGrow 0.95s cubic-bezier(.2,.8,.3,1);"></div></div>'+
-    '<div style="font-size:var(--fs-2xs);color:var(--fg3);">'+prog+'/100 XP to Level '+(lvl+1)+'</div>'+
-    '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-top:6px;">← Swipe each row to see all challenges</div>'+
-  '</div>';
-  var cats=WELLNESS.map(function(c){
-    // Only show challenges NOT yet completed — finishing one reveals the next in the pool
-    var active=c.items.filter(function(it){return !wellnessState.done[it.id];});
-    if(!active.length)return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div><div style="padding:0 var(--s) 12px;font-size:var(--fs-sm);color:#4ade80;font-weight:500;">🎉 All done in '+c.cat+' — check back tomorrow!</div></div>';
-    var cards=active.map(function(it){
-      var tier=WL_TIERS[it.tier]||WL_TIERS.easy;
-      return '<div style="flex:0 0 200px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid var(--gbdl);background:#0b0b0e;">'+
-        '<div style="height:120px;background:linear-gradient(150deg,'+c.grad+');display:flex;align-items:center;justify-content:center;font-size:54px;position:relative;"><span style="position:absolute;top:8px;left:8px;font-size:var(--fs-2xs);font-weight:600;background:rgba(0,0,0,0.45);color:#fff;padding:3px 8px;border-radius:var(--rad-sm);">'+tier.label+'</span>'+it.emoji+'</div>'+
-        '<div style="padding:11px;">'+
-          '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;line-height:1.3;min-height:34px;">'+it.t+'</div>'+
-          '<div style="font-size:var(--fs-xs);font-weight:600;color:'+tier.color+';margin:6px 0 8px;">+'+tier.xp+' XP</div>'+
-          '<button class="gbtn" style="background:var(--p);padding:9px;" onclick="completeChallenge(\''+it.id+'\','+tier.xp+')">Complete</button>'+
-        '</div>'+
-      '</div>';
-    }).join('');
-    return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div>'+
-      '<div style="display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 12px;-webkit-overflow-scrolling:touch;">'+cards+'</div></div>';
-  }).join('');
-  var friends='<div style="padding:8px var(--s) 6px;"><div class="sep"></div><div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin:8px 0 8px;">👥 Friends\' levels</div>'+
-    _wlFriends.map(function(f){
-      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);">'+
-        '<div style="width:40px;height:40px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;">'+f.init+'</div>'+
-        '<div style="flex:1;"><div class="t-body-strong">'+f.name+'</div><div class="t-meta">Lv '+f.lvl+' · 🔥 '+f.streak+' day streak</div></div>'+
-        (f.streak>0?'<button onclick="motivateFriend(\''+f.name.replace(/'/g,"")+'\',this)" style="padding:6px 12px;border-radius:var(--rad-md);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:600;cursor:pointer;">💪 Motivate</button>':'<span style="font-size:var(--fs-xs);color:var(--fg3);">streak ended</span>')+
-      '</div>';
-    }).join('')+'</div>';
-  var safe=function(fn){try{return fn();}catch(e){return '';}};
-  box.innerHTML=hero+safe(_wlCheckinHtml)+cats+safe(_wlPactsHtml)+safe(_wlBuddyHtml)+safe(_wlSupportHtml)+friends;
-  if(typeof _animateCounts==='function')setTimeout(function(){_animateCounts(box);},0);
-}
-function _wlSupportHtml(){
-  return '<div style="padding:6px var(--s);"><div onclick="openSupportCircles()" style="cursor:pointer;background:linear-gradient(135deg,rgba(43,95,217,0.08),rgba(240,62,90,0.06));border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;"><div style="font-size:var(--fs-2xl);">🤗</div><div style="flex:1;"><div class="t-body-strong">Support circles</div><div class="t-meta">Anonymous peer support — vent, relate, feel less alone.</div></div><div style="font-size:var(--fs-lg);color:var(--fg2);">›</div></div></div>';
-}
-// ══════════ 😌 DAILY CHECK-IN (mood) ══════════
-var MOODS=[{e:'😄',l:'Great'},{e:'🙂',l:'Good'},{e:'😐',l:'Meh'},{e:'😟',l:'Stressed'},{e:'😢',l:'Low'}];
-var checkinState={day:null,mood:null,streak:0,last:null};
-function _checkinLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_checkin'));if(s)checkinState=s;}catch(e){}}
-function _checkinSave(){try{localStorage.setItem('ugz_checkin',JSON.stringify(checkinState));}catch(e){}}
-function _wlCheckinHtml(){
-  _checkinLoad();var today=new Date().toDateString();var done=checkinState.day===today;
-  var inner;
-  if(done){
-    var m=MOODS[checkinState.mood]||MOODS[1];
-    inner='<div style="display:flex;align-items:center;gap:12px;"><div style="font-size:34px;">'+m.e+'</div><div style="flex:1;"><div class="t-body-strong">Checked in — feeling '+m.l.toLowerCase()+'</div><div class="t-meta">🔥 '+checkinState.streak+'-day check-in streak · come back tomorrow</div></div></div>'+
-      (checkinState.mood>=3?'<div style="margin-top:10px;font-size:var(--fs-xs);color:#fbbf24;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:var(--rad-sm);padding:9px 11px;line-height:1.5;">💛 Rough day? You\'re not alone. Campus Counseling: (555) 100-2000 · 988 Suicide & Crisis Lifeline (call/text).</div>':'');
-  }else{
-    inner='<div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-bottom:10px;">How are you today?</div><div style="display:flex;gap:8px;justify-content:space-between;">'+
-      MOODS.map(function(mo,i){return '<button onclick="wlDoCheckin('+i+')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:11px 4px;cursor:pointer;"><div style="font-size:var(--fs-2xl);">'+mo.e+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;margin-top:3px;">'+mo.l+'</div></button>';}).join('')+'</div>';
-  }
-  return '<div style="padding:6px var(--s) 4px;"><div style="background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(14,165,233,0.07));border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">😌 Daily check-in</div>'+inner+'</div></div>';
-}
-function wlDoCheckin(i){
-  _checkinLoad();var today=new Date().toDateString();if(checkinState.day===today)return;
-  var y=new Date(Date.now()-86400000).toDateString();
-  checkinState.streak=(checkinState.last===y)?(checkinState.streak+1):1;
-  checkinState.day=today;checkinState.last=today;checkinState.mood=i;_checkinSave();
-  if(typeof _bumpKindness==='function')_bumpKindness(1);// engagement: showing up
-  if(i>=3)setTimeout(function(){alert('💛 Thanks for checking in. Rough patch?\n\nCampus Counseling: (555) 100-2000\n988 Suicide & Crisis Lifeline — call or text, 24/7.\n\nYou\'ve got people here.');},250);
-  if(typeof renderWellness==='function')renderWellness();
-}
-// ══════════ 🔥 GROUP CHALLENGE — your house/dorm vs a rival ══════════
-var _wlGroup=null;
-function _wlGroupLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_wlgroup'));if(s)_wlGroup=s;}catch(e){}}
-function _wlGroupSave(){try{localStorage.setItem('ugz_wlgroup',JSON.stringify(_wlGroup));}catch(e){}}
-// pick a deterministic rival university (different from yours) from the real UNI_LIST
-function _allUniNames(){try{return Object.keys(UNI).map(function(d){return UNI[d].name;}).filter(Boolean);}catch(e){return ['State University','City College','Tech University'];}}
-function _rivalUniversity(myName){
-  var list=_allUniNames().filter(function(n){return n&&n!==myName;});
-  if(!list.length)return 'Rival University';
-  return list[_strHash((myName||'u')+'rival')%list.length];
-}
-function openGroupChallenge(){
-  var m=document.getElementById('grpchal-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='grpchal-modal';m.className='mov open';m.style.zIndex='10001';
-  var myUni=(uni&&uni.name)||'My University';
-  var rivalUni=_rivalUniversity(myUni);
-  var opts='';
-  // 1) University vs University — the headline matchup
-  opts+='<button onclick="_setGroupChallenge(\''+myUni.replace(/'/g,"\\'")+'\',\''+rivalUni.replace(/'/g,"\\'")+'\',\'uni\')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px;border-radius:var(--rad-sm);border:1px solid rgba(61,123,255,0.35);background:rgba(61,123,255,0.10);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🎓 '+myUni+' <span style="color:var(--fg2);font-weight:500;">vs '+rivalUni+'</span></button>';
-  // 2) Fraternity / Sorority chapter vs chapter
-  if(userPro&&userPro.org){var pn=_greekPartner(userPro.org);opts+='<button onclick="_setGroupChallenge(\''+userPro.org.replace(/'/g,"\\'")+'\',\''+(pn||'Rival Chapter').replace(/'/g,"\\'")+'\',\'greek\')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px;border-radius:var(--rad-sm);border:1px solid var(--gbdl);background:rgba(43,95,217,0.08);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🏛️ '+userPro.org+' chapter <span style="color:var(--fg2);font-weight:500;">vs '+(pn||'a rival chapter')+'</span></button>';}
-  else{opts+='<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:2px 0 8px;line-height:1.4;">Add your fraternity/sorority in your profile to unlock a chapter-vs-chapter showdown.</div>';}
-  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🔥</div><div class="t-title">Pick your showdown</div><div class="t-sub">Rep your school or chapter in a friendly wellness battle.</div></div>'+opts+
-    '<button class="gbtn" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1205;margin-top:4px;" onclick="openUniLeaderboard()">🏆 See the all-universities leaderboard</button>'+
-    '<button class="gbtn-ghost" style="margin-top:8px;" onclick="document.getElementById(\'grpchal-modal\').remove()">Cancel</button></div>';
-  document.body.appendChild(m);
-}
-function _setGroupChallenge(name,rival,type){_wlGroup={name:name,rival:rival,type:type};_wlGroupSave();var m=document.getElementById('grpchal-modal');if(m)m.remove();if(typeof renderWellness==='function')renderWellness();}
-// 🏆 Leaderboard of ALL universities, ranked by total wellness points (deterministic demo data)
-function openUniLeaderboard(){
-  var m=document.getElementById('unilb-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='unilb-modal';m.className='mov open';m.style.zIndex='10002';
-  var myUni=(uni&&uni.name)||'My University';
-  var names=_allUniNames();if(!names.length)names=[myUni,'State University','City College'];
-  if(names.indexOf(myUni)<0)names.unshift(myUni);
-  var rows=names.map(function(n){var pts=2000+(_strHash(n+'lb')%9000)+(n===myUni?(wellnessState.xp||0):0);return {n:n,pts:pts,me:n===myUni};});
-  rows.sort(function(a,b){return b.pts-a.pts;});
-  var myRank=rows.findIndex(function(r){return r.me;})+1;
-  var top=rows.slice(0,25);
-  var list=top.map(function(r,i){var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'<span style="display:inline-block;width:22px;color:var(--fg3);font-weight:600;">'+(i+1)+'</span>';return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:var(--rad-sm);margin-bottom:6px;background:'+(r.me?'rgba(61,123,255,0.13)':'rgba(255,255,255,0.04)')+';border:1px solid '+(r.me?'rgba(61,123,255,0.4)':'var(--gbdl)')+';"><div style="font-size:var(--fs-md);width:26px;text-align:center;">'+medal+'</div><div style="flex:1;font-size:var(--fs-base);font-weight:'+(r.me?'900':'700')+';color:#fff;">'+r.n+(r.me?' <span style="font-size:var(--fs-2xs);color:var(--p);">(you)</span>':'')+'</div><div style="font-size:var(--fs-sm);font-weight:600;color:#fbbf24;">'+r.pts.toLocaleString()+'</div></div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:400px;max-height:86vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:10px;"><div style="font-size:30px;">🏆</div><div class="t-title">University leaderboard</div><div class="t-meta">Ranked by total wellness points this season. '+myUni+' is #'+myRank+'.</div></div>'+list+'<button class="gbtn-ghost" style="margin-top:10px;" onclick="document.getElementById(\'unilb-modal\').remove()">Close</button></div>';
-  document.body.appendChild(m);
-}
-// ══════════ 🤝 HABIT PACTS ══════════
-var HABITS=['🏋️ Gym','🏃 Run','📚 Study','💧 Hydrate','😴 Sleep by 12','🙏 Meditate','🥗 Eat clean'];
-var _wlPacts=[];
-function _pactsLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_pacts'));if(Array.isArray(s))_wlPacts=s;}catch(e){}}
-function _pactsSave(){try{localStorage.setItem('ugz_pacts',JSON.stringify(_wlPacts));}catch(e){}}
-function _wlPactsHtml(){
-  _pactsLoad();
-  var rows=_wlPacts.map(function(p,i){
-    var meDone=p.myDone||0,theyDone=p.theirDone||0;
-    var bar=function(d){return '<div style="display:flex;gap:3px;">'+Array.from({length:p.freq}).map(function(_,k){return '<div style="flex:1;height:6px;border-radius:3px;background:'+(k<d?'#4ade80':'rgba(255,255,255,0.12)')+';"></div>';}).join('')+'</div>';};
-    var doneToday=meDone>=p.freq;
-    return '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;margin-bottom:8px;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="t-body-strong">'+p.habit+' · '+p.freq+'x/wk</div><button onclick="_pactRemove('+i+')" style="background:none;border:none;color:var(--fg3);font-size:var(--fs-base);cursor:pointer;">✕</button></div>'+
-      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:3px;">You · '+meDone+'/'+p.freq+'</div>'+bar(meDone)+
-      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin:7px 0 3px;">🤝 '+p.partner+' · '+theyDone+'/'+p.freq+'</div>'+bar(theyDone)+
-      '<button class="gbtn" style="background:'+(doneToday?'#16a34a':'var(--p)')+';margin-top:10px;padding:9px;" onclick="_pactCheck('+i+')"'+(doneToday?' disabled':'')+'>'+(doneToday?'✓ Goal hit this week!':'✓ Did it today')+'</button>'+
-    '</div>';
-  }).join('');
-  return '<div style="padding:6px var(--s);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="t-body-black">🤝 Habit pacts</div><button onclick="openPactCreate()" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">＋ New pact</button></div>'+
-    (rows||'<div style="font-size:var(--fs-sm);color:var(--fg2);padding:4px 0 6px;">Make a pact with a friend — "we both hit the gym 3x this week." You keep each other honest.</div>')+'</div>';
-}
-function openPactCreate(){
-  var pool=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
-  window._pactDraft={habit:HABITS[0],freq:3,partners:[]};
-  _renderPactCreate();
-}
-function _renderPactCreate(){
-  var d=window._pactDraft;var pool=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
-  var m=document.getElementById('pact-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='pact-modal';m.className='mov open';m.style.zIndex='10001';
-  var hchips=HABITS.map(function(h){var on=d.habit===h;return '<div onclick="_pactSet(\'habit\',\''+h.replace(/'/g,"\\'")+'\')" style="cursor:pointer;font-size:var(--fs-sm);font-weight:500;padding:7px 11px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';color:#fff;">'+h+'</div>';}).join('');
-  var fchips=[2,3,4,5].map(function(f){var on=d.freq===f;return '<div onclick="_pactSet(\'freq\','+f+')" style="cursor:pointer;font-size:var(--fs-base);font-weight:600;padding:9px 15px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';color:#fff;">'+f+'x</div>';}).join('');
-  var pchips=pool.map(function(f){var on=(d.partners||[]).indexOf(f.n)>-1;return '<div onclick="_pactTogglePartner(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';"><div style="width:22px;height:22px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;">'+f.i+'</div><span style="font-size:var(--fs-sm);font-weight:500;color:#fff;">'+f.n+'</span>'+(on?'<span style="color:var(--p);font-size:var(--fs-sm);">✓</span>':'')+'</div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🤝</div><div class="t-title">New habit pact</div></div>'+
-    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Habit</div><div class="t-chip-row">'+hchips+'</div>'+
-    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Times per week</div><div style="display:flex;gap:8px;margin-bottom:14px;">'+fchips+'</div>'+
-    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Pact partner <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg3);">(up to 2)</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">'+pchips+'</div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_createPact()">Make pact 🤝</button><button class="gbtn-ghost" onclick="document.getElementById(\'pact-modal\').remove()">Cancel</button></div>';
-  document.body.appendChild(m);
-}
-function _pactSet(k,v){window._pactDraft[k]=v;_renderPactCreate();}
-function _pactTogglePartner(n){var d=window._pactDraft;d.partners=d.partners||[];var i=d.partners.indexOf(n);if(i>-1)d.partners.splice(i,1);else{if(d.partners.length>=2){alert('You can pact with up to 2 people.');return;}d.partners.push(n);}_renderPactCreate();}
-function _createPact(){
-  var d=window._pactDraft;var partners=(d.partners||[]).slice();if(!partners.length){alert('Pick at least one partner.');return;}
-  var label=partners.join(' & ');
-  _pactsLoad();_wlPacts.push({habit:d.habit,freq:d.freq,partner:label,partners:partners,myDone:0,theirDone:Math.floor(d.freq/2)});_pactsSave();
-  var m=document.getElementById('pact-modal');if(m)m.remove();
-  if(typeof renderWellness==='function')renderWellness();
-  alert('🤝 Pact made with '+label+'!\n\n'+d.habit+' '+d.freq+'x this week. Keep each other honest 💪');
-}
-function _pactCheck(i){_pactsLoad();var p=_wlPacts[i];if(!p)return;p.myDone=Math.min(p.freq,(p.myDone||0)+1);if(Math.random()>0.4)p.theirDone=Math.min(p.freq,(p.theirDone||0)+1);_pactsSave();if(typeof renderWellness==='function')renderWellness();}
-function _pactRemove(i){if(!confirm('Drop this pact?'))return;_pactsLoad();_wlPacts.splice(i,1);_pactsSave();if(typeof renderWellness==='function')renderWellness();}
-// ══════════ 🙏 WELLNESS BUDDY ══════════
-var WL_ACTS=['🏋️ Gym','🏃 Running','📚 Study','🙏 Yoga','🚶 Walks','🚴 Cycling'];
-var _wlBuddy=null;
-function _buddyLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_buddy'));if(s)_wlBuddy=s;}catch(e){}}
-function _buddySave(){try{localStorage.setItem('ugz_buddy',JSON.stringify(_wlBuddy));}catch(e){}}
-function _wlBuddyHtml(){
-  _buddyLoad();
-  if(_wlBuddy){
-    return '<div style="padding:6px var(--s);"><div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--rad-md);padding:13px;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">🙏 Your wellness buddy</div><div style="display:flex;align-items:center;gap:11px;"><div style="width:44px;height:44px;border-radius:50%;background:'+_wlBuddy.color+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:900;color:#fff;">'+_wlBuddy.init+'</div><div style="flex:1;"><div class="t-body-strong">'+_wlBuddy.name+'</div><div class="t-meta">'+_wlBuddy.act+' buddy · keeps you accountable</div></div><button onclick="_buddyMessage()" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:8px 13px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">Message</button></div><div style="text-align:center;margin-top:12px;"><button onclick="_buddyEnd()" style="background:var(--p);border:none;color:#fff;font-size:var(--fs-sm);font-weight:600;cursor:pointer;padding:9px 20px;border-radius:var(--rad-xl);font-family:var(--font);">End partnership</button></div></div></div>';
-  }
-  return '<div style="padding:6px var(--s);"><div style="background:rgba(255,255,255,0.04);border:1px dashed var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;text-align:center;"><div style="font-size:var(--fs-xl);">🙏</div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin:4px 0;">Find a wellness buddy</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:10px;line-height:1.5;">Get matched with someone for the gym, runs, or study accountability. Not a date — just a teammate.</div><button class="gbtn" style="background:var(--p);width:auto;display:inline-block;padding:9px 18px;" onclick="openWellnessBuddy()">Find a buddy</button></div></div>';
-}
-function openWellnessBuddy(){
-  window._buddyAct=WL_ACTS[0];
-  _renderBuddyPick();
-}
-function _renderBuddyPick(){
-  var m=document.getElementById('buddy-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='buddy-modal';m.className='mov open';m.style.zIndex='10001';
-  var chips=WL_ACTS.map(function(a){var on=window._buddyAct===a;return '<div onclick="window._buddyAct=\''+a.replace(/'/g,"\\'")+'\';_renderBuddyPick()" style="cursor:pointer;font-size:var(--fs-sm);font-weight:500;padding:8px 12px;border-radius:var(--rad-lg);border:1px solid '+(on?'#22c55e':'var(--gbdl)')+';background:'+(on?'rgba(34,197,94,0.14)':'rgba(255,255,255,0.04)')+';color:#fff;">'+a+'</div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:370px;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🙏</div><div class="t-title">Find a wellness buddy</div><div class="t-sub">What do you want a teammate for?</div></div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;">'+chips+'</div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_findBuddy()">Match me 🤝</button><button class="gbtn-ghost" onclick="document.getElementById(\'buddy-modal\').remove()">Cancel</button></div>';
-  document.body.appendChild(m);
-}
-function _findBuddy(){
-  var pool=(typeof crushDataAll!=='undefined'&&crushDataAll&&crushDataAll.length)?crushDataAll:(typeof _FRIEND_POOL!=='undefined'?_FRIEND_POOL.map(function(f){return {name:f.n,init:f.i,bg:f.c};}):[]);
-  if(!pool.length){alert('No buddies available right now.');return;}
-  var act=window._buddyAct;var pick=pool[_strHash(act+(pool.length))%pool.length];
-  _wlBuddy={name:pick.name,init:pick.init||(pick.name||'B').charAt(0),color:pick.bg||'#22c55e',act:act};
-  _buddySave();
-  var m=document.getElementById('buddy-modal');if(m)m.remove();
-  if(typeof renderWellness==='function')renderWellness();
-  alert('🤝 Matched! '+_wlBuddy.name+' is your '+act+' buddy.\n\nMessage them to set your first session.');
-}
-function _buddyMessage(){
-  if(!_wlBuddy)return;var id='buddy_'+_wlBuddy.name.replace(/\s/g,'');
-  if(typeof openChat==='function')openChat(id,_wlBuddy.name+' 🙏',_wlBuddy.color,_wlBuddy.init,false,['Hey! We got matched as '+_wlBuddy.act+' buddies 💪','When are you free to start?'],true);
-}
-function _buddyEnd(){if(!confirm('End your buddy partnership?'))return;_wlBuddy=null;try{localStorage.removeItem('ugz_buddy');}catch(e){}if(typeof renderWellness==='function')renderWellness();}
-function completeChallenge(id,xp){
-  if(wellnessState.done[id])return;
-  var today=new Date().toDateString();
-  if(wellnessState.dayKey!==today){wellnessState.done={};wellnessState.completedToday=0;wellnessState.dayKey=today;}
-  // Daily cap keeps it honest — you can't farm every challenge at once
-  if(wellnessState.completedToday>=WL_DAILY_CAP){alert('🌙 You\'ve logged '+WL_DAILY_CAP+' challenges today — come back tomorrow to keep your streak going. (This keeps it honest 💪)');return;}
-  // Honor-system confirmation
-  if(!confirm('Did you really do this?\n\n“'+_wlTitle(id)+'”\n\nBe honest — it only counts if you actually did it. 🌱'))return;
-  wellnessState.done[id]=true;wellnessState.xp+=xp;wellnessState.completedToday++;
-  if(typeof _bumpKindness==='function')_bumpKindness(1);// engagement: wellness
-  if(wellnessState.lastDay!==today){wellnessState.streak++;wellnessState.lastDay=today;if(wellnessState.streak%7===0&&typeof _celebrate==='function')_celebrate(['🔥','🌱','✨','🎉','💚']);}
-  var before=_wlLevel(wellnessState.xp-xp),after=_wlLevel(wellnessState.xp);
-  _wlSave();
-  renderWellness();
-  if(after>before){if(typeof _celebrate==='function')_celebrate(['🌟','✨','🎉','💫','🌱']);setTimeout(function(){alert('🎉 Level up! You reached Level '+after+'. Keep the streak going!');},150);}
-  else if(typeof pushNotification==='function'){pushNotification('🌱 +'+xp+' XP — nice! 🔥 '+wellnessState.streak+'-day streak','event');}
-}
-function motivateFriend(name,btn){
-  if(btn){btn.textContent='✅ Sent';btn.disabled=true;btn.style.background='#16a34a';}
-  setTimeout(function(){alert('💪 Sent '+name+' a motivation nudge before their streak ends!');},120);
-}
 
 // Populate the major / Greek filter chips from the shared lists so they stay in sync with registration
 try{_populateFilterChips();}catch(e){}

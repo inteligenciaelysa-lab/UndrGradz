@@ -1155,8 +1155,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${officialBadge}</td>
             <td>${statusBadge}</td>
             <td>
-              <div style="display:flex; gap:6px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="editUniversityModal('${u.id}')">✏️ Editar</button>
+                <button class="btn btn-secondary btn-sm" onclick="openCampusModal('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🏫 Campus</button>
                 ${u.isDeleted
                   ? `<button class="btn btn-restore btn-sm" onclick="promptRestoreUni('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🔄 Restaurar</button>`
                   : `<button class="btn btn-danger btn-sm" onclick="promptSoftDeleteUni('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>`
@@ -1184,6 +1185,126 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       showToast('Error cargando universidades: ' + err.message, 'error');
     }
+  }
+
+  /**
+   * Wires a País → Estado → Ciudad cascading select trio. Shared between the
+   * University modal and the Campus modal so the cascade logic exists once.
+   *
+   * Existing DB values are free-typed strings collected over time — if one
+   * doesn't match the geo library's canonical name, the select simply renders
+   * unselected rather than guessing. A `touched` flag (only set by real user
+   * interaction, never by the programmatic pre-select) makes sure that if the
+   * admin never opens a given dropdown, the original stored string is what
+   * gets submitted — nothing is silently overwritten with an empty value.
+   *
+   * @returns {{getValues:()=>{country,state,city}}}
+   */
+  function wireGeoCascade({ countrySel, stateSel, citySel, initialCountry, initialState, initialCity }) {
+    const touched = { country: false, state: false, city: false };
+    const original = { country: initialCountry || '', state: initialState || '', city: initialCity || '' };
+
+    function fillOptions(sel, items, placeholder) {
+      sel.innerHTML = `<option value="">${placeholder}</option>` +
+        items.map(it => `<option value="${it.name.replace(/"/g, '&quot;')}" data-code="${it.isoCode || ''}">${it.name}</option>`).join('');
+    }
+
+    // Historical values were typed freely over the years and rarely match the
+    // geo library's formal names exactly (e.g. stored "Coahuila" vs the
+    // library's "Coahuila de Zaragoza"). Try an exact match first, then fall
+    // back to a prefix match in either direction — common for Mexican states
+    // that carry a historical suffix. Still deliberately conservative: if
+    // nothing reasonably matches, the select stays empty rather than guessing.
+    function findBestMatch(items, storedName) {
+      if (!storedName) return null;
+      const needle = storedName.toLowerCase();
+      const exact = items.find(it => it.name.toLowerCase() === needle);
+      if (exact) return exact;
+      return items.find(it => {
+        const hay = it.name.toLowerCase();
+        return hay.startsWith(needle) || needle.startsWith(hay);
+      }) || null;
+    }
+
+    async function loadCountries() {
+      fillOptions(countrySel, [], 'Cargando…');
+      try {
+        const res = await window.adminApi.getGeoCountries();
+        fillOptions(countrySel, res.data.countries, 'Selecciona un país…');
+        if (original.country) {
+          const match = findBestMatch(res.data.countries, original.country);
+          if (match) {
+            countrySel.value = match.name;
+            await loadStates(match.isoCode, false);
+          }
+        }
+      } catch (err) {
+        showToast('Error cargando países: ' + err.message, 'error');
+      }
+    }
+
+    async function loadStates(countryCode, isUserAction) {
+      fillOptions(stateSel, [], 'Cargando…');
+      fillOptions(citySel, [], 'Selecciona un estado primero…');
+      if (!countryCode) return;
+      try {
+        const res = await window.adminApi.getGeoStates(countryCode);
+        fillOptions(stateSel, res.data.states, 'Selecciona un estado…');
+        if (!isUserAction && original.state) {
+          const match = findBestMatch(res.data.states, original.state);
+          if (match) {
+            stateSel.value = match.name;
+            await loadCities(countryCode, match.isoCode, false);
+          }
+        }
+      } catch (err) {
+        showToast('Error cargando estados: ' + err.message, 'error');
+      }
+    }
+
+    async function loadCities(countryCode, stateCode, isUserAction) {
+      fillOptions(citySel, [], 'Cargando…');
+      if (!stateCode) return;
+      try {
+        const res = await window.adminApi.getGeoCities(countryCode, stateCode);
+        fillOptions(citySel, res.data.cities, 'Selecciona una ciudad…');
+        if (!isUserAction && original.city) {
+          const match = findBestMatch(res.data.cities, original.city);
+          if (match) citySel.value = match.name;
+        }
+      } catch (err) {
+        showToast('Error cargando ciudades: ' + err.message, 'error');
+      }
+    }
+
+    countrySel.addEventListener('change', () => {
+      touched.country = true;
+      touched.state = true;
+      touched.city = true;
+      const opt = countrySel.selectedOptions[0];
+      const code = opt ? opt.getAttribute('data-code') : '';
+      loadStates(code, true);
+    });
+    stateSel.addEventListener('change', () => {
+      touched.state = true;
+      touched.city = true;
+      const countryOpt = countrySel.selectedOptions[0];
+      const stateOpt = stateSel.selectedOptions[0];
+      const countryCode = countryOpt ? countryOpt.getAttribute('data-code') : '';
+      const stateCode = stateOpt ? stateOpt.getAttribute('data-code') : '';
+      loadCities(countryCode, stateCode, true);
+    });
+    citySel.addEventListener('change', () => { touched.city = true; });
+
+    loadCountries();
+
+    return {
+      getValues: () => ({
+        country: touched.country ? countrySel.value : original.country,
+        state: touched.state ? stateSel.value : original.state,
+        city: touched.city ? citySel.value : original.city,
+      }),
+    };
   }
 
   // CREATE / EDIT UNIVERSITY MODAL
@@ -1217,6 +1338,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let photos = Array.isArray(uni.coverPhotos) ? [...uni.coverPhotos] : [];
+    // All accepted domains, fully equal/editable — no "locked primary".
+    // Falls back to the single scalar domain for a brand-new university.
+    let domains = Array.isArray(uni.domains) && uni.domains.length ? [...uni.domains] : (uni.domain ? [uni.domain] : []);
+
+    const renderDomainChips = () => {
+      const listEl = document.getElementById('uni-domains-chip-list');
+      if (!listEl) return;
+      listEl.innerHTML = domains.length
+        ? domains.map((d, idx) => `
+            <span class="filter-chip">
+              <span>${d}</span>
+              <span class="filter-chip-remove" onclick="removeUniDomain(${idx})">&times;</span>
+            </span>
+          `).join('')
+        : '<span class="text-muted" style="font-size:12px;">Sin dominios — agrega al menos uno.</span>';
+    };
+
+    window.removeUniDomain = (idx) => {
+      if (domains.length <= 1) {
+        showToast('Debe quedar al menos un dominio aceptado', 'error');
+        return;
+      }
+      domains.splice(idx, 1);
+      renderDomainChips();
+    };
 
     const renderPhotosGallery = () => {
       const galleryEl = document.getElementById('cover-photos-gallery-container');
@@ -1246,14 +1392,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalHtml = `
       <h2>${id ? 'Editar Universidad' : 'Registrar Nueva Universidad'}</h2>
       <form id="form-uni-modal" style="margin-top:16px; max-height:75vh; overflow-y:auto; padding-right:8px;">
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
-          <div class="form-group">
-            <label>Nombre de la Institución *</label>
-            <input type="text" id="m-uni-name" class="form-input" required value="${uni.name || ''}" placeholder="Ej: Universidad Autónoma de Coahuila">
-          </div>
-          <div class="form-group">
-            <label>Dominio Institucional * ${id ? '(No editable)' : ''}</label>
-            <input type="text" id="m-uni-domain" class="form-input" required ${id ? 'readonly' : ''} value="${uni.domain || ''}" placeholder="Ej: uadec.edu.mx">
+        <div class="form-group">
+          <label>Nombre de la Institución *</label>
+          <input type="text" id="m-uni-name" class="form-input" required value="${uni.name || ''}" placeholder="Ej: Universidad Autónoma de Coahuila">
+        </div>
+
+        <div class="form-group">
+          <label>Dominios de Correo Aceptados *</label>
+          <div id="uni-domains-chip-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;"></div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="add-domain-input" class="form-input" placeholder="Ej: alumnos.uadec.mx">
+            <button type="button" id="btn-add-domain" class="btn btn-secondary">+ Agregar dominio</button>
           </div>
         </div>
 
@@ -1310,16 +1459,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
           <div class="form-group">
-            <label>Ciudad</label>
-            <input type="text" id="m-uni-city" class="form-input" value="${uni.city || ''}" placeholder="Saltillo">
+            <label>País</label>
+            <select id="m-uni-country-select" class="form-select"></select>
           </div>
           <div class="form-group">
             <label>Estado</label>
-            <input type="text" id="m-uni-state" class="form-input" value="${uni.state || ''}" placeholder="Coahuila">
+            <select id="m-uni-state-select" class="form-select"></select>
           </div>
           <div class="form-group">
-            <label>País</label>
-            <input type="text" id="m-uni-country" class="form-input" value="${uni.country || 'Mexico'}">
+            <label>Ciudad</label>
+            <select id="m-uni-city-select" class="form-select"></select>
           </div>
         </div>
 
@@ -1334,7 +1483,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- Cover Photos Section -->
         <div class="form-group">
-          <label>Fotos de Portada del Campus (${photos.length})</label>
+          <label>Fotos de Portada (${photos.length})</label>
           <div style="display:flex; gap:8px; margin-top:6px;">
             <input type="url" id="add-photo-url-input" class="form-input" placeholder="https://images.unsplash.com/photo-campus.jpg">
             <button type="button" id="btn-add-photo-url" class="btn btn-secondary">+ Agregar Foto</button>
@@ -1350,6 +1499,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     openModal(modalHtml);
     renderPhotosGallery();
+    renderDomainChips();
+
+    const geoCascade = wireGeoCascade({
+      countrySel: document.getElementById('m-uni-country-select'),
+      stateSel: document.getElementById('m-uni-state-select'),
+      citySel: document.getElementById('m-uni-city-select'),
+      initialCountry: uni.country || 'Mexico',
+      initialState: uni.state || '',
+      initialCity: uni.city || '',
+    });
+
+    // Add domain handler
+    const btnAddDomain = document.getElementById('btn-add-domain');
+    const addDomainInput = document.getElementById('add-domain-input');
+    if (btnAddDomain && addDomainInput) {
+      const addDomain = () => {
+        const d = addDomainInput.value.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+        if (!d) return;
+        if (!/^[a-z0-9.-]+\.[a-z]{2,}$/.test(d)) {
+          showToast('Formato de dominio no válido', 'error');
+          return;
+        }
+        if (domains.includes(d)) {
+          showToast('Ese dominio ya está en la lista', 'error');
+          return;
+        }
+        domains.push(d);
+        addDomainInput.value = '';
+        renderDomainChips();
+      };
+      btnAddDomain.addEventListener('click', addDomain);
+      addDomainInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); addDomain(); }
+      });
+    }
 
     // Sync color pickers with hex text inputs
     const pPicker = document.getElementById('m-uni-pcolor-picker');
@@ -1392,9 +1576,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('form-uni-modal').addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
+        if (domains.length === 0) {
+          showToast('Se requiere al menos un dominio aceptado', 'error');
+          return;
+        }
+        const geoValues = geoCascade.getValues();
         const payload = {
           name: document.getElementById('m-uni-name').value,
-          domain: document.getElementById('m-uni-domain').value,
+          domains: domains,
           acronym: document.getElementById('m-uni-acronym').value,
           type: document.getElementById('m-uni-type').value,
           status: document.getElementById('m-uni-status').value,
@@ -1402,9 +1591,9 @@ document.addEventListener('DOMContentLoaded', () => {
           secondaryColor: sText.value,
           website: document.getElementById('m-uni-website').value,
           logoUrl: document.getElementById('m-uni-logo').value,
-          city: document.getElementById('m-uni-city').value,
-          state: document.getElementById('m-uni-state').value,
-          country: document.getElementById('m-uni-country').value,
+          city: geoValues.city,
+          state: geoValues.state,
+          country: geoValues.country,
           isOfficial: document.getElementById('m-uni-official').checked,
           coverPhotos: photos,
         };
@@ -1451,6 +1640,175 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast(err.message, 'error');
       }
     });
+  };
+
+  /* ==========================================================================
+     4.5 CAMPUS MODAL
+     Locations under one university (e.g. Tec de Monterrey campus Guadalajara).
+     Reuses openModal/closeModal (single overlay, no stacking) and the shared
+     wireGeoCascade() helper already wired for the University modal above.
+     ========================================================================== */
+  window.openCampusModal = async (universityId, universityName) => {
+    let campuses = [];
+    try {
+      const res = await window.adminApi.getCampuses(universityId, { includeDeleted: 'true' });
+      campuses = res.data.campuses || [];
+    } catch (err) {
+      showToast('Error obteniendo campus: ' + err.message, 'error');
+      return;
+    }
+
+    const renderCampusList = () => {
+      const listEl = document.getElementById('campus-list-container');
+      if (!listEl) return;
+      if (!campuses.length) {
+        listEl.innerHTML = '<p class="text-muted" style="font-size:12px; padding:8px 0;">Esta universidad todavía no tiene campus registrados.</p>';
+        return;
+      }
+      listEl.innerHTML = campuses.map(c => {
+        const loc = [c.city, c.state, c.country].filter(Boolean).join(', ') || 'Sin ubicación';
+        const statusBadge = c.isDeleted
+          ? '<span class="status-badge badge-deleted">ELIMINADO</span>'
+          : '<span class="status-badge badge-active">Activo</span>';
+        return `
+          <div class="uni-item-row" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; border:1px solid var(--border-color); border-radius:8px; margin-bottom:8px;">
+            <div>
+              <strong>${c.name}</strong> ${statusBadge}<br>
+              <small class="text-muted">${loc}</small>
+            </div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="editCampusForm('${c.id}')">✏️ Editar</button>
+              ${c.isDeleted
+                ? `<button type="button" class="btn btn-restore btn-sm" onclick="promptRestoreCampus('${c.id}', '${c.name.replace(/'/g, "\\'")}')">🔄 Restaurar</button>`
+                : `<button type="button" class="btn btn-danger btn-sm" onclick="promptSoftDeleteCampus('${c.id}', '${c.name.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    const modalHtml = `
+      <h2>🏫 Campus de ${universityName}</h2>
+      <div id="campus-list-container" style="margin:16px 0;"></div>
+      <button type="button" id="btn-new-campus" class="btn btn-secondary btn-block">➕ Nuevo Campus</button>
+      <div id="campus-form-container"></div>
+    `;
+    openModal(modalHtml);
+    renderCampusList();
+
+    let activeGeoCascade = null;
+
+    const closeCampusForm = () => {
+      const c = document.getElementById('campus-form-container');
+      if (c) c.innerHTML = '';
+      activeGeoCascade = null;
+    };
+
+    const renderCampusForm = (campus) => {
+      const formEl = document.getElementById('campus-form-container');
+      if (!formEl) return;
+      const c = campus || { id: null, name: '', city: '', state: '', country: 'Mexico' };
+      formEl.innerHTML = `
+        <hr style="border:none; border-top:1px solid var(--border-color); margin:16px 0;">
+        <form id="form-campus">
+          <div class="form-group">
+            <label>Nombre del Campus *</label>
+            <input type="text" id="cf-name" class="form-input" required value="${c.name || ''}" placeholder="Ej: Campus Guadalajara">
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
+            <div class="form-group">
+              <label>País</label>
+              <select id="cf-country-select" class="form-select"></select>
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <select id="cf-state-select" class="form-select"></select>
+            </div>
+            <div class="form-group">
+              <label>Ciudad</label>
+              <select id="cf-city-select" class="form-select"></select>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; margin-top:12px;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">${c.id ? 'Guardar Cambios' : 'Crear Campus'}</button>
+            <button type="button" class="btn btn-secondary" id="btn-cancel-campus-form">Cancelar</button>
+          </div>
+        </form>
+      `;
+
+      activeGeoCascade = wireGeoCascade({
+        countrySel: document.getElementById('cf-country-select'),
+        stateSel: document.getElementById('cf-state-select'),
+        citySel: document.getElementById('cf-city-select'),
+        initialCountry: c.country || 'Mexico',
+        initialState: c.state || '',
+        initialCity: c.city || '',
+      });
+
+      document.getElementById('btn-cancel-campus-form').addEventListener('click', closeCampusForm);
+
+      document.getElementById('form-campus').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const geoValues = activeGeoCascade.getValues();
+          const payload = {
+            name: document.getElementById('cf-name').value,
+            country: geoValues.country,
+            state: geoValues.state,
+            city: geoValues.city,
+          };
+          if (c.id) {
+            await window.adminApi.updateCampus(c.id, payload);
+            showToast('Campus actualizado correctamente');
+          } else {
+            await window.adminApi.createCampus(universityId, payload);
+            showToast('Campus creado correctamente');
+          }
+          const res = await window.adminApi.getCampuses(universityId, { includeDeleted: 'true' });
+          campuses = res.data.campuses || [];
+          renderCampusList();
+          closeCampusForm();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    };
+
+    document.getElementById('btn-new-campus').addEventListener('click', () => renderCampusForm(null));
+
+    window.editCampusForm = (campusId) => {
+      const campus = campuses.find(c => c.id === campusId);
+      if (campus) renderCampusForm(campus);
+    };
+
+    window.promptSoftDeleteCampus = (campusId, name) => {
+      showConfirmDialog('Eliminar Campus', `¿Eliminar el campus "${name}"?`, async () => {
+        try {
+          await window.adminApi.softDeleteCampus(campusId);
+          showToast(`Campus "${name}" eliminado correctamente`);
+          const res = await window.adminApi.getCampuses(universityId, { includeDeleted: 'true' });
+          campuses = res.data.campuses || [];
+          renderCampusList();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    };
+
+    window.promptRestoreCampus = (campusId, name) => {
+      showConfirmDialog('Restaurar Campus', `¿Restaurar el campus "${name}"?`, async () => {
+        try {
+          await window.adminApi.restoreCampus(campusId);
+          showToast(`Campus "${name}" restaurado correctamente`);
+          const res = await window.adminApi.getCampuses(universityId, { includeDeleted: 'true' });
+          campuses = res.data.campuses || [];
+          renderCampusList();
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    };
   };
 
   /* ==========================================================================

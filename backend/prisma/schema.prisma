@@ -90,6 +90,9 @@ model UserProfile {
   university         String? // Legacy string representation
   universityId       String?
   universityRef      University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
+  // Schema-ready for future use; not yet wired to any onboarding/registration UI.
+  campusId           String?
+  campusRef          Campus?     @relation(fields: [campusId], references: [id], onDelete: SetNull)
   major              String?
   grad               String? // Año de graduación, ej. "May '26"
   crossover          Boolean     @default(false)
@@ -224,31 +227,69 @@ model ProfileView {
 }
 
 model University {
-  id             String        @id @default(cuid())
-  domain         String        @unique
+  id             String             @id @default(cuid())
+  // Mirror of one row in `domains` below, kept in sync by the service layer.
+  // Every other reader (getProfile, admin table, public catalog) keeps using
+  // this scalar column unchanged; `domains` is the real, fully-editable set.
+  domain         String             @unique
   name           String
   acronym        String
-  type           String        @default("public") // 'public', 'private'
+  type           String             @default("public") // 'public', 'private'
   primaryColor   String?
   secondaryColor String?
   website        String?
   coverPhotos    Json? // Array of image URLs
   city           String?
   state          String?
-  country        String        @default("Mexico")
+  country        String             @default("Mexico")
   logoUrl        String?
-  isOfficial     Boolean       @default(false)
-  status         String        @default("AVAILABLE") // 'AVAILABLE', 'PENDING', 'INTEGRATED', 'SUSPENDED'
-  isDeleted      Boolean       @default(false)
+  isOfficial     Boolean            @default(false)
+  status         String             @default("AVAILABLE") // 'AVAILABLE', 'PENDING', 'INTEGRATED', 'SUSPENDED'
+  isDeleted      Boolean            @default(false)
   deletedAt      DateTime?
   userProfiles   UserProfile[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  domains        UniversityDomain[]
+  campuses       Campus[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@index([name])
   @@index([acronym])
   @@index([type])
   @@index([status])
+}
+
+// All institutional email domains a university accepts. `University.domain`
+// mirrors exactly one of these rows for backward compatibility with existing
+// readers — see the comment on that field.
+model UniversityDomain {
+  id           String     @id @default(cuid())
+  universityId String
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  domain       String     @unique
+  createdAt    DateTime   @default(now())
+
+  @@index([universityId])
+}
+
+// A physical location under one university (e.g. Tec de Monterrey campus
+// Guadalajara). Brand-level fields (colors, logo, domains, type) stay on the
+// parent University and are not duplicated here.
+model Campus {
+  id           String        @id @default(cuid())
+  universityId String
+  university   University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  name         String
+  city         String?
+  state        String?
+  country      String?       @default("Mexico")
+  isDeleted    Boolean       @default(false)
+  deletedAt    DateTime?
+  userProfiles UserProfile[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([universityId])
 }
 
 model Report {
