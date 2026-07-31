@@ -542,6 +542,19 @@ class AdminController {
     }
   }
 
+  async getVerificationDocument(req, res, next) {
+    try {
+      const { id } = req.params;
+      const data = await adminService.getVerificationDocument(id);
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async approveVerification(req, res, next) {
     try {
       const { id } = req.params;

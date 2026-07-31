@@ -1771,6 +1771,11 @@ window.addEventListener('load', function() {
           userPro.customization = profile.customization || {};
           userPro.isVerified = !!(user.isVerified || (profile && profile.isVerified));
           if (userPro.isVerified) verified = true;
+          // Involvement verification badges (Student Government / Creator / Athlete)
+          userPro.isCreatorVerified = !!user.isCreatorVerified;
+          userPro.isAthleteVerified = !!user.isAthleteVerified;
+          userPro.isGovtVerified = !!user.isGovtVerified;
+          userPro.verifiedSports = Array.isArray(profile.verifiedSports) ? profile.verifiedSports : [];
           
           if (userPro.university) {
             uni = _resolveUserUniversity(userPro.university);
@@ -2119,8 +2124,13 @@ async function doLoginAuth(){
     userPro.isVerified = !!dbProfile.isVerified;
     verified = !!dbProfile.isVerified;
     window.verified = verified;
+    // Involvement verification badges (Student Government / Creator / Athlete)
+    userPro.isCreatorVerified = !!dbProfile.isCreatorVerified;
+    userPro.isAthleteVerified = !!dbProfile.isAthleteVerified;
+    userPro.isGovtVerified = !!dbProfile.isGovtVerified;
 
     const profile = dbProfile.profile || {};
+    userPro.verifiedSports = Array.isArray(profile.verifiedSports) ? profile.verifiedSports : [];
     userPro.bio = profile.bio || '';
     userPro.university = profile.university || (userPro.email ? userPro.email.split('@')[1] : '');
     userPro.major = profile.major || '';
@@ -2801,6 +2811,47 @@ function _ob4P2(){
     'ℹ️ Un administrador de nuestro equipo verificará tu cuenta. Si cumples con los requisitos, se te otorgará un badge de <b>Creador verificado</b>.':
     'ℹ️ An administrator from our team will verify your account. If you meet the requirements, you will be granted a <b>Verified Creator</b> badge.';
 
+  // --- Verification document upload (Student Government / Creator / Athletics) ---
+  var isES = window.currentLang==='es';
+  var vfSgTitle      = isES?'Verifica tu participación':'Verify your involvement';
+  var vfSgDesc       = isES?'Sube un documento que compruebe tu participación en el Gobierno Estudiantil.':'Upload a document that verifies your participation in Student Government.';
+  var vfSgBtn        = isES?'Subir documento de verificación':'Upload Verification Document';
+  var vfCrTitle      = isES?'Verifica tu cuenta de creador':'Verify your content creator account';
+  var vfCrDesc       = isES?'Sube una prueba de que las cuentas que ingresaste te pertenecen.':'Upload proof that you own the account(s) you entered.';
+  var vfCrExamples   = isES?'Ejemplos válidos: captura de tu perfil, analytics, panel de creador, o cualquier documento que demuestre que la cuenta es tuya.':'Valid examples: a screenshot of your profile, analytics, creator dashboard, or any document proving the account is yours.';
+  var vfAthTitle     = isES?'Verifica tu participación deportiva':'Verify your athletic involvement';
+  var vfAthDesc      = isES?'Sube un documento por cada deporte que seleccionaste.':'Upload one document for each sport you selected.';
+  var vfOptional     = isES?'Opcional — puedes subirlo después desde tu perfil.':'Optional — you can upload it later from your profile.';
+  var vfFormats      = isES?'PDF, JPG, JPEG o PNG · máx. 8 MB':'PDF, JPG, JPEG or PNG · max 8 MB';
+  var vfRemove       = isES?'Quitar':'Remove';
+
+  // Renders a single dashed dropzone. Reuses .id-box / .id-box.done, the same
+  // component the Blue Badge upload uses.
+  function vfBox(kind, sport, label){
+    var doc = _ob4GetVerifDoc(kind, sport);
+    var key = sport ? (kind+'|'+sport) : kind;
+    if(doc){
+      return '<div class="id-box done" style="margin-bottom:0;" onclick="_ob4PickVerifDoc(\''+kind+'\',\''+(sport||'')+'\')">'+
+               '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✅ '+_ob4Esc(doc.name)+'</span>'+
+             '</div>'+
+             '<div style="display:flex;justify-content:flex-end;margin-top:6px;">'+
+               '<span onclick="event.stopPropagation();_ob4ClearVerifDoc(\''+kind+'\',\''+(sport||'')+'\')" style="font-size:var(--fs-xs);color:#f87171;cursor:pointer;font-weight:600;">✕ '+vfRemove+'</span>'+
+             '</div>';
+    }
+    return '<div class="id-box" style="margin-bottom:0;" onclick="_ob4PickVerifDoc(\''+kind+'\',\''+(sport||'')+'\')">📄 '+label+'</div>'+
+           '<div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:6px;text-align:center;">'+vfFormats+'</div>';
+  }
+
+  function vfPanel(id, title, desc, extra, body){
+    return '<div id="'+id+'" class="ob4-verif-panel" style="margin-top:14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--rad-md);padding:16px;box-shadow:var(--el-3);text-align:left;">'+
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:6px;">'+title+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.45;margin-bottom:'+(extra?'6px':'12px')+';">'+desc+'</div>'+
+      (extra?'<div style="font-size:var(--fs-xs);color:var(--fg3);line-height:1.45;margin-bottom:12px;">'+extra+'</div>':'')+
+      body+
+      '<div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:10px;">'+vfOptional+'</div>'+
+    '</div>';
+  }
+
   var uniNameTog=(uni&&uni.acronym)?('<div class="ob4-uniname-tog" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:9px 0 2px;"><span class="t-meta">'+lblShowOnCard+'</span><div class="ob4-chip'+((st.uniNameStyle||'full')==='full'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'full\')">'+lblFullName+'</div><div class="ob4-chip'+(st.uniNameStyle==='acronym'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'acronym\')">'+lblAcronym+'</div></div>'):'';
   var acad;
   if(window._regAlumni){
@@ -2870,12 +2921,226 @@ function _ob4P2(){
       '</div>';
   }
 
+  // Student Government proof — appears once a role has been picked.
+  var sgVerifyHtml='';
+  if(window._ob4SG){
+    sgVerifyHtml=vfPanel('sg-verify-section', '🏛️ '+vfSgTitle, vfSgDesc, '', vfBox('STUDENT_GOVT','',vfSgBtn));
+  }
+
+  // Content Creator proof — revealed once at least one handle has been typed.
+  // Rendered upfront and toggled by _ob4ValidateAll2() (which already runs on
+  // every keystroke) so typing never triggers a re-render and never steals focus.
+  var creatorVerifyHtml='';
+  if(isCreator){
+    var hasHandle=!!((_ob4State.creatorInsta||'').trim() || (_ob4State.creatorTiktok||'').trim() || (_ob4State.creatorYoutube||'').trim());
+    creatorVerifyHtml=vfPanel('creator-verify-section', '✨ '+vfCrTitle, vfCrDesc, vfCrExamples, vfBox('CREATOR_BADGE','',vfSgBtn));
+    if(!hasHandle) creatorVerifyHtml=creatorVerifyHtml.replace('id="creator-verify-section" class="ob4-verif-panel" style="', 'id="creator-verify-section" class="ob4-verif-panel" style="display:none;');
+  }
+
+  // Athletics proof — one independent document per selected sport.
+  var athVerifyHtml='';
+  if(_ssel.length){
+    var sportBoxes=_ssel.map(function(sp){
+      var lbl=isES?('Subir documento de '+sp):('Upload '+sp+' Verification Document');
+      return '<div style="margin-bottom:14px;">'+
+               '<div style="font-size:var(--fs-sm);font-weight:700;color:#fff;margin-bottom:7px;">'+_ob4Esc(sp)+'</div>'+
+               vfBox('ATHLETE', sp, lbl)+
+             '</div>';
+    }).join('');
+    athVerifyHtml=vfPanel('athletics-verify-section', '🏅 '+vfAthTitle, vfAthDesc, '', sportBoxes);
+  }
+
   return '<div class="ob4-flabel ob4-flabel--uni">'+lblYourUni+'</div>'+uniCard+uniNameTog+acad+
     '<div class="ob4-flabel">'+lblLivingLabel+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+livHtml+'</div>'+
     '<div class="ob4-flabel">'+lblInvolvedLabel+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+invHtml+'</div>'+
     creatorHtml+
+    creatorVerifyHtml+
+    sgVerifyHtml+
+    athVerifyHtml+
     '<button class="ob4-cta" id="ob4-continue-btn-p2" onclick="_ob4Next2()" disabled style="opacity:0.45;margin-top:18px;">'+btnContinue+'</button>';
 }
+/**
+ * Pills for the involvement verifications an admin has APPROVED.
+ * Reads only the badge flags and the denormalized verifiedSports list, both of
+ * which the backend writes exclusively on approval — so pending and rejected
+ * requests are never surfaced.
+ * @param {object} [src] user-like object; defaults to the logged-in userPro.
+ */
+function _getVerifiedInvolvementPills(src){
+  var u = src || (typeof userPro !== 'undefined' ? userPro : null);
+  if(!u) return [];
+  var isES = window.currentLang==='es';
+  var out = [];
+  var chk = '<span style="color:#22c55e;font-weight:800;">✓</span> ';
+
+  if(u.isGovtVerified){
+    out.push('<div class="cpill" title="Verified by UndrGradz">'+chk+'🏛️ '+(isES?'Gobierno Estudiantil Verificado':'Verified Student Government Member')+'</div>');
+  }
+  if(u.isCreatorVerified){
+    out.push('<div class="cpill" title="Verified by UndrGradz">'+chk+'✨ '+(isES?'Creador de Contenido Verificado':'Verified Content Creator')+'</div>');
+  }
+  if(u.isAthleteVerified){
+    var sports = Array.isArray(u.verifiedSports) ? u.verifiedSports.filter(Boolean) : [];
+    out.push('<div class="cpill" title="Verified by UndrGradz">'+chk+'🏅 '+(isES?'Atleta Verificado':'Verified Athlete')+'</div>');
+    // Each approved sport gets its own pill.
+    sports.forEach(function(sp){
+      out.push('<div class="cpill on" style="font-size:var(--fs-2xs);">'+_ob4Esc(sp)+'</div>');
+    });
+  }
+  return out;
+}
+
+/* ==========================================================================
+   ONBOARDING STEP 2 — VERIFICATION DOCUMENTS
+   Student Government / Content Creator / Athletics (one doc per sport).
+
+   The documents are held in memory during onboarding and submitted after
+   `apiClient.login()` inside launch(), because there is no access token yet
+   while the user is on step 2. Same deferral the onboarding photos use.
+   ========================================================================== */
+
+var _OB4_VERIF_MAX_BYTES = 8 * 1024 * 1024;
+var _OB4_VERIF_EXT = { pdf:'application/pdf', jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png' };
+
+function _ob4Esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function _ob4VerifStore(){
+  if(!_ob4State.verifDocs) _ob4State.verifDocs={};
+  if(!_ob4State.verifDocs.ATHLETE) _ob4State.verifDocs.ATHLETE={};
+  return _ob4State.verifDocs;
+}
+
+function _ob4GetVerifDoc(kind, sport){
+  var store=_ob4VerifStore();
+  if(kind==='ATHLETE') return sport ? (store.ATHLETE[sport]||null) : null;
+  return store[kind]||null;
+}
+
+function _ob4SetVerifDoc(kind, sport, doc){
+  var store=_ob4VerifStore();
+  if(kind==='ATHLETE'){ if(sport) store.ATHLETE[sport]=doc; }
+  else store[kind]=doc;
+}
+
+function _ob4ClearVerifDoc(kind, sport){
+  var store=_ob4VerifStore();
+  if(kind==='ATHLETE'){ if(sport) delete store.ATHLETE[sport]; }
+  else delete store[kind];
+  _ob4Go(2);
+}
+
+/**
+ * Opens the file picker. The <input> is created once and attached to
+ * document.body — it must NOT live inside the step markup, because _ob4Go(2)
+ * replaces that markup wholesale via innerHTML.
+ */
+function _ob4PickVerifDoc(kind, sport){
+  var inp=document.getElementById('ob4-verif-file');
+  if(!inp){
+    inp=document.createElement('input');
+    inp.type='file';
+    inp.id='ob4-verif-file';
+    inp.accept='.pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png';
+    inp.style.display='none';
+    inp.onchange=function(){
+      if(inp.files && inp.files[0]) _ob4VerifDocChosen(inp.files[0], inp.dataset.kind, inp.dataset.sport||'');
+      inp.value='';
+    };
+    document.body.appendChild(inp);
+  }
+  inp.dataset.kind=kind;
+  inp.dataset.sport=sport||'';
+  inp.value='';
+  inp.click();
+}
+
+function _ob4VerifDocChosen(file, kind, sport){
+  var isES=window.currentLang==='es';
+  var ext=(file.name.split('.').pop()||'').toLowerCase();
+  var mime=_OB4_VERIF_EXT[ext];
+
+  if(!mime){
+    alert(isES?'Formato no permitido. Sube un archivo PDF, JPG, JPEG o PNG.':'Unsupported format. Please upload a PDF, JPG, JPEG or PNG file.');
+    return;
+  }
+  if(file.size > _OB4_VERIF_MAX_BYTES){
+    alert(isES?'El archivo supera el máximo de 8 MB.':'The file exceeds the 8 MB limit.');
+    return;
+  }
+
+  var reader=new FileReader();
+  reader.onload=function(e){
+    _ob4SetVerifDoc(kind, sport, {
+      name: file.name,
+      mime: mime,
+      size: file.size,
+      dataUrl: e.target.result
+    });
+    _ob4Go(2);
+  };
+  reader.onerror=function(){
+    alert(isES?'No se pudo leer el archivo. Intenta de nuevo.':'Could not read the file. Please try again.');
+  };
+  reader.readAsDataURL(file);
+}
+
+/**
+ * Flattens the stored documents into one submission per verification request.
+ * Athletics yields one entry per sport so each is reviewed independently.
+ */
+function _ob4CollectVerifSubmissions(){
+  var store=(_ob4State && _ob4State.verifDocs) ? _ob4State.verifDocs : {};
+  var out=[];
+
+  if(store.STUDENT_GOVT && window._ob4SG){
+    out.push({
+      type:'STUDENT_GOVT',
+      credentialUrl: store.STUDENT_GOVT.dataUrl,
+      documentName: store.STUDENT_GOVT.name,
+      documentMime: store.STUDENT_GOVT.mime,
+      metadata: { roles: [window._ob4SG] },
+      notes: 'Gobierno Estudiantil · ' + window._ob4SG
+    });
+  }
+
+  // Only submit if the category is still selected — the user may have uploaded
+  // a document and then turned the chip back off.
+  var stillCreator=(typeof _ob4Involved!=='undefined' && _ob4Involved.indexOf('Content Creator')>-1);
+  if(store.CREATOR_BADGE && stillCreator){
+    var socials={};
+    if((_ob4State.creatorInsta||'').trim())   socials.instagram=_ob4State.creatorInsta.trim();
+    if((_ob4State.creatorTiktok||'').trim())  socials.tiktok=_ob4State.creatorTiktok.trim();
+    if((_ob4State.creatorYoutube||'').trim()) socials.youtube=_ob4State.creatorYoutube.trim();
+    out.push({
+      type:'CREATOR_BADGE',
+      credentialUrl: store.CREATOR_BADGE.dataUrl,
+      documentName: store.CREATOR_BADGE.name,
+      documentMime: store.CREATOR_BADGE.mime,
+      socialLinks: socials,
+      notes: 'Creador de Contenido'
+    });
+  }
+
+  var sports=(window._ob4Sports||[]);
+  var athStore=store.ATHLETE||{};
+  sports.forEach(function(sp){
+    var doc=athStore[sp];
+    if(!doc) return;
+    out.push({
+      type:'ATHLETE',
+      sport: sp,
+      credentialUrl: doc.dataUrl,
+      documentName: doc.name,
+      documentMime: doc.mime,
+      notes: 'Atleta Universitario · ' + sp
+    });
+  });
+
+  return out;
+}
+
 function _ob4UniName(v){_ob4State.uniNameStyle=v;_ob4Go(2);}
 function _ob4SetLiving(el,v){_ob4State.living=v;var box=el.parentElement;if(box)box.querySelectorAll('.ob4-chip').forEach(function(c){c.classList.toggle('on',c===el);});_ob4Strength();if(typeof _ob4ValidateAll2==='function')_ob4ValidateAll2();}
 function _ob4ValidateAll2(){
@@ -2894,8 +3159,12 @@ function _ob4ValidateAll2(){
     if(!insta&&!tiktok&&!youtube){
       creatorValid=false;
     }
+    // Reveal the creator verification panel as soon as a handle exists.
+    // Toggled here instead of re-rendering, so the input keeps focus.
+    var cvPanel=document.getElementById('creator-verify-section');
+    if(cvPanel) cvPanel.style.display=(insta||tiktok||youtube)?'':'none';
   }
-  
+
   var isValid=!!major&&!!grad&&!!living&&involvedValid&&creatorValid;
   var btn=document.getElementById('ob4-continue-btn-p2');
   if(btn){
@@ -4293,6 +4562,30 @@ async function launch(){
     await apiClient.updateProfile(apiProfileData);
     console.log("Backend profile sync success!");
 
+    // Submit the involvement verification documents captured in step 2.
+    // Deferred to here for two reasons: step 2 runs before register/login (so
+    // there was no access token when the files were picked), and the profile
+    // must already exist so the admin panel shows university/major alongside
+    // each request. Every request is isolated — a failure must never abort the
+    // signup; the student can re-upload later from their profile.
+    try {
+      const verifSubmissions = (typeof _ob4CollectVerifSubmissions === 'function') ? _ob4CollectVerifSubmissions() : [];
+      if (verifSubmissions.length) {
+        console.log(`Submitting ${verifSubmissions.length} verification request(s)...`);
+        for (let i = 0; i < verifSubmissions.length; i++) {
+          const sub = verifSubmissions[i];
+          try {
+            await apiClient.request('/users/me/verification-request', { method: 'POST', body: sub });
+            console.log(`Verification submitted: ${sub.type}${sub.sport ? ' · ' + sub.sport : ''}`);
+          } catch (vErr) {
+            console.error(`Failed to submit verification ${sub.type}${sub.sport ? ' · ' + sub.sport : ''}:`, vErr);
+          }
+        }
+      }
+    } catch (vOuterErr) {
+      console.error('Error collecting verification documents:', vOuterErr);
+    }
+
     // Fetch fresh profile with DB-synced URLs and photo IDs so they match perfectly!
     try {
       const dbProfile = await apiClient.getMe();
@@ -5122,6 +5415,9 @@ function updateProfileUI(){
   var flr=document.getElementById('prof-flags-row');
   if(flr){
     var pieces=[];
+    // Approved involvement verifications. Only APPROVED requests ever reach
+    // these flags, so pending/rejected ones are never shown publicly.
+    pieces=pieces.concat(_getVerifiedInvolvementPills());
     var userLangs = (userPro && (userPro.languages || userPro.langs || userPro.flags || (userPro.background && userPro.background.languages))) || [];
     if(userLangs && userLangs.length){
       pieces=pieces.concat(userLangs.slice(0,8).map(function(l){var flagIco = _getLangFlag(l); return '<div class="cpill">'+flagIco+' '+l+'</div>';}));
@@ -10215,12 +10511,20 @@ function buildHingeStackHtml(p,opts){
   var _gmap={female:'Female',male:'Male'};var _gnd=isSelf?(userPro.genderIdentity||_gmap[userPro.gender]||''):(p.genderIdentity||_gmap[p.gender]||'');if(_gnd&&(!isSelf||userPro.hideIdentityLife!==true))lifeRows.push(['Gender',_gnd,false]);
   var _tff=isSelf?userPro.transferFrom:p.transferFrom;if(_tff&&_tff.name)lifeRows.push(['Transferred from',_tff.name,false]);
   var _spts=isSelf?(userPro.athlete?(userPro.sports||[]):[]):(p.sports||[]);if(_spts&&_spts.length)lifeRows.push(['\uD83C\uDFC5 Athlete',_spts.join(', '),false]);
+  // Admin-approved involvement verifications. The third element flags the row
+  // as verified, which renders it green with a trailing \u2713. Only APPROVED
+  // requests ever set these, so pending/rejected ones stay hidden.
+  var _vsrc=isSelf?(typeof userPro!=='undefined'?userPro:{}):(p||{});
+  var _vSports=_vsrc.verifiedSports||(_vsrc.profile&&_vsrc.profile.verifiedSports)||[];
+  if(_vsrc.isAthleteVerified&&_vSports.length)lifeRows.push(['\uD83C\uDFC5 Verified Athlete',_vSports.join(', '),true]);
+  if(_vsrc.isGovtVerified)lifeRows.push(['\uD83C\uDFDB Verified Student Government',(window.currentLang==='es'?'Miembro':'Member'),true]);
+  if(_vsrc.isCreatorVerified)lifeRows.push(['\u2728 Verified Content Creator',(window.currentLang==='es'?'Creador':'Creator'),true]);
   var _gh=isSelf?userPro.greekHouse:p.greekHouse;if(_gh)lifeRows.push(['House',_gh,false]);
   if(dr)lifeRows.push(['Drinking',dr,false]);
   if(sm)lifeRows.push(['Smoking',sm,false]);
   if(lifeRows.length){
     var _lifeIc={'Zodiac':(_zod?_zod.e:'🌀'),'Height':'📏','Workout':'🏃','Diet':'🍽️','Lives':'🏠','Pronouns':'🔤','Orientation':'🌈','Gender':'⚧','House':'🏛️','Drinking':'🍸','Smoking':'🚭','Transferred from':'🔄'};
-    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">🌿 ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
+    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">🌿 ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Verified Student Government/.test(r[0])?'🏛️':(/Verified Content Creator/.test(r[0])?'✨':(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'))));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
   }
   // 🤝 Wingmate endorsement
   // (Secret prompt removed per user request — voice note + 3 prompts only)

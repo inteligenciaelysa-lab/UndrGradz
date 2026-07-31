@@ -84,6 +84,8 @@ router.get('/analytics/export/pdf', requireRole('SUPPORT', 'MODERATOR', 'ADMIN',
 
 // Verifications & Creator Badges Portal
 router.get('/verifications', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getVerifications);
+// Documents are served one at a time, admin-authenticated only — never as a public URL.
+router.get('/verifications/:id/document', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getVerificationDocument);
 router.post('/verifications/:id/approve', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.approveVerification);
 router.post('/verifications/:id/reject', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.rejectVerification);
 router.patch('/users/:userId/verifications', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.updateUserVerifications);

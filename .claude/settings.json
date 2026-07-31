@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\('main:',p.main||'\\(none\\)'\\)\")",
+      "Bash(node server.js)",
+      "Read(//tmp/**)",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/e2e-verif.js\")",
+      "Bash(node -e ' *)",
+      "Bash(npx --yes http-server -p 8081 -s --cors)",
+      "Bash(curl -s -o /dev/null -w \"estatico HTTP %{http_code}\\\\n\" http://localhost:8081/admin/index.html)",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-admin.js\")",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-signup.js\")",
+      "Bash(powershell -NoProfile -Command 'Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }')"
+    ]
+  }
+}

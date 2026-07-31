@@ -8,7 +8,7 @@ class AdminApiClient {
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || window.location.port === '8080';
     const host = (hostname === 'localhost' || hostname === '127.0.0.1') ? hostname : 'localhost';
     
-    const remoteUrl = 'https://personalized-seattle-fingers-classes.trycloudflare.com';
+    const remoteUrl = 'https://neural-saying-oakland-honey.trycloudflare.com';
     this.baseUrl = isLocal
       ? `http://${host}:3000/api/v1/admin`
       : `${remoteUrl}/api/v1/admin`;
@@ -266,6 +266,12 @@ class AdminApiClient {
   async getVerifications(params = {}) {
     const query = new URLSearchParams(params).toString();
     return this.request(`/verifications?${query}`);
+  }
+
+  // Documents are excluded from the list response and fetched one at a time,
+  // authenticated via the Authorization header. There is no public URL.
+  async getVerificationDocument(id) {
+    return this.request(`/verifications/${id}/document`);
   }
 
   async approveVerification(id, adminNotes = '') {

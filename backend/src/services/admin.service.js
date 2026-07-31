@@ -1647,7 +1647,26 @@ class AdminService {
     try {
       dbRequests = await prisma.verificationRequest.findMany({
         where,
-        include: {
+        // `credentialUrl` is deliberately NOT selected: documents are stored as
+        // base64 data URIs and would make this list weigh megabytes. The panel
+        // fetches each one on demand via getVerificationDocument().
+        select: {
+          id: true,
+          userId: true,
+          type: true,
+          status: true,
+          socialLinks: true,
+          creatorCategory: true,
+          notes: true,
+          adminNotes: true,
+          sport: true,
+          metadata: true,
+          documentName: true,
+          documentMime: true,
+          reviewedById: true,
+          reviewedAt: true,
+          createdAt: true,
+          updatedAt: true,
           user: {
             select: {
               id: true,
@@ -1663,7 +1682,8 @@ class AdminService {
                 select: {
                   university: true,
                   major: true,
-                  socials: true
+                  socials: true,
+                  verifiedSports: true
                 }
               },
               photos: {
@@ -1680,6 +1700,14 @@ class AdminService {
       console.warn("VerificationRequest table read error:", e.message);
     }
 
+    // Flag document presence without shipping the payload.
+    const documentIds = await prisma.verificationRequest.findMany({
+      where: { id: { in: dbRequests.map(r => r.id) }, NOT: { credentialUrl: null } },
+      select: { id: true }
+    }).catch(() => []);
+    const withDocument = new Set(documentIds.map(r => r.id));
+    dbRequests = dbRequests.map(r => ({ ...r, hasDocument: withDocument.has(r.id) }));
+
     const allRequests = await prisma.verificationRequest.findMany({
       select: { type: true, status: true }
     }).catch(() => []);
@@ -1694,6 +1722,13 @@ class AdminService {
     const athleteCount = allRequests.filter(r => r.type === 'ATHLETE').length;
     const govtCount = allRequests.filter(r => r.type === 'STUDENT_GOVT').length;
 
+    // Pending counts split by type, so each panel section can show its own
+    // sidebar badge regardless of the filters currently applied.
+    const pendingByType = allRequests.reduce((acc, r) => {
+      if (r.status === 'PENDING') acc[r.type] = (acc[r.type] || 0) + 1;
+      return acc;
+    }, {});
+
     return {
       requests: dbRequests,
       stats: {
@@ -1704,7 +1739,8 @@ class AdminService {
         studentIdCount,
         creatorCount,
         athleteCount,
-        govtCount
+        govtCount,
+        pendingByType
       },
       pendingCount
     };
@@ -1713,15 +1749,97 @@ class AdminService {
   /**
    * Approve Verification Request (Student ID, Creator, Athlete, Student Govt)
    */
+  /**
+   * Returns a single verification document. Kept out of the list endpoint so
+   * documents are only ever transferred when an admin explicitly opens one.
+   * The payload is returned as JSON (never as a fetchable URL), so viewing it
+   * always requires a valid admin Authorization header.
+   */
+  async getVerificationDocument(requestId) {
+    const request = await prisma.verificationRequest.findUnique({
+      where: { id: requestId },
+      select: {
+        id: true,
+        type: true,
+        sport: true,
+        credentialUrl: true,
+        documentName: true,
+        documentMime: true,
+        user: { select: { firstName: true, lastName: true, handle: true } },
+      },
+    });
+
+    if (!request) {
+      throw new AppError('Solicitud de verificación no encontrada', 404);
+    }
+    if (!request.credentialUrl) {
+      throw new AppError('Esta solicitud no tiene documento adjunto', 404);
+    }
+
+    // Derive the MIME from the data: URI when it wasn't recorded (older rows).
+    let documentMime = request.documentMime;
+    if (!documentMime && request.credentialUrl.startsWith('data:')) {
+      const match = /^data:([^;,]+)/.exec(request.credentialUrl);
+      if (match) documentMime = match[1];
+    }
+
+    return {
+      id: request.id,
+      type: request.type,
+      sport: request.sport,
+      credentialUrl: request.credentialUrl,
+      documentName: request.documentName,
+      documentMime,
+      user: request.user,
+    };
+  }
+
+  /**
+   * Recomputes the denormalized list of approved sports on the user's profile
+   * and keeps the athlete badge in sync with it. Called after any ATHLETE
+   * request changes state, so the profile only ever shows approved sports.
+   */
+  async syncAthleteVerification(userId) {
+    if (!userId) return [];
+
+    const approved = await prisma.verificationRequest.findMany({
+      where: { userId, type: 'ATHLETE', status: 'APPROVED' },
+      select: { sport: true },
+      orderBy: { reviewedAt: 'asc' }
+    }).catch(() => []);
+
+    const sports = [...new Set(approved.map(r => r.sport).filter(Boolean))];
+
+    // upsert, not update: a user can be approved before ever saving a profile
+    // (registration alone does not create the UserProfile row).
+    await prisma.userProfile.upsert({
+      where: { userId },
+      create: { userId, verifiedSports: sports },
+      update: { verifiedSports: sports }
+    }).catch((e) => {
+      console.warn('[syncAthleteVerification] no se pudo guardar verifiedSports:', e.message);
+    });
+
+    // The badge is on only while at least one sport stands approved.
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isAthleteVerified: sports.length > 0 }
+    }).catch(() => {});
+
+    return sports;
+  }
+
   async approveVerification(adminId, requestId, adminNotes, ipAddress) {
     let targetUserId = null;
     let reqType = 'STUDENT_ID';
+    let reqSport = null;
 
     try {
       const vReq = await prisma.verificationRequest.findUnique({ where: { id: requestId } });
       if (vReq) {
         targetUserId = vReq.userId;
         reqType = vReq.type;
+        reqSport = vReq.sport || null;
         await prisma.verificationRequest.update({
           where: { id: requestId },
           data: {
@@ -1761,7 +1879,9 @@ class AdminService {
       } else if (reqType === 'ATHLETE') {
         updateData.isAthleteVerified = true;
         notifTitle = '🏅 Badge de Atleta Universitario Aprobado!';
-        notifMsg = '¡Felicidades! Se ha verificado tu constancia deportiva. Ahora luces el distintivo oficial de Atleta Universitario 🏅';
+        notifMsg = reqSport
+          ? `¡Felicidades! Se ha verificado tu constancia deportiva de ${reqSport}. Ya apareces como Atleta Verificado en ${reqSport} 🏅`
+          : '¡Felicidades! Se ha verificado tu constancia deportiva. Ahora luces el distintivo oficial de Atleta Universitario 🏅';
       } else if (reqType === 'STUDENT_GOVT') {
         updateData.isGovtVerified = true;
         notifTitle = '🏛️ Badge de Gobierno Estudiantil Aprobado!';
@@ -1776,6 +1896,13 @@ class AdminService {
         where: { id: targetUserId },
         data: updateData
       });
+
+      // Athletes are verified sport by sport: refresh the approved list so the
+      // profile shows exactly the sports that were signed off.
+      let approvedSports = null;
+      if (reqType === 'ATHLETE') {
+        approvedSports = await this.syncAthleteVerification(targetUserId);
+      }
 
       // Dispatch Notification to student
       await prisma.notification.create({
@@ -1795,7 +1922,14 @@ class AdminService {
         if (io) {
           io.emit('userVerificationUpdated', {
             userId: targetUserId,
-            isVerified: true,
+            // Only a STUDENT_ID approval grants the Blue Badge; the other types
+            // carry their own flag so the app doesn't light up the wrong one.
+            isVerified: reqType === 'STUDENT_ID' ? true : undefined,
+            isCreatorVerified: reqType === 'CREATOR_BADGE' ? true : undefined,
+            isAthleteVerified: reqType === 'ATHLETE' ? true : undefined,
+            isGovtVerified: reqType === 'STUDENT_GOVT' ? true : undefined,
+            verifiedSports: approvedSports || undefined,
+            sport: reqSport || undefined,
             badgeColor: '#1d9bf0',
             status: 'APPROVED',
             reqType,
@@ -1810,7 +1944,7 @@ class AdminService {
         action: `VERIFICATION_APPROVED_${reqType}`,
         targetType: 'USER',
         targetId: targetUserId,
-        details: { requestId, reqType, adminNotes },
+        details: { requestId, reqType, sport: reqSport, adminNotes },
         ipAddress
       });
 
@@ -1826,12 +1960,14 @@ class AdminService {
   async rejectVerification(adminId, requestId, rejectionReason, ipAddress) {
     let targetUserId = null;
     let reqType = 'STUDENT_ID';
+    let reqSport = null;
 
     try {
       const vReq = await prisma.verificationRequest.findUnique({ where: { id: requestId } });
       if (vReq) {
         targetUserId = vReq.userId;
         reqType = vReq.type;
+        reqSport = vReq.sport || null;
         await prisma.verificationRequest.update({
           where: { id: requestId },
           data: {
@@ -1850,7 +1986,22 @@ class AdminService {
     }
 
     if (targetUserId) {
-      const rejectMsg = `Lo sentimos, no pudimos validar tu credencial estudiantil. Motivo: ${rejectionReason || 'La información adjunta no coincide o la credencial no es legible.'}`;
+      // Rejecting one sport must drop it from the profile — and turn the badge
+      // off entirely if no sport is left approved.
+      let approvedSports = null;
+      if (reqType === 'ATHLETE') {
+        approvedSports = await this.syncAthleteVerification(targetUserId);
+      }
+
+      const subjectByType = {
+        CREATOR_BADGE: 'tu cuenta de creador de contenido',
+        ATHLETE: reqSport ? `tu constancia deportiva de ${reqSport}` : 'tu constancia deportiva',
+        STUDENT_GOVT: 'tu cargo en el gobierno estudiantil',
+        STUDENT_ID: 'tu credencial estudiantil',
+      };
+      const subject = subjectByType[reqType] || subjectByType.STUDENT_ID;
+      const rejectMsg = `Lo sentimos, no pudimos validar ${subject}. Motivo: ${rejectionReason || 'La información adjunta no coincide o el documento no es legible.'}`;
+
       await prisma.notification.create({
         data: {
           recipientId: targetUserId,
@@ -1868,7 +2019,9 @@ class AdminService {
         if (io) {
           io.emit('userVerificationUpdated', {
             userId: targetUserId,
-            isVerified: false,
+            isVerified: reqType === 'STUDENT_ID' ? false : undefined,
+            verifiedSports: approvedSports || undefined,
+            sport: reqSport || undefined,
             status: 'REJECTED',
             reqType,
             title: '⚠️ Solicitud de Verificación No Aprobada',
@@ -1879,10 +2032,10 @@ class AdminService {
 
       await this.createAuditLog({
         adminId,
-        action: 'VERIFICATION_REJECTED',
+        action: `VERIFICATION_REJECTED_${reqType}`,
         targetType: 'USER',
         targetId: targetUserId,
-        details: { requestId, rejectionReason },
+        details: { requestId, reqType, sport: reqSport, rejectionReason },
         ipAddress
       });
     }

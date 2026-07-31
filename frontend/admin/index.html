@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UndrGradz | Panel de Administración</title>
   <meta name="description" content="Panel de Administración oficial para UndrGradz - Gestión de usuarios, moderación, eventos, universidades y auditoría.">
+  <meta name="color-scheme" content="dark">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +20,7 @@
   <!-- Modal Overlay -->
   <div id="modal-overlay" class="modal-overlay hidden">
     <div id="modal-container" class="modal-card">
-      <button id="modal-close" class="modal-close-btn">&times;</button>
+      <button id="modal-close" class="modal-close-btn" aria-label="Cerrar">&times;</button>
       <div id="modal-body"></div>
     </div>
   </div>
@@ -62,7 +63,10 @@
         </button>
       </form>
       <div class="login-footer">
-        <p class="security-note">🔒 Sistema protegido con rate limiting y registro de auditoría</p>
+        <p class="security-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Sistema protegido con rate limiting y registro de auditoría
+        </p>
       </div>
     </div>
   </div>
@@ -82,71 +86,107 @@
       </div>
       <nav class="sidebar-nav">
         <ul>
+          <li><span class="nav-section-label">Vista general</span></li>
           <li>
             <a href="#dashboard" class="nav-item active" data-view="dashboard">
-              <span class="nav-icon">📈</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+              </span>
               <span class="nav-label">Dashboard</span>
             </a>
           </li>
           <li>
             <a href="#analytics" class="nav-item" data-view="analytics">
-              <span class="nav-icon">📊</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg>
+              </span>
               <span class="nav-label">Gráficas</span>
             </a>
           </li>
+
+          <li><span class="nav-section-label">Gestión</span></li>
           <li>
             <a href="#verifications" class="nav-item" data-view="verifications">
-              <span class="nav-icon">✅</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.2 1.6 2.7-.2.9 2.6 2.3 1.4-.8 2.6.8 2.6-2.3 1.4-.9 2.6-2.7-.2L12 18.5l-2.2-1.6-2.7.2-.9-2.6-2.3-1.4.8-2.6-.8-2.6 2.3-1.4.9-2.6 2.7.2z"/><path d="M9.2 10.8l1.9 1.9 3.7-3.7"/></svg>
+              </span>
               <span class="nav-label">Verificación</span>
               <span id="badge-pending-verifications" class="nav-badge hidden">0</span>
             </a>
           </li>
           <li>
+            <a href="#verification-requests" class="nav-item" data-view="verification-requests">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+              </span>
+              <span class="nav-label">Verification Requests</span>
+              <span id="badge-pending-vr" class="nav-badge hidden">0</span>
+            </a>
+          </li>
+          <li>
             <a href="#users" class="nav-item" data-view="users">
-              <span class="nav-icon">👥</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </span>
               <span class="nav-label">Usuarios</span>
             </a>
           </li>
           <li>
             <a href="#moderation" class="nav-item" data-view="moderation">
-              <span class="nav-icon">🛡️</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </span>
               <span class="nav-label">Moderación</span>
               <span id="badge-pending-reports" class="nav-badge hidden">0</span>
             </a>
           </li>
           <li>
             <a href="#universities" class="nav-item" data-view="universities">
-              <span class="nav-icon">🎓</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V17c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5.5"/><path d="M22 9v6"/></svg>
+              </span>
               <span class="nav-label">Universidades</span>
             </a>
           </li>
           <li>
             <a href="#events" class="nav-item" data-view="events">
-              <span class="nav-icon">🔥</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.4-2.3 1-3.2"/><path d="M12 22a6 6 0 0 0 6-6c0-2-1-3.5-2-4.5"/><path d="M12 22a6 6 0 0 1-6-6c0-1.2.4-2.3 1-3.2"/></svg>
+              </span>
               <span class="nav-label">Eventos / Hangouts</span>
             </a>
           </li>
+
+          <li><span class="nav-section-label">Sistema</span></li>
           <li>
             <a href="#administrators" class="nav-item role-restricted super-admin-only" data-view="administrators">
-              <span class="nav-icon">🔑</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2"/><path d="M17 6l3 3"/><path d="M14 9l3 3"/></svg>
+              </span>
               <span class="nav-label">Administradores</span>
             </a>
           </li>
           <li>
             <a href="#audit-logs" class="nav-item" data-view="audit-logs">
-              <span class="nav-icon">📜</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/><path d="M17 17h3a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><path d="M8 8h6"/><path d="M8 12h6"/><path d="M8 16h4"/></svg>
+              </span>
               <span class="nav-label">Logs de Auditoría</span>
             </a>
           </li>
           <li>
             <a href="#notifications" class="nav-item" data-view="notifications">
-              <span class="nav-icon">📢</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l4.5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+              </span>
               <span class="nav-label">Notificaciones</span>
             </a>
           </li>
           <li>
             <a href="#settings" class="nav-item" data-view="settings">
-              <span class="nav-icon">⚙️</span>
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </span>
               <span class="nav-label">Configuración</span>
             </a>
           </li>
@@ -160,7 +200,9 @@
             <span class="admin-email" id="header-admin-email">admin@undrgradz.com</span>
           </div>
         </div>
-        <button id="btn-logout" class="btn btn-logout" title="Cerrar Sesión">🚪</button>
+        <button id="btn-logout" class="btn btn-logout" title="Cerrar Sesión" aria-label="Cerrar Sesión">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        </button>
       </div>
     </aside>
 
@@ -169,10 +211,12 @@
       <!-- TOP HEADER -->
       <header class="top-header">
         <button id="sidebar-toggle-btn" class="sidebar-toggle-btn" aria-label="Abrir menú de navegación">
-          <span>☰</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
         </button>
         <div class="search-container">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          </span>
           <input type="text" id="global-search-input" class="search-input" placeholder="Búsqueda global (Usuarios, Universidades, Eventos, Reportes)..." autocomplete="off">
           <div id="search-results-dropdown" class="search-results-dropdown hidden"></div>
         </div>
@@ -195,24 +239,39 @@
         <!-- 1. DASHBOARD VIEW -->
         <section id="view-dashboard" class="view-panel active">
           <!-- View Header & Quick Actions -->
-          <div class="view-header flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div class="view-header">
             <div>
-              <h1 class="view-title flex items-center gap-2">
-                <span>⚡</span> Dashboard General
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg>
+                Dashboard General
               </h1>
               <p class="view-subtitle">Métricas en tiempo real, estadísticas globales y monitoreo continuo del ecosistema UndrGradz.</p>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <button id="quick-btn-notif" class="btn btn-secondary btn-sm">📢 Notificación</button>
-              <button id="quick-btn-verif" class="btn btn-secondary btn-sm">✅ Verificaciones <span id="quick-badge-verif" class="badge-count hidden">0</span></button>
-              <button id="quick-btn-reports" class="btn btn-secondary btn-sm">🛡️ Moderación <span id="quick-badge-reports" class="badge-count hidden">0</span></button>
-              <button id="btn-refresh-dashboard" class="btn btn-primary btn-sm">🔄 Actualizar</button>
+            <div class="header-actions">
+              <button id="quick-btn-notif" class="btn btn-secondary btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l4.5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+                Notificación
+              </button>
+              <button id="quick-btn-verif" class="btn btn-secondary btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                Verificaciones <span id="quick-badge-verif" class="badge-count hidden">0</span>
+              </button>
+              <button id="quick-btn-reports" class="btn btn-secondary btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Moderación <span id="quick-badge-reports" class="badge-count hidden">0</span>
+              </button>
+              <button id="btn-refresh-dashboard" class="btn btn-primary btn-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+                Actualizar
+              </button>
             </div>
           </div>
 
           <!-- Pending Alert Banner (Dynamically shown if pending items exist) -->
           <div id="dashboard-alert-banner" class="dashboard-alert-banner hidden">
-            <div class="alert-icon">⚠️</div>
+            <div class="alert-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
             <div class="alert-content">
               <strong id="alert-banner-title">Atención Requerida</strong>
               <p id="alert-banner-desc">Tienes solicitudes de verificación y reportes de moderación pendientes.</p>
@@ -221,9 +280,11 @@
           </div>
 
           <!-- Stats Cards Grid (6 Main Metrics) -->
-          <div class="stats-grid mt-4">
+          <div class="stats-grid">
             <div class="stat-card">
-              <div class="stat-icon icon-purple">👥</div>
+              <div class="stat-icon icon-purple">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
               <div class="stat-details">
                 <span class="stat-label">Usuarios Totales</span>
                 <span class="stat-value" id="stat-total-users">0</span>
@@ -231,7 +292,9 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon icon-emerald">⚡</div>
+              <div class="stat-icon icon-emerald">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5z"/></svg>
+              </div>
               <div class="stat-details">
                 <span class="stat-label">Usuarios Activos</span>
                 <span class="stat-value" id="stat-active-users">0</span>
@@ -239,7 +302,9 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon icon-cyan">✨</div>
+              <div class="stat-icon icon-cyan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+              </div>
               <div class="stat-details">
                 <span class="stat-label">Nuevos (Esta Semana)</span>
                 <span class="stat-value" id="stat-new-users">0</span>
@@ -247,7 +312,9 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon icon-pink">🔥</div>
+              <div class="stat-icon icon-pink">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.4-2.3 1-3.2"/><path d="M12 22a6 6 0 0 0 6-6c0-2-1-3.5-2-4.5"/><path d="M12 22a6 6 0 0 1-6-6c0-1.2.4-2.3 1-3.2"/></svg>
+              </div>
               <div class="stat-details">
                 <span class="stat-label">Eventos Activos</span>
                 <span class="stat-value" id="stat-active-events">0</span>
@@ -255,15 +322,19 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon icon-amber">💖</div>
+              <div class="stat-icon icon-amber">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 5.6a5.2 5.2 0 0 0-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 1 0-7.4 7.4L12 21.5l8.8-8.5a5.2 5.2 0 0 0 0-7.4z"/></svg>
+              </div>
               <div class="stat-details">
-                <span class="stat-label">Matches & Likes</span>
+                <span class="stat-label">Matches &amp; Likes</span>
                 <span class="stat-value" id="stat-matches-likes">0 / 0</span>
               </div>
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon icon-red">🛡️</div>
+              <div class="stat-icon icon-red">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 15h.01"/></svg>
+              </div>
               <div class="stat-details">
                 <span class="stat-label">Reportes Pendientes</span>
                 <span class="stat-value" id="stat-pending-reports">0</span>
@@ -272,14 +343,15 @@
           </div>
 
           <!-- Main Analytics & Health Dashboard Grid -->
-          <div class="dashboard-grid mt-6">
+          <div class="dashboard-grid">
             <!-- University Distribution Widget (Clean Acronym List with Progress Bars & Badges) -->
             <div class="dashboard-card glass-panel">
-              <div class="card-header flex items-center justify-between mb-3">
-                <h3 class="flex items-center gap-2">
-                  <span>🎓</span> Estudiantes por Universidad
+              <div class="card-header">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V17c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5.5"/></svg>
+                  Estudiantes por Universidad
                 </h3>
-                <span class="text-xs text-muted" id="uni-total-badge">Top Universidades</span>
+                <span class="badge badge-neutral" id="uni-total-badge">Top Universidades</span>
               </div>
               <div id="dashboard-uni-list" class="dashboard-uni-list">
                 <div class="text-center py-4 text-muted text-sm">Cargando distribución de estudiantes...</div>
@@ -288,11 +360,12 @@
 
             <!-- System & Server Health Status Widget -->
             <div class="dashboard-card glass-panel">
-              <div class="card-header flex items-center justify-between mb-3">
-                <h3 class="flex items-center gap-2">
-                  <span>🖥️</span> Estado del Sistema (System Health)
+              <div class="card-header">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><path d="M6 7h.01"/><path d="M6 17h.01"/></svg>
+                  Estado del Sistema
                 </h3>
-                <span class="badge badge-active text-xs">ONLINE</span>
+                <span class="badge badge-active">ONLINE</span>
               </div>
               <div class="health-details-grid" id="system-health-body">
                 <div class="health-item">
@@ -304,7 +377,7 @@
                   <span class="health-val" id="health-db-latency">--</span>
                 </div>
                 <div class="health-item">
-                  <span class="health-label">Conexiones WebSocket (Socket.io)</span>
+                  <span class="health-label">Conexiones WebSocket</span>
                   <span class="health-val" id="health-socket-clients">--</span>
                 </div>
                 <div class="health-item">
@@ -327,10 +400,12 @@
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <!-- Left 2 Cols: Audit Logs & System Activity -->
             <div class="dashboard-card glass-panel lg:col-span-2">
-              <div class="card-header flex items-center justify-between mb-3">
-                <h3 class="flex items-center gap-2">
-                  <span>📜</span> Actividad Reciente del Sistema & Auditoría
+              <div class="card-header">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/><path d="M17 17h3a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><path d="M8 8h6"/><path d="M8 12h6"/></svg>
+                  Actividad Reciente &amp; Auditoría
                 </h3>
+                <span class="badge badge-neutral">Tiempo real</span>
               </div>
               <div class="table-responsive">
                 <table class="data-table">
@@ -351,9 +426,10 @@
 
             <!-- Right 1 Col: Recent Student Registrations Feed -->
             <div class="dashboard-card glass-panel lg:col-span-1">
-              <div class="card-header flex items-center justify-between mb-3">
-                <h3 class="flex items-center gap-2">
-                  <span>✨</span> Nuevos Registros
+              <div class="card-header">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+                  Nuevos Registros
                 </h3>
               </div>
               <div id="recent-students-feed" class="recent-students-feed">
@@ -367,14 +443,17 @@
         <section id="view-users" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Gestión de Usuarios</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+                Gestión de Usuarios
+              </h1>
               <p class="view-subtitle">Filtra, busca, revisa perfiles completos y administra el estado de los estudiantes.</p>
             </div>
           </div>
 
           <!-- Filter Toolbar -->
           <div class="filter-bar glass-panel">
-            <div class="filter-group">
+            <div class="filter-group filter-group-grow">
               <input type="text" id="users-search-input" class="form-input" placeholder="Buscar por nombre, @handle o email...">
             </div>
             <div class="filter-group">
@@ -395,11 +474,17 @@
                 <option value="SUPER_ADMIN">Super Admin</option>
               </select>
             </div>
-            <button id="btn-filter-users" class="btn btn-primary">Filtrar</button>
+            <button id="btn-filter-users" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.5V19l4 2v-8.5L22 3z"/></svg>
+              Filtrar
+            </button>
           </div>
 
           <!-- Users Data Table -->
-          <div class="glass-panel">
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Directorio de Estudiantes</h3>
+            </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
@@ -414,7 +499,7 @@
                   </tr>
                 </thead>
                 <tbody id="users-tbody">
-                  <tr><td colspan="7" class="text-center py-4">Cargando usuarios...</td></tr>
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Cargando usuarios...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -434,7 +519,10 @@
         <section id="view-moderation" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Centro de Moderación</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Centro de Moderación
+              </h1>
               <p class="view-subtitle">Revisa reportes de usuarios, eventos y contenido generado. Toma acciones inmediatas.</p>
             </div>
           </div>
@@ -458,11 +546,17 @@
                 <option value="PHOTO">Imágenes / Fotos</option>
               </select>
             </div>
-            <button id="btn-filter-reports" class="btn btn-primary">Actualizar Lista</button>
+            <button id="btn-filter-reports" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+              Actualizar Lista
+            </button>
           </div>
 
           <!-- Moderation Reports Table -->
-          <div class="glass-panel">
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Cola de Reportes</h3>
+            </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
@@ -477,7 +571,7 @@
                   </tr>
                 </thead>
                 <tbody id="reports-tbody">
-                  <tr><td colspan="7" class="text-center py-4">Cargando reportes de moderación...</td></tr>
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Cargando reportes de moderación...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -488,25 +582,33 @@
         <section id="view-universities" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Gestión de Universidades</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V17c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5.5"/><path d="M22 9v6"/></svg>
+                Gestión de Universidades
+              </h1>
               <p class="view-subtitle">Administra el catálogo de +17,600 instituciones educativas, colores, fotos de portada y estado de integración.</p>
             </div>
-            <button id="btn-add-university" class="btn btn-primary role-restricted admin-only">+ Nueva Universidad</button>
+            <div class="header-actions">
+              <button id="btn-add-university" class="btn btn-primary role-restricted admin-only">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                Nueva Universidad
+              </button>
+            </div>
           </div>
 
           <!-- Filter Toolbar -->
-          <div class="filter-bar glass-panel" style="flex-wrap: wrap; gap: 12px;">
-            <div class="filter-group" style="flex: 2; min-width: 250px;">
+          <div class="filter-bar glass-panel">
+            <div class="filter-group filter-group-grow">
               <input type="text" id="uni-search-input" class="form-input" placeholder="Buscar por nombre, acrónimo, dominio, ciudad, estado o país...">
             </div>
-            <div class="filter-group" style="min-width: 140px;">
+            <div class="filter-group filter-group-sm">
               <select id="uni-type-select" class="form-select">
                 <option value="">Todos los Tipos</option>
                 <option value="public">Pública</option>
                 <option value="private">Privada</option>
               </select>
             </div>
-            <div class="filter-group" style="min-width: 170px;">
+            <div class="filter-group filter-group-sm">
               <select id="uni-status-select" class="form-select">
                 <option value="">Todos los Estados</option>
                 <option value="AVAILABLE">AVAILABLE (Disponible)</option>
@@ -515,29 +617,35 @@
                 <option value="SUSPENDED">SUSPENDED (Suspendida)</option>
               </select>
             </div>
-            <div class="filter-group" style="min-width: 150px;">
+            <div class="filter-group filter-group-sm">
               <select id="uni-official-select" class="form-select">
-                <option value="">Todas (Oficial & Estándar)</option>
+                <option value="">Todas (Oficial &amp; Estándar)</option>
                 <option value="true">Verificada Oficial</option>
                 <option value="false">Estándar</option>
               </select>
             </div>
-            <div class="filter-group" style="min-width: 150px;">
+            <div class="filter-group filter-group-sm">
               <input type="text" id="uni-location-input" class="form-input" placeholder="Filtrar Ubicación / País...">
             </div>
-            <div class="filter-group" style="display: flex; align-items: center; gap: 8px;">
-              <input type="checkbox" id="uni-deleted-checkbox" style="width: 18px; height: 18px; cursor: pointer;">
-              <label for="uni-deleted-checkbox" style="font-size: var(--fs-xs); cursor: pointer; color: var(--text-muted);">Eliminadas</label>
+            <div class="filter-group-check">
+              <input type="checkbox" id="uni-deleted-checkbox">
+              <label for="uni-deleted-checkbox">Eliminadas</label>
             </div>
-            <button id="btn-filter-universities" class="btn btn-secondary">Buscar</button>
+            <button id="btn-filter-universities" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+              Buscar
+            </button>
           </div>
 
-          <div class="glass-panel">
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Catálogo de Instituciones</h3>
+            </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Universidad & Dominio</th>
+                    <th>Universidad &amp; Dominio</th>
                     <th>Acrónimo</th>
                     <th>Tipo</th>
                     <th>Ubicación (Ciudad, Estado, País)</th>
@@ -550,7 +658,7 @@
                   </tr>
                 </thead>
                 <tbody id="universities-tbody">
-                  <tr><td colspan="10" class="text-center py-4">Cargando catálogo de universidades...</td></tr>
+                  <tr><td colspan="10" class="text-center py-4 text-muted">Cargando catálogo de universidades...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -571,12 +679,18 @@
         <section id="view-events" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Gestión de Eventos & Hangouts</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.4-2.3 1-3.2"/><path d="M12 22a6 6 0 0 0 6-6c0-2-1-3.5-2-4.5"/><path d="M12 22a6 6 0 0 1-6-6c0-1.2.4-2.3 1-3.2"/></svg>
+                Gestión de Eventos &amp; Hangouts
+              </h1>
               <p class="view-subtitle">Supervisa actividades creadas por estudiantes, aprueba o elimina contenido inapropiado.</p>
             </div>
           </div>
 
-          <div class="glass-panel">
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Actividades Publicadas</h3>
+            </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
@@ -584,14 +698,14 @@
                     <th>Evento</th>
                     <th>Categoría</th>
                     <th>Creador</th>
-                    <th>Ubicación & Hora</th>
+                    <th>Ubicación &amp; Hora</th>
                     <th>Asistentes</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="events-tbody">
-                  <tr><td colspan="7" class="text-center py-4">Cargando eventos...</td></tr>
+                  <tr><td colspan="7" class="text-center py-4 text-muted">Cargando eventos...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -602,13 +716,24 @@
         <section id="view-administrators" class="view-panel role-restricted super-admin-only">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Gestión de Administradores</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3L21 2"/><path d="M17 6l3 3"/></svg>
+                Gestión de Administradores
+              </h1>
               <p class="view-subtitle">Asigna roles, revoca accesos y administra la seguridad del equipo directivo.</p>
             </div>
-            <button id="btn-add-admin" class="btn btn-primary">+ Crear Administrador</button>
+            <div class="header-actions">
+              <button id="btn-add-admin" class="btn btn-primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                Crear Administrador
+              </button>
+            </div>
           </div>
 
-          <div class="glass-panel">
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Cuentas con Acceso Administrativo</h3>
+            </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
@@ -622,7 +747,7 @@
                   </tr>
                 </thead>
                 <tbody id="admins-tbody">
-                  <tr><td colspan="6" class="text-center py-4">Cargando cuentas administrativas...</td></tr>
+                  <tr><td colspan="6" class="text-center py-4 text-muted">Cargando cuentas administrativas...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -633,12 +758,19 @@
         <section id="view-audit-logs" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Registro de Auditoría (Audit Logs)</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2v-2"/><path d="M17 17h3a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-3"/><path d="M8 8h6"/><path d="M8 12h6"/><path d="M8 16h4"/></svg>
+                Registro de Auditoría
+              </h1>
               <p class="view-subtitle">Historial inmutable de todas las acciones administrativas ejecutadas en la plataforma.</p>
             </div>
           </div>
 
-          <div class="glass-panel">
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Historial de Acciones</h3>
+              <span class="badge badge-neutral">Inmutable</span>
+            </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
@@ -651,7 +783,7 @@
                   </tr>
                 </thead>
                 <tbody id="audit-logs-tbody">
-                  <tr><td colspan="5" class="text-center py-4">Cargando historial de auditoría...</td></tr>
+                  <tr><td colspan="5" class="text-center py-4 text-muted">Cargando historial de auditoría...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -662,46 +794,75 @@
         <section id="view-notifications" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Notificaciones Administrativas</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h2l4.5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+                Notificaciones Administrativas
+              </h1>
               <p class="view-subtitle">Envía comunicados dirigidos a usuarios individuales, universidades o transmisiones masivas.</p>
             </div>
           </div>
 
-          <div class="glass-panel p-4 max-w-2xl">
-            <form id="form-send-notification">
-              <div class="form-group">
-                <label for="notif-target-type">Destinatario</label>
-                <select id="notif-target-type" class="form-select" required>
-                  <option value="ALL">Todos los Usuarios Activos (Broadcast)</option>
-                  <option value="UNIVERSITY">Estudiantes de una Universidad Específica</option>
-                  <option value="USER">Usuario Específico (ID)</option>
-                </select>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="glass-panel p-4 lg:col-span-2">
+              <div class="panel-header mb-4">
+                <div>
+                  <h3 class="panel-title">Redactar comunicado</h3>
+                  <p class="panel-subtitle">El mensaje se entrega en la bandeja in-app de los destinatarios seleccionados.</p>
+                </div>
               </div>
+              <form id="form-send-notification">
+                <div class="form-group">
+                  <label for="notif-target-type">Destinatario</label>
+                  <select id="notif-target-type" class="form-select" required>
+                    <option value="ALL">Todos los Usuarios Activos (Broadcast)</option>
+                    <option value="UNIVERSITY">Estudiantes de una Universidad Específica</option>
+                    <option value="USER">Usuario Específico (ID)</option>
+                  </select>
+                </div>
 
-              <div id="notif-uni-group" class="form-group hidden">
-                <label for="notif-university">Seleccionar Universidad</label>
-                <input type="text" id="notif-university" class="form-input" placeholder="Ej: UANE - Universidad Autónoma del Noreste">
+                <div id="notif-uni-group" class="form-group hidden">
+                  <label for="notif-university">Seleccionar Universidad</label>
+                  <input type="text" id="notif-university" class="form-input" placeholder="Ej: UANE - Universidad Autónoma del Noreste">
+                </div>
+
+                <div id="notif-user-group" class="form-group hidden">
+                  <label for="notif-user-id">ID de Usuario</label>
+                  <input type="text" id="notif-user-id" class="form-input" placeholder="ID de Prisma CUID del usuario">
+                </div>
+
+                <div class="form-group">
+                  <label for="notif-title">Título del Mensaje</label>
+                  <input type="text" id="notif-title" class="form-input" placeholder="Ej: Mantenimiento Programado / Actualización importante" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="notif-message">Contenido de la Notificación</label>
+                  <textarea id="notif-message" class="form-input" rows="5" placeholder="Escribe el cuerpo del mensaje..." required></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" id="btn-submit-notif" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    Enviar Notificación
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <aside class="glass-panel p-4 lg:col-span-1">
+              <div class="panel-header mb-4">
+                <h3 class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                  Buenas prácticas
+                </h3>
               </div>
-
-              <div id="notif-user-group" class="form-group hidden">
-                <label for="notif-user-id">ID de Usuario</label>
-                <input type="text" id="notif-user-id" class="form-input" placeholder="ID de Prisma CUID del usuario">
-              </div>
-
-              <div class="form-group">
-                <label for="notif-title">Título del Mensaje</label>
-                <input type="text" id="notif-title" class="form-input" placeholder="Ej: Mantenimiento Programado / Actualización importante" required>
-              </div>
-
-              <div class="form-group">
-                <label for="notif-message">Contenido de la Notificación</label>
-                <textarea id="notif-message" class="form-input" rows="4" placeholder="Escribe el cuerpo del mensaje..." required></textarea>
-              </div>
-
-              <button type="submit" id="btn-submit-notif" class="btn btn-primary">
-                📢 Enviar Notificación
-              </button>
-            </form>
+              <ul class="tip-list">
+                <li class="tip-item">Broadcast alcanza a todos los usuarios activos. Úsalo solo para avisos críticos.</li>
+                <li class="tip-item">Los títulos cortos (menos de 60 caracteres) se leen mejor en móvil.</li>
+                <li class="tip-item">Cada envío queda registrado en los Logs de Auditoría con tu cuenta.</li>
+                <li class="tip-item">Para un usuario puntual necesitas su ID de Prisma (CUID), no su @handle.</li>
+              </ul>
+            </aside>
           </div>
         </section>
 
@@ -709,15 +870,20 @@
         <section id="view-analytics" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">📊 Analítica Visual & Reportes Estadísticos</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg>
+                Analítica Visual &amp; Reportes
+              </h1>
               <p class="view-subtitle">Métricas interactivas de crecimiento, universidades, verificaciones, eventos y retención.</p>
             </div>
             <div class="header-actions">
               <button id="btn-export-excel" class="btn btn-secondary">
-                📗 Exportar Excel (.xlsx)
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13l6 5"/><path d="M15 13l-6 5"/></svg>
+                Exportar Excel
               </button>
               <button id="btn-export-pdf" class="btn btn-primary">
-                📄 Exportar Reporte PDF
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg>
+                Exportar Reporte PDF
               </button>
             </div>
           </div>
@@ -725,28 +891,36 @@
           <!-- KPI Summary Cards -->
           <div class="kpi-grid">
             <div class="kpi-card">
-              <div class="kpi-icon">👥</div>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>
+              </div>
               <div class="kpi-data">
                 <span class="kpi-value" id="analytics-kpi-users">--</span>
                 <span class="kpi-label">Usuarios Totales</span>
               </div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-icon">🎓</div>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V17c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5.5"/></svg>
+              </div>
               <div class="kpi-data">
                 <span class="kpi-value" id="analytics-kpi-verified">--</span>
                 <span class="kpi-label">Estudiantes Verificados</span>
               </div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-icon">✨</div>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>
+              </div>
               <div class="kpi-data">
                 <span class="kpi-value" id="analytics-kpi-creators">--</span>
                 <span class="kpi-label">Creadores de Contenido</span>
               </div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-icon">🔥</div>
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.4-2.3 1-3.2"/><path d="M12 22a6 6 0 0 0 6-6c0-2-1-3.5-2-4.5"/><path d="M12 22a6 6 0 0 1-6-6c0-1.2.4-2.3 1-3.2"/></svg>
+              </div>
               <div class="kpi-data">
                 <span class="kpi-value" id="analytics-kpi-events">--</span>
                 <span class="kpi-label">Eventos Registrados</span>
@@ -754,157 +928,184 @@
             </div>
           </div>
 
-          <!-- Multi-Size Analytics Dashboard Grid -->
-
-          <!-- 1. FULL WIDTH HERO CHART (100% Width) -->
-          <div class="glass-panel p-5 mt-6">
-            <div class="panel-header mb-4 flex items-center justify-between">
+          <!-- ROW 1 — FULL WIDTH HERO CHART (100%) -->
+          <div class="glass-panel chart-panel">
+            <div class="panel-header">
               <div>
-                <h3 class="panel-title text-base font-bold text-white flex items-center gap-2">
-                  <span>📊</span> Tendencia de Actividad & Engagement de la Plataforma
+                <h3 class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 15l3.5-4 3 2.5L20 7"/></svg>
+                  Tendencia de Actividad &amp; Engagement
                 </h3>
-                <p class="text-xs text-gray-400">Métrica combinada de usuarios activos, mensajes enviados e interacciones semanales.</p>
+                <p class="panel-subtitle">Métrica combinada de usuarios registrados y usuarios activos por día.</p>
               </div>
-              <span class="badge badge-primary text-xs">Últimos 30 días</span>
+              <span class="badge badge-primary">Últimos 30 días</span>
             </div>
-            <div style="position: relative; height: 320px; width: 100%;">
+            <div class="chart-frame chart-frame--hero">
               <canvas id="chart-activity-trend"></canvas>
             </div>
           </div>
 
-          <!-- 2. TWO-COLUMN MEDIUM CHARTS (50% / 50% Width) -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <!-- Chart 1: User Growth -->
-            <div class="glass-panel p-4">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>📈</span> Crecimiento de Usuarios Registrados
-                </h3>
-              </div>
-              <div style="position: relative; height: 260px; width: 100%;">
-                <canvas id="chart-user-growth"></canvas>
-              </div>
-            </div>
-
-            <!-- Chart 2: University Breakdown -->
-            <div class="glass-panel p-4">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>🎓</span> Estudiantes por Universidad Principal
-                </h3>
-              </div>
-              <div style="position: relative; height: 260px; width: 100%;">
-                <canvas id="chart-uni-breakdown"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. THREE-COLUMN COMPACT CHARTS (33.3% / 33.3% / 33.3% Width) -->
+          <!-- ROW 2 — THREE COMPACT CHARTS (33% / 33% / 33%) -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <!-- Chart 3: Verification Status Doughnut -->
-            <div class="glass-panel p-4">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>✅</span> Estado de Verificaciones
-                </h3>
+            <div class="glass-panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    Estado de Verificaciones
+                  </h3>
+                  <p class="panel-subtitle">Distribución por resultado</p>
+                </div>
               </div>
-              <div style="position: relative; height: 230px; width: 100%;">
+              <div class="chart-frame chart-frame--sm">
                 <canvas id="chart-verification-status"></canvas>
               </div>
             </div>
 
-            <!-- Chart 4: Events Categories Polar Area -->
-            <div class="glass-panel p-4">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>🔥</span> Categorías de Hangouts
-                </h3>
+            <div class="glass-panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s4 4.5 4 8a4 4 0 0 1-8 0c0-1.2.4-2.3 1-3.2"/><path d="M12 22a6 6 0 0 0 6-6c0-2-1-3.5-2-4.5"/><path d="M12 22a6 6 0 0 1-6-6c0-1.2.4-2.3 1-3.2"/></svg>
+                    Categorías de Hangouts
+                  </h3>
+                  <p class="panel-subtitle">Eventos por tipo de actividad</p>
+                </div>
               </div>
-              <div style="position: relative; height: 230px; width: 100%;">
+              <div class="chart-frame chart-frame--sm">
                 <canvas id="chart-event-categories"></canvas>
               </div>
             </div>
 
-            <!-- Chart 5: Matches & Connection Frequency -->
-            <div class="glass-panel p-4">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>💬</span> Conexiones & Coincidencias
-                </h3>
+            <div class="glass-panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Conexiones &amp; Coincidencias
+                  </h3>
+                  <p class="panel-subtitle">Matches generados por día</p>
+                </div>
               </div>
-              <div style="position: relative; height: 230px; width: 100%;">
+              <div class="chart-frame chart-frame--sm">
                 <canvas id="chart-match-activity"></canvas>
               </div>
             </div>
           </div>
 
-          <!-- 4. ASYMMETRIC GRID (60% Radar / 40% Doughnut) -->
-          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-            <!-- Chart 6: Academic Area Radar Chart (3 Cols on LG) -->
-            <div class="glass-panel p-4 lg:col-span-3">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>🎯</span> Distribución por Áreas Académicas y Facultades
-                </h3>
+          <!-- ROW 3 — TWO MEDIUM CHARTS (50% / 50%) -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div class="glass-panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7l-8.5 8.5-4-4L2 19"/><path d="M16 7h6v6"/></svg>
+                    Crecimiento de Usuarios Registrados
+                  </h3>
+                  <p class="panel-subtitle">Altas acumuladas en el periodo</p>
+                </div>
               </div>
-              <div style="position: relative; height: 260px; width: 100%;">
+              <div class="chart-frame chart-frame--md">
+                <canvas id="chart-user-growth"></canvas>
+              </div>
+            </div>
+
+            <div class="glass-panel chart-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9L12 4 2 9l10 5 10-5z"/><path d="M6 11.5V17c0 1.1 2.7 2.5 6 2.5s6-1.4 6-2.5v-5.5"/></svg>
+                    Estudiantes por Universidad
+                  </h3>
+                  <p class="panel-subtitle">Instituciones con mayor volumen</p>
+                </div>
+              </div>
+              <div class="chart-frame chart-frame--md">
+                <canvas id="chart-uni-breakdown"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- ROW 4 — ASYMMETRIC GRID (60% Radar / 40% Doughnut) -->
+          <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
+            <div class="glass-panel chart-panel lg:col-span-3">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>
+                    Áreas Académicas y Facultades
+                  </h3>
+                  <p class="panel-subtitle">Distribución comparada por género</p>
+                </div>
+              </div>
+              <div class="chart-frame chart-frame--md">
                 <canvas id="chart-career-radar"></canvas>
               </div>
             </div>
 
-            <!-- Chart 7: Device & Platform Distribution (2 Cols on LG) -->
-            <div class="glass-panel p-4 lg:col-span-2">
-              <div class="panel-header mb-4">
-                <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                  <span>📱</span> Dispositivos y Plataformas
-                </h3>
+            <div class="glass-panel chart-panel lg:col-span-2">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>
+                    Dispositivos y Plataformas
+                  </h3>
+                  <p class="panel-subtitle">Sesiones por sistema operativo</p>
+                </div>
               </div>
-              <div style="position: relative; height: 260px; width: 100%;">
+              <div class="chart-frame chart-frame--md">
                 <canvas id="chart-device-os"></canvas>
               </div>
             </div>
           </div>
 
-          <!-- 5. FULL WIDTH HOURLY ACTIVITY TIMELINE CHART (100% Width) -->
-          <div class="glass-panel p-5 mt-6">
-            <div class="panel-header mb-3 flex items-center justify-between">
-              <h3 class="panel-title text-sm font-bold text-white flex items-center gap-2">
-                <span>🕒</span> Picos de Tráfico por Horario Universitario (00:00 - 23:00 hs)
-              </h3>
-              <span class="text-xs text-gray-400 font-semibold">Hora Local</span>
+          <!-- ROW 5 — FULL WIDTH HOURLY ACTIVITY TIMELINE (100%) -->
+          <div class="glass-panel chart-panel mt-6">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  Picos de Tráfico por Horario Universitario
+                </h3>
+                <p class="panel-subtitle">Actividad agregada de 00:00 a 23:00 h</p>
+              </div>
+              <span class="badge badge-neutral">Hora local</span>
             </div>
-            <div style="position: relative; height: 200px; width: 100%;">
+            <div class="chart-frame chart-frame--strip">
               <canvas id="chart-hourly-activity"></canvas>
             </div>
           </div>
         </section>
 
-        <!-- 8.6 VERIFICATIONS & CREATOR BADGES VIEW (SaaS Redesign) -->
+        <!-- 8.6 VERIFICATIONS & CREATOR BADGES VIEW -->
         <section id="view-verifications" class="view-panel">
           <!-- Premium View Header & Stats Cards -->
           <div class="view-header flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 class="view-title">Verificaciones</h1>
-              <p class="view-subtitle">Revisa y administra las solicitudes de verificación de los estudiantes.</p>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.2 1.6 2.7-.2.9 2.6 2.3 1.4-.8 2.6.8 2.6-2.3 1.4-.9 2.6-2.7-.2L12 18.5l-2.2-1.6-2.7.2-.9-2.6-2.3-1.4.8-2.6-.8-2.6 2.3-1.4.9-2.6 2.7.2z"/><path d="M9.2 10.8l1.9 1.9 3.7-3.7"/></svg>
+                Blue Badge
+              </h1>
+              <p class="view-subtitle">Credenciales estudiantiles (Blue Badge 💙). Las verificaciones de participación se revisan en <b>Verification Requests</b>.</p>
             </div>
 
             <!-- Mini Stats Scorecards -->
             <div class="verif-stats-grid">
               <div class="verif-stat-card">
                 <span class="verif-stat-num" id="verif-stat-total">0</span>
-                <span class="verif-stat-label">Total Solicitudes</span>
+                <span class="verif-stat-label">Total</span>
               </div>
               <div class="verif-stat-card" style="border-color: rgba(245, 158, 11, 0.3);">
                 <span class="verif-stat-num" style="color: #fbbf24;" id="verif-stat-pending">0</span>
-                <span class="verif-stat-label">Pendientes ⏳</span>
+                <span class="verif-stat-label">Pendientes</span>
               </div>
               <div class="verif-stat-card" style="border-color: rgba(34, 197, 94, 0.3);">
                 <span class="verif-stat-num" style="color: #4ade80;" id="verif-stat-approved">0</span>
-                <span class="verif-stat-label">Aprobadas ✅</span>
+                <span class="verif-stat-label">Aprobadas</span>
               </div>
               <div class="verif-stat-card" style="border-color: rgba(239, 68, 68, 0.3);">
                 <span class="verif-stat-num" style="color: #f87171;" id="verif-stat-rejected">0</span>
-                <span class="verif-stat-label">Rechazadas ❌</span>
+                <span class="verif-stat-label">Rechazadas</span>
               </div>
             </div>
           </div>
@@ -912,21 +1113,18 @@
           <!-- Tab Navigation Bar -->
           <div class="verif-tabs-wrapper">
             <div class="verif-tabs-scroll">
+              <!-- Blue Badge only. The Student Government / Creator / Athlete
+                   tabs moved to the Verification Requests view. The counter
+                   ids stay: admin-app.js writes to all of them on load. -->
               <button class="verif-nav-tab active" data-tab="ALL">
                 Todas <span class="verif-tab-count" id="tab-count-all">0</span>
               </button>
               <button class="verif-nav-tab" data-tab="STUDENT_ID">
                 🎓 Credenciales Estudiantiles <span class="verif-tab-count" id="tab-count-student">0</span>
               </button>
-              <button class="verif-nav-tab" data-tab="CREATOR_BADGE">
-                ✨ Creadores de Contenido <span class="verif-tab-count" id="tab-count-creator">0</span>
-              </button>
-              <button class="verif-nav-tab" data-tab="ATHLETE">
-                🏅 Atletas Universitarios <span class="verif-tab-count" id="tab-count-athlete">0</span>
-              </button>
-              <button class="verif-nav-tab" data-tab="STUDENT_GOVT">
-                🏛️ Gobierno Estudiantil <span class="verif-tab-count" id="tab-count-govt">0</span>
-              </button>
+              <span id="tab-count-creator" class="hidden">0</span>
+              <span id="tab-count-athlete" class="hidden">0</span>
+              <span id="tab-count-govt" class="hidden">0</span>
             </div>
           </div>
 
@@ -935,14 +1133,17 @@
             <div class="flex flex-wrap items-center justify-between gap-3">
               <!-- Search Bar with Debounce -->
               <div class="search-input-wrapper flex-1 min-w-[260px]">
-                <span class="search-input-icon">🔍</span>
+                <span class="search-input-icon">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                </span>
                 <input type="text" id="verif-search-input" class="verif-search-field" placeholder="Buscar por nombre, @usuario, email o carrera...">
               </div>
 
               <!-- Filter Drawer & Controls -->
               <div class="flex items-center gap-2">
                 <button id="btn-toggle-filters-drawer" class="btn btn-secondary btn-sm">
-                  ⚙️ Filtros <span id="verif-filter-badge" class="filter-count-badge hidden">0</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+                  Filtros <span id="verif-filter-badge" class="filter-count-badge hidden">0</span>
                 </button>
 
                 <select id="verif-sort-select" class="form-select text-sm py-1.5" style="width: auto;">
@@ -952,9 +1153,13 @@
                   <option value="NAME_DESC">Nombre Z-A</option>
                 </select>
 
-                <div class="view-mode-toggle flex border border-gray-700 rounded-lg overflow-hidden" style="background: rgba(0,0,0,0.3);">
-                  <button id="btn-view-grid" class="view-toggle-btn active" title="Vista Grid ▦">▦</button>
-                  <button id="btn-view-list" class="view-toggle-btn" title="Vista Lista ☰">☰</button>
+                <div class="view-mode-toggle">
+                  <button id="btn-view-grid" class="view-toggle-btn active" title="Vista Grid" aria-label="Vista Grid">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+                  </button>
+                  <button id="btn-view-list" class="view-toggle-btn" title="Vista Lista" aria-label="Vista Lista">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -970,14 +1175,17 @@
           <!-- Advanced Filters Drawer Panel -->
           <div id="verif-filters-drawer" class="filters-drawer glass-panel p-4 mb-5 hidden">
             <div class="flex items-center justify-between pb-3 mb-4 border-b border-gray-800">
-              <h3 class="font-bold text-sm text-white flex items-center gap-2">⚙️ Panel de Filtros Avanzados</h3>
-              <button id="btn-close-drawer" class="text-gray-400 hover:text-white text-lg font-bold">&times;</button>
+              <h3 class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M7 12h10"/><path d="M10 18h4"/></svg>
+                Filtros Avanzados
+              </h3>
+              <button id="btn-close-drawer" class="modal-close-btn" style="position: static;" aria-label="Cerrar filtros">&times;</button>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               <!-- Estado -->
               <div class="form-group mb-0">
-                <label class="text-xs font-bold text-gray-400 mb-1 block">Estado</label>
+                <label for="drawer-filter-status">Estado</label>
                 <select id="drawer-filter-status" class="form-select text-sm py-1.5">
                   <option value="ALL">Todos los Estados</option>
                   <option value="PENDING" selected>⏳ Pendientes</option>
@@ -988,7 +1196,7 @@
 
               <!-- Tipo -->
               <div class="form-group mb-0">
-                <label class="text-xs font-bold text-gray-400 mb-1 block">Tipo de Verificación</label>
+                <label for="drawer-filter-type">Tipo de Verificación</label>
                 <select id="drawer-filter-type" class="form-select text-sm py-1.5">
                   <option value="ALL">Todos los tipos</option>
                   <option value="STUDENT_ID">🎓 Credenciales Estudiantiles</option>
@@ -1000,7 +1208,7 @@
 
               <!-- Universidad -->
               <div class="form-group mb-0">
-                <label class="text-xs font-bold text-gray-400 mb-1 block">Universidad</label>
+                <label for="drawer-filter-uni">Universidad</label>
                 <select id="drawer-filter-uni" class="form-select text-sm py-1.5">
                   <option value="ALL">Todas las universidades</option>
                 </select>
@@ -1008,7 +1216,7 @@
 
               <!-- Carrera -->
               <div class="form-group mb-0">
-                <label class="text-xs font-bold text-gray-400 mb-1 block">Carrera / Licenciatura</label>
+                <label for="drawer-filter-major">Carrera / Licenciatura</label>
                 <select id="drawer-filter-major" class="form-select text-sm py-1.5">
                   <option value="ALL">Todas las carreras</option>
                 </select>
@@ -1016,7 +1224,7 @@
 
               <!-- Fecha -->
               <div class="form-group mb-0">
-                <label class="text-xs font-bold text-gray-400 mb-1 block">Fecha de Solicitud</label>
+                <label for="drawer-filter-date">Fecha de Solicitud</label>
                 <select id="drawer-filter-date" class="form-select text-sm py-1.5">
                   <option value="ALL">Cualquier fecha</option>
                   <option value="TODAY">Hoy</option>
@@ -1027,7 +1235,7 @@
 
               <!-- Documento / Información -->
               <div class="form-group mb-0">
-                <label class="text-xs font-bold text-gray-400 mb-1 block">Adjuntos e Información</label>
+                <label for="drawer-filter-doc">Adjuntos e Información</label>
                 <select id="drawer-filter-doc" class="form-select text-sm py-1.5">
                   <option value="ALL">Todos los registros</option>
                   <option value="WITH_DOC">Con documento adjunto</option>
@@ -1049,8 +1257,90 @@
             <span class="text-xs font-bold text-gray-400" id="verif-results-count">Cargando resultados...</span>
           </div>
 
-          <!-- Cards Gallery Grid (Strict 3 Cards per Row on Desktop) -->
+          <!-- Cards Gallery Grid -->
           <div id="verifications-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Rendered by JavaScript -->
+          </div>
+        </section>
+
+        <!-- 8.7 VERIFICATION REQUESTS VIEW
+             Student Government · Content Creator · Athlete.
+             Separate from the Blue Badge view (#view-verifications). -->
+        <section id="view-verification-requests" class="view-panel">
+          <div class="view-header flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+                Verification Requests
+              </h1>
+              <p class="view-subtitle">Comprobantes de participación en Gobierno Estudiantil, Creadores de Contenido y Atletas. Cada deporte se revisa por separado.</p>
+            </div>
+
+            <div class="verif-stats-grid">
+              <div class="verif-stat-card">
+                <span class="verif-stat-num" id="vr-stat-total">0</span>
+                <span class="verif-stat-label">Total</span>
+              </div>
+              <div class="verif-stat-card" style="border-color: rgba(245, 158, 11, 0.3);">
+                <span class="verif-stat-num" style="color: #fbbf24;" id="vr-stat-pending">0</span>
+                <span class="verif-stat-label">Pendientes</span>
+              </div>
+              <div class="verif-stat-card" style="border-color: rgba(34, 197, 94, 0.3);">
+                <span class="verif-stat-num" style="color: #4ade80;" id="vr-stat-approved">0</span>
+                <span class="verif-stat-label">Aprobadas</span>
+              </div>
+              <div class="verif-stat-card" style="border-color: rgba(239, 68, 68, 0.3);">
+                <span class="verif-stat-num" style="color: #f87171;" id="vr-stat-rejected">0</span>
+                <span class="verif-stat-label">Rechazadas</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category tabs -->
+          <div class="verif-tabs-wrapper">
+            <div class="verif-tabs-scroll">
+              <button class="verif-nav-tab vr-nav-tab active" data-vrtab="ALL">
+                Todas <span class="verif-tab-count" id="vr-tab-count-all">0</span>
+              </button>
+              <button class="verif-nav-tab vr-nav-tab" data-vrtab="STUDENT_GOVT">
+                🏛️ Student Government <span class="verif-tab-count" id="vr-tab-count-govt">0</span>
+              </button>
+              <button class="verif-nav-tab vr-nav-tab" data-vrtab="CREATOR_BADGE">
+                ✨ Content Creator <span class="verif-tab-count" id="vr-tab-count-creator">0</span>
+              </button>
+              <button class="verif-nav-tab vr-nav-tab" data-vrtab="ATHLETE">
+                🏅 Athlete <span class="verif-tab-count" id="vr-tab-count-athlete">0</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="verif-toolbar glass-panel p-3 mb-4">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="search-input-wrapper flex-1 min-w-[260px]">
+                <span class="search-input-icon">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                </span>
+                <input type="text" id="vr-search-input" class="verif-search-field" placeholder="Buscar por nombre, @usuario, universidad, carrera o deporte...">
+              </div>
+
+              <div class="flex items-center gap-2">
+                <select id="vr-status-select" class="form-select text-sm py-1.5" style="width: auto;">
+                  <option value="PENDING" selected>⏳ Pendientes</option>
+                  <option value="APPROVED">✅ Aprobados</option>
+                  <option value="REJECTED">❌ Rechazados</option>
+                  <option value="ALL">Todos los estados</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mb-4 px-1">
+            <span class="text-xs font-bold text-gray-400" id="vr-results-count">Cargando resultados...</span>
+          </div>
+
+          <!-- Cards grid -->
+          <div id="vr-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Rendered by JavaScript -->
           </div>
         </section>
@@ -1059,13 +1349,16 @@
         <section id="view-settings" class="view-panel">
           <div class="view-header">
             <div>
-              <h1 class="view-title">Configuración de Plataforma</h1>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Configuración de Plataforma
+              </h1>
               <p class="view-subtitle">Ajusta los parámetros globales de la aplicación UndrGradz.</p>
             </div>
           </div>
 
-          <div class="glass-panel p-4 max-w-2xl" id="settings-container">
-            <p>Cargando configuraciones globales...</p>
+          <div class="settings-grid" id="settings-container">
+            <p class="text-muted text-sm">Cargando configuraciones globales...</p>
           </div>
         </section>
       </div>

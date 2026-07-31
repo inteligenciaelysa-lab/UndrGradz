@@ -344,6 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'verifications':
         loadVerificationsView();
         break;
+      case 'verification-requests':
+        loadVerificationRequestsView();
+        break;
       case 'users':
         loadUsers();
         break;
@@ -1809,8 +1812,104 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* --------------------------------------------------------------------------
+     Chart.js visual theme.
+     Presentation only — no data, endpoints, canvas ids or instance keys here.
+     -------------------------------------------------------------------------- */
+  const VIZ = {
+    indigo: '#818cf8',
+    cyan: '#22d3ee',
+    emerald: '#34d399',
+    amber: '#fbbf24',
+    pink: '#f472b6',
+    violet: '#a78bfa',
+    sky: '#38bdf8',
+    rose: '#fb7185'
+  };
+  const VIZ_SERIES = [VIZ.indigo, VIZ.cyan, VIZ.emerald, VIZ.amber, VIZ.pink, VIZ.violet];
+  const AXIS_COLOR = '#6f7889';
+  const GRID_COLOR = 'rgba(255, 255, 255, 0.045)';
+  const SURFACE_COLOR = '#0f1117';
+
+  // Vertical fade used to fill area/line charts.
+  function vizGradient(canvas, hex, topAlpha) {
+    const ctx2d = canvas.getContext && canvas.getContext('2d');
+    if (!ctx2d) return hexToRgba(hex, topAlpha);
+    const g = ctx2d.createLinearGradient(0, 0, 0, canvas.clientHeight || 280);
+    g.addColorStop(0, hexToRgba(hex, topAlpha));
+    g.addColorStop(1, hexToRgba(hex, 0));
+    return g;
+  }
+
+  function hexToRgba(hex, alpha) {
+    const h = String(hex).replace('#', '');
+    const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+    const num = parseInt(full, 16);
+    if (isNaN(num)) return hex;
+    return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+  }
+
+  function vizTooltip(extra) {
+    return Object.assign({
+      backgroundColor: 'rgba(20, 22, 31, 0.97)',
+      borderColor: 'rgba(255, 255, 255, 0.1)',
+      borderWidth: 1,
+      titleColor: '#f4f5f7',
+      bodyColor: '#a5adbb',
+      titleFont: { size: 12, weight: '700', family: "'Plus Jakarta Sans', sans-serif" },
+      bodyFont: { size: 12, weight: '500', family: "'Plus Jakarta Sans', sans-serif" },
+      padding: 12,
+      cornerRadius: 10,
+      displayColors: true,
+      usePointStyle: true,
+      boxPadding: 6
+    }, extra || {});
+  }
+
+  function vizLegend(position) {
+    return {
+      position: position || 'top',
+      align: 'end',
+      labels: {
+        color: AXIS_COLOR,
+        usePointStyle: true,
+        pointStyle: 'circle',
+        boxWidth: 7,
+        boxHeight: 7,
+        padding: 16,
+        font: { size: 11, weight: '600', family: "'Plus Jakarta Sans', sans-serif" }
+      }
+    };
+  }
+
+  function vizScale(options) {
+    const o = options || {};
+    return {
+      ticks: {
+        color: AXIS_COLOR,
+        padding: 8,
+        font: { size: 11, weight: '500', family: "'Plus Jakarta Sans', sans-serif" },
+        maxRotation: 0,
+        autoSkipPadding: 16
+      },
+      border: { display: false },
+      grid: {
+        color: o.grid === false ? 'transparent' : GRID_COLOR,
+        display: o.grid !== false,
+        drawTicks: false
+      }
+    };
+  }
+
+  const VIZ_ANIMATION = { duration: 850, easing: 'easeOutQuart' };
+
   function renderAnalyticsCharts(data) {
     if (!data) return;
+
+    if (Chart.defaults) {
+      Chart.defaults.font.family = "'Plus Jakarta Sans', 'Outfit', system-ui, sans-serif";
+      Chart.defaults.color = AXIS_COLOR;
+    }
 
     // 0. Hero Chart: Activity Trend & Engagement (Full Width)
     const ctxTrend = document.getElementById('chart-activity-trend');
@@ -1828,28 +1927,41 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'line',
             label: 'Usuarios Registrados (Acumulado)',
             data: trendUsers,
-            borderColor: '#60a5fa',
-            backgroundColor: 'rgba(96, 165, 250, 0.15)',
-            borderWidth: 3,
+            borderColor: VIZ.indigo,
+            backgroundColor: vizGradient(ctxTrend, VIZ.indigo, 0.28),
+            borderWidth: 2.5,
             fill: true,
             tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointBackgroundColor: VIZ.indigo,
+            pointHoverBorderColor: SURFACE_COLOR,
+            pointHoverBorderWidth: 2,
             yAxisID: 'y'
           }, {
             type: 'bar',
             label: 'Usuarios Activos',
             data: trendActive,
-            backgroundColor: 'rgba(52, 211, 153, 0.6)',
+            backgroundColor: hexToRgba(VIZ.emerald, 0.55),
+            hoverBackgroundColor: hexToRgba(VIZ.emerald, 0.85),
             borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: 26,
             yAxisID: 'y'
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8', font: { weight: '600' } } } },
+          animation: VIZ_ANIMATION,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: vizLegend('top'),
+            tooltip: vizTooltip()
+          },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { type: 'linear', position: 'left', ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: vizScale({ grid: false }),
+            y: Object.assign({ type: 'linear', position: 'left', beginAtZero: true }, vizScale())
           }
         }
       });
@@ -1866,26 +1978,44 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Usuarios Registrados',
             data: data.growthTrend ? data.growthTrend.map(d => d.users) : [],
-            borderColor: '#3d7bff',
-            backgroundColor: 'rgba(61, 123, 255, 0.15)',
+            borderColor: VIZ.cyan,
+            backgroundColor: vizGradient(ctxGrowth, VIZ.cyan, 0.3),
+            borderWidth: 2.5,
             fill: true,
-            tension: 0.4
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointBackgroundColor: VIZ.cyan,
+            pointHoverBorderColor: SURFACE_COLOR,
+            pointHoverBorderWidth: 2
           }, {
             label: 'Usuarios Activos',
             data: data.growthTrend ? data.growthTrend.map(d => d.active) : [],
-            borderColor: '#22c55e',
+            borderColor: VIZ.emerald,
+            backgroundColor: 'transparent',
+            borderWidth: 2,
             borderDash: [5, 5],
             fill: false,
-            tension: 0.4
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointBackgroundColor: VIZ.emerald,
+            pointHoverBorderColor: SURFACE_COLOR,
+            pointHoverBorderWidth: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#94a3b8' } } },
+          animation: VIZ_ANIMATION,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: vizLegend('top'),
+            tooltip: vizTooltip()
+          },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: vizScale({ grid: false }),
+            y: Object.assign({ beginAtZero: true }, vizScale())
           }
         }
       });
@@ -1897,7 +2027,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (chartInstances.uni) chartInstances.uni.destroy();
       const uniLabels = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.acronym || u.name) : ['Sin datos'];
       const uniCounts = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.students) : [0];
-      const uniColors = data.uniBreakdown && data.uniBreakdown.length > 0 ? data.uniBreakdown.map(u => u.color) : ['#3d7bff'];
+      const uniColors = data.uniBreakdown && data.uniBreakdown.length > 0
+        ? data.uniBreakdown.map((u, i) => u.color || VIZ_SERIES[i % VIZ_SERIES.length])
+        : [VIZ.indigo];
 
       chartInstances.uni = new Chart(ctxUni, {
         type: 'bar',
@@ -1906,17 +2038,21 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Estudiantes Registrados',
             data: uniCounts,
-            backgroundColor: uniColors,
-            borderRadius: 6
+            backgroundColor: uniColors.map(c => (typeof c === 'string' && c.startsWith('#')) ? hexToRgba(c, 0.75) : c),
+            hoverBackgroundColor: uniColors,
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: 22
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
+          animation: VIZ_ANIMATION,
           plugins: {
             legend: { display: false },
-            tooltip: {
+            tooltip: vizTooltip({
               callbacks: {
                 title: (items) => {
                   if (!items || !items.length) return '';
@@ -1927,11 +2063,19 @@ document.addEventListener('DOMContentLoaded', () => {
                   return ` ${item.formattedValue} estudiantes registrados`;
                 }
               }
-            }
+            })
           },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-            y: { ticks: { color: '#94a3b8', font: { weight: 'bold' } }, grid: { display: false } }
+            x: Object.assign({ beginAtZero: true }, vizScale()),
+            y: {
+              ticks: {
+                color: '#a5adbb',
+                padding: 8,
+                font: { size: 11, weight: '700', family: "'Plus Jakarta Sans', sans-serif" }
+              },
+              border: { display: false },
+              grid: { display: false }
+            }
           }
         }
       });
@@ -1952,15 +2096,22 @@ document.addEventListener('DOMContentLoaded', () => {
               data.kpis?.athleteUsers || 0,
               data.kpis?.govtUsers || 0
             ],
-            backgroundColor: ['#c084fc', '#fbbf24', '#4ade80', '#60a5fa'],
-            borderWidth: 2,
-            borderColor: '#121827'
+            backgroundColor: [VIZ.violet, VIZ.amber, VIZ.emerald, VIZ.cyan],
+            hoverOffset: 6,
+            borderWidth: 3,
+            borderColor: SURFACE_COLOR,
+            spacing: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } }
+          cutout: '68%',
+          animation: Object.assign({ animateRotate: true, animateScale: false }, VIZ_ANIMATION),
+          plugins: {
+            legend: Object.assign(vizLegend('bottom'), { align: 'center' }),
+            tooltip: vizTooltip()
+          }
         }
       });
     }
@@ -1971,7 +2122,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (chartInstances.cat) chartInstances.cat.destroy();
       const catLabels = data.eventCategories && data.eventCategories.length > 0 ? data.eventCategories.map(c => c.category) : ['Sin eventos'];
       const catCounts = data.eventCategories && data.eventCategories.length > 0 ? data.eventCategories.map(c => c.count) : [0];
-      const catColors = data.eventCategories && data.eventCategories.length > 0 ? data.eventCategories.map(c => c.color || 'rgba(59, 130, 246, 0.7)') : ['rgba(59, 130, 246, 0.7)'];
+      const catColors = data.eventCategories && data.eventCategories.length > 0
+        ? data.eventCategories.map((c, i) => c.color || VIZ_SERIES[i % VIZ_SERIES.length])
+        : [VIZ.indigo];
 
       chartInstances.cat = new Chart(ctxCat, {
         type: 'polarArea',
@@ -1979,14 +2132,27 @@ document.addEventListener('DOMContentLoaded', () => {
           labels: catLabels,
           datasets: [{
             data: catCounts,
-            backgroundColor: catColors
+            backgroundColor: catColors.map(c => (typeof c === 'string' && c.startsWith('#')) ? hexToRgba(c, 0.62) : c),
+            hoverBackgroundColor: catColors,
+            borderColor: SURFACE_COLOR,
+            borderWidth: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { r: { ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.08)' } } }
+          animation: Object.assign({ animateRotate: true }, VIZ_ANIMATION),
+          plugins: {
+            legend: Object.assign(vizLegend('bottom'), { align: 'center' }),
+            tooltip: vizTooltip()
+          },
+          scales: {
+            r: {
+              ticks: { display: false, backdropColor: 'transparent' },
+              grid: { color: 'rgba(255, 255, 255, 0.07)' },
+              angleLines: { color: 'rgba(255, 255, 255, 0.05)' }
+            }
+          }
         }
       });
     }
@@ -2005,17 +2171,25 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Coincidencias de Chat',
             data: matchCounts,
-            backgroundColor: 'rgba(56, 189, 248, 0.65)',
-            borderRadius: 5
+            backgroundColor: vizGradient(ctxMatch, VIZ.sky, 0.85),
+            hoverBackgroundColor: VIZ.sky,
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: 30
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          animation: VIZ_ANIMATION,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: vizTooltip()
+          },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: vizScale({ grid: false }),
+            y: Object.assign({ beginAtZero: true }, vizScale())
           }
         }
       });
@@ -2036,25 +2210,44 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Hombres',
             data: menData,
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.25)'
+            borderColor: VIZ.sky,
+            backgroundColor: hexToRgba(VIZ.sky, 0.18),
+            borderWidth: 2,
+            pointRadius: 2.5,
+            pointHoverRadius: 5,
+            pointBackgroundColor: VIZ.sky,
+            pointBorderColor: SURFACE_COLOR,
+            pointBorderWidth: 1.5
           }, {
             label: 'Mujeres',
             data: womenData,
-            borderColor: '#ec4899',
-            backgroundColor: 'rgba(236, 72, 153, 0.25)'
+            borderColor: VIZ.pink,
+            backgroundColor: hexToRgba(VIZ.pink, 0.18),
+            borderWidth: 2,
+            pointRadius: 2.5,
+            pointHoverRadius: 5,
+            pointBackgroundColor: VIZ.pink,
+            pointBorderColor: SURFACE_COLOR,
+            pointBorderWidth: 1.5
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'top', labels: { color: '#94a3b8' } } },
+          animation: VIZ_ANIMATION,
+          plugins: {
+            legend: vizLegend('top'),
+            tooltip: vizTooltip()
+          },
           scales: {
             r: {
-              angleLines: { color: 'rgba(255,255,255,0.1)' },
-              grid: { color: 'rgba(255,255,255,0.08)' },
-              pointLabels: { color: '#cbd5e1', font: { size: 11, weight: '600' } },
-              ticks: { display: false }
+              angleLines: { color: 'rgba(255, 255, 255, 0.07)' },
+              grid: { color: 'rgba(255, 255, 255, 0.07)', circular: true },
+              pointLabels: {
+                color: '#a5adbb',
+                font: { size: 11, weight: '600', family: "'Plus Jakarta Sans', sans-serif" }
+              },
+              ticks: { display: false, backdropColor: 'transparent' }
             }
           }
         }
@@ -2074,15 +2267,22 @@ document.addEventListener('DOMContentLoaded', () => {
           labels: deviceLabels,
           datasets: [{
             data: deviceCounts,
-            backgroundColor: ['#60a5fa', '#34d399', '#fbbf24', '#a855f7'],
-            borderWidth: 2,
-            borderColor: '#121827'
+            backgroundColor: [VIZ.cyan, VIZ.emerald, VIZ.amber, VIZ.violet],
+            hoverOffset: 6,
+            borderWidth: 3,
+            borderColor: SURFACE_COLOR,
+            spacing: 2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'right', labels: { color: '#94a3b8' } } }
+          cutout: '68%',
+          animation: Object.assign({ animateRotate: true, animateScale: false }, VIZ_ANIMATION),
+          plugins: {
+            legend: Object.assign(vizLegend('bottom'), { align: 'center' }),
+            tooltip: vizTooltip()
+          }
         }
       });
     }
@@ -2101,20 +2301,31 @@ document.addEventListener('DOMContentLoaded', () => {
           datasets: [{
             label: 'Tráfico de Estudiantes',
             data: hourlyCounts,
-            backgroundColor: [
-              '#38bdf8', '#38bdf8', '#60a5fa', '#60a5fa',
-              '#818cf8', '#a855f7', '#c084fc', '#ec4899', '#f43f5e'
-            ],
-            borderRadius: 6
+            backgroundColor: (bar) => {
+              // Cool-to-warm ramp across the day; falls back to indigo mid-render.
+              const ramp = [VIZ.cyan, VIZ.sky, VIZ.indigo, VIZ.violet, VIZ.pink, VIZ.rose];
+              const total = (bar.chart.data.labels || []).length || 1;
+              const step = ramp[Math.min(ramp.length - 1, Math.floor((bar.dataIndex / total) * ramp.length))];
+              return hexToRgba(step, 0.72);
+            },
+            hoverBackgroundColor: VIZ.indigo,
+            borderRadius: 6,
+            borderSkipped: false,
+            maxBarThickness: 28
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          animation: VIZ_ANIMATION,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: vizTooltip()
+          },
           scales: {
-            x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            x: vizScale({ grid: false }),
+            y: Object.assign({ beginAtZero: true }, vizScale())
           }
         }
       });
@@ -2148,32 +2359,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const res = await window.adminApi.getVerifications({
-        type: currentVerifTab,
+        // This view is Blue Badge only — the involvement types (Student
+        // Government / Creator / Athlete) live in the Verification Requests view.
+        type: currentVerifTab === 'ALL' ? 'STUDENT_ID' : currentVerifTab,
         status: activeFilters.status
       });
 
       const { requests, stats, pendingCount } = res.data;
-      cachedRequests = requests || [];
+      cachedRequests = (requests || []).filter(r => r.type === 'STUDENT_ID');
 
-      // Update sidebar pending badge
+      // Update sidebar pending badges
       const badge = document.getElementById('badge-pending-verifications');
       if (badge) {
-        if (pendingCount > 0) {
-          badge.textContent = pendingCount;
+        const bluePending = cachedRequests.filter(r => r.status === 'PENDING').length;
+        if (bluePending > 0) {
+          badge.textContent = bluePending;
           badge.classList.remove('hidden');
         } else {
           badge.classList.add('hidden');
         }
       }
+      updateVrPendingBadge(stats);
 
-      // Update Header Stats Scorecards
+      // Update Header Stats Scorecards (Blue Badge scope)
       if (stats) {
-        document.getElementById('verif-stat-total').textContent = stats.totalCount || requests.length;
-        document.getElementById('verif-stat-pending').textContent = stats.pendingCount || 0;
-        document.getElementById('verif-stat-approved').textContent = stats.approvedCount || 0;
-        document.getElementById('verif-stat-rejected').textContent = stats.rejectedCount || 0;
+        const blueTotal = stats.studentIdCount || cachedRequests.length;
+        document.getElementById('verif-stat-total').textContent = blueTotal;
+        document.getElementById('verif-stat-pending').textContent = cachedRequests.filter(r => r.status === 'PENDING').length;
+        document.getElementById('verif-stat-approved').textContent = cachedRequests.filter(r => r.status === 'APPROVED').length;
+        document.getElementById('verif-stat-rejected').textContent = cachedRequests.filter(r => r.status === 'REJECTED').length;
 
-        document.getElementById('tab-count-all').textContent = stats.totalCount || requests.length;
+        document.getElementById('tab-count-all').textContent = blueTotal;
         document.getElementById('tab-count-student').textContent = stats.studentIdCount || 0;
         document.getElementById('tab-count-creator').textContent = stats.creatorCount || 0;
         document.getElementById('tab-count-athlete').textContent = stats.athleteCount || 0;
@@ -2755,31 +2971,73 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // Define global modal inspection viewer for student credentials
-  window.openCredentialModal = (requestId) => {
-    const req = cachedRequests.find(r => r.id === requestId);
+  /**
+   * Looks a request up in either view's cache — the Blue Badge view and the
+   * Verification Requests view share this modal.
+   */
+  function findCachedRequest(requestId) {
+    return cachedRequests.find(r => r.id === requestId)
+      || (typeof vrCachedRequests !== 'undefined' ? vrCachedRequests.find(r => r.id === requestId) : null)
+      || null;
+  }
+
+  // Define global modal inspection viewer for student credentials.
+  // The document is NOT part of the list payload — it is fetched here, one at a
+  // time, through the authenticated admin API and injected in memory.
+  window.openCredentialModal = async (requestId) => {
+    const req = findCachedRequest(requestId);
     const u = req ? (req.user || {}) : {};
     const studentName = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Estudiante';
     const handle = u.handle || `@${u.firstName?.toLowerCase() || 'user'}`;
     const university = u.profile?.university || 'Universidad';
     const major = u.profile?.major || '';
     const majorText = major ? ` (${major})` : '';
-    let rawDocUrl = req?.credentialUrl;
-    let isValidDocUrl = rawDocUrl && typeof rawDocUrl === 'string' && (rawDocUrl.startsWith('data:') || rawDocUrl.startsWith('http://') || rawDocUrl.startsWith('https://') || rawDocUrl.startsWith('/'));
-    let docUrl = isValidDocUrl ? rawDocUrl : (u.photos && u.photos[0] ? u.photos[0].url : null);
 
     const isApproved = req?.status === 'APPROVED';
     const isRejected = req?.status === 'REJECTED';
+    const sportText = req?.sport ? ` · 🏅 ${req.sport}` : '';
 
-    const isPdf = typeof docUrl === 'string' && (docUrl.toLowerCase().includes('.pdf') || docUrl.startsWith('data:application/pdf'));
+    // Loading state while the document travels.
+    openModal(`
+      <div style="padding:4px;">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-2">
+          <div>
+            <h3 style="font-size:17px; font-weight:800; color:#fff; margin:0;">🪪 Documento de Verificación</h3>
+            <div style="font-size:12px; color:#a855f7; font-weight:600; margin-top:3px;">${studentName} <span style="color:#94a3b8; font-weight:400;">(${handle})</span></div>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:60px 20px;">
+          <div class="spinner" style="width:26px;height:26px;border-width:3px;"></div>
+          <div style="font-size:13px; color:#94a3b8;">Cargando documento…</div>
+        </div>
+      </div>
+    `);
+
+    let docUrl = null;
+    let docMime = '';
+    let docName = '';
+    let loadError = '';
+    try {
+      const res = await window.adminApi.getVerificationDocument(requestId);
+      docUrl = res.data?.credentialUrl || null;
+      docMime = res.data?.documentMime || '';
+      docName = res.data?.documentName || '';
+    } catch (err) {
+      loadError = err.message || 'No se pudo cargar el documento';
+    }
+
+    const isValidDocUrl = docUrl && typeof docUrl === 'string' && (docUrl.startsWith('data:') || docUrl.startsWith('http://') || docUrl.startsWith('https://') || docUrl.startsWith('/'));
+    if (!isValidDocUrl) docUrl = null;
+
+    const isPdf = !!docUrl && (docMime === 'application/pdf' || docUrl.toLowerCase().includes('.pdf') || docUrl.startsWith('data:application/pdf'));
 
     let previewHtml = '';
     if (!docUrl) {
       previewHtml = `
         <div style="text-align:center; padding:30px 15px; background:rgba(239,68,68,0.1); border-radius:12px; border:1.5px solid rgba(239,68,68,0.3); margin:12px 0;">
           <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
-          <div style="font-size:14px; font-weight:700; color:#ef4444;">No se adjuntó archivo de credencial válido</div>
-          <div style="font-size:12px; color:#94a3b8; margin-top:4px;">El estudiante deberá volver a subir una fotografía legible de su credencial desde la app.</div>
+          <div style="font-size:14px; font-weight:700; color:#ef4444;">${loadError || 'No se adjuntó archivo de credencial válido'}</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:4px;">El estudiante deberá volver a subir una fotografía legible de su documento desde la app.</div>
         </div>
       `;
     } else if (isPdf) {
@@ -2787,7 +3045,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       previewHtml = `
         <div style="text-align:center; padding:12px; background:rgba(0,0,0,0.5); border-radius:12px; border:1.5px solid rgba(255,255,255,0.1); margin:12px 0;">
-          <img src="${docUrl}" alt="Credencial Estudiantil" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:8px; display:inline-block; box-shadow:0 8px 30px rgba(0,0,0,0.5);" />
+          <img src="${docUrl}" alt="Documento de Verificación" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:8px; display:inline-block; box-shadow:0 8px 30px rgba(0,0,0,0.5);" />
         </div>
       `;
     }
@@ -2797,11 +3055,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-2">
           <div>
             <h3 style="font-size:17px; font-weight:800; color:#fff; margin:0;" class="flex items-center gap-2">
-              <span>🪪 Documento de Verificación Estudiantil</span>
+              <span>🪪 Documento de Verificación${sportText}</span>
             </h3>
             <div style="font-size:12px; color:#a855f7; font-weight:600; margin-top:3px;">
               ${studentName} <span style="color:#94a3b8; font-weight:400;">(${handle})</span> · ${university}${majorText}
             </div>
+            ${docName ? `<div style="font-size:11px; color:#64748b; margin-top:3px;">📎 ${docName}</div>` : ''}
           </div>
         </div>
 
@@ -2839,7 +3098,7 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast('Procesando aprobación...', 'info');
           await window.adminApi.approveVerification(requestId, type);
           showToast(`✅ Verificación aprobada con éxito para ${studentName}`);
-          loadVerificationsView();
+          refreshActiveVerificationView();
         } catch (err) {
           showToast(`Error: ${err.message}`, 'error');
         }
@@ -2874,7 +3133,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Procesando rechazo...', 'info');
       await window.adminApi.rejectVerification(requestId, reason);
       showToast(`❌ Solicitud rechazada para ${studentName}`, 'warning');
-      loadVerificationsView();
+      refreshActiveVerificationView();
     } catch (err) {
       showToast(`Error: ${err.message}`, 'error');
     }
@@ -2888,7 +3147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           await window.adminApi.approveVerification(reqId);
           showToast('¡Verificación aprobada con éxito! Insignia otorgada.');
-          loadVerificationsView();
+          refreshActiveVerificationView();
         } catch (err) {
           showToast(err.message, 'error');
         }
@@ -2899,6 +3158,275 @@ document.addEventListener('DOMContentLoaded', () => {
   window.rejectVerifReq = (reqId) => {
     confirmRejectVerif(reqId, 'estudiante');
   };
+
+  /* ==========================================================================
+     12. VERIFICATION REQUESTS CONTROLLER
+     Student Government · Content Creator · Athlete.
+     Separate from the Blue Badge (STUDENT_ID) view. Athletics is reviewed one
+     sport at a time: each sport is its own request with its own document.
+     ========================================================================== */
+
+  const VR_TYPES = ['STUDENT_GOVT', 'CREATOR_BADGE', 'ATHLETE'];
+  const VR_META = {
+    STUDENT_GOVT:  { label: 'Student Government', icon: '🏛️', cls: 'verif-cat-blue' },
+    CREATOR_BADGE: { label: 'Content Creator',    icon: '✨', cls: 'verif-cat-purple' },
+    ATHLETE:       { label: 'Athlete',            icon: '🏅', cls: 'verif-cat-gold' }
+  };
+
+  let vrCurrentTab = 'ALL';
+  let vrStatusFilter = 'PENDING';
+  let vrSearch = '';
+  let vrCachedRequests = [];
+  let vrDebounceTimer = null;
+
+  /** Reloads whichever verification view the admin is currently on. */
+  function refreshActiveVerificationView() {
+    if (state.currentView === 'verification-requests') loadVerificationRequestsView();
+    else loadVerificationsView();
+  }
+
+  /**
+   * Sidebar counter for pending involvement verifications. Fed from the stats
+   * block, which counts every request regardless of the current filters.
+   */
+  function updateVrPendingBadge(stats) {
+    const badge = document.getElementById('badge-pending-vr');
+    if (!badge || !stats) return;
+    const pending = (stats.pendingByType)
+      ? (stats.pendingByType.CREATOR_BADGE || 0) + (stats.pendingByType.ATHLETE || 0) + (stats.pendingByType.STUDENT_GOVT || 0)
+      : 0;
+    if (pending > 0) {
+      badge.textContent = pending;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  async function loadVerificationRequestsView() {
+    const grid = document.getElementById('vr-grid');
+    if (!grid) return;
+
+    renderSkeletonCards(grid);
+
+    try {
+      // The API filters by a single type; for the "Todas" tab we pull everything
+      // and narrow to the three involvement types client-side.
+      const res = await window.adminApi.getVerifications({
+        type: vrCurrentTab === 'ALL' ? 'ALL' : vrCurrentTab,
+        status: vrStatusFilter
+      });
+
+      const requests = (res.data.requests || []).filter(r => VR_TYPES.indexOf(r.type) > -1);
+      vrCachedRequests = requests;
+
+      updateVrPendingBadge(res.data.stats);
+      vrUpdateStats(res.data.stats || {}, requests);
+      vrBindControls();
+      vrRender();
+    } catch (err) {
+      grid.innerHTML = `<div class="glass-panel p-6 text-center col-span-full text-red-400">Error cargando solicitudes: ${err.message}</div>`;
+    }
+  }
+
+  function vrUpdateStats(stats, requests) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+    // Totals for the three involvement types only (Blue Badge lives elsewhere).
+    const total = (stats.creatorCount || 0) + (stats.athleteCount || 0) + (stats.govtCount || 0);
+    set('vr-stat-total', total);
+    set('vr-stat-pending', requests.filter(r => r.status === 'PENDING').length);
+    set('vr-stat-approved', requests.filter(r => r.status === 'APPROVED').length);
+    set('vr-stat-rejected', requests.filter(r => r.status === 'REJECTED').length);
+
+    set('vr-tab-count-all', requests.length);
+    set('vr-tab-count-govt', requests.filter(r => r.type === 'STUDENT_GOVT').length);
+    set('vr-tab-count-creator', requests.filter(r => r.type === 'CREATOR_BADGE').length);
+    set('vr-tab-count-athlete', requests.filter(r => r.type === 'ATHLETE').length);
+  }
+
+  function vrBindControls() {
+    const search = document.getElementById('vr-search-input');
+    if (search && search.dataset.bound !== 'true') {
+      search.dataset.bound = 'true';
+      search.oninput = (e) => {
+        clearTimeout(vrDebounceTimer);
+        vrDebounceTimer = setTimeout(() => { vrSearch = e.target.value.trim().toLowerCase(); vrRender(); }, 250);
+      };
+    }
+
+    const statusSel = document.getElementById('vr-status-select');
+    if (statusSel && statusSel.dataset.bound !== 'true') {
+      statusSel.dataset.bound = 'true';
+      statusSel.onchange = (e) => { vrStatusFilter = e.target.value; loadVerificationRequestsView(); };
+    }
+
+    document.querySelectorAll('.vr-nav-tab').forEach(tab => {
+      if (tab.dataset.bound === 'true') return;
+      tab.dataset.bound = 'true';
+      tab.onclick = () => {
+        document.querySelectorAll('.vr-nav-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        vrCurrentTab = tab.dataset.vrtab;
+        loadVerificationRequestsView();
+      };
+    });
+  }
+
+  function vrRender() {
+    const grid = document.getElementById('vr-grid');
+    if (!grid) return;
+
+    let list = vrCachedRequests.slice();
+
+    if (vrSearch) {
+      list = list.filter(r => {
+        const u = r.user || {};
+        const hay = [
+          u.firstName, u.lastName, u.handle, u.email,
+          u.profile?.university, u.profile?.major, r.sport
+        ].filter(Boolean).join(' ').toLowerCase();
+        return hay.includes(vrSearch);
+      });
+    }
+
+    const counter = document.getElementById('vr-results-count');
+    if (counter) counter.textContent = `${list.length} solicitud${list.length === 1 ? '' : 'es'} encontrada${list.length === 1 ? '' : 's'}`;
+
+    if (!list.length) {
+      grid.innerHTML = `
+        <div class="col-span-full empty-verif-state">
+          <div class="empty-icon">📭</div>
+          <h3 style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px;">Sin solicitudes</h3>
+          <p style="font-size:13px;color:#94a3b8;">No hay solicitudes de verificación que coincidan con los filtros actuales.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // How many athlete requests each user has, so a card can show the context
+    // (e.g. "Soccer" is 1 of 2 sports submitted by this student).
+    const athleteCountByUser = {};
+    vrCachedRequests.forEach(r => {
+      if (r.type !== 'ATHLETE') return;
+      athleteCountByUser[r.userId] = (athleteCountByUser[r.userId] || 0) + 1;
+    });
+
+    grid.innerHTML = list.map(r => vrCardHtml(r, athleteCountByUser)).join('');
+  }
+
+  function vrCardHtml(req, athleteCountByUser) {
+    const u = req.user || {};
+    const meta = VR_META[req.type] || { label: req.type, icon: '📄', cls: 'verif-cat-blue' };
+    const name = `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'Estudiante';
+    const handle = u.handle ? (u.handle.startsWith('@') ? u.handle : '@' + u.handle) : '';
+    const university = u.profile?.university || '—';
+    const major = u.profile?.major || '';
+    const photo = (u.photos && u.photos[0]) ? u.photos[0].url : null;
+    const initial = (u.firstName || 'U').charAt(0).toUpperCase();
+
+    const statusMap = {
+      PENDING:  { cls: 'badge-warning', text: 'PENDIENTE' },
+      APPROVED: { cls: 'badge-success', text: 'APROBADO' },
+      REJECTED: { cls: 'badge-danger',  text: 'RECHAZADO' }
+    };
+    const st = statusMap[req.status] || statusMap.PENDING;
+
+    const created = req.createdAt ? new Date(req.createdAt).toLocaleString('es-MX', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    }) : '—';
+
+    // Category label carries the sport, since each sport is its own request.
+    const catLabel = req.type === 'ATHLETE' && req.sport
+      ? `${meta.icon} ${meta.label} · ${escapeHtml(req.sport)}`
+      : `${meta.icon} ${meta.label}`;
+
+    // Per-type detail rows
+    let details = '';
+    if (req.type === 'STUDENT_GOVT') {
+      const roles = (req.metadata && Array.isArray(req.metadata.roles)) ? req.metadata.roles.join(', ') : '—';
+      details = `<div class="verif-data-row"><span class="verif-data-label">Cargo</span><span class="verif-data-value">${escapeHtml(roles)}</span></div>`;
+    } else if (req.type === 'CREATOR_BADGE') {
+      const s = req.socialLinks || {};
+      const rows = [];
+      if (s.instagram) rows.push(`<div class="verif-social-row"><span class="text-gray-400 font-semibold">📸 Instagram</span><span>@${escapeHtml(s.instagram)}</span></div>`);
+      if (s.tiktok)    rows.push(`<div class="verif-social-row"><span class="text-gray-400 font-semibold">🎵 TikTok</span><span>@${escapeHtml(s.tiktok)}</span></div>`);
+      if (s.youtube)   rows.push(`<div class="verif-social-row"><span class="text-gray-400 font-semibold">▶️ YouTube</span><span>${escapeHtml(s.youtube)}</span></div>`);
+      details = rows.length ? rows.join('') : `<div class="verif-data-row"><span class="verif-data-label">Redes</span><span class="verif-data-value">Sin datos</span></div>`;
+    } else if (req.type === 'ATHLETE') {
+      const totalSports = athleteCountByUser[req.userId] || 1;
+      details = `
+        <div class="verif-data-row"><span class="verif-data-label">Deporte</span><span class="verif-data-value">${escapeHtml(req.sport || '—')}</span></div>
+        <div class="verif-data-row"><span class="verif-data-label">Solicitudes del alumno</span><span class="verif-data-value">${totalSports} deporte${totalSports === 1 ? '' : 's'}</span></div>
+      `;
+    }
+
+    const fileWidget = req.hasDocument ? `
+      <div class="verif-file-widget" onclick="openCredentialModal('${req.id}')">
+        <div class="flex items-center gap-3">
+          <div class="verif-file-icon-box">${req.documentMime === 'application/pdf' ? '📕' : '🖼️'}</div>
+          <div>
+            <div class="verif-file-title">${escapeHtml(req.documentName || 'Documento adjunto')}</div>
+            <div class="verif-file-meta">${req.documentMime === 'application/pdf' ? 'PDF' : 'Imagen'} · clic para abrir</div>
+          </div>
+        </div>
+        <span class="text-gray-400 font-bold">↗</span>
+      </div>
+    ` : `
+      <div class="verif-file-widget" style="cursor:default;opacity:0.65;">
+        <div class="flex items-center gap-3">
+          <div class="verif-file-icon-box">⚠️</div>
+          <div>
+            <div class="verif-file-title">Sin documento</div>
+            <div class="verif-file-meta">El estudiante no adjuntó archivo</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const avatar = photo
+      ? `<img src="${photo}" alt="" class="verif-profile-badge-avatar" style="object-fit:cover;">`
+      : `<div class="verif-profile-badge-avatar" style="background:var(--accent-gradient);color:#fff;">${initial}</div>`;
+
+    const safeName = String(name).replace(/'/g, "\\'");
+
+    return `
+      <div class="verif-card-saas" id="vr-card-${req.id}">
+        <div>
+          <div class="verif-card-saas-header">
+            <span class="badge ${meta.cls} font-bold text-xs px-2.5 py-1 rounded-full">${catLabel}</span>
+            <span class="badge ${st.cls} font-bold">${st.text}</span>
+          </div>
+
+          <div class="flex gap-3 items-center mb-3">
+            ${avatar}
+            <div style="overflow:hidden;">
+              <h4 style="font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0;">${escapeHtml(name)}</h4>
+              <span style="font-size:11px;color:#94a3b8;">${escapeHtml(handle)}</span>
+            </div>
+          </div>
+
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">
+            <div class="flex items-center gap-1.5 text-gray-300 font-semibold truncate">🏛️ ${escapeHtml(university)}</div>
+            ${major ? `<div class="flex items-center gap-1.5 text-indigo-400 font-semibold truncate mt-0.5">🎓 ${escapeHtml(major)}</div>` : ''}
+          </div>
+
+          <hr class="my-2">
+          ${details}
+          ${fileWidget}
+        </div>
+
+        <div class="verif-card-saas-footer">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:600;">🕒 ${created}</div>
+          <div class="flex gap-2">
+            ${req.hasDocument ? `<button class="btn-verif-view flex-1" onclick="openCredentialModal('${req.id}')">👁️ Ver doc</button>` : ''}
+            ${req.status !== 'APPROVED' ? `<button class="btn-verif-approve flex-1" onclick="confirmApproveVerif('${req.id}', '${req.type}', '${safeName}')">✓ Aprobar</button>` : ''}
+            ${req.status !== 'REJECTED' ? `<button class="btn-verif-reject flex-1" onclick="confirmRejectVerif('${req.id}', '${safeName}')">✕ Rechazar</button>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
 
   // Run initialization
   initApp();

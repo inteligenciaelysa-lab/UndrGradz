@@ -290,16 +290,48 @@ class UserService {
   }
 
   /**
-   * Student ID Verification Request submission
+   * Verification Request submission.
+   * Handles Student ID (Blue Badge), Content Creator, Athlete and Student
+   * Government. ATHLETE requests carry a `sport` so each sport is reviewed
+   * independently.
    */
-  async submitVerificationRequest(userId, { type = 'STUDENT_ID', documentUrl, credentialUrl, notes }) {
+  async submitVerificationRequest(userId, {
+    type = 'STUDENT_ID',
+    documentUrl,
+    credentialUrl,
+    notes,
+    sport,
+    socialLinks,
+    creatorCategory,
+    metadata,
+    documentName,
+    documentMime,
+  } = {}) {
     const credUrl = credentialUrl || documentUrl;
     if (!credUrl) {
       throw new AppError('Se requiere la foto o archivo de la credencial', 400);
     }
+
+    // The pending request is identified by (user, type) — plus the sport for
+    // athletes, otherwise a second sport would overwrite the first one's document.
     const existing = await prisma.verificationRequest.findFirst({
-      where: { userId, type, status: 'PENDING' }
+      where: {
+        userId,
+        type,
+        status: 'PENDING',
+        ...(type === 'ATHLETE' ? { sport: sport || null } : {}),
+      }
     });
+
+    // Only overwrite optional columns when a value was actually supplied, so a
+    // resubmission never wipes data captured on the first attempt.
+    const optionalData = {};
+    if (sport !== undefined && sport !== null) optionalData.sport = sport;
+    if (socialLinks !== undefined && socialLinks !== null) optionalData.socialLinks = socialLinks;
+    if (creatorCategory !== undefined && creatorCategory !== null) optionalData.creatorCategory = creatorCategory;
+    if (metadata !== undefined && metadata !== null) optionalData.metadata = metadata;
+    if (documentName !== undefined && documentName !== null) optionalData.documentName = documentName;
+    if (documentMime !== undefined && documentMime !== null) optionalData.documentMime = documentMime;
 
     let requestRecord;
     if (existing) {
@@ -308,7 +340,8 @@ class UserService {
         data: {
           credentialUrl: credUrl,
           notes: notes || existing.notes || 'Subido por el estudiante',
-          createdAt: new Date()
+          createdAt: new Date(),
+          ...optionalData,
         }
       });
     } else {
@@ -318,7 +351,8 @@ class UserService {
           type,
           status: 'PENDING',
           credentialUrl: credUrl,
-          notes: notes || 'Solicitud enviada por el estudiante'
+          notes: notes || 'Solicitud enviada por el estudiante',
+          ...optionalData,
         }
       });
     }
@@ -329,7 +363,13 @@ class UserService {
   async getVerificationStatus(userId) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { isVerified: true, isCreatorVerified: true, isAthleteVerified: true, isGovtVerified: true }
+      select: {
+        isVerified: true,
+        isCreatorVerified: true,
+        isAthleteVerified: true,
+        isGovtVerified: true,
+        profile: { select: { verifiedSports: true } },
+      }
     });
 
     const latestRequest = await prisma.verificationRequest.findFirst({
@@ -337,10 +377,47 @@ class UserService {
       orderBy: { createdAt: 'desc' }
     });
 
+    // Per-category summary so the app can render the state of each request
+    // without ever exposing the stored document.
+    const allRequests = await prisma.verificationRequest.findMany({
+      where: { userId },
+      select: {
+        id: true, type: true, status: true, sport: true,
+        adminNotes: true, createdAt: true, reviewedAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const latestOfType = (type) => allRequests.find(r => r.type === type) || null;
+    const summarize = (type) => {
+      const r = latestOfType(type);
+      return r ? { status: r.status, adminNotes: r.adminNotes, createdAt: r.createdAt } : { status: null };
+    };
+
+    const badges = user
+      ? {
+          isVerified: user.isVerified,
+          isCreatorVerified: user.isCreatorVerified,
+          isAthleteVerified: user.isAthleteVerified,
+          isGovtVerified: user.isGovtVerified,
+        }
+      : null;
+
     return {
       isVerified: !!user?.isVerified,
-      badges: user,
-      latestRequest
+      badges,
+      latestRequest,
+      verifiedSports: user?.profile?.verifiedSports || [],
+      verifications: {
+        STUDENT_ID: summarize('STUDENT_ID'),
+        STUDENT_GOVT: summarize('STUDENT_GOVT'),
+        CREATOR_BADGE: summarize('CREATOR_BADGE'),
+        ATHLETE: {
+          sports: allRequests
+            .filter(r => r.type === 'ATHLETE')
+            .map(r => ({ sport: r.sport, status: r.status, adminNotes: r.adminNotes })),
+        },
+      },
     };
   }
 }

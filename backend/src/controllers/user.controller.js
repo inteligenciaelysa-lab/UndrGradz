@@ -1,5 +1,5 @@
 const userService = require('../services/user.service');
-const { updateProfileSchema, updateLocationSchema, addPhotoSchema, updateGhostModeSchema } = require('../validators/user.validator');
+const { updateProfileSchema, updateLocationSchema, addPhotoSchema, updateGhostModeSchema, submitVerificationSchema } = require('../validators/user.validator');
 const AppError = require('../errors/appError');
 
 class UserController {
@@ -195,9 +195,30 @@ class UserController {
   async submitVerificationRequest(req, res, next) {
     try {
       const userId = req.user.userId || req.user.id;
-      const { type, documentUrl, credentialUrl, notes } = req.body;
+
+      // Validate inputs
+      const parseResult = submitVerificationSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        const messages = parseResult.error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        throw new AppError(messages, 400);
+      }
+
+      const {
+        type, documentUrl, credentialUrl, notes,
+        sport, socialLinks, creatorCategory, metadata, documentName, documentMime,
+      } = parseResult.data;
       const finalUrl = credentialUrl || documentUrl;
-      const requestRecord = await userService.submitVerificationRequest(userId, { type, credentialUrl: finalUrl, notes });
+      const requestRecord = await userService.submitVerificationRequest(userId, {
+        type,
+        credentialUrl: finalUrl,
+        notes,
+        sport,
+        socialLinks,
+        creatorCategory,
+        metadata,
+        documentName,
+        documentMime,
+      });
 
       try {
         const { getIO } = require('../socket');

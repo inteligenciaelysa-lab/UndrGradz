@@ -31,7 +31,7 @@ const IS_CAPACITOR = !!(
 );
 
 // Túnel público o URL remota de producción
-const REMOTE_URL = 'https://personalized-seattle-fingers-classes.trycloudflare.com';
+const REMOTE_URL = 'https://neural-saying-oakland-honey.trycloudflare.com';
 
 // En App Android/iOS Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
 // En Web Local se utiliza el puerto 3000 local del host.
@@ -671,26 +671,45 @@ class ApiClient {
       console.log('🎓 Received live userVerificationUpdated notification:', data);
       if (data) {
         if (typeof userPro !== 'undefined' && userPro) {
+          // Each verification category owns its own badge. Only STUDENT_ID
+          // (the Blue Badge) touches isVerified / #vbadge / #verify-box.
+          var reqType = data.reqType || 'STUDENT_ID';
+          var isBlueBadge = (reqType === 'STUDENT_ID');
+
+          if (Array.isArray(data.verifiedSports)) userPro.verifiedSports = data.verifiedSports;
+
           if (data.status === 'APPROVED') {
-            if (typeof verified !== 'undefined') verified = true;
-            userPro.isVerified = true;
-            userPro.badgeColor = data.badgeColor || '#1d9bf0';
-            var vb = document.getElementById('vbadge');
-            if (vb) {
-              vb.style.display = 'flex';
-              vb.style.background = '#1d9bf0';
-              vb.title = 'ID Verified (Blue Badge)';
-            }
-            var box = document.getElementById('verify-box');
-            if (box) {
-              box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
+            if (reqType === 'CREATOR_BADGE') userPro.isCreatorVerified = true;
+            else if (reqType === 'ATHLETE') userPro.isAthleteVerified = true;
+            else if (reqType === 'STUDENT_GOVT') userPro.isGovtVerified = true;
+
+            if (isBlueBadge) {
+              if (typeof verified !== 'undefined') verified = true;
+              userPro.isVerified = true;
+              userPro.badgeColor = data.badgeColor || '#1d9bf0';
+              var vb = document.getElementById('vbadge');
+              if (vb) {
+                vb.style.display = 'flex';
+                vb.style.background = '#1d9bf0';
+                vb.title = 'ID Verified (Blue Badge)';
+              }
+              var box = document.getElementById('verify-box');
+              if (box) {
+                box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
+              }
             }
           } else if (data.status === 'REJECTED') {
-            if (typeof verified !== 'undefined') verified = false;
-            userPro.isVerified = false;
-            var box = document.getElementById('verify-box');
-            if (box) {
-              box.innerHTML = '⚠️ Credencial Rechazada — ' + (data.message || 'Intenta subir una foto clara.');
+            if (reqType === 'CREATOR_BADGE') userPro.isCreatorVerified = false;
+            else if (reqType === 'ATHLETE') userPro.isAthleteVerified = !!(data.verifiedSports && data.verifiedSports.length);
+            else if (reqType === 'STUDENT_GOVT') userPro.isGovtVerified = false;
+
+            if (isBlueBadge) {
+              if (typeof verified !== 'undefined') verified = false;
+              userPro.isVerified = false;
+              var box = document.getElementById('verify-box');
+              if (box) {
+                box.innerHTML = '⚠️ Credencial Rechazada — ' + (data.message || 'Intenta subir una foto clara.');
+              }
             }
           }
         }
