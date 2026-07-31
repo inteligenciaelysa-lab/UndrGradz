@@ -2350,7 +2350,12 @@ html.uni-set .chat-standalone-btn {
   max-height: calc(100dvh - 190px);
   display: flex;
   flex-direction: column;
+  /* NOTE: the 190px reserves space for the swipe-deck's tabs + action dock. In the
+     View Profile modal that chrome doesn't exist, so the card must fill instead —
+     see the #user-crush-modal override below (kills the ~77px black band). */
 }
+/* View Profile modal: the card fills the sheet (no swipe-deck chrome here). */
+#user-crush-modal .crush-card { max-height: 100% !important; }
 .crush-scroll {
   flex: 1;
   overflow-y: auto;
@@ -5380,8 +5385,8 @@ svg {
   display: flex;
   align-items: center;
   gap: 13px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--gbdl);
+  background: color-mix(in srgb, var(--uni-accent, var(--p)) 6%, rgba(255, 255, 255, 0.02));
+  border: 1px solid color-mix(in srgb, var(--uni-accent, var(--p)) 40%, transparent);
   border-radius:var(--rad-md);
   padding: 13px 14px;
   margin-bottom: 10px;
@@ -8358,10 +8363,10 @@ body.is-ios .screen::before {
 /* ════════════════════ CAMPUS SEARCH NEON REDESIGN ════════════════════ */
 #crush-search-input {
   width: 100% !important;
-  background: rgba(18, 10, 35, 0.85) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1.5px solid rgba(61, 123, 255, 0.6) !important;
+  /* Gradient BORDER in the university colours over a primary-tinted fill. */
+  background: linear-gradient(color-mix(in srgb, var(--p) 22%, #0a0713), color-mix(in srgb, var(--p) 22%, #0a0713)) padding-box,
+              linear-gradient(135deg, var(--p), var(--p2)) border-box !important;
+  border: 1.5px solid transparent !important;
   border-radius:var(--rad-xl) !important;
   padding: 12px 18px 12px 44px !important;
   color: #ffffff !important;
@@ -8369,32 +8374,33 @@ body.is-ios .screen::before {
   font-size:var(--fs-base) !important;
   font-weight:500 !important;
   outline: none !important;
-  
-  transition: border-color var(--dur) ease, box-shadow var(--dur) ease !important;
+  transition: box-shadow var(--dur) ease !important;
 }
 
 #crush-search-input:focus {
-  border-color: #3d7bff !important;
-  box-shadow: 0 0 12px rgba(61, 123, 255, 0.75), inset 0 0 14px rgba(61, 123, 255, 0.3) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--p) 45%, transparent) !important;
 }
 
 .search-student-card {
   margin: 0 0 12px 0 !important;
   padding: 14px 16px !important;
-  background: rgba(22, 14, 42, 0.85) !important;
-  border: 1.5px solid rgba(61, 123, 255, 0.4) !important;
+  /* Fill tinted with the student's PRIMARY school colour, gradient BORDER in the
+     student's colours (--card-p/--card-p2, set per row; falls back to the viewer's
+     school). No coloured glow behind the card. */
+  background: linear-gradient(color-mix(in srgb, var(--card-p, var(--p)) 30%, #0a0713), color-mix(in srgb, var(--card-p, var(--p)) 30%, #0a0713)) padding-box,
+              linear-gradient(135deg, var(--card-p, var(--p)), var(--card-p2, var(--p2))) border-box !important;
+  border: 1.5px solid transparent !important;
   border-radius:var(--rad-lg) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 0 16px rgba(61, 123, 255, 0.2) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
   display: flex !important;
   align-items: center !important;
   gap: 14px !important;
-  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease, border-color 0.2s ease !important;
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s ease !important;
 }
 
 .search-student-card:hover {
   transform: translateY(-2px) scale(1.01) !important;
-  border-color: rgba(61, 123, 255, 0.75) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 24px rgba(61, 123, 255, 0.4) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45) !important;
 }
 
 .spotlight-rank-card {
