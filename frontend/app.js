@@ -7187,7 +7187,16 @@ function openHangoutDetailModal(evtId) {
   // stands out. Date / host / about use a quiet borderless card for hierarchy.
   var _cardNeon = 'background:#000;border:1.5px solid ' + _attHue + ';border-radius:var(--rad-lg);' +
     'box-shadow:inset 0 0 12px ' + _attHue + '12;';
-  var _cardSoft = 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--rad-lg);';
+  var _cardSoft = 'background:color-mix(in srgb, '+_attHue+' 9%, rgba(255,255,255,0.02));border:1px solid color-mix(in srgb, '+_attHue+' 26%, transparent);border-radius:var(--rad-lg);';
+  // Robust avatar: the initial (on a uni-gradient) is ALWAYS rendered; the photo
+  // sits on top and hides itself if the URL is broken — so no empty/"?" circles.
+  var _avatarHtml = function(photo, initial, size){
+    size = size || 44;
+    return '<div style="position:relative;width:'+size+'px;height:'+size+'px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid '+_attHue+';background:linear-gradient(135deg,'+_attHue+',color-mix(in srgb,'+_attHue+' 45%,#000));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;">'+
+      (initial||'?') +
+      (photo ? '<img src="'+photo+'" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/>' : '') +
+    '</div>';
+  };
   // One tinted tile recipe for the leading icons, following the event's hue
   // instead of the hardcoded blue/rose they used to carry.
   // Just the glyph now — the tinted rounded box around it was removed.
@@ -7200,9 +7209,7 @@ function openHangoutDetailModal(evtId) {
       var photo = (att.photos && att.photos[0]) ? att.photos[0].url : '';
       var name = att.firstName || (att.name ? att.name.split(' ')[0] : 'Estudiante');
       var major = (att.profile && att.profile.major) || att.major || _uniAcronymOf(att);
-      var photoHtml = photo ?
-        '<div style="width:44px;height:44px;border-radius:50%;background:url(\''+photo+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
-        '<div style="width:44px;height:44px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+name.charAt(0).toUpperCase()+'</div>';
+      var photoHtml = _avatarHtml(photo, name.charAt(0).toUpperCase(), 44);
 
       var attIsVerified = att.isVerified || att.verified || ((userPro.isVerified || verified) && (att.id === userPro.id || (att.handle && att.handle.replace('@','') === userPro.handle.replace('@','')) || name === userPro.name));
       return '<div style="'+_attRow+'">' +
@@ -7227,7 +7234,7 @@ function openHangoutDetailModal(evtId) {
       return '<div style="'+_attRow+'">' +
         // Ring added to match the real-attendee branch, which had one while this
         // placeholder branch did not.
-        '<div style="width:44px;height:44px;border-radius:50%;background:'+(f.c||'#2b5fd9')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;border:2px solid '+_attHue+';">'+(f.i||'U')+'</div>' +
+        _avatarHtml('', (f.i||'U'), 44) +
         '<div style="flex:1;min-width:0;">' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.2px;">'+(f.n || 'Estudiante')+'</div>' +
           ((f.m || _uniAcronymOf(f)) ? '<div style="font-size:var(--fs-sm);color:#a9c4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">'+(f.m || _uniAcronymOf(f))+'</div>' : '') +
@@ -7286,8 +7293,9 @@ function openHangoutDetailModal(evtId) {
       '</div>' +
     '</div>' +
 
-    // Content container — pulled up to overlap the cover for a smoother transition
-    '<div style="position:relative;z-index:2;margin-top:-20px;padding:0 20px 24px;">' +
+    // Content container — the safe-area inset lives INSIDE the card so there is no
+    // raw-black strip below the last button.
+    '<div style="position:relative;z-index:2;padding:16px 20px calc(12px + env(safe-area-inset-bottom));">' +
       // Date & Location — icons carry the meaning, so no repeated tiny labels.
       '<div style="'+_cardSoft+'padding:13px 16px;margin-bottom:14px;">' +
         '<div style="display:flex;align-items:center;gap:12px;font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:10px;">' +
@@ -7331,9 +7339,7 @@ function openHangoutDetailModal(evtId) {
         var hostSame = (hostName === hostHandle) || !hostName;
         var hostInit = String(hostName || hostHandle || 'U').replace(/^@/, '').charAt(0).toUpperCase();
 
-        var hostAvHtml = hostPhoto ?
-          '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+hostPhoto+'\') center/cover;border:2px solid '+_attHue+';flex-shrink:0;"></div>' :
-          '<div style="width:40px;height:40px;border-radius:50%;border:2px solid '+_attHue+';background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);font-weight:700;color:#fff;flex-shrink:0;">'+hostInit+'</div>';
+        var hostAvHtml = _avatarHtml(hostPhoto, hostInit, 40);
 
         var hostIsVerified = (e.creator && (e.creator.isVerified || e.creator.verified)) || ((userPro.isVerified || verified) && (e.creatorId === userPro.id || (hostHandle && hostHandle.replace('@','') === userPro.handle.replace('@','')) || hostName === userPro.name));
 
@@ -10133,7 +10139,7 @@ function buildHingeStackHtml(p,opts){
       ((p.major||yis)?'<div style="font-size:'+_cf(12.5)+'px;color:rgba(255,255,255,0.96);margin-bottom:4px;text-shadow:0 1px 4px rgba(0,0,0,0.6);">'+[(p.major?p.major+(p.minor?' · '+p.minor:''):''),(yis?(isSelf?_yearDisplay(yis):yis):''),(!isSelf&&typeof _crushLocationOn!=='undefined'&&_crushLocationOn?(''+icon('mapPin',16)+' '+_profileDistance(p)+' mi'):'')].filter(Boolean).join(' · ')+'</div>':'')+
       
       (p.bio?'<div style="font-size:'+_cf(12.5)+'px;color:rgba(255,255,255,0.95);font-style:italic;line-height:1.4;margin-bottom:5px;text-shadow:0 1px 4px rgba(0,0,0,0.7);">"'+p.bio+'"</div>':'')+
-      (uniName?'<div style="font-size:'+_cf(11)+'px;color:rgba(255,255,255,0.85);font-family:\'Graduate\',serif;margin-top:5px;text-shadow:0 1px 3px rgba(0,0,0,0.855);">'+uniName+gradSuffix+'</div>':'')+
+      (uniName?'<div style="font-size:'+_cf(11)+'px;color:rgba(255,255,255,0.85);font-family:\'Graduate\',serif;margin-top:5px;text-shadow:0 1px 3px rgba(0,0,0,0.855);letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+(((typeof _uniAcronymOf==='function'&&!isSelf)?_uniAcronymOf(p):'')||uniName)+gradSuffix+'</div>':'')+
     '</div>';
   // First-run "tap to see profile" hint — breathes, fades, moves per profile, then gone
   var _tapHint='';
@@ -10155,14 +10161,19 @@ function buildHingeStackHtml(p,opts){
     var op=_galPos[i]||'center';
     // Every photo (including the cover) fills the frame edge-to-edge — uniform, no letterbox bars, no "smaller" first photo.
     var _imgStyle='width:100%;height:100%;object-fit:cover;object-position:'+op+';display:block;';
-    return '<div style="min-width:100%;height:100%;position:relative;">'+(src
-      ?'<img '+(i===0?'id="crush-cur-img" ':'')+'src="'+src+'" alt="" style="'+_imgStyle+'"/>'
-      :'<div style="background:linear-gradient(160deg,'+cardBg1+','+cardBg2+');display:flex;align-items:center;justify-content:center;font-size:120px;color:rgba(255,255,255,0.55);width:100%;height:100%;">'+p.init+'</div>')+'</div>';
+    // The gradient-initial fallback is ALWAYS rendered behind the photo; the img
+    // sits on top and hides itself if the URL 404s — no more black "?" void.
+    return '<div style="min-width:100%;height:100%;position:relative;">'+
+      '<div style="position:absolute;inset:0;background:linear-gradient(160deg,'+cardBg1+','+cardBg2+');display:flex;align-items:center;justify-content:center;font-size:120px;font-weight:800;color:rgba(255,255,255,0.6);">'+p.init+'</div>'+
+      (src?'<img '+(i===0?'id="crush-cur-img" ':'')+'src="'+src+'" alt="" onerror="this.style.display=\'none\'" style="'+_imgStyle+'position:absolute;inset:0;"/>':'')+
+    '</div>';
   }).join('');
   var _galDots=photos.length>1?'<div class="crush-photo-dots" style="top:10px;">'+photos.map(function(_,i){return '<div class="crush-photo-dot'+(i===0?' active':'')+'"></div>';}).join('')+'</div>':'';
+  // Full-height side tap zones for navigation, but the VISIBLE chevron sits low
+  // (no circle) so it never covers the face — just a subtle glyph with a shadow.
   var _galArrows=photos.length>1?(
-    '<button onclick="crushGalleryNav(this,-1)" aria-label="Previous photo" style="position:absolute;top:0;left:0;width:30%;height:72%;background:transparent;border:none;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:flex-start;padding-left:8px;"><span style="background:rgba(0,0,0,0.42);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:800;">‹</span></button>'+
-    '<button onclick="crushGalleryNav(this,1)" aria-label="Next photo" style="position:absolute;top:0;right:0;width:30%;height:72%;background:transparent;border:none;cursor:pointer;z-index:5;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;"><span style="background:rgba(0,0,0,0.42);color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:800;">›</span></button>'
+    '<button onclick="crushGalleryNav(this,-1)" aria-label="Previous photo" style="position:absolute;top:0;left:0;width:30%;height:100%;background:transparent;border:none;cursor:pointer;z-index:5;display:flex;align-items:flex-end;justify-content:flex-start;padding:0 0 120px 14px;"><span style="color:#fff;font-size:30px;font-weight:800;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,0.95);">‹</span></button>'+
+    '<button onclick="crushGalleryNav(this,1)" aria-label="Next photo" style="position:absolute;top:0;right:0;width:30%;height:100%;background:transparent;border:none;cursor:pointer;z-index:5;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 14px 120px 0;"><span style="color:#fff;font-size:30px;font-weight:800;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,0.95);">›</span></button>'
   ):'';
   slides+='<div class="crush-gallery" data-idx="0" style="position:relative;width:100%;'+(_galH?'height:'+_galH+';':'')+_galAR+'overflow:hidden;background:#000000;'+_frameCss+'">'+
     '<div class="crush-gallery-track" style="display:flex;height:100%;transition:transform 0.3s ease;">'+_galSlides+'</div>'+
@@ -17042,18 +17053,34 @@ function _relationBarHtml(name) {
   _ensureFriendsCache();
   var safe = String(name || '').replace(/'/g, "\\'");
   var friend = _isFriend(name);
-  var blocked = _isBlockedProfile(name);
-  return '<div id="uc-relation-bar" style="display:flex;gap:8px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000;flex-shrink:0;">' +
-    (friend
-      ? _relBtn('Unfriend', 'var(--wine)', "_unfriendProfile('" + safe + "')", false)
-      : _relBtn('Add Friend +', '#22c55e', "_addFriendProfile('" + safe + "')", true)) +
-    _relBtn('Report', '#fbbf24', "_reportProfile('" + safe + "')", false) +
-    // Royal blue, not green: Unblock used to share Add Friend's exact green,
-    // so two opposite actions read as the same thing.
-    (blocked
-      ? _relBtn('Unblock', '#3d7bff', "_toggleBlockProfile('" + safe + "')")
-      : _relBtn('Block', 'var(--wine)', "_toggleBlockProfile('" + safe + "')")) +
+  // A friendly PRIMARY action (Message if you're friends, Add Friend if not),
+  // with the destructive/safety actions tucked behind a "•••" menu — instead of
+  // a bar made only of red buttons.
+  var primary = friend
+    ? '<button onclick="_msgFromProfile(\''+safe+'\')" style="flex:2;min-width:0;padding:14px 10px;border-radius:var(--rad-pill);border:none;background:linear-gradient(135deg,var(--uni-accent,#22c55e),color-mix(in srgb, var(--uni-accent,#22c55e) 55%, #000));color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:800;cursor:pointer;box-shadow:0 4px 18px color-mix(in srgb, var(--uni-accent,#22c55e) 40%, transparent);display:flex;align-items:center;justify-content:center;gap:7px;">💬 Message</button>'
+    : '<button onclick="_addFriendProfile(\''+safe+'\')" style="flex:2;min-width:0;padding:14px 10px;border-radius:var(--rad-pill);border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(34,197,94,0.35);display:flex;align-items:center;justify-content:center;gap:7px;">＋ Add Friend</button>';
+  var more = '<button onclick="_profileMoreSheet(\''+safe+'\')" aria-label="More options" style="flex:0 0 auto;width:52px;padding:14px 0;border-radius:var(--rad-pill);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);color:#fff;font-size:var(--fs-lg);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">•••</button>';
+  return '<div id="uc-relation-bar" style="display:flex;gap:10px;padding:16px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:none;background:linear-gradient(180deg, transparent, rgba(0,0,0,0.9) 40%);flex-shrink:0;">' + primary + more + '</div>';
+}
+function _msgFromProfile(name){
+  try{ if(window.NavigationManager && typeof window.NavigationManager.goBack==='function') window.NavigationManager.goBack(); }catch(e){}
+  if(typeof sw==='function') sw('chats','Chats');
+}
+// The "•••" overflow: Report / Block / Unfriend, in an iOS-style action sheet.
+function _profileMoreSheet(name){
+  var safe=String(name||'').replace(/'/g,"\\'");
+  var friend=(typeof _isFriend==='function')&&_isFriend(name);
+  var blocked=(typeof _isBlockedProfile==='function')&&_isBlockedProfile(name);
+  var m=document.createElement('div');m.id='profile-actions-sheet';m.className='mov open';m.style.zIndex='10000';m.onclick=function(){_closeProfileActions();};
+  m.innerHTML='<div class="ig-sheet" onclick="event.stopPropagation();">'+
+    '<div class="ig-sheet-grp">'+
+      (friend?'<button class="ig-act" onclick="_closeProfileActions();_unfriendProfile(\''+safe+'\')">Unfriend</button>':'')+
+      '<button class="ig-act" onclick="_closeProfileActions();_toggleBlockProfile(\''+safe+'\')">'+(blocked?'Unblock':'Block')+'</button>'+
+      '<button class="ig-act" style="color:#dc2626;" onclick="_reportProfile(\''+safe+'\')">Report</button>'+
+    '</div>'+
+    '<div class="ig-sheet-grp"><button class="ig-act bold" onclick="_closeProfileActions()">Cancel</button></div>'+
   '</div>';
+  document.body.appendChild(m);
 }
 
 // Block/unblock toggle. Blocking still runs the existing _blockProfile() side
@@ -17086,15 +17113,17 @@ function _refreshRelationBars(name) {
 function _sentStatusBarHtml(u) {
   var kind = _sentLikeKind(u && u.sentType);
   var label = (kind.lbl === 'LIKE') ? 'Ya le diste like' : 'Ya le enviaste un ' + kind.lbl.toLowerCase();
-  return '<div id="uc-relation-bar" style="display:flex;align-items:center;gap:12px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000;flex-shrink:0;">' +
-    '<div style="width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background:rgba(0,0,0,0.6);border:1.5px solid ' + kind.hue + ';">' + kind.ico + '</div>' +
-    '<div style="flex:1;min-width:0;">' +
-      '<div style="font-size:var(--fs-sm);font-weight:800;color:#fff;letter-spacing:-0.1px;">' + label + '</div>' +
-      '<div style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;margin-top:2px;">Esperando su respuesta</div>' +
+  return '<div id="uc-relation-bar" style="padding:14px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:none;background:linear-gradient(180deg, transparent, rgba(0,0,0,0.9) 42%);flex-shrink:0;">' +
+    '<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:var(--rad-lg);padding:10px 12px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 6px 20px -6px rgba(0,0,0,0.6);">' +
+      '<div style="width:40px;height:40px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background:color-mix(in srgb, ' + kind.hue + ' 18%, #000);border:1.5px solid ' + kind.hue + ';box-shadow:0 0 12px color-mix(in srgb, ' + kind.hue + ' 45%, transparent);">' + kind.ico + '</div>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-size:var(--fs-sm);font-weight:800;color:#fff;letter-spacing:-0.1px;">' + label + '</div>' +
+        '<div style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;margin-top:2px;">Esperando su respuesta</div>' +
+      '</div>' +
+      '<button onclick="_unsendSentLike()" style="flex-shrink:0;padding:10px 16px;' +
+        _gradSkin('var(--wine)', false, { radius: 'var(--rad-pill)' }) +
+        'font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap;">Quitar like</button>' +
     '</div>' +
-    '<button onclick="_unsendSentLike()" style="flex-shrink:0;padding:10px 16px;' +
-      _gradSkin('var(--wine)', false, { radius: 'var(--rad-pill)' }) +
-      'font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;white-space:nowrap;">Quitar like</button>' +
   '</div>';
 }
 
@@ -17258,6 +17287,16 @@ function viewUserUnicrush(handle,name,bg,uniName,origin){
   var pop=document.getElementById('user-profile-modal');if(pop)pop.classList.remove('open');
   modal=document.getElementById('user-crush-modal');if(modal)modal.classList.add('open');
   if(typeof _applyUcActionBar==='function')_applyUcActionBar();
+  if(typeof _ucEnableSwipeClose==='function')_ucEnableSwipeClose(modal);
+}
+// Swipe DOWN (when the card is scrolled to the top) closes View Profile — the
+// standard iOS sheet dismiss — in addition to the ‹ button.
+function _ucEnableSwipeClose(m){
+  if(!m||m.__swipeClose)return;m.__swipeClose=1;
+  var sheet=m.querySelector('.msheet');var sy=0,sx=0,active=false;
+  m.addEventListener('touchstart',function(e){if(e.touches.length!==1){active=false;return;}sy=e.touches[0].clientY;sx=e.touches[0].clientX;active=(!sheet||sheet.scrollTop<=2);},{passive:true});
+  m.addEventListener('touchmove',function(e){if(!active||e.touches.length!==1)return;var dy=e.touches[0].clientY-sy,dx=e.touches[0].clientX-sx;if(dy>75&&Math.abs(dy)>Math.abs(dx)*1.4){m.classList.remove('open');active=false;}},{passive:true});
+  m.addEventListener('touchend',function(){active=false;},{passive:true});
 }
 // Mark a profile as acted-on so Today's Picks drops it and refreshes with new faces
 function _markPickActed(name){if(!name)return;window._pickActed=window._pickActed||{};window._pickActed[name]=1;if(typeof renderDailyPicks==='function')try{renderDailyPicks();}catch(e){}}
@@ -19966,9 +20005,10 @@ function openChatSettings(){
   }
   var mutualCount = 5 + (h % 15);
 
+  var _cinit = String((typeof _curChatUser!=='undefined' && _curChatUser && _curChatUser.name) || (partner && partner.name) || 'U').charAt(0).toUpperCase();
   var avatar=isGroup
     ? '<div style="width:118px;height:118px;border-radius:50%;background:linear-gradient(150deg,#2b5fd9,#12275c);display:flex;align-items:center;justify-content:center;font-size:46px;">👥</div>'
-    : '<div style="width:118px;height:118px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));"><img src="'+portrait+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/></div>';
+    : '<div style="width:118px;height:118px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--uni-accent,var(--p)),var(--p2));"><div style="position:relative;width:100%;height:100%;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,var(--uni-accent,var(--p)),#0b0b0e);display:flex;align-items:center;justify-content:center;font-size:46px;font-weight:800;color:#fff;">'+_cinit+'<img src="'+portrait+'" onerror="this.style.display=\'none\'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"/></div></div>';
   
   var heartBadge = isGroup ? '' : (isCrushMatch ? '<div style="position:absolute;right:4px;bottom:4px;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#791515,#9e1b1b);border:3px solid var(--card,#0b0b0e);display:flex;align-items:center;justify-content:center;font-size:var(--fs-md);">❤️</div>' : '');
   
@@ -19987,24 +20027,24 @@ function openChatSettings(){
   var partnerIsVerified = _getPartnerVerifiedStatus(partner, displayName, curChatId);
 
   modal=document.createElement('div');modal.id='chat-settings-modal';modal.className='mov open';
-  modal.innerHTML='<div class="msheet" style="max-height:94vh;overflow-y:auto;">'+
-    '<div class="mhnd"></div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">Chat Profile & Settings</div><div onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);">✕</div></div>'+
-    // profile header
-    '<div style="display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start;">'+
-      '<div style="position:relative;flex-shrink:0;">'+avatar+heartBadge+'<div style="display:flex;flex-direction:column;gap:8px; margin-top:10px">'+statsHtml+'</div>'+'</div>'+
-      '<div style="flex:1;min-width:150px;"><div style="display:flex;align-items:center;gap:7px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+displayName+'</div>'+_getVerifyBadgeHtml(partnerIsVerified, 18)+'</div>'+
-      crushLine+
-      '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.9;">👤 '+partnerFullName+'<br>🎓 '+major+'<br>🏛️ '+uniName+'<br>'+icon('mapPin',16)+' '+hometown+'<br>👥 '+mutualCount+' mutual friends</div>'+
-      '<button onclick="openPartnerProfileCard(\''+curChatId+'\')" style="margin-top:10px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:8px 16px;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer; margin-top:15px">View Profile ›</button></div>'+
+  modal.innerHTML='<div class="msheet" style="height:100%;max-height:100%;border-radius:0;padding-top:calc(env(safe-area-inset-top) + 14px);overflow-y:auto;">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">Chat Profile & Settings</div><div onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'chat-settings-modal\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:var(--fs-md);flex-shrink:0;">✕</div></div>'+
+    // profile header — clean, centered: avatar · name · one relationship line
+    '<div style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:18px;">'+
+      '<div style="position:relative;">'+avatar+heartBadge+'</div>'+
+      '<div style="display:flex;align-items:center;gap:7px;margin-top:12px;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+displayName+'</div>'+_getVerifyBadgeHtml(partnerIsVerified, 18)+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);font-weight:600;margin-top:4px;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+[(isGroup?'':(isCrushMatch?'❤️ Crush Match':'🤝 Friends')),major,uniName].filter(Boolean).join(' · ')+'</div>'+
+      (isCrushMatch?'<div style="margin-top:8px;display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);font-weight:700;color:#dc2626;background:rgba(220,38,38,0.14);border:1px solid rgba(220,38,38,0.4);border-radius:var(--rad-pill);padding:4px 11px;">❤️ '+compat+'% compatible</div>':'')+
+      '<button onclick="openPartnerProfileCard(\''+curChatId+'\')" style="margin-top:12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-pill);padding:9px 20px;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">View Profile ›</button>'+
     '</div>'+
     '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin:6px 0 10px;">CHAT CUSTOMIZATION</div>'+
-    row('linear-gradient(135deg,#3d7bff,#2b5fd9)','🎨','Chat Background','Change the look of this chat','<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>',"toggleBgSheet();document.getElementById('chat-settings-modal').remove();")+
-    row('linear-gradient(135deg,#791515,#9e1b1b)','<span style=\"font-weight:900;\">Aa</span>','Nickname','Set a nickname for '+first,'<span style="color:var(--fg2);font-size:var(--fs-base);">'+(nick||'')+' <span style="color:var(--fg3);">›</span></span>',"chatSetNickname()")+
-    row('linear-gradient(135deg,#3b82f6,#2563eb)',''+icon('bell',16)+'','Notifications','Mute or customize notifications','<span style="color:var(--fg2);font-size:var(--fs-base);" id="cps-notif">'+(muted?'Off':'On')+' <span style="color:var(--fg3);">›</span></span>',"_chatToggleNotif()")+
-    row('none',''+icon('trash',16)+'','<span style=\"color:#dc2626;\">Delete Chat</span>','Permanently delete this conversation','<span style="color:#dc2626;font-size:var(--fs-lg);">›</span>',"_chatDeleteConfirm()","border-color:rgba(248,113,113,0.4);background:rgba(248,113,113,0.06);")+
-    row('none',''+icon('alert',16)+'','<span style=\"color:#f59e0b;\">Report</span>','Report this user or conversation','<span style="color:#f59e0b;font-size:var(--fs-lg);">›</span>',"chatReport()","border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.06);")+
+    row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))','🎨','Chat Background','Change the look of this chat','<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>',"toggleBgSheet();document.getElementById('chat-settings-modal').remove();")+
+    row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))','<span style=\"font-weight:900;\">Aa</span>','Nickname','Set a nickname for '+first,'<span style="color:var(--fg2);font-size:var(--fs-base);">'+(nick||'')+' <span style="color:var(--fg3);">›</span></span>',"chatSetNickname()")+
+    row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))',''+icon('bell',16)+'','Notifications','Mute or customize notifications','<span style="color:var(--fg2);font-size:var(--fs-base);" id="cps-notif">'+(muted?'Off':'On')+' <span style="color:var(--fg3);">›</span></span>',"_chatToggleNotif()")+
+    '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin:18px 0 10px;">PRIVACY & SUPPORT</div>'+
     '<div class="cps-row"><div class="cps-ic" style="background:rgba(255,255,255,0.08);">'+icon('ban',16)+'</div><div style="flex:1;"><div style="font-size:var(--fs-md);font-weight:600;color:#fff;">Block '+first+'</div><div class="t-sub">You won\'t receive messages from '+first+'</div></div><div class="cps-sw" id="cps-block-sw" onclick="chatBlock()"><div class="cps-knob"></div></div></div>'+
+    row('rgba(245,158,11,0.14)',''+icon('alert',16)+'','<span style=\"color:#f59e0b;\">Report</span>','Report this user or conversation','<span style="color:#f59e0b;font-size:var(--fs-lg);">›</span>',"chatReport()")+
+    row('rgba(220,38,38,0.14)',''+icon('trash',16)+'','<span style=\"color:#dc2626;\">Delete Chat</span>','Permanently delete this conversation','<span style="color:#dc2626;font-size:var(--fs-lg);">›</span>',"_chatDeleteConfirm()")+
     '<div onclick="if(typeof openSafetyCenter===\'function\')openSafetyCenter();" style="margin-top:14px;background:rgba(43,95,217,0.08);border:1px solid rgba(43,95,217,0.3);border-radius:var(--rad-md);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;"><div style="width:48px;height:48px;border-radius:var(--rad-md);background:rgba(43,95,217,0.2);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);flex-shrink:0;">🛡️</div><div style="flex:1;"><div class="t-title-md">Your safety matters</div><div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.4;margin:2px 0 3px;">We care about keeping UndrGradz a safe and respectful space for everyone.</div><div style="font-size:var(--fs-sm);font-weight:500;color:#3d7bff;">Learn more about safety</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div>'+
   '</div>';
   document.body.appendChild(modal);

@@ -2331,7 +2331,12 @@ html.uni-set .chat-standalone-btn {
   max-height: calc(100dvh - 190px);
   display: flex;
   flex-direction: column;
+  /* NOTE: the 190px reserves space for the swipe-deck's tabs + action dock. In the
+     View Profile modal that chrome doesn't exist, so the card must fill instead —
+     see the #user-crush-modal override below (kills the ~77px black band). */
 }
+/* View Profile modal: the card fills the sheet (no swipe-deck chrome here). */
+#user-crush-modal .crush-card { max-height: 100% !important; }
 .crush-scroll {
   flex: 1;
   overflow-y: auto;
@@ -5361,8 +5366,8 @@ svg {
   display: flex;
   align-items: center;
   gap: 13px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--gbdl);
+  background: color-mix(in srgb, var(--uni-accent, var(--p)) 6%, rgba(255, 255, 255, 0.02));
+  border: 1px solid color-mix(in srgb, var(--uni-accent, var(--p)) 40%, transparent);
   border-radius:var(--rad-md);
   padding: 13px 14px;
   margin-bottom: 10px;

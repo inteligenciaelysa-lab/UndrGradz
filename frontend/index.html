@@ -1456,14 +1456,15 @@
 
 <!-- View another user's Crush card (from search / profile popup) -->
 <div class="mov" id="user-crush-modal"><div class="msheet" style="border-radius:0;max-height:100%;height:100%;border:none;padding-top:0;display:flex;flex-direction:column;position:relative;background:#000000;">
-  <button onclick="document.getElementById('user-crush-modal').classList.remove('open')" style="position:absolute;top:16px;right:16px;z-index:100;background:rgba(0,0,0,0.65);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);border-radius:50%;width:34px;height:34px;color:#fff;font-size:var(--fs-lg);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:transform 0.15s ease;">×</button>
+  <div style="position:absolute;top:0;left:0;right:0;height:calc(env(safe-area-inset-top) + 64px);background:linear-gradient(180deg,rgba(0,0,0,0.6),transparent);z-index:90;pointer-events:none;"></div>
+  <button onclick="document.getElementById('user-crush-modal').classList.remove('open')" aria-label="Close" style="position:absolute;top:calc(env(safe-area-inset-top) + 10px);left:14px;z-index:100;background:rgba(0,0,0,0.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:40px;height:40px;color:#fff;font-size:var(--fs-xl);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);transition:transform 0.15s ease;">‹</button>
   <div id="user-crush-title" style="display:none;"></div>
   <div style="display:none;">
     <button id="uc-tab-crush"></button>
     <button id="uc-tab-events"></button>
     <button id="uc-addfriend"></button>
   </div>
-  <div id="user-crush-body" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow-y:auto;padding:52px var(--s) 14px;position:relative;"></div>
+  <div id="user-crush-body" style="flex:1;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;overflow-y:auto;padding:0 var(--s) 14px;position:relative;"></div>
   <div id="uc-action-bar" class="crush-actions" style="display:flex;justify-content:center;align-items:center;gap:18px;padding:12px var(--s) calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--gbdl);background:#000000;flex-shrink:0;">
     <button class="crb crb-neon-x" onclick="_ucPass()" title="Pass">
       <svg class="crb-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 4px currentColor);"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -1491,7 +1492,7 @@
 
 <!-- HANGOUT DETAIL MODAL -->
 <div class="mov" id="hangout-detail-modal">
-  <div class="msheet" style="border-radius:var(--rad-xl) 26px 0 0; max-height:94vh; overflow-y:auto; padding:0 0 calc(24px + env(safe-area-inset-bottom)); border:1px solid rgba(255,255,255,0.15); background:#000000; position:relative;">
+  <div class="msheet" style="border-radius:var(--rad-xl) 26px 0 0; max-height:94vh; overflow-y:auto; padding:0; border:1px solid rgba(255,255,255,0.15); background:#0a0518; position:relative;">
     <div id="hangout-detail-body"></div>
   </div>
 </div>
