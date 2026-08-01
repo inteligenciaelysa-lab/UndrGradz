@@ -1833,6 +1833,14 @@ window.addEventListener('load', function() {
 
     setTimeout(function() {
       clearTimeout(failsafeTimer);
+      // Pintar el contenido de la sección visible ANTES de ocultar el splash,
+      // para que la app no aparezca 1s vacía (tabs + dropdown sin cards). Render
+      // local, idempotente; _bootRestoredApp luego refresca con datos frescos.
+      if (activeUser) {
+        try { if (typeof buildNav === 'function') buildNav(); } catch(e){}
+        try { if (typeof renderHangouts === 'function') renderHangouts(); } catch(e){}
+        try { if (typeof filterChatBySection === 'function') filterChatBySection(); } catch(e){}
+      }
       _hideNativeSplashScreen({ fadeOutDuration: 400 });
       console.log(`[STARTUP] SPLASH_HIDE_END (splash hidden at +${Date.now() - initStart}ms)`);
 
@@ -2292,7 +2300,7 @@ function buildStudentOb(){
   var flagHtml=FLAGS.map(function(f){return '<div class="flag-chip" onclick="toggleFlag(this,\''+f.l+'\')" title="'+f.l+'">'+f.f+'</div>';}).join('');
   var big5Html=BIG5.map(function(sec){var chips=sec.acts.map(function(a){return '<div class="b5c" onclick="toggleB5(this,\''+a+'\',\''+sec.color+'\')">'+a+'</div>';}).join('');return '<div class="b5s collapsed"><div class="b5-title" style="background:'+sec.color+';color:#fff;" onclick="this.parentNode.classList.toggle(\'collapsed\')">'+sec.name+'</div><div class="b5-chips no-deemoji">'+chips+'</div></div>';}).join('');
   ste.innerHTML=
-  '<div id="obs1">'+sdots(1,7)+'<div class="ob-panel glass"><div class="ob-title">Verify your .edu 📧</div><div class="ob-hint">Quick setup — just the essentials now. You can finish the rest anytime in Profile → Edit.</div><div class="field"><label>Your University</label><div style="display:flex;gap:8px;margin-bottom:6px;"><select class="gi" id="ob-uni-country" onchange="_setUniSearchCountry(this.value)" style="width:74px;flex-shrink:0;"><option value="">🌎</option><option value="US">🇺🇸</option><option value="MX">🇲🇽</option><option value="CA">🇨🇦</option></select><input class="gi" type="text" id="ob-uni-search" placeholder="Search your university" oninput="filterUniList(this.value)" onfocus="filterUniList(this.value)" autocomplete="off" style="flex:1;"/></div><div id="ob-uni-dropdown" style="background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);max-height:200px;overflow-y:auto;"></div><div style="font-size:var(--fs-2xs);color:#fff;margin-top:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">School not listed? <a href="mailto:support@undrgradz.com?subject=Add%20my%20university" style="color:#fff;font-weight:600;text-decoration:underline;">Email us</a> or <a href="https://www.instagram.com/undrgradz/" target="_blank" rel="noopener" style="color:#fff;font-weight:600;text-decoration:underline;">message on Instagram</a></div></div><div class="field"><label>University email</label><div style="display:flex;gap:8px;"><input class="gi" type="email" id="ob-email" placeholder="Example@school.edu" oninput="detectUni(this.value)" style="flex:1;"/><button onclick="sendEmailCode()" style="padding:10px 14px;border-radius:var(--rx);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;" id="email-verify-btn">Verify</button></div></div><div class="udet" id="udet"><div class="ud" id="ud"></div><div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;" id="un-lbl">University detected</div><div id="uc-lbl" class="t-meta"></div></div></div><div id="tec-campus-row" style="display:none;margin-bottom:12px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!==\'undefined\')userPro.campus=this.value;">'+TEC_CAMPUSES.map(function(c){return '<option value="'+c[0]+'">'+c[1]+' ('+c[0]+')</option>';}).join('')+'</select></div><div id="email-code-row" style="display:none;margin-bottom:12px;"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Enter verification code</div><div style="display:flex;gap:6px;justify-content:center;"><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="emailCodeCheck()"/></div><div id="email-code-msg" style="font-size:var(--fs-sm);font-weight:500;text-align:center;margin-top:6px;color:var(--fg3);"></div></div>'+
+  '<div id="obs1">'+sdots(1,7)+'<div class="ob-panel glass"><div class="ob-title">Verify your .edu 📧</div><div class="ob-hint">Quick setup — just the essentials now. You can finish the rest anytime in Profile → Edit.</div><div class="field"><label>Your University</label><div style="display:flex;gap:8px;margin-bottom:6px;"><select class="gi" id="ob-uni-country" onchange="_setUniSearchCountry(this.value)" style="width:74px;flex-shrink:0;"><option value="">🌎</option><option value="US">🇺🇸</option><option value="MX">🇲🇽</option><option value="CA">🇨🇦</option></select><input class="gi" type="text" id="ob-uni-search" placeholder="Search your university" oninput="filterUniList(this.value)" onfocus="filterUniList(this.value)" autocomplete="off" style="flex:1;"/></div><div id="ob-uni-dropdown" style="background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);max-height:200px;overflow-y:auto;"></div><div style="font-size:var(--fs-2xs);color:#fff;margin-top:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Didn\'t find your university? <a href="https://www.instagram.com/undrgradz/" target="_blank" rel="noopener" style="color:var(--uni-accent,var(--p));font-weight:700;text-decoration:none;">message us</a> or <a href="mailto:support@undrgradz.com?subject=Add%20my%20university" style="color:var(--uni-accent,var(--p));font-weight:700;text-decoration:none;">email us</a></div></div><div class="field"><label>University email</label><div style="display:flex;gap:8px;"><input class="gi" type="email" id="ob-email" placeholder="Example@school.edu" oninput="detectUni(this.value)" style="flex:1;"/><button onclick="sendEmailCode()" style="padding:10px 14px;border-radius:var(--rx);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;" id="email-verify-btn">Verify</button></div></div><div class="udet" id="udet"><div class="ud" id="ud"></div><div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;" id="un-lbl">University detected</div><div id="uc-lbl" class="t-meta"></div></div></div><div id="tec-campus-row" style="display:none;margin-bottom:12px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!==\'undefined\')userPro.campus=this.value;">'+TEC_CAMPUSES.map(function(c){return '<option value="'+c[0]+'">'+c[1]+' ('+c[0]+')</option>';}).join('')+'</select></div><div id="email-code-row" style="display:none;margin-bottom:12px;"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">Enter verification code</div><div style="display:flex;gap:6px;justify-content:center;"><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="otpNext(this)"/><input class="ci" type="text" maxlength="1" oninput="emailCodeCheck()"/></div><div id="email-code-msg" style="font-size:var(--fs-sm);font-weight:500;text-align:center;margin-top:6px;color:var(--fg3);"></div></div>'+
   '<button class="gbtn" style="background:var(--p);opacity:0.5;" id="step1-continue" onclick="goOb(2)" disabled>Verify your email to continue</button></div></div>'+
   '<div id="obs2" style="display:none;">'+sdots(2,7)+'<div class="ob-panel glass"><div class="ob-title">Choose your @username 🎓</div><div class="ob-hint">4-12 characters. Change once per year.</div><div class="field"><label>Username</label><input class="gi" type="text" id="ob-handle" placeholder="yourname" oninput="checkHandle(this)"/></div><div id="handle-msg" style="font-size:var(--fs-sm);min-height:18px;font-weight:500;margin-bottom:10px;"></div>'+
     // Location permission
@@ -2346,7 +2354,7 @@ function buildAlumniOb(){
   '<div class="field"><label>Date of Birth</label><div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:7px;"><select class="gi" id="al-dob-month" style="padding:10px 6px;font-size:var(--fs-base);"><option value="">Month</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><input class="gi" type="text" id="al-dob-day" placeholder="DD" maxlength="2" style="text-align:center;" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"/><input class="gi" type="text" id="al-dob-year" placeholder="YYYY" maxlength="4" style="font-size:var(--fs-base);" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')"/></div></div>'+
   '<div class="field"><label>University email</label><input class="gi" type="email" id="ob-email" placeholder="you@university.edu" oninput="detectUni(this.value)"/></div>'+
   '<div class="udet" id="udet"><div class="ud" id="ud"></div><div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;" id="un-lbl">University</div><div id="uc-lbl" class="t-meta"></div></div></div>'+
-  '<div style="font-size:var(--fs-2xs);color:#fff;margin-top:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">School not listed? <a href="mailto:support@undrgradz.com?subject=Add%20my%20university" style="color:#fff;font-weight:600;text-decoration:underline;">Email us</a> or <a href="https://www.instagram.com/undrgradz/" target="_blank" rel="noopener" style="color:#fff;font-weight:600;text-decoration:underline;">message on Instagram</a></div>'+'<div class="g2" style="margin-top:18px;"><div class="field" style="margin-bottom:0;"><label>Class of \'</label><input class="gi" type="text" id="al-gradyr" placeholder="22" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')" style="text-align:center;font-size:var(--fs-md);font-weight:600;"/></div><div class="field" style="margin-bottom:0;"><label>Degree</label><select class="gi" id="al-degree"><option>Bachelor\'s</option><option>MBA</option><option>Master\'s</option><option>PhD</option><option>JD</option><option>MD</option><option>Other</option></select></div></div><div class="field"><label>What did you study? <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(field of study)</span></label><input class="gi" type="text" id="al-field" placeholder="e.g. Computer Science, Law, Biology"/></div>'+'<div class="field"><label>Advanced degrees <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(optional)</span></label><div style="display:flex;gap:8px;flex-wrap:wrap;"><label style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:#fff;cursor:pointer;padding:8px 12px;border:1px solid var(--gbdl);border-radius:var(--rad-sm);background:rgba(255,255,255,0.04);"><input type="checkbox" id="al-has-masters" onchange="_alAdvToggle()" style="accent-color:var(--p);width:16px;height:16px;"/> Master\'s</label><label style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:#fff;cursor:pointer;padding:8px 12px;border:1px solid var(--gbdl);border-radius:var(--rad-sm);background:rgba(255,255,255,0.04);"><input type="checkbox" id="al-has-phd" onchange="_alAdvToggle()" style="accent-color:var(--p);width:16px;height:16px;"/> Doctorate / PhD</label></div></div><div class="field" id="al-masters-fields" style="display:none;"><label>Master\'s — university and field</label><input class="gi" type="text" id="al-masters-uni" placeholder="University (e.g. Stanford)" style="margin-bottom:7px;"/><input class="gi" type="text" id="al-masters-field" placeholder="Field (e.g. Data Science)"/></div><div class="field" id="al-phd-fields" style="display:none;"><label>Doctorate — university and field</label><input class="gi" type="text" id="al-phd-uni" placeholder="University" style="margin-bottom:7px;"/><input class="gi" type="text" id="al-phd-field" placeholder="Field (e.g. Neuroscience)"/></div>'+
+  '<div style="font-size:var(--fs-2xs);color:#fff;margin-top:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Didn\'t find your university? <a href="https://www.instagram.com/undrgradz/" target="_blank" rel="noopener" style="color:var(--uni-accent,var(--p));font-weight:700;text-decoration:none;">message us</a> or <a href="mailto:support@undrgradz.com?subject=Add%20my%20university" style="color:var(--uni-accent,var(--p));font-weight:700;text-decoration:none;">email us</a></div>'+'<div class="g2" style="margin-top:18px;"><div class="field" style="margin-bottom:0;"><label>Class of \'</label><input class="gi" type="text" id="al-gradyr" placeholder="22" maxlength="2" oninput="this.value=this.value.replace(/[^0-9]/g,\'\')" style="text-align:center;font-size:var(--fs-md);font-weight:600;"/></div><div class="field" style="margin-bottom:0;"><label>Degree</label><select class="gi" id="al-degree"><option>Bachelor\'s</option><option>MBA</option><option>Master\'s</option><option>PhD</option><option>JD</option><option>MD</option><option>Other</option></select></div></div><div class="field"><label>What did you study? <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(field of study)</span></label><input class="gi" type="text" id="al-field" placeholder="e.g. Computer Science, Law, Biology"/></div>'+'<div class="field"><label>Advanced degrees <span style="font-weight:400;color:var(--fg3);font-size:var(--fs-xs);text-transform:none;">(optional)</span></label><div style="display:flex;gap:8px;flex-wrap:wrap;"><label style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:#fff;cursor:pointer;padding:8px 12px;border:1px solid var(--gbdl);border-radius:var(--rad-sm);background:rgba(255,255,255,0.04);"><input type="checkbox" id="al-has-masters" onchange="_alAdvToggle()" style="accent-color:var(--p);width:16px;height:16px;"/> Master\'s</label><label style="display:flex;align-items:center;gap:7px;font-size:var(--fs-base);color:#fff;cursor:pointer;padding:8px 12px;border:1px solid var(--gbdl);border-radius:var(--rad-sm);background:rgba(255,255,255,0.04);"><input type="checkbox" id="al-has-phd" onchange="_alAdvToggle()" style="accent-color:var(--p);width:16px;height:16px;"/> Doctorate / PhD</label></div></div><div class="field" id="al-masters-fields" style="display:none;"><label>Master\'s — university and field</label><input class="gi" type="text" id="al-masters-uni" placeholder="University (e.g. Stanford)" style="margin-bottom:7px;"/><input class="gi" type="text" id="al-masters-field" placeholder="Field (e.g. Data Science)"/></div><div class="field" id="al-phd-fields" style="display:none;"><label>Doctorate — university and field</label><input class="gi" type="text" id="al-phd-uni" placeholder="University" style="margin-bottom:7px;"/><input class="gi" type="text" id="al-phd-field" placeholder="Field (e.g. Neuroscience)"/></div>'+
   '<button class="gbtn" style="background:var(--p);" onclick="goOb(2)">Continue →</button></div></div>'+
   '<div id="obs2" style="display:none;">'+sdots(2,4)+'<div class="ob-panel glass"><div class="ob-title">About You 👤</div>'+
   '<div class="field"><label>Gender</label><div style="display:flex;gap:8px;"><div class="gender-chip female" id="g-female" onclick="setGender(\'female\',this)">♀ Female</div><div class="gender-chip male" id="g-male" onclick="setGender(\'male\',this)">♂ Male</div><div class="gender-chip other" id="g-other" onclick="setGender(\'other\',this)">⚧ Other</div></div><div id="g-other-field" style="display:none;margin-top:8px;"><input class="gi" type="text" id="g-other-identity" placeholder="How do you identify? (e.g. Non-binary, Genderfluid…)" maxlength="60"/></div></div>'+
@@ -2433,6 +2441,15 @@ function _ob4Begin(mode){
   window.crushGenderPref='';
   _ob4Start(mode==='alumni');
 }
+// Títulos de alumni — compartidos entre el registro y los filtros del perfil.
+var ALUMNI_DEGREES = ["Bachelor's","Master's","PhD","MBA","JD","MD"];
+// Alumni: alterna títulos (multi-select) sin pedir universidad ni campo.
+function _ob4ToggleAdv(deg, el){
+  _ob4State.advDegrees = _ob4State.advDegrees || [];
+  var i = _ob4State.advDegrees.indexOf(deg);
+  if(i>-1){ _ob4State.advDegrees.splice(i,1); if(el){el.classList.remove('on');el.textContent=deg;} }
+  else { _ob4State.advDegrees.push(deg); if(el){el.classList.add('on');el.textContent='✓ '+deg;} }
+}
 function _ob4Start(isAlumni){
   window._regAlumni=!!isAlumni;
   var wrap=document.querySelector('#onboarding .ob-wrap');if(!wrap)return;
@@ -2440,7 +2457,7 @@ function _ob4Start(isAlumni){
   var auth=document.getElementById('authscreen');if(auth)auth.classList.remove('active');
   _ob4Phase=1;_ob4Involved=[];_ob4Cat='Social';_ob4Query='';
   var fn=(suData&&suData.fname)||'',ln=(suData&&suData.lname)||'';
-  _ob4State={living:'',major:'',minor:'',gradyr:'',degree:"Bachelor's",field:'',
+  _ob4State={living:'',major:'',minor:'',gradyr:'',degree:"Bachelor's",field:'',advDegrees:[],
     handle:(fn+ln).toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,12),
     email:'',phone:'',code:'+1',bio:'',looking:['Friends'],uniNameStyle:'full'};
   if(typeof selectedHobbies==='undefined')window.selectedHobbies=[];
@@ -2666,7 +2683,7 @@ function _ob4P1(){
   var codePlaceholder = window.currentLang==='es'?'Ingresa el código de 6 dígitos':'Enter 6-digit code';
   var notFoundText = window.currentLang==='es'?
     '¿No encuentras tu universidad? <span style="color:var(--p);font-weight:600;cursor:pointer;" onclick="window.open(\'https://www.instagram.com/undrgradz/\',\'_blank\')">Escríbenos por Instagram</span> o <a href="mailto:support@undrgradz.com" style="color:var(--p);font-weight:600;text-decoration:none;">envíanos un correo</a>.':
-    'Didn\'t find your university? <span style="color:var(--p);font-weight:600;cursor:pointer;" onclick="window.open(\'https://www.instagram.com/undrgradz/\',\'_blank\')">Message us</span> or <a href="mailto:support@undrgradz.com" style="color:var(--p);font-weight:600;text-decoration:none;">email us</a>.';
+    'Didn\'t find your university? <span style="color:var(--uni-accent,var(--p));font-weight:700;cursor:pointer;" onclick="window.open(\'https://www.instagram.com/undrgradz/\',\'_blank\')">message us</span> or <a href="mailto:support@undrgradz.com" style="color:var(--uni-accent,var(--p));font-weight:700;text-decoration:none;">email us</a>.';
   var privacyNote = window.currentLang==='es'?
     'Nunca publicaremos nada sin tu permiso.':
     'We will never post anything without your permission.';
@@ -2880,12 +2897,18 @@ function _ob4P2(){
   var uniNameTog=(uni&&uni.acronym)?('<div class="ob4-uniname-tog" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:9px 0 2px;"><span class="t-meta">'+lblShowOnCard+'</span><div class="ob4-chip'+((st.uniNameStyle||'full')==='full'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'full\')">'+lblFullName+'</div><div class="ob4-chip'+(st.uniNameStyle==='acronym'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'acronym\')">'+lblAcronym+'</div></div>'):'';
   var acad;
   if(window._regAlumni){
-    var degreesList = window.currentLang==='es'?
-      ["Licenciatura","Maestría","Doctorado","MBA","Derecho (JD)","Medicina (MD)","Otro"]:
-      ["Bachelor's","Master's","PhD","MBA","JD","MD","Other"];
-    acad='<div class="ob4-flabel">'+lblClassOf+'</div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:var(--fs-md);color:var(--fg2);">\x27</span><input class="gi" id="ob4-gy" value="'+st.gradyr+'" maxlength="2" placeholder="22" oninput="_ob4State.gradyr=this.value.replace(/[^0-9]/g,\x27\x27);_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();" style="width:90px;text-align:center;font-weight:600;"/></div>'+
-      '<div class="ob4-flabel">'+lblDegree+'</div><select class="gi" id="ob4-deg" onchange="_ob4State.degree=this.value;if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+degreesList.map(function(d){return '<option'+(d===st.degree?' selected':'')+'>'+d+'</option>';}).join('')+'</select>'+
-      '<div class="ob4-flabel">'+lblField+'</div><input class="gi" id="ob4-field" value="'+st.field+'" placeholder="e.g. Computer Science" oninput="_ob4State.field=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();"/>';
+    var _majSelDef = window.currentLang==='es'?'Selecciona…':'Select…';
+    var _classDef = window.currentLang==='es'?'Selecciona…':'Select…';
+    var _classOpts='<option value="">\x27'+_classDef+'</option>';for(var _cy=26;_cy>=0;_cy--){var _yy=('0'+_cy).slice(-2);_classOpts+='<option value="'+_yy+'"'+(_yy===String(st.gradyr)?' selected':'')+'>\x27'+_yy+'</option>';}
+    var _fieldOpts='<option value="">'+_majSelDef+'</option>'+MAJORS.map(function(m){return '<option'+(m===st.field?' selected':'')+'>'+m+'</option>';}).join('');
+    // Sin dropdown de "Degree": los títulos son chips multi-select (conectan con
+    // los filtros de Alumni del perfil). Se guardan en _ob4State.advDegrees.
+    var _lblDeg = window.currentLang==='es'?'Título(s)':'Degree(s)';
+    var _degList=ALUMNI_DEGREES; // Bachelor's, Master's, PhD, MBA, JD, MD
+    var _degChips=_degList.map(function(d){var on=(_ob4State.advDegrees||[]).indexOf(d)>-1;return '<div class="ob4-chip'+(on?' on':'')+'" style="padding:8px 14px;" onclick="_ob4ToggleAdv(\''+d+'\',this)">'+(on?'✓ ':'')+d+'</div>';}).join('');
+    acad='<div class="ob4-flabel">'+lblClassOf+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+_classOpts+'</select>'+
+      '<div class="ob4-flabel">'+lblField+'</div><select class="gi" id="ob4-field" onchange="_ob4State.field=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+_fieldOpts+'</select>'+
+      '<div class="ob4-flabel">'+_lblDeg+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+_degChips+'</div>';
   }else{
     var majSelectDefault = window.currentLang==='es'?'Selecciona tu carrera…':'Select major…';
     var minSelectDefault = window.currentLang==='es'?'Ninguno':'None';
@@ -2894,7 +2917,6 @@ function _ob4P2(){
     var minOpt='<option value="">'+minSelectDefault+'</option>'+MINORS.filter(function(m){return m!=='None';}).map(function(m){return '<option'+(m===st.minor?' selected':'')+'>'+m+'</option>';}).join('');
     var yNow=new Date().getFullYear();var gyOpt='<option value="">'+gradYrSelectDefault+'</option>';for(var y=yNow;y<yNow+6;y++)gyOpt+='<option'+(String(y)===String(st.gradyr)?' selected':'')+'>'+y+'</option>';
     acad='<div class="ob4-flabel">'+lblMajor+'</div><select class="gi" id="ob4-major" onchange="_ob4State.major=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+majOpt+'</select>'+
-      '<div class="ob4-flabel">'+lblMinor+'</div><select class="gi" id="ob4-minor" onchange="_ob4State.minor=this.value">'+minOpt+'</select>'+
       '<div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select>';
   }
   
@@ -4103,7 +4125,7 @@ function _ob4Finish(){
   if(st.handle)userPro.handle=st.handle.charAt(0)==='@'?st.handle:'@'+st.handle;
   if(st.email)userPro.email=st.email;
   if(st.phone)userPro.phone=(st.code||'')+' '+st.phone;
-  if(window._regAlumni){if(st.gradyr)userPro.grad="May '"+st.gradyr;if(st.degree)userPro.degree=st.degree;if(st.field)userPro.major=st.field;userMode='alumni';obMode='alumni';}
+  if(window._regAlumni){if(st.gradyr)userPro.grad="May '"+st.gradyr;if(st.field)userPro.major=st.field;userPro.advDegrees=(st.advDegrees||[]).map(function(d){return {lvl:d};});userPro.degree=(st.advDegrees&&st.advDegrees[0])||'';userMode='alumni';obMode='alumni';}
   else{if(st.major)userPro.major=st.major;if(st.minor)userPro.minor=st.minor;if(st.gradyr)userPro.grad="May '"+String(st.gradyr).slice(-2);}
   if(st.living)userPro.living=st.living;userPro.uniNameStyle=_ob4State.uniNameStyle||'full';
   userPro.languages=st.languages||[];
@@ -6650,6 +6672,7 @@ function _friendsForPicker(){
         init:nm.charAt(0).toUpperCase(),
         color:(f.profile&&f.profile.customization&&f.profile.customization.badgeColor)||'#2b5fd9',
         photo:(f.photos&&f.photos[0]&&f.photos[0].url)||'',
+        handle:'@'+String(f.handle||nm.toLowerCase().replace(/[^a-z0-9]/g,'')).replace(/^@/,''),
         sub:(f.profile&&f.profile.major)||_uniAcronymOf(f)
       };
     });
@@ -6657,11 +6680,13 @@ function _friendsForPicker(){
   return Array.prototype.map.call(document.querySelectorAll('#fr-rows .frr'),function(r){
     var av=r.querySelector('div[style*="border-radius:50%"]');
     var sub=r.querySelector('div[style*="color:var(--fg2)"]');
+    var nm2=r.getAttribute('data-nm')||'Friend';
     return {
-      name:r.getAttribute('data-nm')||'Friend',
+      name:nm2,
       init:(av&&av.textContent.trim())||'?',
       color:(av&&av.style.background)||'#2b5fd9',
       photo:'',
+      handle:'@'+nm2.toLowerCase().replace(/[^a-z0-9]/g,''),
       sub:(sub&&sub.textContent.trim())||_uniAcronymOf(null)
     };
   });
@@ -6678,12 +6703,12 @@ function _openChatCreateMenu(){
     var av=f.photo
       ? '<div style="width:38px;height:38px;border-radius:50%;background:url(\''+f.photo+'\') center/cover;flex-shrink:0;"></div>'
       : '<div style="width:38px;height:38px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">'+f.init+'</div>';
-    return '<div class="ccf-row" data-idx="'+i+'" data-nm="'+f.name.replace(/"/g,'')+'" onclick="_toggleCreateChatFriend(this)" style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:var(--rad-md);border:1.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);margin-bottom:7px;cursor:pointer;transition:all var(--dur) ease;">'+
-      '<div class="ccf-chk" style="width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:700;color:transparent;flex-shrink:0;">✓</div>'+
+    return '<div class="ccf-row" data-idx="'+i+'" data-nm="'+f.name.replace(/"/g,'')+'" onclick="_toggleCreateChatFriend(this)" style="--cc:'+f.color+';display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--rad-md);border:1.5px solid transparent;background:linear-gradient(150deg, color-mix(in srgb,'+f.color+' 12%,#0a0a12), #0a0a12) padding-box, linear-gradient(150deg, '+f.color+', color-mix(in srgb,'+f.color+' 32%,transparent) 60%) border-box;margin-bottom:9px;cursor:pointer;transition:all var(--dur) ease;">'+
+      '<div class="ccf-chk" style="width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:700;color:transparent;flex-shrink:0;">✓</div>'+
       av+
       '<div style="flex:1;min-width:0;">'+
-        '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</div>'+
-        '<div style="font-size:var(--fs-xs);color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.sub+'</div>'+
+        '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</div>'+
+        '<div style="font-size:var(--fs-xs);font-weight:600;color:color-mix(in srgb,'+f.color+' 55%,#ffffff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(f.handle||'')+'</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -6692,21 +6717,22 @@ function _openChatCreateMenu(){
     rows='<div style="text-align:center;padding:28px 0;font-size:var(--fs-base);color:var(--fg2);">No friends added yet.<br><span style="font-size:var(--fs-xs);">Add friends to start a chat.</span></div>';
   }
 
-  m.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Create Chat</div>'+
+  m.innerHTML='<div class="msheet ccf-sheet" style="position:absolute;inset:0;max-width:none;width:100%;height:100%;max-height:100%;border-radius:0;display:flex;flex-direction:column;padding-top:calc(env(safe-area-inset-top) + 14px);"><div class="mhnd"></div><div class="mtitle">Create Chat</div>'+
     '<div style="font-size:var(--fs-xs);color:var(--fg2);margin:-6px 0 12px;">Pick 1 to '+CREATE_CHAT_MAX+' friends.</div>'+
-    // Group identity — only meaningful with 2+ picks, so it stays hidden until
-    // then (toggled by _syncCreateChatFooter).
+    // Buscador de amigos primero (lo primero que buscas al crear un chat).
+    '<input id="ccf-search" oninput="_filterCreateChatFriends(this.value)" placeholder="Search friends" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin-bottom:10px;"/>'+
+    // Nombre del grupo — solo aparece con 2+ seleccionados. El nombre es
+    // opcional pero no lo decimos en el placeholder.
     '<div id="ccf-group-meta" style="display:none;align-items:center;gap:12px;margin-bottom:12px;">'+
       '<div id="ccf-photo" onclick="_ccfPickPhoto()" title="Chat photo" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;cursor:pointer;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background-size:cover;background-position:center;">'+icon('camera',18)+'</div>'+
-      '<input id="ccf-title" maxlength="40" placeholder="Chat name (optional)" style="flex:1;min-width:0;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;"/>'+
+      '<input id="ccf-title" maxlength="40" placeholder="Chat name" style="flex:1;min-width:0;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;"/>'+
     '</div>'+
-    '<input id="ccf-search" oninput="_filterCreateChatFriends(this.value)" placeholder="Search friends" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin-bottom:10px;"/>'+
-    '<div id="ccf-rows" style="max-height:46vh;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>'+
+    '<div id="ccf-rows" style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>'+
     '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 10px;font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">'+
       '<span><span id="ccf-count" style="color:#fff;">0</span> of '+CREATE_CHAT_MAX+' selected</span>'+
       '<div style="width:70px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;"><div id="ccf-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2b5fd9,#3d7bff);transition:width 0.2s;"></div></div>'+
     '</div>'+
-    '<div style="display:flex;gap:10px;">'+
+    '<div style="display:flex;gap:10px;padding-bottom:calc(env(safe-area-inset-bottom));">'+
       '<button class="gbtn-ghost" style="flex:1;margin:0;" onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'chat-create-menu\').remove()">Cancel</button>'+
       '<button class="gbtn" id="ccf-create" disabled style="flex:2;margin:0;background:linear-gradient(135deg,var(--accent),var(--accent-deep));opacity:0.45;" onclick="_createChatFromPicker()">'+icon('chat',16)+' Create Chat</button>'+
     '</div>'+
@@ -7603,9 +7629,14 @@ function openHangoutDetailModal(evtId) {
       '<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.35) 0%,rgba(0,0,0,0.08) 38%,#000000 100%);pointer-events:none;"></div>' +
       
       // Top bar with close button & badges
-      '<div style="position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;width:100%;">' +
-        '<div style="display:flex;align-items:center;gap:8px;">' + badgeHtml + capFlagHtml + '</div>' +
-        '<button onclick="closeHangoutDetailModal()" style="width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,0.15);color:#fff;font-size:var(--fs-md);font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>' +
+      '<div style="position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;width:100%;">' +
+        // Izquierda: badges + reportar evento (amarillo neón, fondo negro) — solo eventos ajenos.
+        '<div style="display:flex;align-items:center;gap:9px;">' +
+          (!isMyEvent ? '<button onclick="_reportEvent(\''+String(evtId).replace(/\\/g,"\\\\").replace(/'/g,"\\'")+'\')" aria-label="Report event" title="Report event" style="width:34px;height:34px;border-radius:50%;background:#000;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1.5px solid #fde047;color:#fde047;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px -2px rgba(253,224,71,0.85);"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16h.01"/><path d="M12 8v4"/><path d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"/></svg></button>' : '') +
+          badgeHtml + capFlagHtml +
+        '</div>' +
+        // Derecha: cerrar — rojo fuerte (como Nightlife) con fondo negro.
+        '<button onclick="closeHangoutDetailModal()" aria-label="Close" style="width:34px;height:34px;border-radius:50%;background:#000;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1.5px solid #ff2e3f;color:#ff2e3f;font-size:var(--fs-md);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px -2px rgba(255,46,63,0.9);">'+icon('x',16)+'</button>' +
       '</div>' +
 
       // Title over cover
@@ -8715,6 +8746,21 @@ function _evFiltToggle(h){var s=(h&&h.closest)?h.closest('.evfilt'):null;if(s)s.
 function _ehCardToggle(h){
   var c=(h&&h.closest)?h.closest('.ehcard'):null;if(!c)return;
   var opening=c.classList.contains('collapsed');
+  // El paso 8 (Review & Publish) queda BLOQUEADO hasta terminar los 7 anteriores.
+  if(opening && c.getAttribute('data-step')==='8'){
+    // Marcar como done el paso abierto actual (si es válido) antes de contar.
+    document.querySelectorAll('#evp-create .ehcard[data-step]').forEach(function(o){
+      var ds=parseInt(o.getAttribute('data-step'),10);
+      if(ds>=1&&ds<=7&&!o.classList.contains('collapsed')&&_ehStepValid(o))o.classList.add('done');
+    });
+    var d17=0;for(var s=1;s<=7;s++){var st=document.querySelector('#evp-create .ehcard[data-step="'+s+'"]');if(st&&st.classList.contains('done'))d17++;}
+    if(d17<7){
+      _ehUpdateProgress();
+      if(typeof ugzAlert==='function')ugzAlert('Completa los 7 pasos anteriores antes de revisar y publicar.');
+      else alert('Completa los 7 pasos anteriores primero.');
+      return;
+    }
+  }
   if(opening){
     // Accordion: only one step open at a time. Collapsing the others marks the
     // valid ones as done, so progress advances as you move down the flow.
@@ -8736,6 +8782,7 @@ function _ehCardToggle(h){
 function _ehStepValid(c){
   var step=c.getAttribute('data-step');
   if(step==='1'){var n=document.getElementById('ev-nm');return !!(n&&n.value.trim());}
+  if(step==='8'){return false;} // el paso 8 solo se completa al picar Publish
   return true; // other steps are optional or pre-filled — visiting them counts
 }
 function _ehUpdateProgress(){
@@ -8746,6 +8793,12 @@ function _ehUpdateProgress(){
   var lbl=document.getElementById('eh-progress-lbl');
   if(fill)fill.style.width=Math.min(100,Math.round(done/total*100))+'%';
   if(lbl)lbl.textContent=done+' of '+total+' done';
+  // Bloqueo visual del paso 8 hasta que los 7 anteriores estén completos.
+  var step8=document.querySelector('#evp-create .ehcard[data-step="8"]');
+  if(step8){
+    var d17=0;for(var s=1;s<=7;s++){var st=document.querySelector('#evp-create .ehcard[data-step="'+s+'"]');if(st&&st.classList.contains('done'))d17++;}
+    step8.classList.toggle('eh-locked', d17<7);
+  }
 }
 // Open a step card by number and bring it into view. Used by anything that has
 // to reach content which may be collapsed.
@@ -8984,6 +9037,9 @@ function setEvJoinMode(mode){
 function _evYearTarget(el){var box=document.getElementById('ev-year-chips');if(!box)return;var yt=el.getAttribute('data-yt');if(yt==='all'){Array.prototype.forEach.call(box.querySelectorAll('.yr-chip'),function(c){c.classList.toggle('on',c===el);});return;}el.classList.toggle('on');var all=box.querySelector('[data-yt="all"]');if(all)all.classList.remove('on');if(!box.querySelector('.yr-chip.on')&&all)all.classList.add('on');}
 async function createEv(){
   var n=document.getElementById('ev-nm')&&document.getElementById('ev-nm').value.trim();if(!n){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('Give your event a name');return;}
+  // El paso 8 solo se completa AL PUBLICAR.
+  var _s8=document.querySelector('#evp-create .ehcard[data-step="8"]');if(_s8)_s8.classList.add('done');
+  if(typeof _ehUpdateProgress==='function')try{_ehUpdateProgress();}catch(e){}
   if(hasBanned(n)){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('⚠️ The event name contains restricted language. Please choose another.');return;}
   var section=(document.getElementById('ev-section')&&document.getElementById('ev-section').value)||'nightlife';
   var _yt=[];var _ytb=document.getElementById('ev-year-chips');if(_ytb)Array.prototype.forEach.call(_ytb.querySelectorAll('.yr-chip.on'),function(c){_yt.push(c.getAttribute('data-yt'));});var yearTarget=(!_yt.length||_yt.indexOf('all')>-1)?'all':_yt;var _ytL={freshman:'Freshmen',sophomore:'Sophomores',junior:'Juniors',senior:'Seniors',alumni:'Alumni'};var yearBadge=(yearTarget==='all')?'':'<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(96,165,250,0.18);color:#93c5fd;border-color:rgba(96,165,250,0.4);">'+icon('grad',11)+' '+yearTarget.map(function(y){return _ytL[y]||y;}).join(', ')+'</span>';
@@ -10448,6 +10504,11 @@ function buildHingeStackHtml(p,opts){
   var _embed=!!(opts&&opts.embed);
   // Profile preview (embed) uses a slightly smaller overlay so the text sits nicely ON the photo.
   var _cf=function(px){return _embed?Math.round(px*0.82*10)/10:px;};
+  // Alumni: títulos (Bachelor's + posgrados) subrayados en la tarjeta.
+  var _degSrc=isSelf?(typeof userPro!=='undefined'?userPro:{}):p;
+  var _degItems=[];
+  if(_degSrc){ if(_degSrc.degree)_degItems.push(_degSrc.degree); (_degSrc.advDegrees||[]).forEach(function(a){var l=(a&&a.lvl)?a.lvl:a;if(l&&_degItems.indexOf(l)<0)_degItems.push(l);}); }
+  var _degLine=_degItems.length?'<div style="font-size:'+_cf(11.5)+'px;color:#fff;font-weight:600;margin-bottom:4px;text-shadow:0 1px 4px rgba(0,0,0,0.7);"><span style="text-decoration:underline;text-underline-offset:2px;">'+_degItems.join(' · ')+'</span></div>':'';
   var coverInfo=
     '<div class="crush-cover-ov"></div>'+
     cornerChips+
@@ -10458,9 +10519,10 @@ function buildHingeStackHtml(p,opts){
         verifySvg+
       '</div>'+
       ((p.major||yis)?'<div style="font-size:'+_cf(12.5)+'px;color:rgba(255,255,255,0.96);margin-bottom:4px;text-shadow:0 1px 4px rgba(0,0,0,0.6);">'+[(p.major?p.major+(p.minor?' · '+p.minor:''):''),(yis?(isSelf?_yearDisplay(yis):yis):''),(!isSelf&&typeof _crushLocationOn!=='undefined'&&_crushLocationOn?(''+icon('mapPin',16)+' '+_profileDistance(p)+' mi'):'')].filter(Boolean).join(' · ')+'</div>':'')+
+      _degLine+
       
       (p.bio?'<div style="font-size:'+_cf(12.5)+'px;color:rgba(255,255,255,0.95);font-style:italic;line-height:1.4;margin-bottom:5px;text-shadow:0 1px 4px rgba(0,0,0,0.7);">"'+p.bio+'"</div>':'')+
-      (uniName?'<div style="font-size:'+_cf(11)+'px;color:rgba(255,255,255,0.85);font-family:\'Graduate\',serif;margin-top:5px;text-shadow:0 1px 3px rgba(0,0,0,0.855);letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+(((typeof _uniAcronymOf==='function'&&!isSelf)?_uniAcronymOf(p):'')||uniName)+gradSuffix+'</div>':'')+
+      (uniName?'<div style="font-size:'+_cf(9.5)+'px;color:rgba(255,255,255,0.9);font-family:var(--font-display);font-weight:400;text-transform:uppercase;margin-top:6px;line-height:1.5;text-shadow:0 1px 3px rgba(0,0,0,0.855);letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;">'+(((typeof _uniAcronymOf==='function'&&!isSelf)?_uniAcronymOf(p):'')||uniName)+gradSuffix+'</div>':'')+
     '</div>';
   // First-run "tap to see profile" hint — breathes, fades, moves per profile, then gone
   var _tapHint='';
@@ -11607,12 +11669,13 @@ function openSentLikeProfile(likeId){
   var slides=buildHingeStackHtml(p,{isSelf:false,compact:true});
   var modal=document.createElement('div');
   modal.className='mov open';modal.style.zIndex='9999';
-  // Mismo chrome que "ver perfil" de amigos: hoja redondeada + botón ‹ flotante
-  // sobre la foto (sin barra de header). El nombre ya sale en la card.
-  modal.innerHTML='<div class="msheet" style="max-width:400px;padding:0;background:#0b0818;overflow:hidden;border-radius:var(--rad-xl);max-height:90dvh;display:flex;flex-direction:column;position:relative;">'+
-    '<button onclick="this.closest(\'.mov\').remove()" aria-label="Close" style="position:absolute;top:12px;left:12px;z-index:100;background:rgba(0,0,0,0.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:38px;height:38px;color:#fff;font-size:var(--fs-xl);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);">‹</button>'+
+  // Pantalla completa (como el modal de For You): la card llena la vista y el
+  // botón ‹ flota sobre la foto. Antes era una card corta centrada sobre el
+  // backdrop del .mov, que dejaba una gran "capa negra" arriba y abajo.
+  modal.innerHTML='<div class="msheet" style="max-width:none;width:100%;height:100%;max-height:100%;padding:0;background:#000;overflow:hidden;border-radius:0;display:flex;flex-direction:column;position:relative;">'+
+    '<button onclick="this.closest(\'.mov\').remove()" aria-label="Close" style="position:absolute;top:calc(env(safe-area-inset-top) + 10px);left:14px;z-index:100;background:rgba(0,0,0,0.55);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.25);border-radius:50%;width:40px;height:40px;color:#fff;font-size:var(--fs-xl);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,0.4);">‹</button>'+
     '<div class="crush-card" style="max-width:none;margin:0;flex:1;min-height:0;">'+
-      '<div class="crush-scroll" style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px;">'+slides+'</div>'+
+      '<div class="crush-scroll" style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top) + 8px) 10px 14px;">'+slides+'</div>'+
     '</div>'+
   '</div>';
   document.body.appendChild(modal);
@@ -12694,10 +12757,8 @@ function _likedSawHtml(pool,unlimited){
       '<div style="height:100%;'+cover+'filter:blur(14px) saturate(170%);transform:scale(1.15);"></div>'+
       '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, color-mix(in srgb, var(--uni-accent,var(--p)) 22%, transparent) 0%, rgba(0,0,0,0.82) 100%);z-index:2;">'+
         '<div style="width:48px;height:48px;border-radius:50%;background:var(--uni-accent,var(--p));display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #ffffff;box-shadow:0 0 18px color-mix(in srgb, var(--uni-accent,var(--p)) 60%, transparent);animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',22)+'</div>'+
-        '<div style="margin-top:7px;">'+_admirerSrcTag(p._src)+'</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
-        '<div style="font-size:var(--fs-xs);font-weight:800;color:rgba(255,255,255,0.85);margin-bottom:6px;letter-spacing:1.5px;text-shadow:0 1px 6px #000;">'+((p.name||'?').charAt(0).toUpperCase())+' • • • •</div>'+
         '<div style="background:linear-gradient(135deg,'+_uc+','+_uc2+');border:none;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:6px;border-radius:var(--rad-sm);letter-spacing:0.4px;">'+icon('lock',14)+' '+(isEs?'Desbloquear · A+':'Unlock · A+')+'</div>'+
       '</div>'+
     '</div>';
@@ -13938,6 +13999,14 @@ function groupExitGroup(chatId) {
   });
 }
 
+// ¿Este chat es un match de Crush? (para el recordatorio de expiración de 24h)
+function _isCrushMatchChat(cid){
+  if(!cid)return false;
+  try{ var conv=(window._chatPartnerCache||{})[cid]; if(conv&&conv.streamChannelId)return true; }catch(e){}
+  var it=document.getElementById('dm-match-'+cid)||document.getElementById('uc-match-'+cid);
+  if(it&&it.getAttribute('data-csec')==='matches')return true;
+  return false;
+}
 function renderMsgs(){
   var box=document.getElementById('cmsgs');if(!box||!curChatId)return;
   var isGrp=!!(typeof _curChatUser!=='undefined'&&_curChatUser&&_curChatUser.isGrp);
@@ -13950,10 +14019,15 @@ function renderMsgs(){
     var _enm=(_curChatUser&&_curChatUser.name)||'them';
     var _eic=(_curChatUser&&_curChatUser.init)||_enm.charAt(0).toUpperCase();
     var _ecl=(_curChatUser&&_curChatUser.color)||'var(--p)';
+    // Solo en matches/crush: recordar que el chat se borra en 24h si no respondes.
+    var _isMatch=(typeof _isCrushMatchChat==='function')&&_isCrushMatchChat(curChatId);
+    var _sub=(!isGrp&&_isMatch)
+      ? '<div style="font-size:var(--fs-sm);color:#fbbf24;font-weight:600;display:inline-flex;align-items:center;gap:6px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);border-radius:var(--rad-pill);padding:7px 14px;">'+icon('hourglass',15)+' Reply within 24h or this match disappears</div>'
+      : '<div style="font-size:var(--fs-sm);color:var(--fg2);">Say something</div>';
     box.innerHTML='<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px;gap:12px;">'+
       '<div style="width:64px;height:64px;border-radius:50%;background:'+_ecl+';display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.45);">'+_e(_eic)+'</div>'+
       '<div style="font-size:var(--fs-md);font-weight:800;color:#fff;">'+(isGrp?_e(_enm):('You matched with '+_e(_enm)))+'</div>'+
-      '<div style="font-size:var(--fs-sm);color:var(--fg2);">Say something</div>'+
+      _sub+
     '</div>';
     try{ if(typeof renderIcebreakers==='function')renderIcebreakers(curChatId); var _ib0=document.getElementById('icebreaker-bar'); if(_ib0)_ib0.style.display=''; }catch(e){}
     return;
@@ -14227,8 +14301,12 @@ function sendMsg(){
   if(chatHistory[curChatId]._expires)delete chatHistory[curChatId]._expires;
   var _matchItem=document.getElementById('uc-match-'+curChatId) || document.getElementById('dm-match-'+curChatId);
   if(_matchItem){
+    // Antes ponía "✅ Replied · ongoing chat" en TODOS los chats (glitch).
+    // Ahora refleja el mensaje que acabas de mandar, estilo Instagram, y quita
+    // el punto de no-leído.
     var _pre=_matchItem.querySelector('.cpre');
-    if(_pre){_pre.innerHTML='<span style="color:#22c55e;font-weight:500;">✅ Replied · ongoing chat</span>';}
+    if(_pre){_pre.classList.remove('cpre-unrd');_pre.innerHTML=(typeof _e==='function'?_e(txt):txt)+' <span class="cago">· now</span>';}
+    var _dot=_matchItem.querySelector('.cdot');if(_dot)_dot.remove();
   }
   
   renderMsgs();
@@ -18261,6 +18339,8 @@ function _showMatchOverlay(data) {
   var userPhoto = (typeof userPro !== 'undefined' && userPro.photos && userPro.photos[0] && userPro.photos[0].url) || (typeof userPro !== 'undefined' && userPro.p && userPro.p.pic) || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500';
 
   if (typeof notifData !== 'undefined') {
+    // Evita duplicar la notificación de match de la misma persona.
+    notifData = notifData.filter(function(n){ return !(n.type==='match' && (n.from===partnerName || (partner.handle && n.handle===partner.handle))); });
     notifData.unshift({
       type: 'match',
       from: partnerName,
@@ -18402,26 +18482,27 @@ function conectarChatEnVivo() {
       }
       
       var previewText = msg.content;
-      if (msg.type === 'AUDIO') previewText = '🎤 Mensaje de voz';
-      else if (msg.type === 'GAME') previewText = '🎮 ' + (msg.content || 'Icebreaker Game');
-      else if (msg.type === 'IMAGE') previewText = '📷 Foto';
-      else if (msg.type === 'FILE') previewText = '📎 Archivo';
+      if (msg.type === 'AUDIO') previewText = 'Mensaje de voz';
+      else if (msg.type === 'GAME') previewText = 'Icebreaker Game';
+      else if (msg.type === 'IMAGE') previewText = 'Foto';
+      else if (msg.type === 'FILE') previewText = 'Archivo';
 
-      var cpreList = document.querySelectorAll('#dm-match-' + targetId + ' .cpre, #uc-match-' + targetId + ' .cpre');
-      cpreList.forEach(function(el) {
-        el.textContent = previewText;
-      });
-      
-      var now = new Date();
-      var hours = now.getHours();
-      var minutes = String(now.getMinutes()).padStart(2, '0');
-      var ampm = hours >= 12 ? 'pm' : 'am';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      var newTime = hours + ':' + minutes + ampm;
-      var ctmList = document.querySelectorAll('#dm-match-' + targetId + ' .ctm, #uc-match-' + targetId + ' .ctm');
-      ctmList.forEach(function(el) {
-        el.textContent = newTime;
+      var _isUnreadNow = (curChatId !== targetId && !isOut);
+      ['dm-match-' + targetId, 'uc-match-' + targetId].forEach(function(rid){
+        var item = document.getElementById(rid);
+        if (!item) return;
+        // Preview estilo Instagram: negrita blanco si no visto, gris si leído.
+        var pre = item.querySelector('.cpre');
+        if (pre) {
+          pre.classList.toggle('cpre-unrd', _isUnreadNow);
+          pre.innerHTML = (typeof _e==='function'?_e(previewText):previewText) + ' <span class="cago">· now</span>';
+        }
+        // Punto de no-leído a la derecha.
+        var right = item.querySelector('.cright');
+        if (right) right.innerHTML = _isUnreadNow ? '<div class="cdot"></div>' : '';
+        // Un mensaje nuevo sube la conversación al TOPE de su lista.
+        var par = item.parentElement;
+        if (par && par.firstElementChild !== item) par.insertBefore(item, par.firstElementChild);
       });
 
       if (curChatId !== targetId && !isOut) {
@@ -18552,17 +18633,13 @@ async function fetchAndRenderChats() {
       var bg = (partner.profile && partner.profile.customization && partner.profile.customization.badgeColor) || '#3d7bff';
       var photoUrl = (partner.photos && partner.photos[0] && partner.photos[0].url) || '';
 
+      // Estilo Instagram: sin reloj fijo — tiempo RELATIVO ("3m", "1h") y el
+      // preview del mensaje. El "cuándo" vive al final de la línea del mensaje.
       var lastMsgTxt = '⏳ Expires in 24h — say hi!';
-      var lastMsgTime = 'Now';
+      var lastMsgAgo = '';
       if (conv.lastMessage) {
         lastMsgTxt = conv.lastMessage.content;
-        var date = new Date(conv.lastMessage.createdAt);
-        var hours = date.getHours();
-        var minutes = String(date.getMinutes()).padStart(2, '0');
-        var ampm = hours >= 12 ? 'pm' : 'am';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        lastMsgTime = hours + ':' + minutes + ampm;
+        lastMsgAgo = (typeof _timeAgo === 'function') ? _timeAgo(conv.lastMessage.createdAt) : '';
       }
 
       var avatarHtml = photoUrl 
@@ -18577,11 +18654,14 @@ async function fetchAndRenderChats() {
       window._unreadMessageCounts = window._unreadMessageCounts || {};
       window._unreadMessageCounts[matchId] = conv.unreadCount || 0;
 
-      var unreadHtml = '';
-      if (conv.unreadCount && conv.unreadCount > 0) {
-        var displayCount = conv.unreadCount > 9 ? '+9' : conv.unreadCount;
-        unreadHtml = '<div class="cunrd" style="background:var(--p); display:flex; align-items:center; justify-content:center;">' + displayCount + '</div>';
-      }
+      // Instagram-style: un PUNTO (no burbuja con número) cuando hay mensajes
+      // sin leer; la segunda línea dice "N new messages · tiempo".
+      // Instagram: siempre el mensaje real; en negrita blanco si NO lo has visto,
+      // gris una vez leído. Mismo tamaño que el nombre. Punto a la derecha si hay
+      // mensajes sin leer.
+      var isUnrd = conv.unreadCount && conv.unreadCount > 0;
+      var dotHtml = isUnrd ? '<div class="cdot"></div>' : '';
+      var preHtml = '<div class="cpre' + (isUnrd ? ' cpre-unrd' : '') + '">' + lastMsgTxt + (lastMsgAgo ? ' <span class="cago">· ' + lastMsgAgo + '</span>' : '') + '</div>';
 
       if (dmContainer) {
         var existingItem = document.getElementById('dm-match-' + matchId);
@@ -18596,9 +18676,9 @@ async function fetchAndRenderChats() {
         item.onclick = function() {
           openChat(matchId, nameToShow, bg, init, false, [], false);
         };
-        item.innerHTML = avatarHtml + 
-          '<div class="cmeta"><div class="cnm">'+nameToShow+'</div><div class="cpre">'+lastMsgTxt+'</div></div>' +
-          '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;"><div class="ctm">'+lastMsgTime+'</div>' + unreadHtml + '</div>';
+        item.innerHTML = avatarHtml +
+          '<div class="cmeta"><div class="cnm">'+nameToShow+'</div>'+preHtml+'</div>' +
+          '<div class="cright">' + dotHtml + '</div>';
         dmContainer.appendChild(item);
       }
 
@@ -20470,8 +20550,13 @@ function _rowBlock(row,name){if(!row)return;if(confirm('Block '+name+'? They won
 function _rowReport(row,name){if(!row)return;var reason=prompt('Report '+name+' — what\'s the reason?\n(spam, harassment, inappropriate content, etc.)');if(reason&&reason.trim()){alert('Report submitted. Thank you — our team will review.');}_hideRowActionBar(row);}
 function _closeProfileActions(){var m=document.getElementById('profile-actions-sheet');if(m)m.remove();}
 function openProfileActions(name){_closeProfileActions();var m=document.createElement('div');m.id='profile-actions-sheet';m.className='mov open';m.style.zIndex='10000';m.onclick=function(){_closeProfileActions();};m.innerHTML='<div class="ig-sheet" onclick="event.stopPropagation();"><div class="ig-sheet-hd">'+(name||'This profile')+'</div><div class="ig-sheet-grp"><button class="ig-act danger" onclick="_reportProfile(\''+(name||'').split("'").join('')+'\')">Report</button><button class="ig-act danger" onclick="_blockProfile(\''+(name||'').split("'").join('')+'\')">Block</button></div><div class="ig-sheet-grp"><button class="ig-act bold" onclick="_closeProfileActions()">Cancel</button></div></div>';document.body.appendChild(m);}
-function _reportProfile(name){_closeProfileActions();var reasons=['Spam','Harassment or bullying','Inappropriate / explicit','Fake profile','Underage user','Something else'];var m=document.createElement('div');m.id='profile-actions-sheet';m.className='mov open';m.style.zIndex='10000';m.onclick=function(){_closeProfileActions();};m.innerHTML='<div class="ig-sheet" onclick="event.stopPropagation();"><div class="ig-sheet-hd">Why are you reporting '+(name||'this profile')+'?</div><div class="ig-sheet-grp">'+reasons.map(function(r){return '<button class="ig-act" onclick="_submitReport()">'+r+'</button>';}).join('')+'</div><div class="ig-sheet-grp"><button class="ig-act bold" onclick="_closeProfileActions()">Cancel</button></div></div>';document.body.appendChild(m);}
+function _reportProfile(name){_closeProfileActions();var reasons=['Spam or scam','Harassment or bullying','Inappropriate content','Impersonation','Threats or violence'];var m=document.createElement('div');m.id='profile-actions-sheet';m.className='mov open';m.style.zIndex='10000';m.onclick=function(){_closeProfileActions();};m.innerHTML='<div class="msheet rep-sheet" onclick="event.stopPropagation();"><div class="mhnd"></div><div class="rep-title">Report User</div><div class="rep-sub">Why are you reporting this person?</div><div class="rep-pills">'+reasons.map(function(r){return '<button class="rep-pill" onclick="_submitReport()">'+r+'</button>';}).join('')+'</div><div class="rep-help">You can also block this user to prevent further contact.</div><button class="rep-cancel" onclick="_closeProfileActions()">Cancel</button></div>';document.body.appendChild(m);}
 function _submitReport(){_closeProfileActions();if(typeof _prettyAlert==='function')_prettyAlert('Thanks for reporting. Our team will review within 24 hours.');else alert('Thanks for reporting. Our team will review within 24 hours.');}
+// Reportar un evento (mismo sheet de pills que reportar usuario, con razones que
+// tienen sentido para eventos). Solo aparece en eventos que no son tuyos.
+function _closeEventReport(){var m=document.getElementById('event-report-sheet');if(m)m.remove();}
+function _reportEvent(evtId){_closeEventReport();var reasons=['Fake or misleading event','Spam or scam','Inappropriate content','Unsafe or dangerous','Harassment or hate speech'];var m=document.createElement('div');m.id='event-report-sheet';m.className='mov open';m.style.zIndex='10001';m.onclick=function(){_closeEventReport();};m.innerHTML='<div class="msheet rep-sheet" onclick="event.stopPropagation();"><div class="mhnd"></div><div class="rep-title">Report Event</div><div class="rep-sub">Why are you reporting this event?</div><div class="rep-pills">'+reasons.map(function(r){return '<button class="rep-pill" onclick="_submitEventReport()">'+r+'</button>';}).join('')+'</div><div class="rep-help">You can also leave the event to stop seeing it.</div><button class="rep-cancel" onclick="_closeEventReport()">Cancel</button></div>';document.body.appendChild(m);}
+function _submitEventReport(){_closeEventReport();if(typeof _prettyAlert==='function')_prettyAlert('Thanks for reporting. Our team will review this event within 24 hours.');else alert('Thanks for reporting.');}
 function _blockProfile(name){_closeProfileActions();try{if(typeof crushData!=='undefined'&&crushData)crushData=crushData.filter(function(p){return p.name!==name;});if(typeof crushDataAll!=='undefined'&&crushDataAll)crushDataAll=crushDataAll.filter(function(p){return p.name!==name;});if(typeof crushIdx!=='undefined'&&typeof crushData!=='undefined'&&crushIdx>=crushData.length)crushIdx=Math.max(0,crushData.length-1);if(typeof renderCrush==='function')renderCrush();}catch(e){}if(typeof _prettyAlert==='function')_prettyAlert('Blocked. You will not see '+(name||'this person')+' again.');else alert('Blocked.');}
 function _rowDelete(row,name){
   if(!row)return;
@@ -20483,7 +20568,7 @@ function _rowDelete(row,name){
 // Re-bind on chat list updates
 var _chatSwipeObserver=new MutationObserver(function(){_attachChatSwipeDelete();});
 document.addEventListener('DOMContentLoaded',function(){var cl=document.getElementById('chat-list');if(cl)_chatSwipeObserver.observe(cl,{childList:true});var ucl=document.getElementById('uc-chat-list');if(ucl)_chatSwipeObserver.observe(ucl,{childList:true});_attachChatSwipeDelete();});
-function chatReport(){var modal=document.getElementById('chat-settings-modal');if(modal){var sheet=modal.querySelector('.msheet');if(sheet){sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Report User</div><div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:12px;">Why are you reporting this person?</div><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"><button class="epb" onclick="alert(\'Report submitted: Spam\');document.getElementById(\'chat-settings-modal\').remove()">Spam or scam</button><button class="epb" onclick="alert(\'Report submitted: Harassment\');document.getElementById(\'chat-settings-modal\').remove()">Harassment or bullying</button><button class="epb" onclick="alert(\'Report submitted: Inappropriate\');document.getElementById(\'chat-settings-modal\').remove()">Inappropriate content</button><button class="epb" onclick="alert(\'Report submitted: Impersonation\');document.getElementById(\'chat-settings-modal\').remove()">Impersonation</button><button class="epb" onclick="alert(\'Report submitted: Threats\');document.getElementById(\'chat-settings-modal\').remove()">Threats or violence</button></div><div style="font-size:var(--fs-sm);color:var(--fg3);margin-bottom:12px;">You can also block this user to prevent further contact.</div><button class="gbtn-ghost" onclick="document.getElementById(\'chat-settings-modal\').remove()">Cancel</button>';}}}
+function chatReport(){var modal=document.getElementById('chat-settings-modal');if(modal){var sheet=modal.querySelector('.msheet');if(sheet){sheet.innerHTML='<div class="mhnd"></div><div class="rep-title">Report User</div><div class="rep-sub">Why are you reporting this person?</div><div class="rep-pills"><button class="rep-pill" onclick="alert(\'Report submitted\');document.getElementById(\'chat-settings-modal\').remove()">Spam or scam</button><button class="rep-pill" onclick="alert(\'Report submitted\');document.getElementById(\'chat-settings-modal\').remove()">Harassment or bullying</button><button class="rep-pill" onclick="alert(\'Report submitted\');document.getElementById(\'chat-settings-modal\').remove()">Inappropriate content</button><button class="rep-pill" onclick="alert(\'Report submitted\');document.getElementById(\'chat-settings-modal\').remove()">Impersonation</button><button class="rep-pill" onclick="alert(\'Report submitted\');document.getElementById(\'chat-settings-modal\').remove()">Threats or violence</button></div><div class="rep-help">You can also block this user to prevent further contact.</div><button class="rep-cancel" onclick="document.getElementById(\'chat-settings-modal\').remove()">Cancel</button>';}}}
 
 // ══════════════════════════════════════════════════════
 // CHAT PHOTO/VIDEO SEND — See Once / Keep in Chat
@@ -22374,9 +22459,13 @@ function _renderNotifBody(){
   var list=notifData.filter(function(n){return _notifFilter==='all'||_notifCat(n.type)===_notifFilter;});
   if(!list.length){body.innerHTML='<div style="text-align:center;padding:32px 0;color:var(--fg3);font-size:var(--fs-base);">'+icon('bell',22)+'<br>Nothing here</div>';return;}
   var h='';
+  var _nfCol={requests:'#fb923c',events:'#c084fc',campus:'#a3e635',system:'#22d3ee',social:'#ec4899'};
   list.forEach(function(n){
     var isNew=!notifRead[n.id];
-    h+='<div class="ncard'+(isNew?' new':'')+'">';
+    var _cc=_nfCol[_notifCat(n.type)]||'#ec4899';
+    // Fondo negro, solo el borde con el color de su categoría (como search).
+    var _cardStyle='background:#000;border:1.5px solid color-mix(in srgb,'+_cc+' '+(isNew?'70%':'42%')+',transparent);'+(isNew?'box-shadow:0 0 16px -6px '+_cc+';':'');
+    h+='<div class="ncard'+(isNew?' new':'')+'" style="'+_cardStyle+'">';
     h+='<div class="nic" style="background:linear-gradient(140deg,'+(n.color||'#2b5fd9')+',rgba(0,0,0,0.4));overflow:hidden;padding:0;">'+(n.av||''+icon('bell',16)+'')+'</div>';
     h+='<div style="flex:1;min-width:0;">';
     h+='<div style="font-size:var(--fs-sm);color:#fff;line-height:1.45;"><span style="font-weight:600;">'+n.from+'</span> <span style="color:var(--fg2);">'+(n.msg||'')+'</span></div>';
@@ -22428,7 +22517,7 @@ async function openNotifications(){
   _notifFilter='all';
   var chips=[['all','All'],['social',icon('heart',12)+' Social'],['campus',icon('grad',12)+' Campus'],['events',icon('calendar',12)+' Events'],['requests',icon('user',12)+' Requests'],['system',icon('settings',12)+' System']];
   var sh='<div class="msheet" style="padding-bottom:24px;"><div class="mhnd"></div>';
-  sh+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div class="t-title" style="display:flex;align-items:center;gap:6px;"><button onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'notif-modal\').remove()" title="Back" aria-label="Back" style="background:none;border:none;color:#fff;cursor:pointer;padding:2px;margin:-2px 2px -2px -4px;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>Notifications'+(unread.length?' <span style="font-size:var(--fs-xs);background:var(--p);color:#fff;border-radius:var(--rad-sm);padding:1px 8px;vertical-align:middle;">'+unread.length+'</span>':'')+'</div>';
+  sh+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div class="t-title" style="display:flex;align-items:center;gap:6px;"><button onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'notif-modal\').remove()" title="Back" aria-label="Back" style="background:none;border:none;color:#fff;cursor:pointer;padding:2px;margin:-2px 2px -2px -4px;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>Notifications'+(unread.length?' <span class="notif-hdr-dot"></span>':'')+'</div>';
   if(unread.length>0)sh+='<button onclick="markAllNotifsRead()" style="background:none;border:none;color:var(--p);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">Mark all read</button>';
   sh+='</div>';
   sh+='<div class="nfchips">'+chips.map(function(c,i){return '<div class="nfchip'+(i===0?' on':'')+'" data-nf="'+c[0]+'" onclick="_setNotifFilter(\''+c[0]+'\',this)">'+c[1]+'</div>';}).join('')+'</div>';
@@ -23670,6 +23759,12 @@ function _renderSearchStudentCard(p) {
   // colours in search; same-school (or unknown) falls back to the viewer's.
   var cp = (p.uni && p.uni.p) ? p.uni.p : 'var(--p)';
   var cp2 = (p.uni && p.uni.p2) ? p.uni.p2 : 'var(--p2)';
+  // Si el secundario de la uni es blanco, el degradado primario→blanco se ve
+  // lavado. En ese caso el botón "Ver Perfil" usa el primario sólido.
+  var _isWhite = function(c){ return typeof c === 'string' && /^#?(fff(fff)?|ffffff)$/i.test(c.replace('#','')); };
+  var verBtnBg = _isWhite(p.uni && p.uni.p2)
+    ? 'var(--card-p,var(--p))'
+    : 'linear-gradient(135deg,var(--card-p,var(--p)),var(--card-p2,var(--p2)))';
 
   return '<div class="search-student-card" style="--card-p:'+cp+';--card-p2:'+cp2+';" onclick="openProfileCardByName(\'' + safeName + '\')">' +
     '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--card-p,var(--p)),var(--card-p2,var(--p2)));">' +
@@ -23682,10 +23777,10 @@ function _renderSearchStudentCard(p) {
         _getVerifyBadgeHtml(cardIsVerified, 14) +
         (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;margin-left:2px;">' + p.age + '</span>' : '') +
       '</div>' +
-      '<div style="font-size:var(--fs-sm);color:color-mix(in srgb, var(--card-p2, var(--p2)) 55%, #ffffff);font-weight:600;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + ' • ' + major + '</div>' +
-      '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.6);margin-top:2px;">🏛️ ' + acronym + '</div>' +
+      '<div style="font-size:var(--fs-sm);color:color-mix(in srgb, var(--card-p2, var(--p2)) 78%, #ffffff);font-weight:600;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + '</div>' +
+      '<div style="font-size:var(--fs-xs);font-weight:700;color:color-mix(in srgb, var(--card-p2, var(--p2)) 78%, #ffffff);margin-top:3px;display:flex;align-items:center;gap:5px;">'+icon('landmark',12)+' ' + acronym + '</div>' +
     '</div>' +
-    '<button style="background:linear-gradient(135deg,var(--card-p,var(--p)),var(--card-p2,var(--p2)));border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
+    '<button style="background:'+verBtnBg+';border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
   '</div>';
 }
 
