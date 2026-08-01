@@ -209,6 +209,24 @@ const setupSocket = (server) => {
   return io;
 };
 
+/**
+ * Emits an arbitrary event to every tab/device a user has open, without
+ * disconnecting them (unlike forceLogoutUser). Returns true if the user was
+ * actually online and the event was delivered, false otherwise, so callers
+ * can decide whether a fallback (e.g. an unread Notification row) is needed.
+ */
+const forceNotify = (userId, event, payload) => {
+  if (!ioInstance) return false;
+  if (!onlineUsers.has(userId)) return false;
+  try {
+    ioInstance.to(`user_${userId}`).emit(event, payload);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to notify user via socket (${event}):`, error);
+    return false;
+  }
+};
+
 const notifyGhostModeChanged = async (userId, isGhostMode) => {
   if (!ioInstance) return;
   try {
@@ -260,6 +278,33 @@ const notifyMatchCreated = (userAId, userBId, payloadA, payloadB) => {
   }
 };
 
+/**
+ * Immediately expels a user who has just been suspended/banned by an admin:
+ * pushes a 'forceLogout' event to every tab/device they have open, then
+ * disconnects those sockets. Iterates the `user_${userId}` room (not just
+ * the single-socket onlineUsers map) so all tabs are covered.
+ */
+const forceLogoutUser = (userId, payload) => {
+  if (!ioInstance) return;
+  try {
+    const room = `user_${userId}`;
+    ioInstance.to(room).emit('forceLogout', payload);
+
+    const socketIds = ioInstance.sockets.adapter.rooms.get(room);
+    if (socketIds) {
+      socketIds.forEach((socketId) => {
+        const s = ioInstance.sockets.sockets.get(socketId);
+        if (s) s.disconnect(true);
+        if (onlineUsers.get(userId) === socketId) {
+          onlineUsers.delete(userId);
+        }
+      });
+    }
+  } catch (error) {
+    console.error('❌ Failed to force logout user:', error);
+  }
+};
+
 const notifyUniversityCatalogUpdated = (uniData) => {
   if (!ioInstance) return;
   try {
@@ -270,5 +315,5 @@ const notifyUniversityCatalogUpdated = (uniData) => {
   }
 };
 
-module.exports = { setupSocket, onlineUsers, notifyGhostModeChanged, notifyMatchCreated, notifyUniversityCatalogUpdated };
+module.exports = { setupSocket, onlineUsers, notifyGhostModeChanged, notifyMatchCreated, notifyUniversityCatalogUpdated, forceLogoutUser, forceNotify };
 

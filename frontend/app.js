@@ -1073,6 +1073,174 @@ try {
   window.prompt = function(msg, defaultVal) { return window.ugzModal.prompt(msg, defaultVal); };
 } catch(e) {}
 
+// ══════════════════════════════════════════════════════
+// SUSPENSION/BAN APPEAL SCREEN
+// Reuses the exact same visual language as the login screen (.auth-main-card,
+// .field/.gi.auth-input-field, .gbtn.auth-submit-btn from styles.css) so the
+// experience feels continuous instead of dropping into a generic dialog.
+//
+// There is no active token at this point (a rejected login never issues one,
+// and a forceLogout-kicked session is about to lose its), so the account is
+// identified by email alone — the backend resolves it the same way login()
+// does (matches @handle or full email). The password field is shown
+// pre-filled and locked purely for visual continuity with the login form; it
+// is NEVER read or sent anywhere.
+//
+// `opts.email` must be the resolved, real institutional email — callers are
+// responsible for passing that, not whatever raw text the user may have
+// typed (which could be a handle). Since we don't need a password to check
+// or submit anymore, the pending-appeal pre-check always runs up front.
+// ══════════════════════════════════════════════════════
+window.openAppealForm = function(opts) {
+  opts = opts || {};
+  var email = opts.email || '';
+  var displayPassword = opts.password || '';
+  var isEs = window.currentLang === 'es';
+  var t = function(es, en) { return isEs ? es : en; };
+
+  var existing = document.getElementById('ugz-appeal-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'ugz-appeal-overlay';
+  overlay.style.cssText = 'position:fixed; inset:0; z-index:10000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,8,16,0.78); backdrop-filter:blur(6px); opacity:0; transition:opacity 0.2s;';
+  overlay.innerHTML =
+    '<div class="auth-main-card" id="ugz-appeal-card" style="max-width:420px; max-height:92vh; overflow-y:auto;"></div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() { overlay.style.opacity = '1'; });
+
+  var card = document.getElementById('ugz-appeal-card');
+
+  function closeForm() {
+    overlay.style.opacity = '0';
+    setTimeout(function() { overlay.remove(); }, 200);
+  }
+
+  function renderLoading() {
+    card.innerHTML =
+      '<div style="text-align:center; padding:30px 0; color:rgba(255,255,255,0.7);">' + t('Cargando...', 'Loading...') + '</div>';
+  }
+
+  function renderPendingStatus(pendingAppeal) {
+    card.innerHTML =
+      '<div class="auth-logo-text" style="font-size:22px; margin-bottom:6px;">' + t('Apelación en revisión', 'Appeal under review') + '</div>' +
+      '<div style="color:rgba(255,255,255,0.75); font-size:var(--fs-base); line-height:1.5; margin-bottom:18px;">' +
+        t('Ya tienes una apelación en revisión para esta sanción. Un administrador la evaluará; te avisaremos en cuanto sea resuelta.', 'You already have an appeal under review for this sanction. An admin will evaluate it; we\'ll let you know as soon as it\'s resolved.') +
+      '</div>' +
+      '<div class="field" style="background:rgba(255,255,255,0.06); border-radius:var(--rad-lg); padding:14px; margin-bottom:20px;">' +
+        '<div style="font-size:var(--fs-2xs); font-weight:600; color:var(--fg2); text-transform:uppercase; letter-spacing:0.9px; margin-bottom:6px;">' + t('Tu mensaje', 'Your message') + '</div>' +
+        '<div style="color:#fff; font-size:var(--fs-sm); white-space:pre-wrap;">' + escapeHtmlForAppeal(pendingAppeal.message) + '</div>' +
+        '<div style="color:rgba(255,255,255,0.5); font-size:var(--fs-2xs); margin-top:10px;">' + new Date(pendingAppeal.createdAt).toLocaleString() + '</div>' +
+      '</div>' +
+      '<button type="button" class="gbtn auth-submit-btn" id="ugz-appeal-close-btn">' + t('Cerrar', 'Close') + '</button>';
+
+    document.getElementById('ugz-appeal-close-btn').onclick = function() {
+      closeForm();
+      if (typeof opts.onClose === 'function') opts.onClose();
+    };
+  }
+
+  function renderForm() {
+    var MIN_LEN = 20, MAX_LEN = 1000;
+    var passwordFieldHtml = displayPassword
+      ? '<div class="field">' +
+          '<label>' + t('Contraseña', 'Password') + '</label>' +
+          '<input class="gi auth-input-field" type="password" value="' + displayPassword.replace(/"/g, '&quot;') + '" readonly disabled style="opacity:0.65;"/>' +
+        '</div>'
+      : '';
+
+    card.innerHTML =
+      '<div class="auth-logo-text" style="font-size:22px; margin-bottom:6px;">' + t('Apelar sanción', 'Appeal your sanction') + '</div>' +
+      '<div style="color:rgba(255,255,255,0.75); font-size:var(--fs-base); line-height:1.5; margin-bottom:18px;">' +
+        t('Cuéntanos por qué crees que esta decisión debe revisarse. Un administrador la evaluará.', 'Tell us why you think this decision should be reviewed. An admin will evaluate it.') +
+      '</div>' +
+      '<div class="field">' +
+        '<label>' + t('Correo', 'Email') + '</label>' +
+        '<input class="gi auth-input-field" type="email" value="' + email.replace(/"/g, '&quot;') + '" readonly disabled style="opacity:0.65;"/>' +
+      '</div>' +
+      passwordFieldHtml +
+      '<div class="field">' +
+        '<label>' + t('Motivo de la apelación', 'Reason for appeal') + '</label>' +
+        '<textarea class="gi auth-input-field" id="ugz-appeal-message" rows="5" style="height:auto; min-height:110px; resize:vertical; padding-top:12px;" placeholder="' + t('Explica por qué debería revisarse tu sanción...', 'Explain why your sanction should be reviewed...') + '"></textarea>' +
+        '<div id="ugz-appeal-counter" style="font-size:var(--fs-2xs); opacity:0.7; text-align:right; margin-top:4px;">0 / ' + MAX_LEN + '</div>' +
+      '</div>' +
+      '<div id="ugz-appeal-error" style="display:none; color:#f87171; font-size:var(--fs-sm); margin:-4px 0 14px;"></div>' +
+      '<button type="button" class="gbtn auth-submit-btn" id="ugz-appeal-submit-btn">' + t('Enviar apelación', 'Submit appeal') + '</button>' +
+      '<div style="text-align:center; font-size:var(--fs-base); color:rgba(255,255,255,0.6); margin-top:14px; cursor:pointer;" id="ugz-appeal-cancel-btn">' + t('Cancelar', 'Cancel') + '</div>';
+
+    var msgEl = document.getElementById('ugz-appeal-message');
+    var counterEl = document.getElementById('ugz-appeal-counter');
+    var errorEl = document.getElementById('ugz-appeal-error');
+
+    function updateCounter() {
+      var len = msgEl.value.length;
+      counterEl.textContent = len + ' / ' + MAX_LEN;
+      counterEl.style.color = (len < MIN_LEN || len > MAX_LEN) ? '#f87171' : '';
+    }
+    msgEl.addEventListener('input', updateCounter);
+    updateCounter();
+
+    function showError(text) {
+      errorEl.textContent = text;
+      errorEl.style.display = 'block';
+    }
+
+    document.getElementById('ugz-appeal-cancel-btn').onclick = function() {
+      closeForm();
+      if (typeof opts.onClose === 'function') opts.onClose();
+    };
+
+    document.getElementById('ugz-appeal-submit-btn').onclick = function() {
+      errorEl.style.display = 'none';
+      var message = msgEl.value.trim();
+
+      if (message.length < MIN_LEN) { showError(t('Tu apelación debe tener al menos 20 caracteres.', 'Your appeal must be at least 20 characters.')); return; }
+      if (message.length > MAX_LEN) { showError(t('Tu apelación no puede superar los 1000 caracteres.', 'Your appeal cannot exceed 1000 characters.')); return; }
+
+      var submitBtn = document.getElementById('ugz-appeal-submit-btn');
+      submitBtn.disabled = true;
+
+      apiClient.submitAppeal(email, message).then(function() {
+        closeForm();
+        window.ugzModal.alert(t('Tu apelación fue enviada. Un administrador la revisará pronto.', 'Your appeal was submitted. An admin will review it soon.'), { type: 'success' }).then(function() {
+          if (typeof opts.onClose === 'function') opts.onClose();
+        });
+      }).catch(function(err) {
+        submitBtn.disabled = false;
+        if (err && err.status === 409) {
+          showError(t('Ya tienes una apelación en revisión para esta sanción.', 'You already have an appeal under review for this sanction.'));
+        } else {
+          showError((err && err.message) || t('No se pudo enviar la apelación.', 'Could not submit the appeal.'));
+        }
+      });
+    };
+  }
+
+  // No password needed anymore to check — always try the pending-appeal
+  // pre-check first so an existing appeal shows its status instead of a
+  // blank form, regardless of which screen triggered this one.
+  renderLoading();
+  apiClient.checkAppealStatus(email).then(function(data) {
+    if (data && data.pendingAppeal) {
+      renderPendingStatus(data.pendingAppeal);
+    } else {
+      renderForm();
+    }
+  }).catch(function() {
+    renderForm();
+  });
+};
+
+function escapeHtmlForAppeal(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // ── Interruptor del App Theme ──────────────────────────────────────────────
 // Turned off by request: the University Colors look did not land. NOTHING was
 // deleted — _applyAppTheme(), the html.theme-uni block at the end of styles.css
@@ -2135,6 +2303,10 @@ async function doLoginAuth(){
     const loginData = await apiClient.login(emailOrUsername, pass);
     console.log("Logged in successfully to backend:", loginData);
 
+    if (loginData && loginData.notice) {
+      window.ugzModal.alert(loginData.notice.message, { title: loginData.notice.title, type: 'info' });
+    }
+
     // 2. Fetch full profile details
     const dbProfile = await apiClient.getMe();
     console.log("Loaded full database profile:", dbProfile);
@@ -2261,7 +2433,22 @@ async function doLoginAuth(){
     },30);
 
   } catch (error) {
-    alert('Failed to login: ' + error.message);
+    if (error.status === 403) {
+      var isEs = window.currentLang === 'es';
+      // The backend resolves the real institutional email server-side (the
+      // login field may hold a @handle instead) and echoes it back on this
+      // specific error so the appeal screen is never mis-filled.
+      var resolvedEmail = (error.data && error.data.email) || emailOrUsername;
+      window.ugzModal.show({
+        type: 'warning',
+        message: error.message,
+        confirmText: isEs ? 'Apelar' : 'Appeal',
+        cancelText: isEs ? 'Cerrar' : 'Close',
+        onConfirm: function() { window.openAppealForm({ email: resolvedEmail, password: pass }); }
+      });
+    } else {
+      alert('Failed to login: ' + error.message);
+    }
   }
 }
 
@@ -18355,6 +18542,28 @@ function conectarChatEnVivo() {
     onDisconnected: function() {
       console.warn("🔌 WebSocket disconnected.");
     },
+    onForceLogout: function(data) {
+      var msg = (data && data.message) || 'Tu cuenta ya no tiene acceso a la aplicación.';
+      var isEs = window.currentLang === 'es';
+      var userEmail = (typeof userPro !== 'undefined' && userPro && userPro.email) || '';
+      var doLogout = function() { if (typeof _logOut === 'function') _logOut(true); };
+      window.ugzModal.show({
+        type: 'warning',
+        message: msg,
+        confirmText: isEs ? 'Apelar' : 'Appeal',
+        cancelText: isEs ? 'Cerrar' : 'Close',
+        onConfirm: function() { window.openAppealForm({ email: userEmail, onClose: doLogout }); },
+        onCancel: doLogout
+      });
+    },
+    onAppealResolved: function(data) {
+      var isEs = window.currentLang === 'es';
+      window.ugzModal.show({
+        type: data && data.status === 'APPROVED' ? 'success' : 'warning',
+        title: data && data.title,
+        message: (data && data.message) || (isEs ? 'Tu apelación fue resuelta.' : 'Your appeal has been resolved.')
+      });
+    },
     onMatchCreated: function(data) {
       _showMatchOverlay(data);
     },
@@ -20483,7 +20692,76 @@ function _rowDelete(row,name){
 // Re-bind on chat list updates
 var _chatSwipeObserver=new MutationObserver(function(){_attachChatSwipeDelete();});
 document.addEventListener('DOMContentLoaded',function(){var cl=document.getElementById('chat-list');if(cl)_chatSwipeObserver.observe(cl,{childList:true});var ucl=document.getElementById('uc-chat-list');if(ucl)_chatSwipeObserver.observe(ucl,{childList:true});_attachChatSwipeDelete();});
-function chatReport(){var modal=document.getElementById('chat-settings-modal');if(modal){var sheet=modal.querySelector('.msheet');if(sheet){sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Report User</div><div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:12px;">Why are you reporting this person?</div><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;"><button class="epb" onclick="alert(\'Report submitted: Spam\');document.getElementById(\'chat-settings-modal\').remove()">Spam or scam</button><button class="epb" onclick="alert(\'Report submitted: Harassment\');document.getElementById(\'chat-settings-modal\').remove()">Harassment or bullying</button><button class="epb" onclick="alert(\'Report submitted: Inappropriate\');document.getElementById(\'chat-settings-modal\').remove()">Inappropriate content</button><button class="epb" onclick="alert(\'Report submitted: Impersonation\');document.getElementById(\'chat-settings-modal\').remove()">Impersonation</button><button class="epb" onclick="alert(\'Report submitted: Threats\');document.getElementById(\'chat-settings-modal\').remove()">Threats or violence</button></div><div style="font-size:var(--fs-sm);color:var(--fg3);margin-bottom:12px;">You can also block this user to prevent further contact.</div><button class="gbtn-ghost" onclick="document.getElementById(\'chat-settings-modal\').remove()">Cancel</button>';}}}
+var CHAT_REPORT_REASONS = [
+  { key: 'SPAM', label: 'Spam or scam' },
+  { key: 'HARASSMENT', label: 'Harassment or bullying' },
+  { key: 'INAPPROPRIATE_CONTENT', label: 'Inappropriate content' },
+  { key: 'IMPERSONATION', label: 'Impersonation' },
+  { key: 'THREATS', label: 'Threats or violence' }
+];
+
+function chatReport(){
+  var modal=document.getElementById('chat-settings-modal');if(!modal)return;
+  var sheet=modal.querySelector('.msheet');if(!sheet)return;
+  var buttonsHtml=CHAT_REPORT_REASONS.map(function(r){
+    return '<button class="epb" onclick="chatReportStep2(\''+r.key+'\',\''+r.label.replace(/'/g,"\\'")+'\')">'+r.label+'</button>';
+  }).join('');
+  sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Report User</div><div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:12px;">Why are you reporting this person?</div><div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">'+buttonsHtml+'</div><div style="font-size:var(--fs-sm);color:var(--fg3);margin-bottom:12px;">You can also block this user to prevent further contact.</div><button class="gbtn-ghost" onclick="document.getElementById(\'chat-settings-modal\').remove()">Cancel</button>';
+}
+
+function chatReportStep2(reasonKey, reasonLabel){
+  var modal=document.getElementById('chat-settings-modal');if(!modal)return;
+  var sheet=modal.querySelector('.msheet');if(!sheet)return;
+  var MIN_LEN=20, MAX_LEN=1000;
+
+  sheet.innerHTML=
+    '<div class="mhnd"></div>'+
+    '<div class="mtitle">Report User</div>'+
+    '<div style="font-size:var(--fs-sm);font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;">Category</div>'+
+    '<div style="font-size:var(--fs-base);color:#fff;font-weight:600;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:10px 14px;margin-bottom:14px;">'+reasonLabel+'</div>'+
+    '<div style="font-size:var(--fs-sm);font-weight:600;color:var(--fg3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">What happened?</div>'+
+    '<textarea id="chat-report-details" class="gi" rows="5" style="min-height:110px;resize:vertical;margin-bottom:4px;" placeholder="Explain in your own words what happened..."></textarea>'+
+    '<div id="chat-report-counter" style="font-size:var(--fs-xs);color:var(--fg3);text-align:right;margin-bottom:8px;">0 / '+MAX_LEN+'</div>'+
+    '<div id="chat-report-error" style="display:none;color:#f87171;font-size:var(--fs-sm);margin-bottom:10px;"></div>'+
+    '<button class="gbtn" id="chat-report-submit-btn" onclick="chatReportSubmit(\''+reasonKey+'\')">Send Report</button>'+
+    '<button class="gbtn-ghost" onclick="document.getElementById(\'chat-settings-modal\').remove()" style="margin-top:8px;">Cancel</button>';
+
+  var textarea=document.getElementById('chat-report-details');
+  var counter=document.getElementById('chat-report-counter');
+  textarea.addEventListener('input',function(){
+    var len=textarea.value.length;
+    counter.textContent=len+' / '+MAX_LEN;
+    counter.style.color=(len<MIN_LEN||len>MAX_LEN)?'#f87171':'';
+  });
+}
+
+function chatReportSubmit(reasonKey){
+  var errorEl=document.getElementById('chat-report-error');
+  var textarea=document.getElementById('chat-report-details');
+  var submitBtn=document.getElementById('chat-report-submit-btn');
+  if(!textarea||!submitBtn)return;
+  errorEl.style.display='none';
+
+  var details=textarea.value.trim();
+  if(details.length<20){errorEl.textContent='Please explain what happened in at least 20 characters.';errorEl.style.display='block';return;}
+  if(details.length>1000){errorEl.textContent='Your explanation cannot exceed 1000 characters.';errorEl.style.display='block';return;}
+
+  var conv=(typeof _chatPartnerCache!=='undefined'&&window._chatPartnerCache)?window._chatPartnerCache[curChatId]:null;
+  var targetUserId=conv&&conv.partner?conv.partner.id:null;
+  if(!targetUserId){errorEl.textContent='Could not identify this user. Please try again.';errorEl.style.display='block';return;}
+
+  submitBtn.disabled=true;
+  apiClient.submitUserReport({targetUserId:targetUserId,matchId:curChatId,reason:reasonKey,details:details}).then(function(){
+    var modal=document.getElementById('chat-settings-modal');if(modal)modal.remove();
+    if(typeof _prettyAlert==='function')_prettyAlert('Reporte enviado. Nuestro equipo lo revisará pronto.');
+    else alert('Reporte enviado. Nuestro equipo lo revisará pronto.');
+  }).catch(function(err){
+    submitBtn.disabled=false;
+    if(err&&err.status===409){errorEl.textContent='Ya existe un reporte pendiente para este usuario por este motivo.';}
+    else{errorEl.textContent=(err&&err.message)||'No se pudo enviar el reporte.';}
+    errorEl.style.display='block';
+  });
+}
 
 // ══════════════════════════════════════════════════════
 // CHAT PHOTO/VIDEO SEND — See Once / Keep in Chat

@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     eventsPage: 1,
     auditLogsPage: 1,
     confirmActionCallback: null,
+    moderationOnSuccess: null,
+    modStatusFilter: '', // '' = Todos — reports/appeals are never hidden, only filtered
+    appealStatusFilter: '',
   };
 
   // UI Element Selectors
@@ -79,10 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
     btnUsersNext: document.getElementById('btn-users-next'),
 
     // Moderation View
-    modStatusSelect: document.getElementById('mod-status-select'),
+    modStatusChips: document.getElementById('mod-status-chips'),
     modTypeSelect: document.getElementById('mod-type-select'),
+    modSearchInput: document.getElementById('mod-search-input'),
     btnFilterReports: document.getElementById('btn-filter-reports'),
     reportsTbody: document.getElementById('reports-tbody'),
+
+    // Appeals View
+    badgePendingAppeals: document.getElementById('badge-pending-appeals'),
+    appealStatusChips: document.getElementById('appeal-status-chips'),
+    btnFilterAppeals: document.getElementById('btn-filter-appeals'),
+    appealsTbody: document.getElementById('appeals-tbody'),
 
     // Universities View
     universitiesTbody: document.getElementById('universities-tbody'),
@@ -203,7 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialView = window.location.hash.replace('#', '') || 'dashboard';
     switchView(initialView);
 
-    // Start System Health Polling (Every 15s)
+    // Sidebar badges load immediately on panel boot, independent of the
+    // initial view — no need to open each section first.
+    refreshSidebarBadges();
+
+    // Start System Health Polling (Every 15s) — also refreshes badges, see startHealthPolling()
     startHealthPolling();
   }
 
@@ -352,6 +366,9 @@ document.addEventListener('DOMContentLoaded', () => {
         break;
       case 'moderation':
         loadModeration();
+        break;
+      case 'appeals':
+        loadAppeals();
         break;
       case 'universities':
         loadUniversities();
@@ -547,6 +564,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startHealthPolling() {
     setInterval(async () => {
+      // Badges must stay fresh regardless of which view is active — only the
+      // dashboard-only health metrics stay gated to the dashboard view.
+      refreshSidebarBadges();
       if (state.currentView === 'dashboard') {
         try {
           const res = await window.adminApi.getDashboard();
@@ -554,6 +574,39 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {}
       }
     }, 15000);
+  }
+
+  /**
+   * Toggles a sidebar nav badge's visibility/text. Shared by every badge
+   * write so the show/hide rule only lives once.
+   */
+  function setBadge(el, count) {
+    if (!el) return;
+    if (count > 0) {
+      el.textContent = count;
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  }
+
+  /**
+   * Single source of truth for every sidebar "pending attention" badge
+   * (Reports, Apelaciones, Verificación, Verification Requests). Called on
+   * panel boot, on the existing 15s poll (startHealthPolling), and right
+   * after any moderation action for immediate feedback — no separate
+   * real-time system, this reuses the polling infrastructure that already
+   * existed for system health.
+   */
+  async function refreshSidebarBadges() {
+    try {
+      const res = await window.adminApi.getBadgeCounts();
+      const counts = res.data;
+      setBadge(elements.badgePendingReports, counts.pendingReports);
+      setBadge(elements.badgePendingAppeals, counts.pendingAppeals);
+      setBadge(document.getElementById('badge-pending-verifications'), counts.pendingVerificationsStudentId);
+      setBadge(document.getElementById('badge-pending-vr'), counts.pendingVerificationsOther);
+    } catch (e) {}
   }
 
   function renderUniversityProgressList(data) {
@@ -756,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td>${u.profile?.university || 'No especificada'}</td>
           <td><span class="role-badge role-${u.role.toLowerCase()}">${u.role}</span></td>
-          <td><span class="status-badge badge-${u.status.toLowerCase()}">${u.status}</span></td>
+          <td>${renderStatusCell(u)}</td>
           <td>${u.profile?.subscriptionTier || 'FREE'}</td>
           <td>${new Date(u.createdAt).toLocaleDateString()}</td>
           <td>
@@ -807,13 +860,35 @@ document.addEventListener('DOMContentLoaded', () => {
           ${photosHtml || '<p class="text-muted">Sin fotografías subidas.</p>'}
         </div>
 
+        ${renderModerationStatusBlock(user)}
+
         <h4 style="margin-bottom:12px;">Acciones de Administración</h4>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button class="btn btn-warning btn-sm" onclick="promptSuspendUser('${user.id}')">⏸️ Suspender</button>
-          <button class="btn btn-danger btn-sm" onclick="promptBanUser('${user.id}')">🚫 Banear</button>
-          <button class="btn btn-primary btn-sm" onclick="reactivateUser('${user.id}')">✅ Reactivar</button>
+          ${user.status !== 'SUSPENDED' && user.status !== 'BANNED' ? `<button class="btn btn-warning btn-sm" onclick="promptSuspendUser('${user.id}', () => viewUserDetail('${user.id}'))">⏸️ Suspender</button>` : ''}
+          ${user.status !== 'BANNED' ? `<button class="btn btn-danger btn-sm" onclick="promptBanUser('${user.id}', () => viewUserDetail('${user.id}'))">🚫 Banear</button>` : ''}
+          ${user.status !== 'ACTIVE' ? `<button class="btn btn-primary btn-sm" onclick="reactivateUser('${user.id}', () => viewUserDetail('${user.id}'))">✅ Reactivar</button>` : ''}
           ${state.currentAdmin.role === 'SUPER_ADMIN' ? `<button class="btn btn-danger btn-sm" onclick="softDeleteUser('${user.id}')">🗑️ Eliminar (Soft Delete)</button>` : ''}
         </div>
+
+        <h4 style="margin:20px 0 8px;">Reportes Recibidos (${user.stats.reportsReceivedCount})</h4>
+        ${(user.reportsReceived || []).length > 0 ? `
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead><tr><th>Categoría</th><th>Reportado por</th><th>Estado</th><th>Fecha</th><th>Resolución</th></tr></thead>
+              <tbody>
+                ${user.reportsReceived.map(r => `
+                  <tr>
+                    <td>${REPORT_REASON_LABELS[r.reason] || r.reason}</td>
+                    <td>${r.reporter ? escapeHtml(r.reporter.firstName + ' ' + r.reporter.lastName) : 'N/A'}</td>
+                    <td><span class="status-badge badge-${r.status.toLowerCase()}">${r.status}</span></td>
+                    <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+                    <td>${escapeHtml(r.resolutionNotes || '—')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<p class="text-muted">Este usuario no tiene reportes recibidos.</p>'}
       `;
 
       openModal(modalHtml);
@@ -834,38 +909,205 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  window.promptSuspendUser = (userId) => {
+  /* ==========================================================================
+     MODERATION HELPERS (Suspend / Ban)
+     ========================================================================== */
+  const SUSPEND_DURATIONS = [
+    { value: '1', label: '1 día' },
+    { value: '3', label: '3 días' },
+    { value: '7', label: '1 semana' },
+    { value: '14', label: '2 semanas' },
+    { value: '30', label: '1 mes' },
+    { value: '90', label: '3 meses' },
+    { value: '180', label: '6 meses' },
+    { value: '365', label: '1 año' },
+    { value: 'custom', label: 'Personalizado' },
+  ];
+
+  function formatModDate(dateStr) {
+    if (!dateStr) return '';
+    return new Date(dateStr).toLocaleString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function timeRemaining(untilStr) {
+    if (!untilStr) return '';
+    const diffMs = new Date(untilStr).getTime() - Date.now();
+    if (diffMs <= 0) return 'Por expirar';
+    const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    if (days >= 1) return `${days} día${days === 1 ? '' : 's'} restante${days === 1 ? '' : 's'}`;
+    const hours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
+    return `${hours} hora${hours === 1 ? '' : 's'} restante${hours === 1 ? '' : 's'}`;
+  }
+
+  function truncate(text, max) {
+    if (!text) return '';
+    return text.length > max ? `${text.substring(0, max)}…` : text;
+  }
+
+  function renderStatusCell(u) {
+    const badge = `<span class="status-badge badge-${u.status.toLowerCase()}">${u.status}</span>`;
+    if (u.status === 'SUSPENDED') {
+      return `${badge}<br><span style="font-size:11px; color:var(--text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:180px; display:inline-block;" title="${escapeHtml(u.suspensionReason || '')}">${escapeHtml(truncate(u.suspensionReason, 30))} · ${formatModDate(u.suspendedUntil)}</span>`;
+    }
+    if (u.status === 'BANNED') {
+      return `${badge}<br><span style="font-size:11px; color:var(--text-muted); white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:180px; display:inline-block;" title="${escapeHtml(u.banReason || '')}">${escapeHtml(truncate(u.banReason, 30))} · ${formatModDate(u.bannedAt)}</span>`;
+    }
+    return badge;
+  }
+
+  function renderModerationStatusBlock(user) {
+    if (user.status === 'SUSPENDED') {
+      return `
+        <div class="form-group" style="background:var(--warning-soft); border:1px solid var(--warning-border); border-radius:8px; padding:12px; margin-bottom:16px;">
+          <span class="status-badge badge-suspended">Suspended</span>
+          <p style="margin-top:8px;"><strong>Motivo:</strong> ${escapeHtml(user.suspensionReason || 'No especificado')}</p>
+          <p><strong>Inicio:</strong> ${formatModDate(user.suspendedAt)}</p>
+          <p><strong>Finaliza:</strong> ${formatModDate(user.suspendedUntil)} (${timeRemaining(user.suspendedUntil)})</p>
+        </div>
+      `;
+    }
+    if (user.status === 'BANNED') {
+      return `
+        <div class="form-group" style="background:var(--danger-soft); border:1px solid var(--danger-border); border-radius:8px; padding:12px; margin-bottom:16px;">
+          <span class="status-badge badge-banned">Banned</span>
+          <p style="margin-top:8px;"><strong>Motivo:</strong> ${escapeHtml(user.banReason || 'No especificado')}</p>
+          <p><strong>Fecha:</strong> ${formatModDate(user.bannedAt)}</p>
+        </div>
+      `;
+    }
+    return '';
+  }
+
+  // One-shot callback invoked after a suspend/ban/reactivate succeeds, so a
+  // caller like the report detail view (which reuses these exact modals, per
+  // requirement — no separate moderation flow) can refresh itself in place.
+  function runModerationOnSuccess() {
+    const cb = state.moderationOnSuccess;
+    state.moderationOnSuccess = null;
+    if (typeof cb === 'function') cb();
+  }
+
+  window.promptSuspendUser = (userId, onSuccess) => {
+    state.moderationOnSuccess = onSuccess || null;
     closeModal();
-    showConfirmDialog('Suspender Usuario', '¿Confirmas la suspensión de esta cuenta?', async () => {
+    const durationOptionsHtml = SUSPEND_DURATIONS.map(d => `<option value="${d.value}">${d.label}</option>`).join('');
+    const modalHtml = `
+      <h2 style="margin-bottom:16px;">⏸️ Suspender Usuario</h2>
+      <div class="form-group">
+        <label>Motivo de la suspensión</label>
+        <textarea id="suspend-reason" class="form-input" rows="3" placeholder="Ej: Spam, acoso, reportes múltiples, incumplimiento de normas..." required></textarea>
+      </div>
+      <div class="form-group">
+        <label>Duración</label>
+        <select id="suspend-duration" class="form-select">${durationOptionsHtml}</select>
+      </div>
+      <div class="form-group" id="suspend-custom-group" style="display:none;">
+        <label>Fecha y hora de finalización</label>
+        <input type="datetime-local" id="suspend-custom-until" class="form-input">
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-warning" onclick="confirmSuspendUser('${userId}')">Suspender</button>
+      </div>
+    `;
+    openModal(modalHtml);
+
+    const durationSelect = document.getElementById('suspend-duration');
+    const customGroup = document.getElementById('suspend-custom-group');
+    durationSelect.addEventListener('change', () => {
+      customGroup.style.display = durationSelect.value === 'custom' ? 'block' : 'none';
+    });
+  };
+
+  window.confirmSuspendUser = (userId) => {
+    const reason = document.getElementById('suspend-reason').value.trim();
+    const durationSelect = document.getElementById('suspend-duration');
+    const durationValue = durationSelect.value;
+    const customUntilInput = document.getElementById('suspend-custom-until');
+
+    if (!reason) {
+      showToast('El motivo de la suspensión es obligatorio', 'error');
+      return;
+    }
+
+    let durationDays = null;
+    let customUntil = null;
+    let durationLabel = '';
+
+    if (durationValue === 'custom') {
+      if (!customUntilInput.value) {
+        showToast('Selecciona la fecha y hora de finalización', 'error');
+        return;
+      }
+      customUntil = new Date(customUntilInput.value).toISOString();
+      if (new Date(customUntil).getTime() <= Date.now()) {
+        showToast('La fecha personalizada debe ser en el futuro', 'error');
+        return;
+      }
+      durationLabel = `hasta el ${formatModDate(customUntil)}`;
+    } else {
+      durationDays = parseInt(durationValue, 10);
+      durationLabel = `por ${SUSPEND_DURATIONS.find(d => d.value === durationValue).label.toLowerCase()}`;
+    }
+
+    closeModal();
+    showConfirmDialog('Confirmar suspensión', `¿Estás seguro de suspender a este usuario ${durationLabel}?`, async () => {
       try {
-        await window.adminApi.updateUserStatus(userId, { status: 'SUSPENDED', reason: 'Suspendido por administración', durationDays: 7 });
-        showToast('Usuario suspendido por 7 días');
+        await window.adminApi.updateUserStatus(userId, { status: 'SUSPENDED', reason, durationDays, customUntil });
+        showToast(`Usuario suspendido ${durationLabel}`);
         loadUsers();
+        runModerationOnSuccess();
       } catch (err) {
         showToast(err.message, 'error');
       }
     });
   };
 
-  window.promptBanUser = (userId) => {
+  window.promptBanUser = (userId, onSuccess) => {
+    state.moderationOnSuccess = onSuccess || null;
     closeModal();
-    showConfirmDialog('Banear Usuario', '¿Confirmas el baneamiento permanente de esta cuenta?', async () => {
+    const modalHtml = `
+      <h2 style="margin-bottom:16px;">🚫 Banear Usuario</h2>
+      <div class="form-group">
+        <label>Motivo del baneo</label>
+        <textarea id="ban-reason" class="form-input" rows="3" placeholder="Ej: Suplantación de identidad, contenido prohibido, reincidencia..." required></textarea>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-danger" onclick="confirmBanUser('${userId}')">Banear</button>
+      </div>
+    `;
+    openModal(modalHtml);
+  };
+
+  window.confirmBanUser = (userId) => {
+    const reason = document.getElementById('ban-reason').value.trim();
+    if (!reason) {
+      showToast('El motivo del baneo es obligatorio', 'error');
+      return;
+    }
+
+    closeModal();
+    showConfirmDialog('Confirmar baneo', '¿Seguro que deseas banear permanentemente este usuario?', async () => {
       try {
-        await window.adminApi.updateUserStatus(userId, { status: 'BANNED', reason: 'Baneado por violación de términos' });
+        await window.adminApi.updateUserStatus(userId, { status: 'BANNED', reason });
         showToast('Usuario baneado permanentemente');
         loadUsers();
+        runModerationOnSuccess();
       } catch (err) {
         showToast(err.message, 'error');
       }
     });
   };
 
-  window.reactivateUser = async (userId) => {
+  window.reactivateUser = async (userId, onSuccess) => {
+    state.moderationOnSuccess = onSuccess || state.moderationOnSuccess || null;
     try {
       await window.adminApi.updateUserStatus(userId, { status: 'ACTIVE' });
       showToast('Cuenta de usuario reactivada correctamente');
       closeModal();
       loadUsers();
+      runModerationOnSuccess();
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -887,33 +1129,66 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==========================================================================
      3. MODERATION CONTROLLER
      ========================================================================== */
+  const REPORT_REASON_LABELS = {
+    SPAM: 'Spam o estafa',
+    HARASSMENT: 'Acoso o bullying',
+    INAPPROPRIATE_CONTENT: 'Contenido inapropiado',
+    IMPERSONATION: 'Suplantación de identidad',
+    THREATS: 'Amenazas o violencia',
+    FAKE_PROFILE: 'Perfil falso',
+    OTHER: 'Otro',
+  };
+
+  // Shared by the Reports and Appeals status-chip filters: clicking a chip
+  // sets the active style, updates the given state key, and reloads. Neither
+  // list ever removes a record from the DB/API — this only changes which
+  // statuses are shown, defaulting to "Todos" so nothing looks "deleted"
+  // after a resolve/approve/reject action.
+  function wireStatusChips(container, stateKey, onChange) {
+    if (!container) return;
+    container.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-status]');
+      if (!btn) return;
+      container.querySelectorAll('button[data-status]').forEach((b) => {
+        b.classList.toggle('btn-primary', b === btn);
+        b.classList.toggle('btn-secondary', b !== btn);
+      });
+      state[stateKey] = btn.dataset.status;
+      onChange();
+    });
+  }
+
   async function loadModeration() {
-    const status = elements.modStatusSelect.value;
+    const status = state.modStatusFilter;
     const targetType = elements.modTypeSelect.value;
+    const search = elements.modSearchInput ? elements.modSearchInput.value.trim() : '';
 
     try {
-      elements.reportsTbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Cargando reportes...</td></tr>';
-      const res = await window.adminApi.getReports({ status, targetType });
+      elements.reportsTbody.innerHTML = '<tr><td colspan="8" class="text-center py-4">Cargando reportes...</td></tr>';
+      const res = await window.adminApi.getReports({ status, targetType, search });
       const reports = res.data.reports;
 
       if (!reports || reports.length === 0) {
-        elements.reportsTbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No hay reportes de moderación pendientes.</td></tr>';
+        elements.reportsTbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-muted">No hay reportes que coincidan con los filtros.</td></tr>';
         return;
       }
 
       let html = '';
       reports.forEach(r => {
         const reporterName = r.reporter ? `${r.reporter.firstName} ${r.reporter.lastName}` : 'Anónimo';
+        const targetName = r.targetUser ? `${r.targetUser.firstName} ${r.targetUser.lastName}` : 'N/A';
+        const targetUniversity = r.targetUser?.profile?.university || '';
         html += `
           <tr>
-            <td><strong>${reporterName}</strong></td>
+            <td><strong>${escapeHtml(targetName)}</strong>${targetUniversity ? `<br><span style="font-size:11px; color:var(--text-muted);">${escapeHtml(targetUniversity)}</span>` : ''}</td>
+            <td>${escapeHtml(reporterName)}</td>
             <td><span class="role-badge role-moderator">${r.targetType}</span></td>
-            <td><strong>${r.reason}</strong></td>
-            <td>${r.details || 'Sin detalles adicionales'}</td>
+            <td><strong>${REPORT_REASON_LABELS[r.reason] || r.reason}</strong></td>
+            <td><span class="status-badge badge-warning">${r.targetUserReportCount}</span></td>
             <td><span class="status-badge badge-${r.status.toLowerCase()}">${r.status}</span></td>
             <td>${new Date(r.createdAt).toLocaleDateString()}</td>
             <td>
-              <button class="btn btn-primary btn-sm" onclick="inspectReport('${r.id}', '${r.targetUserId || ''}', '${r.targetType}')">🔍 Revisar</button>
+              <button class="btn btn-primary btn-sm" onclick="inspectReport('${r.id}')">🔍 Revisar</button>
             </td>
           </tr>
         `;
@@ -926,53 +1201,265 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   elements.btnFilterReports.addEventListener('click', loadModeration);
+  wireStatusChips(elements.modStatusChips, 'modStatusFilter', loadModeration);
+  if (elements.modSearchInput) {
+    elements.modSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadModeration(); });
+  }
 
-  window.inspectReport = (reportId, targetUserId, targetType) => {
-    const modalHtml = `
-      <h2>Revisión de Reporte #${reportId.substring(0, 8)}</h2>
-      <p style="margin-bottom:16px;">Analiza el contexto y selecciona la resolución correspondiente.</p>
-      
-      <div class="form-group">
-        <label>Notas Internas de Moderación</label>
-        <textarea id="mod-notes" class="form-input" rows="3" placeholder="Escribe tus observaciones de moderación..."></textarea>
-      </div>
+  window.inspectReport = async (reportId) => {
+    try {
+      openModal('<div style="text-align:center; padding:30px 0;">Cargando reporte...</div>');
+      const res = await window.adminApi.getReportDetail(reportId);
+      const { report, targetUserReports } = res.data;
+      const targetUser = report.targetUser;
+      const reporter = report.reporter;
 
-      <div class="form-group">
-        <label>Acción sobre el Usuario o Contenido</label>
-        <select id="mod-user-action" class="form-select">
-          <option value="NONE">Sin acción adicional</option>
-          <option value="SUSPENDED">Suspender Usuario por 7 días</option>
-          <option value="BANNED">Banear Usuario Permanentemente</option>
-          <option value="HIDE_EVENT">Ocultar Evento Reportado</option>
-        </select>
-      </div>
+      const targetPhoto = targetUser?.photos?.[0]?.url;
+      const reporterPhoto = reporter?.photos?.[0]?.url;
 
-      <div style="display:flex; gap:10px; margin-top:20px;">
-        <button class="btn btn-primary" onclick="submitReportResolution('${reportId}', 'RESOLVED')">✅ Aprobar / Resolver Reporte</button>
-        <button class="btn btn-secondary" onclick="submitReportResolution('${reportId}', 'DISMISSED')">❌ Desestimar Reporte</button>
-      </div>
-    `;
+      const userStatusBadge = targetUser
+        ? `<span class="status-badge badge-${targetUser.status.toLowerCase()}">${targetUser.status}</span>`
+        : '<span class="status-badge">N/A</span>';
 
-    openModal(modalHtml);
+      const evidenceHtml = Array.isArray(report.evidenceSnapshot) && report.evidenceSnapshot.length > 0
+        ? report.evidenceSnapshot.slice().reverse().map(m => {
+            const isFromTarget = m.senderId === report.targetUserId;
+            const senderLabel = isFromTarget ? (targetUser ? targetUser.firstName : 'Reportado') : (reporter ? reporter.firstName : 'Reportante');
+            return `<div style="padding:8px 10px; border-radius:8px; margin-bottom:6px; background:${isFromTarget ? 'var(--danger-soft)' : 'rgba(255,255,255,0.04)'};">
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">${escapeHtml(senderLabel)} · ${new Date(m.createdAt).toLocaleString()}</div>
+              <div>${escapeHtml(m.content || `[${m.type}]`)}</div>
+            </div>`;
+          }).join('')
+        : '<p class="text-muted">Sin evidencia de chat asociada a este reporte.</p>';
+
+      const historyHtml = targetUserReports.length > 0
+        ? `<div class="table-responsive"><table class="data-table"><thead><tr><th>Motivo</th><th>Reportado por</th><th>Estado</th><th>Fecha</th><th>Resolución</th></tr></thead><tbody>` +
+          targetUserReports.map(h => `<tr${h.id === report.id ? ' style="background:rgba(255,255,255,0.05);"' : ''}>
+            <td>${REPORT_REASON_LABELS[h.reason] || h.reason}</td>
+            <td>${h.reporter ? escapeHtml(h.reporter.firstName + ' ' + h.reporter.lastName) : 'N/A'}</td>
+            <td><span class="status-badge badge-${h.status.toLowerCase()}">${h.status}</span></td>
+            <td>${new Date(h.createdAt).toLocaleDateString()}</td>
+            <td>${escapeHtml(h.resolutionNotes || '—')}</td>
+          </tr>`).join('') +
+          `</tbody></table></div>`
+        : '<p class="text-muted">Sin otros reportes.</p>';
+
+      const isPending = report.status === 'PENDING' || report.status === 'UNDER_REVIEW';
+
+      const moderationButtonsHtml = targetUser ? `
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+          ${targetUser.status !== 'SUSPENDED' && targetUser.status !== 'BANNED' ? `<button class="btn btn-warning btn-sm" onclick="promptSuspendUser('${targetUser.id}', () => inspectReport('${reportId}'))">⏸️ Suspender</button>` : ''}
+          ${targetUser.status !== 'BANNED' ? `<button class="btn btn-danger btn-sm" onclick="promptBanUser('${targetUser.id}', () => inspectReport('${reportId}'))">🚫 Banear</button>` : ''}
+          ${targetUser.status !== 'ACTIVE' ? `<button class="btn btn-primary btn-sm" onclick="reactivateUser('${targetUser.id}', () => inspectReport('${reportId}'))">✅ Reactivar</button>` : ''}
+        </div>
+      ` : '';
+
+      const modalHtml = `
+        <h2 style="margin-bottom:6px;">Reporte #${reportId.substring(0, 8)}</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px;">${REPORT_REASON_LABELS[report.reason] || report.reason} · ${new Date(report.createdAt).toLocaleString()}</p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+          <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:14px;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Usuario Reportado</div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+              ${targetPhoto ? `<img src="${targetPhoto}" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">` : `<div class="admin-avatar">${targetUser ? targetUser.firstName[0] : '?'}</div>`}
+              <div>
+                <strong>${targetUser ? escapeHtml(targetUser.firstName + ' ' + targetUser.lastName) : 'Usuario eliminado'}</strong><br>
+                <span style="font-size:12px; color:var(--text-muted);">@${targetUser?.handle || 'no-handle'} · ${targetUser?.email || ''}</span>
+              </div>
+            </div>
+            <p><strong>Universidad:</strong> ${escapeHtml(targetUser?.profile?.university || 'No especificada')}</p>
+            <p><strong>Estado actual:</strong> ${userStatusBadge}</p>
+            ${targetUser?.status === 'SUSPENDED' ? `<p><strong>Motivo:</strong> ${escapeHtml(targetUser.suspensionReason || '')}</p>` : ''}
+            ${targetUser?.status === 'BANNED' ? `<p><strong>Motivo:</strong> ${escapeHtml(targetUser.banReason || '')}</p>` : ''}
+          </div>
+          <div style="background:rgba(255,255,255,0.04); border-radius:10px; padding:14px;">
+            <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">Reportado Por</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${reporterPhoto ? `<img src="${reporterPhoto}" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">` : `<div class="admin-avatar">${reporter ? reporter.firstName[0] : '?'}</div>`}
+              <div>
+                <strong>${reporter ? escapeHtml(reporter.firstName + ' ' + reporter.lastName) : 'Anónimo'}</strong><br>
+                <span style="font-size:12px; color:var(--text-muted);">@${reporter?.handle || 'no-handle'} · ${reporter?.email || ''}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Explicación del reportante</label>
+          <div class="form-input" style="min-height:60px; white-space:pre-wrap;">${escapeHtml(report.details || 'Sin explicación adicional.')}</div>
+        </div>
+
+        <h4 style="margin:18px 0 8px;">Evidencia del chat</h4>
+        <div style="max-height:220px; overflow-y:auto; margin-bottom:10px;">${evidenceHtml}</div>
+
+        <h4 style="margin:18px 0 8px;">Historial de reportes de este usuario (${targetUserReports.length})</h4>
+        ${historyHtml}
+
+        <h4 style="margin:18px 0 8px;">Moderación</h4>
+        ${moderationButtonsHtml}
+
+        <div class="form-group" style="margin-top:16px;">
+          <label>Comentario interno</label>
+          <textarea id="mod-notes" class="form-input" rows="3" placeholder="Notas internas sobre esta decisión...">${escapeHtml(report.resolutionNotes || '')}</textarea>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;">
+          ${report.status === 'PENDING' ? `<button class="btn btn-secondary" onclick="submitReportResolution('${reportId}', 'UNDER_REVIEW')">🔎 Marcar en Revisión</button>` : ''}
+          ${isPending ? `<button class="btn btn-primary" onclick="submitReportResolution('${reportId}', 'RESOLVED')">✅ Marcar como Resuelto</button>` : ''}
+          ${isPending ? `<button class="btn btn-secondary" onclick="submitReportResolution('${reportId}', 'DISMISSED')">❌ Descartar</button>` : ''}
+        </div>
+      `;
+
+      openModal(modalHtml);
+    } catch (err) {
+      showToast('Error cargando el reporte: ' + err.message, 'error');
+      closeModal();
+    }
   };
 
   window.submitReportResolution = async (reportId, status) => {
     const notes = document.getElementById('mod-notes').value;
-    const userAction = document.getElementById('mod-user-action').value;
 
     try {
       await window.adminApi.resolveReport(reportId, {
         status,
         resolutionNotes: notes,
-        userAction: userAction !== 'NONE' ? userAction : null,
-        durationDays: 7,
       });
       showToast(`Reporte marcado como ${status}`);
-      closeModal();
+      window.inspectReport(reportId);
       loadModeration();
+      refreshSidebarBadges();
     } catch (err) {
       showToast(err.message, 'error');
     }
+  };
+
+  /* ==========================================================================
+     3B. APPEALS CONTROLLER
+     ========================================================================== */
+  function timeAgo(dateStr) {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return 'hace un momento';
+    if (mins < 60) return `hace ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `hace ${hours} h`;
+    const days = Math.floor(hours / 24);
+    return `hace ${days} día${days === 1 ? '' : 's'}`;
+  }
+
+  async function loadAppeals() {
+    const status = state.appealStatusFilter;
+
+    try {
+      elements.appealsTbody.innerHTML = '<tr><td colspan="9" class="text-center py-4">Cargando apelaciones...</td></tr>';
+      const res = await window.adminApi.getAppeals({ status });
+      const appeals = res.data.appeals;
+
+      if (!appeals || appeals.length === 0) {
+        elements.appealsTbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-muted">No hay apelaciones para mostrar.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      appeals.forEach(a => {
+        const userName = a.user ? `${a.user.firstName} ${a.user.lastName}` : 'Usuario eliminado';
+        const university = a.user?.profile?.university || 'No especificada';
+        html += `
+          <tr>
+            <td><strong>${escapeHtml(userName)}</strong><br><span style="font-size:11px; color:var(--text-muted);">@${a.user?.handle || 'no-handle'}</span></td>
+            <td>${escapeHtml(university)}</td>
+            <td><span class="status-badge badge-${a.moderationStatus.toLowerCase()}">${a.moderationStatus}</span></td>
+            <td>${escapeHtml(truncate(a.originalReason, 40)) || 'No especificado'}</td>
+            <td>${escapeHtml(truncate(a.message, 60))}</td>
+            <td>${new Date(a.createdAt).toLocaleDateString()}</td>
+            <td>${timeAgo(a.createdAt)}</td>
+            <td><span class="status-badge badge-${a.status.toLowerCase()}">${a.status}</span></td>
+            <td>
+              <button class="btn btn-primary btn-sm" onclick="inspectAppeal('${a.id}')">🔍 Revisar</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      elements.appealsTbody.innerHTML = html;
+    } catch (err) {
+      showToast('Error cargando apelaciones: ' + err.message, 'error');
+    }
+  }
+
+  elements.btnFilterAppeals.addEventListener('click', loadAppeals);
+  wireStatusChips(elements.appealStatusChips, 'appealStatusFilter', loadAppeals);
+
+  window.inspectAppeal = async (appealId) => {
+    try {
+      const res = await window.adminApi.getAppeals({});
+      const appeal = res.data.appeals.find(a => a.id === appealId);
+      if (!appeal) {
+        showToast('Apelación no encontrada', 'error');
+        return;
+      }
+
+      const userName = appeal.user ? `${appeal.user.firstName} ${appeal.user.lastName}` : 'Usuario eliminado';
+      const isPending = appeal.status === 'PENDING';
+
+      const modalHtml = `
+        <h2 style="margin-bottom:16px;">Apelación de ${escapeHtml(userName)}</h2>
+        <div style="margin-bottom:16px;">
+          <p><strong>Correo:</strong> ${escapeHtml(appeal.user?.email || '')}</p>
+          <p><strong>Universidad:</strong> ${escapeHtml(appeal.user?.profile?.university || 'No especificada')}</p>
+          <p><strong>Sanción:</strong> <span class="status-badge badge-${appeal.moderationStatus.toLowerCase()}">${appeal.moderationStatus}</span></p>
+          <p><strong>Motivo original:</strong> ${escapeHtml(appeal.originalReason || 'No especificado')}</p>
+          <p><strong>Fecha de apelación:</strong> ${new Date(appeal.createdAt).toLocaleString()}</p>
+        </div>
+
+        <div class="form-group">
+          <label>Mensaje del usuario</label>
+          <div class="form-input" style="min-height:70px; white-space:pre-wrap;">${escapeHtml(appeal.message)}</div>
+        </div>
+
+        ${isPending ? `
+          <div class="form-group">
+            <label>Comentario interno (opcional)</label>
+            <textarea id="appeal-resolution-notes" class="form-input" rows="3" placeholder="Notas internas sobre esta decisión..."></textarea>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn btn-primary" onclick="resolveAppealAction('${appeal.id}', 'APPROVED')">✅ Aprobar</button>
+            <button class="btn btn-danger" onclick="resolveAppealAction('${appeal.id}', 'REJECTED')">❌ Rechazar</button>
+          </div>
+        ` : `
+          <div class="form-group">
+            <label>Comentario interno</label>
+            <div class="form-input" style="min-height:50px; white-space:pre-wrap;">${escapeHtml(appeal.resolutionNotes || 'Sin comentarios')}</div>
+          </div>
+          <p style="color:var(--text-muted); font-size:13px;">Resuelta por ${escapeHtml(appeal.resolvedBy ? `${appeal.resolvedBy.firstName} ${appeal.resolvedBy.lastName}` : 'un administrador')} el ${appeal.resolvedAt ? new Date(appeal.resolvedAt).toLocaleString() : ''}.</p>
+        `}
+      `;
+
+      openModal(modalHtml);
+    } catch (err) {
+      showToast('Error cargando apelación: ' + err.message, 'error');
+    }
+  };
+
+  window.resolveAppealAction = (appealId, status) => {
+    const resolutionNotes = document.getElementById('appeal-resolution-notes')?.value || '';
+    const confirmMsg = status === 'APPROVED'
+      ? '¿Aprobar esta apelación? La cuenta del usuario será reactivada inmediatamente.'
+      : '¿Rechazar esta apelación? La sanción se mantendrá vigente.';
+
+    closeModal();
+    showConfirmDialog(status === 'APPROVED' ? 'Aprobar Apelación' : 'Rechazar Apelación', confirmMsg, async () => {
+      try {
+        await window.adminApi.resolveAppeal(appealId, { status, resolutionNotes });
+        showToast(status === 'APPROVED' ? 'Apelación aprobada, cuenta reactivada' : 'Apelación rechazada');
+        loadAppeals();
+        refreshSidebarBadges();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
   };
 
   /* ==========================================================================
@@ -2726,17 +3213,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const { requests, stats, pendingCount } = res.data;
       cachedRequests = (requests || []).filter(r => r.type === 'STUDENT_ID');
 
-      // Update sidebar pending badges
-      const badge = document.getElementById('badge-pending-verifications');
-      if (badge) {
-        const bluePending = cachedRequests.filter(r => r.status === 'PENDING').length;
-        if (bluePending > 0) {
-          badge.textContent = bluePending;
-          badge.classList.remove('hidden');
-        } else {
-          badge.classList.add('hidden');
-        }
-      }
+      // Sidebar pending badges are owned by refreshSidebarBadges() (single
+      // source of truth, backend-computed, filter-independent) — refresh
+      // here too for immediate feedback without waiting for the next poll.
+      refreshSidebarBadges();
       updateVrPendingBadge(stats);
 
       // Update Header Stats Scorecards (Blue Badge scope)
@@ -3578,6 +4058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const requests = (res.data.requests || []).filter(r => VR_TYPES.indexOf(r.type) > -1);
       vrCachedRequests = requests;
 
+      refreshSidebarBadges();
       updateVrPendingBadge(res.data.stats);
       vrUpdateStats(res.data.stats || {}, requests);
       vrBindControls();

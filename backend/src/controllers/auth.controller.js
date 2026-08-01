@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
-const { registerSchema, loginSchema } = require('../validators/auth.validator');
+const appealService = require('../services/appeal.service');
+const { registerSchema, loginSchema, appealSchema, appealStatusSchema } = require('../validators/auth.validator');
 const AppError = require('../errors/appError');
 
 class AuthController {
@@ -34,7 +35,7 @@ class AuthController {
         throw new AppError(messages, 400);
       }
 
-      const { user, accessToken, refreshToken } = await authService.login(parseResult.data);
+      const { user, accessToken, refreshToken, notice } = await authService.login(parseResult.data);
 
       // Store refresh token in HTTP-only cookie
       res.cookie('refreshToken', refreshToken, {
@@ -50,6 +51,7 @@ class AuthController {
           user,
           accessToken,
           refreshToken,
+          notice,
         },
       });
     } catch (error) {
@@ -79,6 +81,44 @@ class AuthController {
           accessToken,
           refreshToken: newRefreshToken,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async appealStatus(req, res, next) {
+    try {
+      const parseResult = appealStatusSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        const messages = parseResult.error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        throw new AppError(messages, 400);
+      }
+
+      const data = await appealService.getAppealStatus(parseResult.data);
+
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async appeal(req, res, next) {
+    try {
+      const parseResult = appealSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        const messages = parseResult.error.issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        throw new AppError(messages, 400);
+      }
+
+      const appeal = await appealService.submitAppeal(parseResult.data);
+
+      res.status(201).json({
+        status: 'success',
+        data: { appeal },
       });
     } catch (error) {
       next(error);

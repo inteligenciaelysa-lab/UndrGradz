@@ -241,10 +241,27 @@ class AdminService {
   /**
    * Comprehensive Dashboard Metrics
    */
+  /**
+   * Single source of truth for every "needs admin attention" sidebar badge —
+   * only PENDING items count, nothing already resolved/reviewed. Reused by
+   * getDashboardData() (full dashboard) and the lightweight badge-counts
+   * endpoint (panel boot + polling refresh) so this logic is never repeated.
+   */
+  async getBadgeCounts() {
+    const [pendingReports, pendingAppeals, pendingVerificationsStudentId, pendingVerificationsOther] = await Promise.all([
+      prisma.report.count({ where: { status: 'PENDING' } }),
+      prisma.appeal.count({ where: { status: 'PENDING' } }),
+      prisma.verificationRequest.count({ where: { status: 'PENDING', type: 'STUDENT_ID' } }),
+      prisma.verificationRequest.count({ where: { status: 'PENDING', type: { in: ['CREATOR_BADGE', 'ATHLETE', 'STUDENT_GOVT'] } } }),
+    ]);
+
+    return { pendingReports, pendingAppeals, pendingVerificationsStudentId, pendingVerificationsOther };
+  }
+
   async getDashboardData() {
     const totalUsers = await prisma.user.count({ where: { isDeleted: false } });
     const activeUsers = await prisma.user.count({ where: { isDeleted: false, status: 'ACTIVE' } });
-    
+
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const newUsers = await prisma.user.count({ where: { isDeleted: false, createdAt: { gte: oneWeekAgo } } });
 
@@ -254,9 +271,10 @@ class AdminService {
     const totalMatches = await prisma.match.count({ where: { isActive: true } });
     const totalLikes = await prisma.swipe.count({ where: { type: { in: ['LIKE', 'SUPERLIKE', 'ROSE'] } } });
 
-    const pendingReports = await prisma.report.count({ where: { status: 'PENDING' } });
+    const badgeCounts = await this.getBadgeCounts();
+    const { pendingReports, pendingAppeals, pendingVerificationsStudentId, pendingVerificationsOther } = badgeCounts;
+    const pendingVerifications = pendingVerificationsStudentId + pendingVerificationsOther;
     const pendingModerationContent = await prisma.report.count({ where: { status: { in: ['PENDING', 'UNDER_REVIEW'] } } });
-    const pendingVerifications = await prisma.verificationRequest.count({ where: { status: 'PENDING' } });
     const activeAdminSessionsCount = await prisma.adminSession.count({ where: { isRevoked: false } });
 
     // Users grouped by university with acronym resolution
@@ -364,8 +382,11 @@ class AdminService {
         totalMatches,
         totalLikes,
         pendingReports,
+        pendingAppeals,
         pendingModerationContent,
         pendingVerifications,
+        pendingVerificationsStudentId,
+        pendingVerificationsOther,
         activeAdminSessionsCount,
       },
       usersByUniversity,
@@ -418,6 +439,9 @@ class AdminService {
           status: true,
           suspensionReason: true,
           suspendedUntil: true,
+          suspendedAt: true,
+          banReason: true,
+          bannedAt: true,
           createdAt: true,
           profile: {
             select: {
@@ -486,22 +510,54 @@ class AdminService {
   /**
    * Update User Account Status (ACTIVE, SUSPENDED, BANNED)
    */
-  async updateUserStatus(adminId, userId, { status, reason, durationDays }, ipAddress) {
+  async updateUserStatus(adminId, userId, { status, reason, durationDays, customUntil }, ipAddress) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || user.isDeleted) throw new AppError('User not found', 404);
 
     let suspendedUntil = null;
-    if (status === 'SUSPENDED' && durationDays) {
-      suspendedUntil = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    if (status === 'SUSPENDED') {
+      if (!durationDays && !customUntil) {
+        throw new AppError('A duration or a custom end date is required to suspend a user.', 400);
+      }
+      suspendedUntil = durationDays
+        ? new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000)
+        : new Date(customUntil);
+    }
+
+    const now = new Date();
+    let data;
+    if (status === 'SUSPENDED') {
+      data = {
+        status,
+        suspensionReason: reason,
+        suspendedUntil,
+        suspendedAt: now,
+        suspendedById: adminId,
+      };
+    } else if (status === 'BANNED') {
+      data = {
+        status,
+        banReason: reason,
+        bannedAt: now,
+        bannedById: adminId,
+        suspendedUntil: null,
+      };
+    } else {
+      data = {
+        status,
+        suspensionReason: null,
+        suspendedUntil: null,
+        suspendedAt: null,
+        suspendedById: null,
+        banReason: null,
+        bannedAt: null,
+        bannedById: null,
+      };
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {
-        status,
-        suspensionReason: reason || null,
-        suspendedUntil,
-      },
+      data,
     });
 
     // Revoke active admin sessions if user suspended/banned
@@ -517,9 +573,21 @@ class AdminService {
       action: `USER_STATUS_${status}`,
       targetType: 'USER',
       targetId: userId,
-      details: { previousStatus: user.status, newStatus: status, reason, durationDays },
+      details: { previousStatus: user.status, newStatus: status, reason, durationDays, customUntil },
       ipAddress,
     });
+
+    // Kick the user out immediately if they're online: push a live event and drop their socket(s)
+    if (status !== 'ACTIVE') {
+      const { forceLogoutUser } = require('../socket');
+      const { formatBanMessage, formatSuspensionMessage } = require('../utils/moderationStatus');
+      forceLogoutUser(userId, {
+        type: status,
+        reason,
+        suspendedUntil,
+        message: status === 'BANNED' ? formatBanMessage(updatedUser) : formatSuspensionMessage(updatedUser),
+      });
+    }
 
     return updatedUser;
   }
@@ -591,11 +659,21 @@ class AdminService {
   /**
    * Moderation Reports Queue
    */
-  async getReports({ status, targetType, page = 1, limit = 20 }) {
+  async getReports({ status, targetType, search, page = 1, limit = 20 }) {
     const skip = (page - 1) * limit;
     const where = {};
     if (status) where.status = status;
     if (targetType) where.targetType = targetType;
+    if (search) {
+      where.targetUser = {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { handle: { contains: search, mode: 'insensitive' } },
+        ],
+      };
+    }
 
     const [total, reports] = await Promise.all([
       prisma.report.count({ where }),
@@ -606,20 +684,78 @@ class AdminService {
         orderBy: { createdAt: 'desc' },
         include: {
           reporter: { select: { id: true, firstName: true, lastName: true, handle: true, email: true } },
-          targetUser: { select: { id: true, firstName: true, lastName: true, handle: true, email: true, status: true } },
+          targetUser: {
+            select: {
+              id: true, firstName: true, lastName: true, handle: true, email: true, status: true,
+              profile: { select: { university: true } },
+            },
+          },
           event: { select: { id: true, name: true, emoji: true, section: true, status: true } },
           resolvedBy: { select: { firstName: true, lastName: true } },
         },
       }),
     ]);
 
+    // Reports-accumulated-per-user badge (point 4) — a small extra count
+    // query per row, same style already used elsewhere (e.g. getUserDetails).
+    const reportsWithCounts = await Promise.all(
+      reports.map(async (r) => ({
+        ...r,
+        targetUserReportCount: r.targetUserId ? await prisma.report.count({ where: { targetUserId: r.targetUserId } }) : 0,
+      }))
+    );
+
     return {
       total,
       page: Number(page),
       limit: Number(limit),
       totalPages: Math.ceil(total / limit),
-      reports,
+      reports: reportsWithCounts,
     };
+  }
+
+  /**
+   * Full detail for a single report: the report itself (reporter + target
+   * user with photos/profile/current moderation fields + evidence snapshot),
+   * plus every other report ever filed against the same target user (full
+   * history, not just a count).
+   */
+  async getReportDetail(reportId) {
+    const report = await prisma.report.findUnique({
+      where: { id: reportId },
+      include: {
+        reporter: {
+          select: {
+            id: true, firstName: true, lastName: true, handle: true, email: true,
+            photos: { take: 1, orderBy: { order: 'asc' }, select: { url: true } },
+          },
+        },
+        targetUser: {
+          include: {
+            photos: { orderBy: { order: 'asc' } },
+            profile: { select: { university: true } },
+          },
+        },
+        event: { select: { id: true, name: true, emoji: true, section: true, status: true } },
+        resolvedBy: { select: { firstName: true, lastName: true } },
+      },
+    });
+
+    if (!report) throw new AppError('Report not found', 404);
+
+    let targetUserReports = [];
+    if (report.targetUserId) {
+      targetUserReports = await prisma.report.findMany({
+        where: { targetUserId: report.targetUserId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          reporter: { select: { firstName: true, lastName: true, handle: true } },
+          resolvedBy: { select: { firstName: true, lastName: true } },
+        },
+      });
+    }
+
+    return { report, targetUserReports };
   }
 
   /**
@@ -637,26 +773,23 @@ class AdminService {
       if (ev) targetUserId = ev.creatorId;
     }
 
-    const report = await prisma.report.create({
-      data: {
-        reporterId,
-        targetType,
-        targetId,
-        targetUserId,
-        eventId,
-        reason,
-        details,
-        status: 'PENDING',
-      },
+    const reportService = require('./report.service');
+    return reportService.insertReport({
+      reporterId,
+      targetType,
+      targetId,
+      targetUserId,
+      eventId,
+      reason,
+      details,
+      status: 'PENDING',
     });
-
-    return report;
   }
 
   /**
    * Resolve or Dismiss Moderation Report
    */
-  async resolveReport(adminId, reportId, { action, status, resolutionNotes, userAction, durationDays }, ipAddress) {
+  async resolveReport(adminId, reportId, { action, status, resolutionNotes, userAction, durationDays, customUntil }, ipAddress) {
     const report = await prisma.report.findUnique({ where: { id: reportId } });
     if (!report) throw new AppError('Report not found', 404);
 
@@ -676,7 +809,10 @@ class AdminService {
           status: userAction,
           reason: `Moderation report resolution: ${resolutionNotes || 'Inappropriate behavior'}`,
           durationDays,
+          customUntil,
         }, ipAddress);
+      } else if (userAction === 'ACTIVE') {
+        await this.updateUserStatus(adminId, report.targetUserId, { status: 'ACTIVE' }, ipAddress);
       }
     }
 

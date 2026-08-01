@@ -136,8 +136,17 @@
               <span class="nav-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </span>
-              <span class="nav-label">Moderación</span>
+              <span class="nav-label">Reports</span>
               <span id="badge-pending-reports" class="nav-badge hidden">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="#appeals" class="nav-item" data-view="appeals">
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+              </span>
+              <span class="nav-label">Apelaciones</span>
+              <span id="badge-pending-appeals" class="nav-badge hidden">0</span>
             </a>
           </li>
           <li>
@@ -527,16 +536,19 @@
             </div>
           </div>
 
+          <!-- Status Filter Chips (Todos por defecto — los reportes nunca se ocultan, solo se filtran) -->
+          <div id="mod-status-chips" class="filter-chips" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+            <button class="btn btn-sm btn-primary" data-status="">Todos</button>
+            <button class="btn btn-sm btn-secondary" data-status="PENDING">Pendientes</button>
+            <button class="btn btn-sm btn-secondary" data-status="UNDER_REVIEW">En Revisión</button>
+            <button class="btn btn-sm btn-secondary" data-status="RESOLVED">Resueltos</button>
+            <button class="btn btn-sm btn-secondary" data-status="DISMISSED">Descartados</button>
+          </div>
+
           <!-- Filter Toolbar -->
           <div class="filter-bar glass-panel">
             <div class="filter-group">
-              <select id="mod-status-select" class="form-select">
-                <option value="PENDING">Pendientes</option>
-                <option value="UNDER_REVIEW">En Revisión</option>
-                <option value="RESOLVED">Resueltos</option>
-                <option value="DISMISSED">Rechazados</option>
-                <option value="">Todos los Estados</option>
-              </select>
+              <input id="mod-search-input" type="text" class="form-input" placeholder="Buscar por nombre o email del usuario reportado...">
             </div>
             <div class="filter-group">
               <select id="mod-type-select" class="form-select">
@@ -561,17 +573,74 @@
               <table class="data-table">
                 <thead>
                   <tr>
+                    <th>Usuario Reportado</th>
                     <th>Reportado Por</th>
                     <th>Tipo</th>
                     <th>Motivo</th>
-                    <th>Detalles</th>
+                    <th># Reportes</th>
                     <th>Estado</th>
                     <th>Fecha</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody id="reports-tbody">
-                  <tr><td colspan="7" class="text-center py-4 text-muted">Cargando reportes de moderación...</td></tr>
+                  <tr><td colspan="8" class="text-center py-4 text-muted">Cargando reportes de moderación...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3B. APPEALS VIEW -->
+        <section id="view-appeals" class="view-panel">
+          <div class="view-header">
+            <div>
+              <h1 class="view-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15l2 2 4-4"/></svg>
+                Apelaciones
+              </h1>
+              <p class="view-subtitle">Usuarios suspendidos o baneados que solicitaron revisión de su sanción.</p>
+            </div>
+          </div>
+
+          <!-- Status Filter Chips (Todas por defecto — las apelaciones nunca se ocultan, solo se filtran) -->
+          <div id="appeal-status-chips" class="filter-chips" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px;">
+            <button class="btn btn-sm btn-primary" data-status="">Todas</button>
+            <button class="btn btn-sm btn-secondary" data-status="PENDING">Pendientes</button>
+            <button class="btn btn-sm btn-secondary" data-status="APPROVED">Aprobadas</button>
+            <button class="btn btn-sm btn-secondary" data-status="REJECTED">Rechazadas</button>
+          </div>
+
+          <!-- Filter Toolbar -->
+          <div class="filter-bar glass-panel">
+            <button id="btn-filter-appeals" class="btn btn-primary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+              Actualizar Lista
+            </button>
+          </div>
+
+          <!-- Appeals Table -->
+          <div class="glass-panel table-card">
+            <div class="table-card-header">
+              <h3 class="panel-title">Cola de Apelaciones</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Universidad</th>
+                    <th>Sanción</th>
+                    <th>Motivo Original</th>
+                    <th>Mensaje</th>
+                    <th>Fecha</th>
+                    <th>Tiempo Transcurrido</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="appeals-tbody">
+                  <tr><td colspan="9" class="text-center py-4 text-muted">Cargando apelaciones...</td></tr>
                 </tbody>
               </table>
             </div>

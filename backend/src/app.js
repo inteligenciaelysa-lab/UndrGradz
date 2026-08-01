@@ -12,6 +12,7 @@ const friendRoutes = require('./routes/friend.routes');
 const chatRoutes = require('./routes/chat.routes');
 const billingRoutes = require('./routes/billing.routes');
 const eventRoutes = require('./routes/event.routes');
+const reportRoutes = require('./routes/report.routes');
 const adminRoutes = require('./routes/admin.routes');
 const rateLimit = require('express-rate-limit');
 const AppError = require('./errors/appError');
@@ -84,6 +85,7 @@ app.use('/api/v1/network', friendRoutes);
 app.use('/api/v1/chats', chatRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/events', eventRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
 // Admin Routes
 app.use('/api/v1/admin', adminRoutes);
@@ -105,6 +107,7 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({
     status,
     message: err.message,
+    ...(err.data || {}),
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 });

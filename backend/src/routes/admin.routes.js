@@ -29,6 +29,7 @@ router.use(protectAdmin);
 
 // Dashboard Metrics & System Health (SUPPORT, MODERATOR, ADMIN, SUPER_ADMIN)
 router.get('/dashboard', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getDashboard);
+router.get('/dashboard/badge-counts', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getBadgeCounts);
 
 // Global Search (SUPPORT, MODERATOR, ADMIN, SUPER_ADMIN)
 router.get('/search', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.globalSearch);
@@ -45,7 +46,12 @@ router.patch('/users/:id/role', requireRole('SUPER_ADMIN'), adminController.upda
 // Moderation System
 router.get('/moderation/reports', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getReports);
 router.post('/moderation/reports', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.createReport);
+router.get('/moderation/reports/:id', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getReportDetail);
 router.patch('/moderation/reports/:id', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.resolveReport);
+
+// Appeals (moderation sanction disputes)
+router.get('/moderation/appeals', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getAppeals);
+router.patch('/moderation/appeals/:id', requireRole('MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.resolveAppeal);
 
 // University Management
 router.get('/universities', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getUniversities);

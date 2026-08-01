@@ -93,6 +93,10 @@ class AdminApiClient {
     return this.request('/dashboard');
   }
 
+  async getBadgeCounts() {
+    return this.request('/dashboard/badge-counts');
+  }
+
   async globalSearch(query) {
     return this.request(`/search?q=${encodeURIComponent(query)}`);
   }
@@ -133,8 +137,25 @@ class AdminApiClient {
     return this.request(`/moderation/reports?${query}`);
   }
 
+  async getReportDetail(id) {
+    return this.request(`/moderation/reports/${id}`);
+  }
+
   async resolveReport(id, payload) {
     return this.request(`/moderation/reports/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // APPEALS
+  async getAppeals(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    return this.request(`/moderation/appeals?${query}`);
+  }
+
+  async resolveAppeal(id, payload) {
+    return this.request(`/moderation/appeals/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(payload),
     });

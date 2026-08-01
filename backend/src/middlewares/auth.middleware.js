@@ -1,6 +1,7 @@
 const { verifyAccessToken } = require('../utils/jwt');
 const prisma = require('../database/prisma');
 const AppError = require('../errors/appError');
+const { enforceModerationStatus } = require('../utils/moderationStatus');
 
 const protect = async (req, res, next) => {
   try {
@@ -33,6 +34,7 @@ const protect = async (req, res, next) => {
         isDeleted: true,
         suspensionReason: true,
         suspendedUntil: true,
+        banReason: true,
       },
     });
 
@@ -40,22 +42,7 @@ const protect = async (req, res, next) => {
       throw new AppError('User account no longer exists', 401);
     }
 
-    if (user.status === 'BANNED') {
-      throw new AppError('Your account has been permanently banned.', 403);
-    }
-
-    if (user.status === 'SUSPENDED') {
-      if (user.suspendedUntil && new Date() > new Date(user.suspendedUntil)) {
-        // Auto-reactivate expired suspension
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { status: 'ACTIVE', suspensionReason: null, suspendedUntil: null },
-        });
-      } else {
-        const untilText = user.suspendedUntil ? ` until ${new Date(user.suspendedUntil).toLocaleDateString()}` : '';
-        throw new AppError(`Your account is suspended${untilText}. Reason: ${user.suspensionReason || 'Violation of terms'}`, 403);
-      }
-    }
+    await enforceModerationStatus(prisma, user);
 
     req.user = decoded; // Attach user payload { userId, email } to request
     next();

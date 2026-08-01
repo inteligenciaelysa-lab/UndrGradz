@@ -33,7 +33,31 @@
       "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-geo-submit.js\")",
       "Bash(powershell -NoProfile -Command 'Get-Process node -ErrorAction SilentlyContinue | Where-Object {$_.Id -eq 15904} | Stop-Process -Force')",
       "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/2bf97a95-7adb-40f7-8476-e8d4643cc738/scratchpad/ui-final.js\")",
-      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>console.log\\('restore:',JSON.parse\\(d\\).data.university.isDeleted===false\\)\\)\")"
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>console.log\\('restore:',JSON.parse\\(d\\).data.university.isDeleted===false\\)\\)\")",
+      "PowerShell(Get-Process node -ErrorAction SilentlyContinue)",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\frontend\\\\admin\\\\admin-app.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\frontend\\\\app.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\frontend\\\\api-client.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\utils\\\\moderationStatus.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\services\\\\admin.service.js\")",
+      "Bash(timeout 12 node -e ' *)",
+      "Bash(timeout 15 node -e ' *)",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\frontend\\\\admin\\\\admin-api.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\services\\\\appeal.service.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\controllers\\\\auth.controller.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\controllers\\\\admin.controller.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\routes\\\\auth.routes.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\errors\\\\appError.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\app.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\utils\\\\userLookup.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\services\\\\auth.service.js\")",
+      "Bash(node -e \"console.log\\(require\\('zod/package.json'\\).version\\)\")",
+      "Bash(:)",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\services\\\\report.service.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\controllers\\\\report.controller.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\routes\\\\report.routes.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\validators\\\\report.validator.js\")",
+      "Bash(node --check \"c:\\\\Users\\\\IA ELYSA\\\\Desktop\\\\UndrGradz\\\\backend\\\\src\\\\routes\\\\admin.routes.js\")"
     ]
   }
 }

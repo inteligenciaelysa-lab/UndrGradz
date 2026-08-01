@@ -122,6 +122,10 @@ class ApiClient {
         // other way to, since the message is free text from the backend.
         const err = new Error(data.message || 'Request failed');
         err.status = response.status;
+        // Some errors (e.g. a rejected login) carry structured extras — like
+        // the caller's resolved email — spread onto the JSON body by the
+        // backend's AppError `data` param. Surface it the same way.
+        err.data = data;
         throw err;
       }
 
@@ -228,6 +232,28 @@ class ApiClient {
       this.socket.disconnect();
       this.socket = null;
     }
+  }
+
+  // Files an appeal against the current sanction. No active token exists yet
+  // (a rejected login never issues one), so the account is identified by
+  // email alone — not by re-sending a password, which is shown on the appeal
+  // screen purely for visual continuity with the login form and is never
+  // transmitted.
+  async submitAppeal(email, message) {
+    const result = await this.request('/auth/appeal', {
+      method: 'POST',
+      body: JSON.stringify({ email, message })
+    });
+    return result.data;
+  }
+
+  // Checks for an already-pending appeal without creating a new one.
+  async checkAppealStatus(email) {
+    const result = await this.request('/auth/appeal-status', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+    return result.data;
   }
 
   // ==========================================
@@ -495,6 +521,15 @@ class ApiClient {
     return result.data.users;
   }
 
+  // Files a user report (e.g. from the chat "Report User" flow).
+  async submitUserReport({ targetUserId, matchId, reason, details }) {
+    const result = await this.request('/reports', {
+      method: 'POST',
+      body: JSON.stringify({ targetUserId, matchId, reason, details })
+    });
+    return result.data.report;
+  }
+
   async sendFriendRequest(receiverId) {
     const result = await this.request('/network/request', {
       method: 'POST',
@@ -586,6 +621,18 @@ class ApiClient {
     this.socket.on('error', (err) => {
       console.error('❌ Socket server error:', err);
       if (this.socketCallbacks.onError) this.socketCallbacks.onError(err);
+    });
+
+    // Account moderation: admin suspended/banned this user while connected
+    this.socket.on('forceLogout', (data) => {
+      console.warn('🚫 Force logout received:', data);
+      if (this.socketCallbacks.onForceLogout) this.socketCallbacks.onForceLogout(data);
+    });
+
+    // Account moderation: an appeal this user filed was approved/rejected
+    this.socket.on('appealResolved', (data) => {
+      console.log('📨 Appeal resolution received:', data);
+      if (this.socketCallbacks.onAppealResolved) this.socketCallbacks.onAppealResolved(data);
     });
 
     // Chat events

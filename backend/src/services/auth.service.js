@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 const prisma = require('../database/prisma');
 const AppError = require('../errors/appError');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt');
+const { enforceModerationStatus } = require('../utils/moderationStatus');
+const { findUserByIdentifier } = require('../utils/userLookup');
 
 class AuthService {
   async register(data) {
@@ -83,26 +85,7 @@ class AuthService {
 
   async login(data) {
     const { email, password } = data;
-    const identifier = email.trim();
-    let user;
-
-    if (identifier.includes('@') && !identifier.startsWith('@')) {
-      // Query by email
-      user = await prisma.user.findUnique({
-        where: { email: identifier.toLowerCase() }
-      });
-    } else {
-      // Query by handle
-      const cleanHandle = identifier.replace(/^@/, '');
-      user = await prisma.user.findFirst({
-        where: {
-          OR: [
-            { handle: cleanHandle },
-            { handle: `@${cleanHandle}` }
-          ]
-        }
-      });
-    }
+    const user = await findUserByIdentifier(email);
 
     if (!user) {
       throw new AppError('Invalid email or username or password', 401);
@@ -113,6 +96,13 @@ class AuthService {
     if (!isPasswordValid) {
       throw new AppError('Invalid email or username or password', 401);
     }
+
+    if (user.isDeleted) {
+      throw new AppError('Invalid email or username or password', 401);
+    }
+
+    // Block banned/suspended accounts (auto-reactivates if the suspension already expired)
+    await enforceModerationStatus(prisma, user);
 
     // Sign tokens
     const tokenPayload = {
@@ -137,10 +127,23 @@ class AuthService {
       createdAt: user.createdAt,
     };
 
+    // Surface the resolution of a previously-filed appeal (e.g. approved/rejected
+    // while the user was offline) the first time they log back in after it.
+    let notice = null;
+    const pendingNotice = await prisma.notification.findFirst({
+      where: { recipientId: user.id, type: 'MODERATION', isRead: false },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (pendingNotice) {
+      notice = { title: pendingNotice.title, message: pendingNotice.message };
+      await prisma.notification.update({ where: { id: pendingNotice.id }, data: { isRead: true } });
+    }
+
     return {
       user: userResponse,
       accessToken,
       refreshToken,
+      notice,
     };
   }
 

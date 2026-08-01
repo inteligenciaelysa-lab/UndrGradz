@@ -1,5 +1,35 @@
 const adminService = require('../services/admin.service');
+const appealService = require('../services/appeal.service');
 const geoService = require('../services/geo.service');
+const AppError = require('../errors/appError');
+
+/**
+ * Shared by updateUserStatus() and resolveReport() (which can suspend/ban a
+ * user directly from a report) so the sanction-input rules only live once.
+ */
+function validateSanctionInput({ status, reason, durationDays, customUntil }) {
+  if (['SUSPENDED', 'BANNED'].includes(status) && !(reason && reason.trim())) {
+    throw new AppError('A reason is required to suspend or ban a user.', 400);
+  }
+
+  if (status === 'SUSPENDED') {
+    const hasDuration = !!durationDays;
+    const hasCustomUntil = !!customUntil;
+
+    if (hasDuration && hasCustomUntil) {
+      throw new AppError('Provide either a duration or a custom end date, not both.', 400);
+    }
+    if (!hasDuration && !hasCustomUntil) {
+      throw new AppError('A duration or a custom end date is required to suspend a user.', 400);
+    }
+    if (hasDuration && (!Number.isInteger(durationDays) || durationDays <= 0)) {
+      throw new AppError('durationDays must be a positive integer.', 400);
+    }
+    if (hasCustomUntil && !(new Date(customUntil).getTime() > Date.now())) {
+      throw new AppError('customUntil must be a valid future date.', 400);
+    }
+  }
+}
 
 class AdminController {
   async login(req, res, next) {
@@ -22,6 +52,18 @@ class AdminController {
   async getDashboard(req, res, next) {
     try {
       const data = await adminService.getDashboardData();
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getBadgeCounts(req, res, next) {
+    try {
+      const data = await adminService.getBadgeCounts();
       res.status(200).json({
         status: 'success',
         data,
@@ -60,10 +102,17 @@ class AdminController {
   async updateUserStatus(req, res, next) {
     try {
       const { id } = req.params;
-      const { status, reason, durationDays } = req.body;
+      const { status, reason, durationDays, customUntil } = req.body;
       const ipAddress = req.ip || req.headers['x-forwarded-for'];
 
-      const user = await adminService.updateUserStatus(req.user.id, id, { status, reason, durationDays }, ipAddress);
+      validateSanctionInput({ status, reason, durationDays, customUntil });
+
+      const user = await adminService.updateUserStatus(
+        req.user.id,
+        id,
+        { status, reason: reason ? reason.trim() : reason, durationDays, customUntil },
+        ipAddress
+      );
       res.status(200).json({
         status: 'success',
         data: { user },
@@ -107,8 +156,21 @@ class AdminController {
 
   async getReports(req, res, next) {
     try {
-      const { status, targetType, page, limit } = req.query;
-      const data = await adminService.getReports({ status, targetType, page, limit });
+      const { status, targetType, search, page, limit } = req.query;
+      const data = await adminService.getReports({ status, targetType, search, page, limit });
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getReportDetail(req, res, next) {
+    try {
+      const { id } = req.params;
+      const data = await adminService.getReportDetail(id);
       res.status(200).json({
         status: 'success',
         data,
@@ -135,12 +197,50 @@ class AdminController {
   async resolveReport(req, res, next) {
     try {
       const { id } = req.params;
-      const { action, status, resolutionNotes, userAction, durationDays } = req.body;
+      const { action, status, resolutionNotes, userAction, durationDays, customUntil } = req.body;
       const ipAddress = req.ip || req.headers['x-forwarded-for'];
-      const report = await adminService.resolveReport(req.user.id, id, { action, status, resolutionNotes, userAction, durationDays }, ipAddress);
+
+      if (['SUSPENDED', 'BANNED'].includes(userAction)) {
+        validateSanctionInput({ status: userAction, reason: resolutionNotes || 'Moderation report resolution', durationDays, customUntil });
+      }
+
+      const report = await adminService.resolveReport(req.user.id, id, { action, status, resolutionNotes, userAction, durationDays, customUntil }, ipAddress);
       res.status(200).json({
         status: 'success',
         data: { report },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAppeals(req, res, next) {
+    try {
+      const { status, page, limit } = req.query;
+      const data = await appealService.getAppeals({ status, page, limit });
+      res.status(200).json({
+        status: 'success',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resolveAppeal(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { status, resolutionNotes } = req.body;
+      const ipAddress = req.ip || req.headers['x-forwarded-for'];
+
+      if (!['APPROVED', 'REJECTED'].includes(status)) {
+        throw new AppError("status must be 'APPROVED' or 'REJECTED'", 400);
+      }
+
+      const appeal = await appealService.resolveAppeal(req.user.id, id, { status, resolutionNotes }, ipAddress);
+      res.status(200).json({
+        status: 'success',
+        data: { appeal },
       });
     } catch (error) {
       next(error);

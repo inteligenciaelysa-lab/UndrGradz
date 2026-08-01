@@ -18,7 +18,21 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+// Identifier only, same as login's "email" field — can be a full email or an
+// @handle, since the appeal screen is auto-filled with whatever the user
+// originally typed into the login form.
+const appealStatusSchema = z.object({
+  email: z.string().min(1, 'Email or username is required'),
+});
+
+const appealSchema = z.object({
+  email: z.string().min(1, 'Email or username is required'),
+  message: z.string().trim().min(20, 'Your appeal message must be at least 20 characters long').max(1000, 'Your appeal message cannot exceed 1000 characters'),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
+  appealSchema,
+  appealStatusSchema,
 };

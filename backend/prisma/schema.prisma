@@ -38,6 +38,11 @@ model User {
   deletedAt           DateTime?
   suspensionReason    String?
   suspendedUntil      DateTime?
+  suspendedAt         DateTime?
+  suspendedById       String?
+  banReason           String?
+  bannedAt            DateTime?
+  bannedById          String?
   failedLoginAttempts Int       @default(0)
   lockoutUntil        DateTime?
   twoFactorEnabled    Boolean   @default(false)
@@ -60,6 +65,11 @@ model User {
   referredBy    User?   @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
   referredUsers User[]  @relation("Referrals")
 
+  suspendedBy        User?  @relation("SuspendedByAdmin", fields: [suspendedById], references: [id], onDelete: SetNull)
+  suspensionsIssued  User[] @relation("SuspendedByAdmin")
+  bannedBy           User?  @relation("BannedByAdmin", fields: [bannedById], references: [id], onDelete: SetNull)
+  bansIssued         User[] @relation("BannedByAdmin")
+
   sentFriendships      Friendship[]  @relation("SentFriendships")
   receivedFriendships  Friendship[]  @relation("ReceivedFriendships")
   sentProfileViews     ProfileView[] @relation("SentViews")
@@ -78,6 +88,8 @@ model User {
   receivedNotifications Notification[]        @relation("ReceivedNotifications")
   verificationRequests  VerificationRequest[] @relation("UserVerificationRequests")
   reviewedVerifications VerificationRequest[] @relation("ReviewedVerifications")
+  appealsFiled          Appeal[]               @relation("AppealsFiled")
+  appealsResolved       Appeal[]               @relation("AppealsResolved")
 }
 
 model UserProfile {
@@ -162,6 +174,7 @@ model Match {
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
   messages        Message[]
+  reports         Report[]
 
   @@unique([userOneId, userTwoId])
 }
@@ -302,8 +315,11 @@ model Report {
   targetUser      User?    @relation("ReportsReceived", fields: [targetUserId], references: [id], onDelete: SetNull)
   eventId         String?
   event           Event?   @relation("EventReports", fields: [eventId], references: [id], onDelete: SetNull)
-  reason          String // 'SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'FAKE_PROFILE', 'OTHER'
+  matchId         String?
+  match           Match?   @relation(fields: [matchId], references: [id], onDelete: SetNull)
+  reason          String // 'SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'IMPERSONATION', 'THREATS', 'FAKE_PROFILE', 'OTHER'
   details         String?
+  evidenceSnapshot Json? // Array of { id, senderId, content, type, createdAt } — last 20 chat messages at time of report
   status          String   @default("PENDING") // 'PENDING', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED'
   resolutionNotes String?
   resolvedById    String?
@@ -312,11 +328,27 @@ model Report {
   updatedAt       DateTime @updatedAt
 }
 
+model Appeal {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation("AppealsFiled", fields: [userId], references: [id], onDelete: Cascade)
+  moderationStatus String // 'SUSPENDED', 'BANNED' — snapshot of the sanction type at the time of filing
+  originalReason   String? // snapshot of suspensionReason/banReason at the time of filing
+  message          String
+  status           String    @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED'
+  resolutionNotes  String?
+  resolvedById     String?
+  resolvedBy       User?     @relation("AppealsResolved", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
 model AuditLog {
   id         String   @id @default(cuid())
-  adminId    String
-  admin      User     @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: Cascade)
-  action     String // e.g., 'USER_SUSPENDED', 'USER_ROLE_UPDATED', 'EVENT_HIDDEN'
+  adminId    String? // null for student-initiated actions (e.g. REPORT_CREATED) — the actor is in `details` instead
+  admin      User?    @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: SetNull)
+  action     String // e.g., 'USER_SUSPENDED', 'USER_ROLE_UPDATED', 'EVENT_HIDDEN', 'REPORT_CREATED'
   targetType String? // 'USER', 'EVENT', 'REPORT', 'UNIVERSITY', 'SETTING'
   targetId   String?
   details    Json?
