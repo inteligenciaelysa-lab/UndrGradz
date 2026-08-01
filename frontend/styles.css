@@ -1708,7 +1708,7 @@ textarea.gi {
 .online-d {
   position: absolute;
   bottom: 1px;
-  right: 1px;
+  left: 1px; /* lado opuesto (antes right) */
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -6765,37 +6765,37 @@ html.light-secondary .jbtn {
    themselves per campus for free. */
 
 /* ── Segmented pairs ── */
+/* Toggles de Profile con el mismo look que el pill Sign Up / Log In del auth:
+   cápsula oscura + pastilla roja activa. */
 #ptab-panel-crush .seg2 {
   display: flex;
-  background: #000;
-  border: 1.5px solid color-mix(in srgb, var(--p) 38%, transparent);
-  border-radius: var(--rad-sm);
-  /* Clips the halves' corners to the container's radius. It also clips an outer
-     box-shadow, which is why the picked half glows inward (see below). */
-  overflow: hidden;
+  gap: 4px;
+  background: rgba(6, 9, 18, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--rad-pill);
+  padding: 5px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.45);
 }
 #ptab-panel-crush .seg2 .seg2-half {
+  flex: 1;
   border: none !important;
-  border-radius: 0 !important;
+  border-radius: var(--rad-pill) !important;
   background: transparent !important;
   box-shadow: none !important;
   color: var(--fg2) !important;
+  padding: 12px 8px !important;
+  font-weight: 800 !important;
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-              box-shadow var(--dur) var(--ease);
+              box-shadow var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
 }
-#ptab-panel-crush .seg2 .seg2-half + .seg2-half {
-  border-left: 1.5px solid color-mix(in srgb, var(--p) 38%, transparent) !important;
-}
-/* Picked: _pfStyleBtns() writes background:var(--p) into the inline style
-   attribute, and this substring selector is what detects it. Don't change that
-   contract in _pfStyleBtns (app.js) without updating this selector.
-   !important is required — the inline background it writes would otherwise win. */
+#ptab-panel-crush .seg2 .seg2-half:active { transform: scale(0.97); }
+/* Activo: _pfStyleBtns() escribe background:var(--p) inline; este selector lo
+   detecta y lo pinta como el pill rojo del auth. */
 #ptab-panel-crush .seg2 .seg2-half[style*="var(--p)"] {
-  background: linear-gradient(135deg,
-                color-mix(in srgb, var(--p) 72%, #000) 0%,
-                color-mix(in srgb, var(--p) 29%, #000) 100%) !important;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--p) 92%, #fff), color-mix(in srgb, var(--p) 52%, #000)) !important;
   color: #fff !important;
-  box-shadow: inset 0 0 14px color-mix(in srgb, var(--p) 45%, transparent) !important;
+  box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--p) 70%, transparent),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 /* ── Action rows, one hue each ── */
@@ -6873,7 +6873,7 @@ html.light-secondary .jbtn {
 .app-fab {
   position: fixed;
   right: 18px;
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(104px + env(safe-area-inset-bottom)); /* separado del nav (antes pegado) */
   z-index: 120;
   width: 56px;
   height: 56px;
@@ -12167,4 +12167,102 @@ body.is-ios #notif-modal .mhnd {
   fill: none; stroke: currentColor; stroke-width: 2;
   stroke-linecap: round; stroke-linejoin: round;
   display: inline-block; vertical-align: -2.5px; margin-right: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHATS ESTILO INSTAGRAM + REPORT SHEET (pills)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Lista de chats: sin reloj fijo, punto de no-leído, tiempo relativo ── */
+.citem .cright {
+  display: flex; align-items: center; justify-content: flex-end;
+  min-width: 16px; flex-shrink: 0; align-self: center;
+}
+.citem .cdot {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--uni-accent, var(--p));
+  box-shadow: 0 0 10px -1px var(--uni-accent, var(--p));
+}
+.citem .cago {
+  color: var(--fg3); font-weight: 500;
+}
+/* No-leído: nombre y línea en blanco fuerte (jerarquía como Instagram) */
+.citem:has(.cpre-unrd) .cnm { font-weight: 800; color: #fff; }
+.citem .cpre-unrd { color: #fff !important; font-weight: 700; }
+.citem .cpre-unrd .cago { color: rgba(255,255,255,0.75); }
+
+/* ── Report sheet: bottom-sheet con pills (estilo verde de la referencia) ── */
+.rep-sheet {
+  padding: 6px 20px calc(22px + env(safe-area-inset-bottom)) !important;
+}
+.rep-title {
+  font-family: var(--font-display);
+  font-size: 20px; line-height: 1.5; font-weight: 400;
+  color: #fff; margin: 6px 0 4px;
+}
+.rep-sub {
+  font-size: var(--fs-base); color: var(--fg2); margin-bottom: 18px;
+}
+.rep-pills { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.rep-pill {
+  width: 100%; padding: 15px 18px; border: none; cursor: pointer;
+  border-radius: var(--rad-pill);
+  font-family: var(--font); font-size: var(--fs-md); font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #2fbd8f, #1f9a72);
+  box-shadow: 0 8px 22px -10px rgba(31,154,114,0.7), inset 0 1px 0 rgba(255,255,255,0.28);
+  transition: transform var(--dur-fast) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.rep-pill:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 14px -8px rgba(31,154,114,0.7), inset 0 1px 0 rgba(255,255,255,0.28);
+}
+.rep-help {
+  font-size: var(--fs-sm); color: var(--fg3); text-align: center;
+  margin-bottom: 14px; line-height: 1.5;
+}
+.rep-cancel {
+  width: 100%; padding: 14px; cursor: pointer;
+  border-radius: var(--rad-pill);
+  border: 1px solid var(--gbdl); background: rgba(255,255,255,0.05);
+  color: #fff; font-family: var(--font); font-size: var(--fs-md); font-weight: 700;
+  transition: transform var(--dur-fast) var(--ease), background var(--dur) var(--ease);
+}
+.rep-cancel:active { transform: scale(0.97); background: rgba(255,255,255,0.09); }
+
+/* ── Chat previews: mismo tamaño que el nombre; bold blanco si no visto,
+   gris legible una vez leído (estilo Instagram) ── */
+.citem .cpre {
+  font-size: var(--fs-base) !important;   /* = nombre */
+  color: rgba(255,255,255,0.55) !important; /* gris legible (visto) */
+  font-weight: 500;
+}
+.citem .cpre .cago { font-size: var(--fs-sm); color: var(--fg3) !important; font-weight: 500; }
+/* No leído: mensaje en blanco y bold, nombre también más fuerte */
+.citem .cpre-unrd { color: #fff !important; font-weight: 700 !important; }
+.citem .cpre-unrd .cago { color: rgba(255,255,255,0.7) !important; }
+.citem:has(.cpre-unrd) .cnm { font-weight: 800; color: #fff; }
+
+/* Create Hangout: paso 8 bloqueado hasta terminar los 7 anteriores */
+.ehcard.eh-locked .ehsec { opacity: 0.4; }
+.ehcard.eh-locked .ehsec .ehtitle::after {
+  content: "";
+  display: inline-block; width: 13px; height: 13px; margin-left: 8px; vertical-align: -2px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='11' x='3' y='11' rx='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/></svg>") center/contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect width='18' height='11' x='3' y='11' rx='2'/><path d='M7 11V7a5 5 0 0 1 10 0v4'/></svg>") center/contain no-repeat;
+}
+
+/* Badges de notificaciones y chats: solo un PUNTO (sin número) */
+#notif-badge, #nbadge-chats {
+  font-size: 0 !important;
+  min-width: 11px !important; width: 11px !important; height: 11px !important;
+  padding: 0 !important; border-radius: 50% !important;
+  border-width: 1.5px !important;
+}
+/* Punto en el header de Notifications (en vez del número) */
+.notif-hdr-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--uni-accent, var(--p)); vertical-align: middle; margin-left: 6px;
+  box-shadow: 0 0 8px -1px var(--uni-accent, var(--p));
 }
