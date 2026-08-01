@@ -9166,8 +9166,6 @@ async function createEv(){
   }
 }
 
-<<<<<<< HEAD
-=======
 // ── MAIN FEED ──
 function togglePoll(btn){pollOpen=!pollOpen;var box=document.getElementById('poll-box');if(box)box.style.display=pollOpen?'block':'none';if(btn)btn.classList.toggle('on',pollOpen);}
 function toggleCommentMode(btn){commentsOn=!commentsOn;if(btn){btn.textContent=commentsOn?'Comments On':'Comments Off';btn.classList.toggle('on',!commentsOn);}}
@@ -9275,7 +9273,6 @@ function showShareModal(btn){
 }
 function sendToFriend(handle,name,btn){if(btn){btn.innerHTML=icon('check',12)+' Sent';btn.style.background='#16a34a';btn.disabled=true;}}
 
->>>>>>> 4687079 (Rediseno)
 // ══ ACTIVITY > EVENTS CREATED / JOINED ══
 // Two sub-buttons over a compact list. Rows reuse .adm-sub-btn (the app-wide
 // sub-tab language) and openHangoutDetailModal, which already accepts a
@@ -23264,8 +23261,6 @@ doSignupAuth=function(){
   _origDoSignupAuth();
 };
 
-<<<<<<< HEAD
-=======
 // Photos are now collected as the final onboarding step (obs6); no post-launch gate.
 
 // ══════════════ WELLNESS ══════════════
@@ -23568,7 +23563,6 @@ function motivateFriend(name,btn){
   setTimeout(function(){alert('💪 Sent '+name+' a motivation nudge before their streak ends!');},120);
 }
 
->>>>>>> 4687079 (Rediseno)
 // Populate the major / Greek filter chips from the shared lists so they stay in sync with registration
 try{_populateFilterChips();}catch(e){}
 try{_applyPlanLocks();}catch(e){}

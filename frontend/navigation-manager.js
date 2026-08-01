@@ -77,6 +77,50 @@
           };
           requestAnimationFrame(step);
         };
+
+        // ── LIFT GENÉRICO PARA INPUTS FUERA DEL CHAT ──────────────────────
+        // Con resize:"none" el WebView no se encoge, así que un input abajo
+        // (password, teléfono en sign up, etc.) queda TAPADO por el teclado y
+        // no hay overflow que scrollear. Solución: al abrir el teclado le damos
+        // al contenedor scrolleable del input activo un padding-bottom = altura
+        // del teclado (crea espacio scrolleable) y subimos el input por encima
+        // de la línea del teclado. El chat (.cwin) se excluye: ya se maneja solo.
+        this._kbPadded = [];
+        var _kbScroller = (el) => {
+          var node = el && el.parentElement;
+          while (node && node !== document.body) {
+            var oy = getComputedStyle(node).overflowY;
+            if (oy === 'auto' || oy === 'scroll') return node;
+            node = node.parentElement;
+          }
+          return null;
+        };
+        var _kbLift = (kh) => {
+          if (!kh) return;
+          var el = document.activeElement;
+          if (!el) return;
+          var tag = el.tagName;
+          if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !el.isContentEditable) return;
+          if (el.closest && el.closest('.cwin')) return; // el chat sube solo
+          var sc = _kbScroller(el);
+          if (!sc) return;
+          sc.style.paddingBottom = (kh + 28) + 'px';
+          if (this._kbPadded.indexOf(sc) < 0) this._kbPadded.push(sc);
+          // Dos frames: uno para que el padding cuente en el layout, otro para medir.
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            var r = el.getBoundingClientRect();
+            var safe = window.innerHeight - kh - 20;
+            if (r.bottom > safe) {
+              try { sc.scrollBy({ top: (r.bottom - safe), behavior: 'smooth' }); }
+              catch (e) { sc.scrollTop += (r.bottom - safe); }
+            }
+          }));
+        };
+        var _kbReset = () => {
+          (this._kbPadded || []).forEach((n) => { n.style.paddingBottom = ''; });
+          this._kbPadded = [];
+        };
+        this._kbLift = _kbLift;
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillShow', (info) => {
           this.isKeyboardOpen = true;
           var kh = (info && info.keyboardHeight) ? Math.round(info.keyboardHeight) : 0;
@@ -89,6 +133,7 @@
         window.Capacitor.Plugins.Keyboard.addListener('keyboardWillHide', () => {
           this.isKeyboardOpen = false;
           liftChat(0);
+          _kbReset();
           document.body.classList.remove('keyboard-open');
           pinBottom(340);
         });
