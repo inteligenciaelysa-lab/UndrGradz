@@ -124,7 +124,7 @@ var I18N = {
     
     // New modal translation elements
     "set-btn-viewprofile": "View Profile",
-    "set-premium-banner-title": "✨ Go Premium",
+    "set-premium-banner-title": "Go Premium",
     "set-premium-banner-desc": "Unlock exclusive features and get more from UndrGradz.",
     "set-premium-banner-btn": "Upgrade",
     "settings-photoverify": "Get a verified badge",
@@ -443,12 +443,12 @@ function applyLanguageTranslations(){
     }
   });
   var filterOptions = {
-    'compat': window.currentLang === 'es' ? '🎯 Compatibilidad máxima' : '🎯 Most compatible with you',
-    'trending': window.currentLang === 'es' ? '🔥 Tendencias' : '🔥 Top trending',
-    'newest': window.currentLang === 'es' ? '🆕 Más recientes' : '🆕 Newest',
-    'spots': window.currentLang === 'es' ? '👥 Más cupos libres' : '👥 Most spots open',
-    'soon': window.currentLang === 'es' ? '⏰ Pronto a ocurrir' : '⏰ Happening soon',
-    'near': window.currentLang === 'es' ? '📍 Cerca de ti' : '📍 Nearby'
+    'compat': window.currentLang === 'es' ? 'Compatibilidad máxima' : 'Most compatible with you',
+    'trending': window.currentLang === 'es' ? 'Tendencias' : 'Top trending',
+    'newest': window.currentLang === 'es' ? 'Más recientes' : 'Newest',
+    'spots': window.currentLang === 'es' ? 'Más cupos libres' : 'Most spots open',
+    'soon': window.currentLang === 'es' ? 'Pronto a ocurrir' : 'Happening soon',
+    'near': window.currentLang === 'es' ? 'Cerca de ti' : 'Nearby'
   };
   var filterSel = document.getElementById('ev-filter-sel');
   if (filterSel) {
@@ -586,6 +586,8 @@ var ICONS={
   clock:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   hourglass:'<path d="M5 22h14M5 2h14M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41A2 2 0 0 0 7 17.83V22M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/>',
   alert:'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  info:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
   megaphone:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
   target:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
   chart:'<line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/>',
@@ -878,42 +880,42 @@ window.ugzModal = (function() {
     var onCancel = opts.onCancel;
     var allowBackdropClose = (type === 'info' || type === 'success');
 
-    var icon = 'ⓘ';
+    var icon = 'info';
     if (type === 'info') {
-      icon = 'ⓘ';
+      icon = 'info';
       title = title || (window.currentLang === 'es' ? 'Información' : 'Information');
       confirmText = opts.confirmText || 'OK';
     } else if (type === 'success') {
-      icon = '✓';
+      icon = 'checkCircle';
       title = title || (window.currentLang === 'es' ? '¡Éxito!' : 'Success!');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Listo' : 'Done');
     } else if (type === 'error') {
-      icon = '!';
+      icon = 'alert';
       title = title || (window.currentLang === 'es' ? 'Algo salió mal' : 'Something went wrong');
       confirmText = opts.confirmText || 'OK';
     } else if (type === 'warning') {
-      icon = '⚠️';
+      icon = 'alert';
       title = title || (window.currentLang === 'es' ? 'Advertencia' : 'Warning');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Continuar' : 'Continue');
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Cancelar' : 'Cancel');
     } else if (type === 'confirm') {
-      icon = '❓';
+      icon = 'help';
       title = title || (window.currentLang === 'es' ? '¿Estás seguro?' : 'Are you sure?');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Confirmar' : 'Confirm');
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Cancelar' : 'Cancel');
     } else if (type === 'prompt') {
-      icon = '✏️';
+      icon = 'edit';
       title = title || (window.currentLang === 'es' ? 'Ingresa la información' : 'Input required');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Aceptar' : 'Submit');
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Cancelar' : 'Cancel');
     } else if (type === 'premium') {
-      icon = '🔒';
+      icon = 'lock';
       title = title || (window.currentLang === 'es' ? 'Plan A+ Student Requerido' : 'A+ Student Plan Required');
       message = message || (window.currentLang === 'es' ? 'Esta función requiere el plan A+ Student ($19.99/año).\n\nActualiza tu plan para desbloquear esta función.' : 'This feature requires the A+ Student plan ($19.99/yr).\n\nUpgrade your plan to unlock this feature.');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Planes' : 'Go to Plans');
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Ahora no' : 'Not Now');
     } else if (type === 'cheat') {
-      icon = '🔒';
+      icon = 'lock';
       title = title || (window.currentLang === 'es' ? 'Cheats Requeridos' : 'Cheats Required');
       message = message || (window.currentLang === 'es' ? 'Esta función requiere Cheats.\n\nCompra un cheat para desbloquear esta función.' : 'This feature requires Cheats.\n\nPurchase a cheat to unlock this feature.');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Cheats' : 'Go to Cheats');
@@ -927,7 +929,7 @@ window.ugzModal = (function() {
     card.className = 'ugz-modal-card type-' + type;
 
     var iconEl = document.getElementById('ugz-modal-icon');
-    if (iconEl) iconEl.textContent = icon;
+    if (iconEl) iconEl.innerHTML = (typeof window.icon==='function') ? window.icon(icon,26) : icon;
 
     var titleEl = document.getElementById('ugz-modal-title');
     if (titleEl) titleEl.textContent = title;
@@ -1480,8 +1482,8 @@ function censor(t){
 function hasBanned(t){if(!t)return false;var s=String(t).toLowerCase();return BANNED.some(function(w){return s.indexOf(w)>-1;});}
 
 var BIG5 = [
-  {name:'Openness',color:'#2b5fd9',acts:['🎨 Painting','📸 Photography','✍️ Writing','📖 Reading','🎵 Music','🎭 Theater','✈️ Travel','🌿 Nature','🎸 Guitar','🎹 Piano','🎬 Film','🖌️ Design','📝 Blogging','🌍 Culture','🎯 Puzzles','🎙️ Podcasts','🎸 Singing','🎻 Violin','🥁 Drums','🖊️ Poetry','🏛️ Museums','🗿 History','🔭 Astronomy','🌱 Plants','🧶 Fashion','🎨 Tattoo Art','🎥 Filmmaking','📷 Street Photography','🗺️ Backpacking','🎼 Songwriting']},
-  {name:'Conscientiousness',color:'#0369a1',acts:['📚 Studying','🏋️ Gym','🙏 Yoga','🍳 Cooking','🌱 Gardening','💻 Coding','♟️ Chess','📊 Finance','⚗️ Science','🏃 Running','🚴 Cycling','🧼 Organizing','📈 Investing','🎯 Goal Setting','⛰️ Climbing','🏋️‍♀️ CrossFit','💡 Productivity','📓 Journaling','🤖 Robotics','🔬 Research','⚖️ Debate','🔢 Math','🏅 Triathlon','🥗 Meal Prep','💼 Entrepreneurship','📐 Architecture','🚀 Startups']},
+  {name:'Openness',color:'#2b5fd9',acts:['🎨 Painting','📸 Photography','✍️ Writing','📖 Reading','🎵 Music','🎭 Theater','✈️ Travel','🌿 Nature','🎸 Guitar','🎹 Piano','🎬 Film','🖌️ Design','📝 Blogging','🌍 Culture','Puzzles','🎙️ Podcasts','🎸 Singing','🎻 Violin','🥁 Drums','🖊️ Poetry','🏛️ Museums','🗿 History','🔭 Astronomy','🌱 Plants','🧶 Fashion','🎨 Tattoo Art','🎥 Filmmaking','📷 Street Photography','🗺️ Backpacking','🎼 Songwriting']},
+  {name:'Conscientiousness',color:'#0369a1',acts:['📚 Studying','🏋️ Gym','🙏 Yoga','🍳 Cooking','🌱 Gardening','💻 Coding','♟️ Chess','📊 Finance','⚗️ Science','🏃 Running','🚴 Cycling','🧼 Organizing','📈 Investing','Goal Setting','⛰️ Climbing','🏋️‍♀️ CrossFit','💡 Productivity','📓 Journaling','🤖 Robotics','🔬 Research','⚖️ Debate','🔢 Math','🏅 Triathlon','🥗 Meal Prep','💼 Entrepreneurship','📐 Architecture','🚀 Startups']},
   {name:'Extraversion',color:'#b45309',acts:['🎉 Parties','🏈 Football','🥊 Boxing','🤝 Networking','🎤 Karaoke','🏊 Swimming','🎮 Gaming','💃 Dancing','⚽ Soccer','🏀 Basketball','🎾 Tennis','🏐 Volleyball','🎳 Bowling','🏓 Ping Pong','🛹 Skateboarding','🏄 Surfing','⛷️ Skiing','🏂 Snowboarding','⛰️‍♂️ Bouldering','🏇 Equestrian','⛳ Golf','🏸 Badminton','🥋 Martial Arts','🤸 Gymnastics','🎣 Fishing','🏕️ Camping','🥏 Frisbee','⛸️ Rollerblading','🤿 Diving','🏒 Hockey','⚾ Baseball','🏉 Rugby','🤼 Wrestling','🥍 Lacrosse','🚣 Rowing','🏹 Archery','🤺 Fencing','🚵 Mountain Biking','🏊‍♂️ Water Polo','⛸️ Ice Skating','🤾 Handball','🏏 Cricket','🥅 Hockey Goalie','🏑 Field Hockey','🦁 Hunting']},
   {name:'Agreeableness',color:'#0f766e',acts:['❤️ Volunteering','🐾 Pets','🌻 Mindfulness','☕ Coffee','🛍️ Shopping','🎬 Movies','🍕 Foodie','🧶 Crafts','🎂 Baking','🌸 Flowers','📱 Social Media','🎁 Gift Giving','🤗 Mentoring','🍵 Tea','🍰 Desserts','🐶 Dog Lover','🐱 Cat Lover','🌎 Activism','♻️ Sustainability','👕 Picnics','💌 Penpals','🍷 Wine Tasting','🎮 Co-op Gaming','🛐 Faith','🙏‍♀️ Meditation','💊 Caregiving']},
   {name:'Nightlife',color:'#791515',acts:['🌙 All Night Out','📅 The Planner','🍸 Bars/Nightclubs','🎶 Go Out','🏠 Stay-at-Home','🎧 DJ/EDM','🍷 Wine Lover','🍸 Cocktails','🎶 Live Music','🥳 House Parties','🎰 Casino','🎪 Festivals','🎤 Open Mic','🍻 Tailgates','🎟️ Concerts','🎊 Raves','🎱 Pool/Billiards','🚬 Hookah','🍾 Bottle Service','🌆 Rooftop Lounges','🎺 Jazz Nights','🕺 Salsa Nights']}
@@ -1879,16 +1881,18 @@ window.addEventListener('load', function() {
 
 // ── AUTH ──
 function switchAuthTab(tab){
+  // Visual: los tabs ahora son subrayado neón (CSS .auth-tab-btn.active::after).
+  // Solo se alternan clases; los estilos inline viejos peleaban con el CSS.
   var su=document.getElementById('auth-signup-panel'),li=document.getElementById('auth-login-panel');
   var tsu=document.getElementById('auth-tab-su-btn'),tli=document.getElementById('auth-tab-li-btn');
+  var on=function(b){if(b){b.classList.add('active');b.style.cssText='';}};
+  var off=function(b){if(b){b.classList.remove('active');b.style.cssText='';}};
   if(tab==='signup'){
     if(su)su.style.display='block';if(li)li.style.display='none';
-    if(tsu){tsu.classList.add('active');tsu.style.background='#dc2626';tsu.style.color='#fff';tsu.style.boxShadow='0 0 24px rgba(37,99,235,0.65)';}
-    if(tli){tli.classList.remove('active');tli.style.background='transparent';tli.style.color='rgba(255,255,255,0.55)';tli.style.boxShadow='none';}
+    on(tsu);off(tli);
   }else{
     if(su)su.style.display='none';if(li)li.style.display='block';
-    if(tli){tli.classList.add('active');tli.style.background='#dc2626';tli.style.color='#fff';tli.style.boxShadow='0 0 24px rgba(37,99,235,0.65)';}
-    if(tsu){tsu.classList.remove('active');tsu.style.background='transparent';tsu.style.color='rgba(255,255,255,0.55)';tsu.style.boxShadow='none';}
+    on(tli);off(tsu);
   }
 }
 
@@ -3226,7 +3230,7 @@ function _ob4ToggleInv(el,v){if(v==='None'){_ob4Involved=['None'];window._ob4Gre
 function _ob4AddInv(){var v=prompt('What else are you involved in?');if(v&&v.trim()){_ob4Involved.push(v.trim());_ob4Go(2);}}
 function _ob4ChangeUni(){
   var m=document.getElementById('ob4-uni-modal');if(m)m.remove();m=document.createElement('div');m.id='ob4-uni-modal';m.className='mov open';m.style.zIndex='10005';
-  m.innerHTML='<div class="msheet" style="max-height:80vh;overflow-y:auto;"><div class="mhnd"></div><div class="mtitle">Choose your university</div><input id="ob4-uni-q" oninput="_ob4UniList(this.value)" placeholder="🔍 Search universities…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:11px 15px;margin-bottom:10px;"/><div id="ob4-uni-res"></div><button class="gbtn-ghost" onclick="document.getElementById(\'ob4-uni-modal\').remove()" style="margin-top:8px;">Cancel</button></div>';
+  m.innerHTML='<div class="msheet" style="max-height:80vh;overflow-y:auto;"><div class="mhnd"></div><div class="mtitle">Choose your university</div><input id="ob4-uni-q" oninput="_ob4UniList(this.value)" placeholder="Search universities…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:11px 15px;margin-bottom:10px;"/><div id="ob4-uni-res"></div><button class="gbtn-ghost" onclick="document.getElementById(\'ob4-uni-modal\').remove()" style="margin-top:8px;">Cancel</button></div>';
   document.body.appendChild(m);_ob4UniList('');
 }
 function _ob4UniList(q){var el=document.getElementById('ob4-uni-res');if(!el)return;q=(q||'').toLowerCase().trim();var src=(typeof UNI_LIST!=='undefined'?UNI_LIST:[]).filter(function(u){return !q||u.label.toLowerCase().indexOf(q)>-1||u.domain.indexOf(q)>-1;}).slice(0,20);if(!src.length){el.innerHTML='<div style="padding:14px;font-size:var(--fs-sm);color:var(--fg2);text-align:center;">No matches.</div>';return;}el.innerHTML=src.map(function(u){var c=(UNI[u.domain]&&UNI[u.domain].p)||'#888';return '<div onclick="_ob4UniPick(\''+u.domain+'\')" style="display:flex;align-items:center;gap:11px;padding:11px 6px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);"><div style="width:30px;height:30px;border-radius:var(--rad-xs);background:'+c+';flex-shrink:0;"></div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;">'+u.label+'</div></div>';}).join('');}
@@ -3252,7 +3256,7 @@ function _ob4P3(){
   var lblInterestedIn = window.currentLang==='es'?'Me interesa':'Interested in';
   var lblYourInterests = window.currentLang==='es'?'Tus intereses':'Your interests';
   var lblSelected = window.currentLang==='es'?'Seleccionados':'Selected';
-  var placeholderSearch = window.currentLang==='es'?'🔍 Buscar intereses…':'🔍 Search interests…';
+  var placeholderSearch = window.currentLang==='es'?'Buscar intereses…':'Search interests…';
   var btnContinue = window.currentLang==='es'?'Continuar ›':'Continue ›';
   var changeAnytimeText = window.currentLang==='es'?'🔒 Puedes cambiar esto cuando quieras':'🔒 You can change these anytime';
 
@@ -3837,7 +3841,7 @@ function _ob4RenderInt(){
     list=list.slice(0,21);
   }
   var cells=list.map(function(it){var on=_ob4IntSel(it[0]);return '<div class="ob4-int'+(on?' on':'')+'" data-cat="'+(it[2]||'')+'" onclick="_ob4ToggleInt(\''+it[0].replace(/'/g,"")+'\',\''+it[1]+'\')"><div class="iadd">'+(on?'✓':'+')+'</div><div class="ie">'+it[1]+'</div><div class="inm">'+it[0]+'</div></div>';}).join('');
-  var sectionLabel = window.currentLang==='es'?(_ob4Cat==='All'?'🔥 Intereses Populares':'Intereses de '+_ob4Cat):(_ob4Cat==='All'?'🔥 Trending Interests':_ob4Cat+' Interests');
+  var sectionLabel = window.currentLang==='es'?(_ob4Cat==='All'?'Intereses Populares':'Intereses de '+_ob4Cat):(_ob4Cat==='All'?'Trending Interests':_ob4Cat+' Interests');
   grid.innerHTML='<div class="ob4-flabel">'+sectionLabel+'</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+cells+'</div>';
 }
 function _ob4ToggleInt(name,emoji){
@@ -3938,7 +3942,7 @@ function _ob4P5(){
     cardPhotoHtml+
     '<div style="padding-bottom:2px;">'+
       '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">'+nm+(age?(', '+age):'')+' <span style="color:#3b82f6;font-size:var(--fs-md);">✓</span></div>'+
-      '<div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.7);font-weight:500;margin-top:2px;">🎓 '+displayUniName+' '+(gy?('\''+gy):'')+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.7);font-weight:500;margin-top:2px;">'+icon('grad',13)+' '+displayUniName+' '+(gy?('\''+gy):'')+'</div>'+
       (major?('<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:2px;">📖 '+major+'</div>'):'')+
       '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:2px;">'+icon('mapPin',16)+' '+locationText+'</div>'+
       langsBadge+
@@ -4125,7 +4129,7 @@ function _ob4Finish(){
 
 function _ob4GreekPick(){
   var m=document.getElementById('ob4-greek-modal');if(m)m.remove();m=document.createElement('div');m.id='ob4-greek-modal';m.className='mov open';m.style.zIndex='10006';
-  m.innerHTML='<div class="msheet" style="max-height:82vh;overflow-y:auto;"><div class="mhnd"></div><div class="mtitle">Fraternity / Sorority</div><input id="ob4-greek-q" oninput="_ob4GreekList(this.value)" placeholder="🔍 Search chapters…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:11px 15px;margin-bottom:10px;"/><div id="ob4-greek-res"></div><button class="gbtn-ghost" style="margin-top:8px;" onclick="window._ob4Greek=\'\';_ob4Involved=_ob4Involved.filter(function(x){return x!==\'Fraternity / Sorority\';});document.getElementById(\'ob4-greek-modal\').remove();_ob4Go(2)">I am not in one</button></div>';
+  m.innerHTML='<div class="msheet" style="max-height:82vh;overflow-y:auto;"><div class="mhnd"></div><div class="mtitle">Fraternity / Sorority</div><input id="ob4-greek-q" oninput="_ob4GreekList(this.value)" placeholder="Search chapters…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:11px 15px;margin-bottom:10px;"/><div id="ob4-greek-res"></div><button class="gbtn-ghost" style="margin-top:8px;" onclick="window._ob4Greek=\'\';_ob4Involved=_ob4Involved.filter(function(x){return x!==\'Fraternity / Sorority\';});document.getElementById(\'ob4-greek-modal\').remove();_ob4Go(2)">I am not in one</button></div>';
   document.body.appendChild(m);_ob4GreekList('');
 }
 function _ob4GreekList(q){var el=document.getElementById('ob4-greek-res');if(!el)return;q=(q||'').toLowerCase();var src=(typeof GREEK_ORGS!=='undefined'?GREEK_ORGS:[]).filter(function(o){return o!=='Other'&&(!q||o.toLowerCase().indexOf(q)>-1);});el.innerHTML=src.map(function(o){return '<div onclick="_ob4GreekSet(\''+o.replace(/'/g,"\\'")+'\')" style="padding:12px 6px;font-size:var(--fs-base);font-weight:500;color:#fff;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.06);">'+o+'</div>';}).join('');}
@@ -5057,10 +5061,10 @@ function _renderCardStudio(){
   m=document.createElement('div');m.id='cardstudio-modal';m.className='mov open';m.style.zIndex='10002';
   var seg=function(label,key,opts){return '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin:12px 0 7px;">'+label+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+opts.map(function(o){var on=cs[key]===o.v;return '<button onclick="_cardStudioSet(\''+key+'\',\''+o.v+'\')" style="padding:8px 13px;border-radius:var(--rad-sm);border:1.5px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.12)':'rgba(255,255,255,0.04)')+';color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">'+o.l+'</button>';}).join('')+'</div>';};
   m.innerHTML='<div class="msheet" style="max-width:400px;max-height:90vh;overflow-y:auto;"><div class="mhnd"></div>'+
-    '<div style="text-align:center;margin-bottom:10px;"><div style="font-size:30px;">🎨</div><div class="t-title">Card Studio</div><div class="t-sub">Add a frame to your Crush card.</div></div>'+
+    '<div style="text-align:center;margin-bottom:10px;"><div style="color:var(--uni-accent,var(--p));">'+icon('palette',28)+'</div><div class="t-title">Card Studio</div><div class="t-sub">Add a frame to your Crush card.</div></div>'+
     '<div id="cardstudio-preview" style="margin-bottom:4px;"></div>'+
     seg('Photo frame','frame',[{v:'none',l:'None'},{v:'glow',l:'Glow'},{v:'gold',l:'Gold ✨'},{v:'neon',l:'Neon'}])+
-    '<button class="gbtn" style="background:var(--p);margin:14px 0 8px;" onclick="_cardStudioSave()">Save card 🎨</button>'+
+    '<button class="gbtn" style="background:var(--p);margin:14px 0 8px;" onclick="_cardStudioSave()">Save card</button>'+
     '<button class="gbtn-ghost" onclick="document.getElementById(\'cardstudio-modal\').remove()">Done</button></div>';
   document.body.appendChild(m);
   _cardStudioPreview();
@@ -5179,7 +5183,7 @@ function _paletteCreate(){
   var m=document.getElementById('palette-modal');if(m)m.remove();
   m=document.createElement('div');m.id='palette-modal';m.className='mov open';m.style.zIndex='10003';
   m.innerHTML='<div class="msheet" style="max-width:340px;"><div class="mhnd"></div>'+
-    '<div style="text-align:center;margin-bottom:14px;"><div style="font-size:var(--fs-2xl);">🎨</div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;">Create a palette</div></div>'+
+    '<div style="text-align:center;margin-bottom:14px;"><div style="color:var(--uni-accent,var(--p));">'+icon('palette',26)+'</div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;">Create a palette</div></div>'+
     '<div id="pal-preview" style="height:60px;border-radius:var(--rad-md);margin-bottom:14px;background:linear-gradient(135deg,'+window._palDraft.p+','+window._palDraft.p2+');"></div>'+
     '<div style="display:flex;gap:12px;margin-bottom:16px;"><label style="flex:1;font-size:var(--fs-sm);font-weight:600;color:var(--fg2);">Primary<br><input type="color" value="'+window._palDraft.p+'" oninput="_palSet(\'p\',this.value)" style="width:100%;height:42px;border:none;background:none;cursor:pointer;margin-top:5px;"/></label><label style="flex:1;font-size:var(--fs-sm);font-weight:600;color:var(--fg2);">Secondary<br><input type="color" value="'+window._palDraft.p2+'" oninput="_palSet(\'p2\',this.value)" style="width:100%;height:42px;border:none;background:none;cursor:pointer;margin-top:5px;"/></label></div>'+
     '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_paletteSave()">Save palette</button>'+
@@ -5385,7 +5389,7 @@ function _renderCompleteness(){
   var A=_profAccent();
   el.innerHTML='<div onclick="openEdit()" style="cursor:pointer;background:linear-gradient(135deg,color-mix(in srgb,'+A+' 14%,transparent),rgba(255,255,255,0.03));border:1.5px solid color-mix(in srgb,'+A+' 50%,transparent);border-radius:var(--rad-lg);padding:14px 16px;'+A+' 22%,transparent);backdrop-filter:blur(10px);">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">'+
-      '<span style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;white-space:nowrap;">⚡ Profile <span style="color:'+A+';text-shadow:0 0 10px color-mix(in srgb,'+A+' 80%,transparent);">'+c.pct+'%</span> complete</span>'+
+      '<span style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;white-space:nowrap;">'+icon('zap',15)+' Profile <span style="color:'+A+';text-shadow:0 0 10px color-mix(in srgb,'+A+' 80%,transparent);">'+c.pct+'%</span> complete</span>'+
       ''+
     '</div>'+
     // The likes multiplier used to be a separate pill. It now lives in the
@@ -5628,7 +5632,7 @@ function openImagePositioner(url,type,onSave){
   else {_ipFW=210;_ipFH=280;}
   _ipZoom=1;
   var radius=type==='banner'?'14px':'20px';
-  var title=type==='banner'?'🖼️ Position Banner':'📷 Position Portrait Photo';
+  var title=type==='banner'?icon('image',15)+' Position Banner':icon('camera',15)+' Position Portrait Photo';
   var prev=document.getElementById('imgpos-modal');if(prev)prev.remove();
   var modal=document.createElement('div');modal.id='imgpos-modal';modal.className='mov open';modal.style.zIndex='9999';
   var frameBorderStyle = type==='banner' ? 'border:2px solid var(--uni-p, #dc2626);' : 'border:2.5px solid var(--uni-p, #dc2626);';
@@ -5779,7 +5783,7 @@ function editProfileAvatar(){
   modal.innerHTML='<div class="msheet" style="max-width:340px;"><div class="mhnd"></div>'+
     '<div class="mtitle">Edit Profile Visuals</div>'+
     '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="this.closest(\'.mov\').remove();_editProfilePictureChoice()">👤 Change Profile Picture</button>'+
-    '<button class="gbtn" style="background:linear-gradient(135deg, var(--p), var(--p2));margin-bottom:8px;" onclick="this.closest(\'.mov\').remove();_editProfileCoverChoice()">🖼️ Change Cover Photo</button>'+
+    '<button class="gbtn" style="background:linear-gradient(135deg, var(--p), var(--p2));margin-bottom:8px;" onclick="this.closest(\'.mov\').remove();_editProfileCoverChoice()">'+icon('image',15)+' Change Cover Photo</button>'+
     '<button class="gbtn-ghost" onclick="this.closest(\'.mov\').remove()">Cancel</button>'+
   '</div>';
   document.body.appendChild(modal);
@@ -5852,9 +5856,9 @@ function _setProfileCover(url) {
   if (m) m.remove();
   
   if (typeof pushNotification === 'function') {
-    pushNotification('🖼️ Cover photo updated!', 'event');
+    pushNotification('Cover photo updated!', 'event');
   } else {
-    alert('🖼️ Cover photo updated!');
+    alert('Cover photo updated!');
   }
 }
 function _repositionProfilePic(){
@@ -6173,7 +6177,7 @@ function _renderEvGreekCohost(){
   if(!org){box.innerHTML='';return;}
   var pn=_greekPartner(org);
   box.innerHTML='<div style="background:rgba(43,95,217,0.06);border:1px solid rgba(43,95,217,0.25);border-radius:var(--rad-sm);padding:11px;margin-bottom:10px;">'+
-    '<div style="font-size:var(--fs-sm);font-weight:600;color:#a9c4ff;margin-bottom:8px;">🏛️ '+org+' event</div>'+
+    '<div style="font-size:var(--fs-sm);font-weight:600;color:#a9c4ff;margin-bottom:8px;">'+icon('landmark',13)+' '+org+' event</div>'+
     (pn?'<label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:8px;"><input type="checkbox" id="ev-cohost" style="accent-color:#2b5fd9;width:17px;height:17px;"/><span style="font-size:var(--fs-sm);color:#fff;">🤝 Co-host with '+pn+' <span style="color:var(--fg2);">(auto-invites your paired chapter)</span></span></label>':'<div style="font-size:var(--fs-xs);color:var(--fg3);margin-bottom:8px;">No paired chapter on record — solo house event.</div>')+
     '<label style="display:flex;align-items:center;gap:9px;cursor:pointer;"><input type="checkbox" id="ev-rush-open" style="accent-color:#2b5fd9;width:17px;height:17px;"/><span style="font-size:var(--fs-sm);color:#fff;">'+icon('search',16)+' Open to rushees <span style="color:var(--fg2);">(freshmen exploring Greek life)</span></span></label>'+
   '</div>';
@@ -6244,8 +6248,8 @@ function _evCapStep(d){
   var mx=isFree?freeCap:(parseInt(c.max)||150);
 
   if(d<0 && curr<=2){
-    if(typeof _prettyAlert==='function')_prettyAlert('👥 Un evento requiere mínimo 2 personas para poder crearse.');
-    else alert('👥 Un evento requiere mínimo 2 personas para poder crearse.');
+    if(typeof _prettyAlert==='function')_prettyAlert('Un evento requiere mínimo 2 personas para poder crearse.');
+    else alert('Un evento requiere mínimo 2 personas para poder crearse.');
     c.value=2;
     if(typeof _clampEvCap==='function')_clampEvCap(c);
     return;
@@ -6600,10 +6604,10 @@ function filterChatBySection() {
     empty.style.display = anyVisible ? 'none' : 'block';
     if (!anyVisible) {
       var _es = {
-        matches: { ico: '💘', t: 'No matches yet', b: 'Like people in Crush and your matches land here.', cta: 'Open Crush', act: "sw('unicrush','Crush')" },
-        friends: { ico: '🤝', t: 'No friend chats yet', b: 'Add friends on campus to start a chat.', cta: 'Find people', act: "sw('unicrush','Crush')" },
-        events:  { ico: '🎉', t: 'No event chats yet', b: 'Join a hangout to unlock its group chat.', cta: 'Explore hangouts', act: "sw('hangouts','Hangouts')" },
-        all:     { ico: '💬', t: 'No conversations yet', b: 'Match with someone or join a hangout to start chatting.', cta: 'Explore', act: "sw('hangouts','Hangouts')" }
+        matches: { ico: icon('heart',26), t: 'No matches yet', b: 'Like people in Crush and your matches land here.', cta: 'Open Crush', act: "sw('unicrush','Crush')" },
+        friends: { ico: icon('handshake',26), t: 'No friend chats yet', b: 'Add friends on campus to start a chat.', cta: 'Find people', act: "sw('unicrush','Crush')" },
+        events:  { ico: icon('balloon',26), t: 'No event chats yet', b: 'Join a hangout to unlock its group chat.', cta: 'Explore hangouts', act: "sw('hangouts','Hangouts')" },
+        all:     { ico: icon('message',26), t: 'No conversations yet', b: 'Match with someone or join a hangout to start chatting.', cta: 'Explore', act: "sw('hangouts','Hangouts')" }
       };
       var _e = _es[sec] || _es.all;
       empty.innerHTML =
@@ -6693,7 +6697,7 @@ function _openChatCreateMenu(){
     // Group identity — only meaningful with 2+ picks, so it stays hidden until
     // then (toggled by _syncCreateChatFooter).
     '<div id="ccf-group-meta" style="display:none;align-items:center;gap:12px;margin-bottom:12px;">'+
-      '<div id="ccf-photo" onclick="_ccfPickPhoto()" title="Chat photo" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;cursor:pointer;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background-size:cover;background-position:center;">📷</div>'+
+      '<div id="ccf-photo" onclick="_ccfPickPhoto()" title="Chat photo" style="width:52px;height:52px;border-radius:50%;flex-shrink:0;cursor:pointer;background:rgba(255,255,255,0.05);border:1.5px dashed rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);background-size:cover;background-position:center;">'+icon('camera',18)+'</div>'+
       '<input id="ccf-title" maxlength="40" placeholder="Chat name (optional)" style="flex:1;min-width:0;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;"/>'+
     '</div>'+
     '<input id="ccf-search" oninput="_filterCreateChatFriends(this.value)" placeholder="Search friends" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin-bottom:10px;"/>'+
@@ -6822,7 +6826,7 @@ function _createChatFromPicker(){
     item.innerHTML=(isGroup
         ? (chatPhoto
             ? '<div class="cav grp" id="cav-'+chatId+'" style="background:url(\''+chatPhoto+'\') center/cover;"></div>'
-            : '<div class="cav grp" id="cav-'+chatId+'" style="background:'+color+';"><span>👥</span></div>')
+            : '<div class="cav grp" id="cav-'+chatId+'" style="background:'+color+';"><span style="display:inline-flex;">'+icon('users',18)+'</span></div>')
         : (first.photo
             ? '<div class="cav" style="background:'+color+';"><img src="'+first.photo+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/></div>'
             : '<div class="cav" style="background:'+color+';"><span>'+init+'</span></div>'))+
@@ -6884,7 +6888,7 @@ function computeCompat(ev){
 function seeMyEvent(idx){
   var e=(window._myCreatedEvents||[])[idx];if(!e){return;}
   var cd=_evCountdown({time:e.time});var ended=(cd==='ENDED');var full=(e.spots>=e.cap);
-  var status=ended?'<span style="color:#dc2626;font-weight:600;">⛔ Ended</span>':(full?'<span style="color:#dc2626;font-weight:600;">'+icon('ban',16)+' Full</span>':'<span style="color:#4ade80;font-weight:600;">✅ Open</span>');
+  var status=ended?'<span style="color:#dc2626;font-weight:600;">'+icon('ban',15)+' Ended</span>':(full?'<span style="color:#dc2626;font-weight:600;">'+icon('ban',16)+' Full</span>':'<span style="color:#4ade80;font-weight:600;">'+icon('check',15)+' Open</span>');
   var modal=document.createElement('div');modal.className='mov open';modal.style.zIndex='9998';
   modal.innerHTML='<div class="msheet" style="max-width:360px;"><div class="mhnd"></div>'+
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div class="mtitle" style="margin:0;">'+e.name+'</div><span style="font-size:var(--fs-xs);font-weight:600;color:#4ade80;background:rgba(74,222,128,0.15);border-radius:var(--rad-sm);padding:2px 8px;">Your event</span></div>'+
@@ -6962,12 +6966,12 @@ function _evFriendsGoingHtml(e){
       }
     }).join('');
     var label = realGoing[0].n + (realGoing.length > 1 ? ' + ' + (realGoing.length - 1) + ' ' + (realGoing.length - 1 === 1 ? 'person' : 'people') : '') + ' going';
-    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">'+avs+'<span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;">🔥 '+label+'</span></div>';
+    return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">'+avs+'<span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;">'+icon('flame',13)+' '+label+'</span></div>';
   }
   var fg=_evFriendsGoing(e);if(!fg.length)return '';
   var avs=fg.slice(0,3).map(function(f,i){return '<div style="width:24px;height:24px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;border:2px solid #0b0b0e;margin-left:'+(i?-8:0)+'px;">'+f.i+'</div>';}).join('');
   var label=fg[0].n+(fg.length>1?' + '+(fg.length-1)+' '+(fg.length-1===1?'friend':'friends'):'')+' going';
-  return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">'+avs+'<span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;">🔥 '+label+'</span></div>';
+  return '<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">'+avs+'<span style="font-size:var(--fs-xs);color:#4ade80;font-weight:500;">'+icon('flame',13)+' '+label+'</span></div>';
 }
 function _happeningTonightHtml(){
   var tonight=HANGOUT_EVENTS.filter(function(e){var c=_evCountdown(e);return c&&c.indexOf('hour')>-1&&e.spots<e.cap;});
@@ -6990,7 +6994,7 @@ function _happeningTonightHtml(){
 function seeMyEvent(idx){
   var e=(window._myCreatedEvents||[])[idx];if(!e){return;}
   var cd=_evCountdown({time:e.time});var ended=(cd==='ENDED');var full=(e.spots>=e.cap);
-  var status=ended?'<span style="color:#dc2626;font-weight:600;">⛔ Ended</span>':(full?'<span style="color:#dc2626;font-weight:600;">'+icon('ban',16)+' Full</span>':'<span style="color:#4ade80;font-weight:600;">✅ Open</span>');
+  var status=ended?'<span style="color:#dc2626;font-weight:600;">'+icon('ban',15)+' Ended</span>':(full?'<span style="color:#dc2626;font-weight:600;">'+icon('ban',16)+' Full</span>':'<span style="color:#4ade80;font-weight:600;">'+icon('check',15)+' Open</span>');
   var modal=document.createElement('div');modal.className='mov open';modal.style.zIndex='9998';
   modal.innerHTML='<div class="msheet" style="max-width:360px;"><div class="mhnd"></div>'+
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><div class="mtitle" style="margin:0;">'+e.name+'</div><span style="font-size:var(--fs-xs);font-weight:600;color:#4ade80;background:rgba(74,222,128,0.15);border-radius:var(--rad-sm);padding:2px 8px;">Your event</span></div>'+
@@ -7159,8 +7163,8 @@ function _uniScopeBannerHtml(){
   // Matches the Sort control next to it. "Other Universities" carries a 🔒 until
   // the student is A+ (gated in the onchange).
   return '<select class="ev-ctrl-sel" id="ev-uniscope-sel" style="--ctl-hue:' + hue + ';" onchange="_uniScopeSelChange(this)">' +
-      '<option value="mine"' + (scope === 'mine' ? ' selected' : '') + '>🎓 My University</option>' +
-      '<option value="pick"' + (scope === 'pick' ? ' selected' : '') + '>🏛️ Other Universities</option>' +
+      '<option value="mine"' + (scope === 'mine' ? ' selected' : '') + '>My University</option>' +
+      '<option value="pick"' + (scope === 'pick' ? ' selected' : '') + '>Other Universities</option>' +
     '</select>';
 }
 // Gate "Other Universities" behind A+: on a non-A+ student it fires the paywall
@@ -7210,8 +7214,8 @@ function _secColor(sec){var C={all:'#34d399',nightlife:'#dc2626',study:'#60a5fa'
 function _hxPrice(e){return (e.section==='greek'||e.section==='exclusive')?'$5':'Free';}
 function _hxAge(e){return (e.section==='nightlife'||e.section==='greek')?'21+':'All ages';}
 function _hxTags(e){var P={nightlife:['Party','Drinks','Music'],study:['Study','Focus','Chill'],sports:['Sports','Active','Prizes'],dorm:['Chill','Social','Games'],greek:['Greek Life','DJ','Party'],abroad:['Travel','Culture','Meetup'],campus:['Campus','Social','Free'],networking:['Networking','Career','Alumni']};var t=(P[e.section]||['Social','Fun']).slice(0,3);if(e.langs&&e.langs.length&&t.indexOf(e.langs[0])===-1)t.push(e.langs[0]);return t.slice(0,4).map(function(x){return '<span class="evtag">'+x+'</span>';}).join('');}
-function _hxState(e){var pct=e.cap?Math.round(e.spots/e.cap*100):0;var cd=(typeof _evCountdown==='function')?_evCountdown(e):'';if(pct>=90)return {label:'⏳ Last chance to join',col:'#dc2626',btn:'linear-gradient(135deg,#791515,#9e1b1b)',bar:'#dc2626'};if(cd&&/^[0-9]+h/.test(cd))return {label:'🕐 Starts in '+cd,col:'#f59e0b',btn:'linear-gradient(135deg,#f97316,#ea580c)',bar:'#f59e0b'};if(pct>=70)return {label:'⭐ Almost full',col:'#818cf8',btn:'linear-gradient(135deg,#2b5fd9,#2b5fd9)',bar:'#818cf8'};return {label:'✨ Open spots',col:'#4ade80',btn:'linear-gradient(135deg,var(--p),var(--p2))',bar:'var(--p)'};}
-function _hxBadge(e){if(e.section==='greek'||e.section==='exclusive'||(e.restriction&&e.restriction!=='all'))return {t:'EXCLUSIVE',bg:'linear-gradient(135deg,var(--accent),var(--accent-deep))'};return (_strHash(e.name||'')%2===0)?{t:'STAFF PICK',bg:'linear-gradient(135deg,#3b82f6,#2563eb)'}:{t:'POPULAR',bg:'linear-gradient(135deg,#22c55e,#16a34a)'};}
+function _hxState(e){var pct=e.cap?Math.round(e.spots/e.cap*100):0;var cd=(typeof _evCountdown==='function')?_evCountdown(e):'';if(pct>=90)return {label:icon('hourglass',12)+' Last chance to join',col:'#dc2626',btn:'linear-gradient(135deg,#791515,#9e1b1b)',bar:'#dc2626'};if(cd&&/^[0-9]+h/.test(cd))return {label:icon('clock',12)+' Starts in '+cd,col:'#f59e0b',btn:'linear-gradient(135deg,#f97316,#ea580c)',bar:'#f59e0b'};if(pct>=70)return {label:icon('star',12)+' Almost full',col:'#818cf8',btn:'linear-gradient(135deg,#2b5fd9,#2b5fd9)',bar:'#818cf8'};return {label:icon('sparkles',12)+' Open spots',col:'#4ade80',btn:'linear-gradient(135deg,var(--p),var(--p2))',bar:'var(--p)'};}
+function _hxBadge(e){if(e.section==='greek'||e.section==='exclusive'||(e.restriction&&e.restriction!=='all'))return {t:'EXCLUSIVE',bg:'linear-gradient(135deg,var(--accent),var(--accent-deep))'};return null;} // STAFF PICK/POPULAR (falsos, por hash) eliminados
 // Promo badges (STAFF PICK / POPULAR / "Only N left") are a paid perk: they only show on
 // events pushed with a Hangout Boost or hosted by an A+ member. Everyone else gets a clean card.
 function _evIsPromoted(e){
@@ -7222,7 +7226,7 @@ function _evIsPromoted(e){
   return false;
 }
 // Unused since cards became full-bleed posters — joining now happens from the detail sheet.
-function _hxJoin(e,bg){var key=e.section+'|'+e.name;var isJoined=!!joinedHangouts[key];var cd=(typeof _evCountdown==='function')?_evCountdown(e):'';var ended=(cd==='ENDED');var full=(e.spots>=e.cap);var nm=e.name.replace(/'/g,"\\'");if((ended||full)&&!isJoined)return '<button class="jbtn" style="background:#3a3a4a !important;cursor:default;margin-top:4px;height:36px;padding:0 16px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:var(--fs-sm);color:rgba(255,255,255,0.4);" disabled>'+(ended?'⛔ Ended':'🚫 Full')+'</button>';if(isJoined){return '<div onclick="event.stopPropagation();joinHangoutEv(\''+e.section+'\',\''+nm+'\',\''+e.restriction+'\',this)" title="Leave event" style="cursor:pointer;color:#dc2626;background:rgba(244,63,94,0.15);border:1.5px solid rgba(244,63,94,0.5);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-x-icon lucide-circle-x"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></div>';}return '<button class="jbtn" style="background:'+bg+' !important;margin-top:4px;height:36px;padding:0 18px;border-radius:var(--rad-md);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;box-shadow:var(--glow-primary);display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();joinHangoutEv(\''+e.section+'\',\''+nm+'\',\''+e.restriction+'\',this)">Join</button>';}
+function _hxJoin(e,bg){var key=e.section+'|'+e.name;var isJoined=!!joinedHangouts[key];var cd=(typeof _evCountdown==='function')?_evCountdown(e):'';var ended=(cd==='ENDED');var full=(e.spots>=e.cap);var nm=e.name.replace(/'/g,"\\'");if((ended||full)&&!isJoined)return '<button class="jbtn" style="background:#3a3a4a !important;cursor:default;margin-top:4px;height:36px;padding:0 16px;border-radius:var(--rad-md);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:var(--fs-sm);color:rgba(255,255,255,0.4);" disabled>'+(ended?icon('ban',14)+' Ended':icon('ban',14)+' Full')+'</button>';if(isJoined){return '<div onclick="event.stopPropagation();joinHangoutEv(\''+e.section+'\',\''+nm+'\',\''+e.restriction+'\',this)" title="Leave event" style="cursor:pointer;color:#dc2626;background:rgba(244,63,94,0.15);border:1.5px solid rgba(244,63,94,0.5);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-x-icon lucide-circle-x"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg></div>';}return '<button class="jbtn" style="background:'+bg+' !important;margin-top:4px;height:36px;padding:0 18px;border-radius:var(--rad-md);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;box-shadow:var(--glow-primary);display:flex;align-items:center;justify-content:center;" onclick="event.stopPropagation();joinHangoutEv(\''+e.section+'\',\''+nm+'\',\''+e.restriction+'\',this)">Join</button>';}
 
 function _getGenderProgressBarHtml(e) {
   var total = e.cap || 10;
@@ -7269,8 +7273,8 @@ function _getGenderProgressBarHtml(e) {
 }
 
 function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
-  var st = (typeof _hxState === 'function') ? _hxState(e) : { col: '#22c55e', label: '✨ Open spots', btn: 'linear-gradient(135deg,var(--accent),var(--accent-deep))' };
-  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', t: 'POPULAR' };
+  var st = (typeof _hxState === 'function') ? _hxState(e) : { col: '#22c55e', label: icon('sparkles',12)+' Open spots', btn: 'linear-gradient(135deg,var(--accent),var(--accent-deep))' };
+  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : null;
   var fLeft = Math.max(1, (e.cap || 10) - (e.spots || 0));
 
   var promoted = (typeof _evIsPromoted === 'function') ? _evIsPromoted(e) : false;
@@ -7278,8 +7282,8 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
   // Badges are labels, not actions — no glow, they lean on fill + border.
   var badgeHtml = isMyEvent ?
     '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;padding:5px 14px;border-radius:var(--rad-pill);background:linear-gradient(135deg,var(--accent),var(--accent-deep));letter-spacing:0.4px;border:1px solid rgba(255,255,255,0.25);">MY EVENT</div>' :
-    promoted ?
-    '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;padding:5px 14px;border-radius:var(--rad-pill);background:'+bd.bg+';letter-spacing:0.4px;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;"><span>🔥</span><span>'+bd.t+'</span></div>' : '';
+    (promoted && bd) ?
+    '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;padding:5px 14px;border-radius:var(--rad-pill);background:'+bd.bg+';letter-spacing:0.4px;border:1px solid rgba(255,255,255,0.25);display:flex;align-items:center;gap:5px;"><span style="display:inline-flex;">'+icon('flame',12)+'</span><span>'+bd.t+'</span></div>' : '';
 
   var capFlagHtml = (!isMyEvent && promoted && fLeft <= 6) ?
     '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;background:linear-gradient(135deg,#791515,#9e1b1b);padding:5px 14px;border-radius:var(--rad-pill);border:1px solid rgba(255,255,255,0.25);">Only '+fLeft+' left</div>' : '';
@@ -7357,7 +7361,7 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
       '<div style="display:flex;align-items:center;gap:10px;min-width:0;">' +
         '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + '</div>' +
         '<div style="display:flex;align-items:center;gap:4px;font-size:var(--fs-base);font-weight:700;color:#22c55e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' +
-          '<span>🔥</span><span>' + totalGoing + ' going</span>' +
+          '<span>'+icon('flame',14)+'</span><span>' + totalGoing + ' going</span>' +
         '</div>' +
       '</div>' +
       viewPill +
@@ -7376,14 +7380,14 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
     actionsHtml =
       '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;margin-top:14px;align-items:stretch;">' +
         '<button onclick="_editMyEventCard(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:var(--p);font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">'+icon('edit',16)+' Edit</button>' +
-        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1.4;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 16px -4px rgba(245,158,11,0.6);">'+(_ended?'↻ Repost':'🚀 Boost')+'</button>' +
+        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1.4;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 16px -4px rgba(245,158,11,0.6);">'+(_ended?''+icon('undo',13)+' Repost':''+icon('rocket',13)+' Boost')+'</button>' +
         '<button onclick="_deleteMyEventById(\''+safeRef+'\')" aria-label="Delete event" style="flex:0 0 auto;width:44px;padding:11px 0;border-radius:var(--rad-md);background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.5);color:#dc2626;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;">'+icon('trash',16)+'</button>' +
       '</div>';
   } else if (isJoinedView) {
     actionsHtml =
       '<div onclick="event.stopPropagation();" style="display:flex;gap:10px;margin-top:14px;align-items:stretch;">' +
         '<button onclick="_eventJoinedTap(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" style="flex:1;padding:12px 10px;border-radius:var(--rad-md);background:linear-gradient(135deg,var(--accent),var(--accent-deep));border:none;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:var(--glow-primary);letter-spacing:0.3px;">'+icon('chat',16)+' Go to Chat</button>' +
-        '<button onclick="joinHangoutEv(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" aria-label="Leave event" title="Leave event" style="flex:0 0 auto;padding:12px 15px;border-radius:var(--rad-md);background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.5);color:#dc2626;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">🚪</button>' +
+        '<button onclick="joinHangoutEv(\''+e.section+'\',\''+safeName+'\',\''+e.restriction+'\',this)" aria-label="Leave event" title="Leave event" style="flex:0 0 auto;padding:12px 15px;border-radius:var(--rad-md);background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.5);color:#dc2626;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+icon('x',16)+'</button>' +
       '</div>';
   }
 
@@ -7469,15 +7473,15 @@ function openHangoutDetailModal(evtId) {
   var evtEmoji = e.emoji || '🍿';
   var desc = e.desc || 'Join this hangout to meet more people from your campus and nearby, and have a great time.';
 
-  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : { bg: 'linear-gradient(135deg,#22c55e,#16a34a)', t: 'POPULAR' };
+  var bd = (typeof _hxBadge === 'function') ? _hxBadge(e) : null;
   var fLeft = Math.max(1, (e.cap || 10) - (e.spots || 0));
 
   var promoted = (typeof _evIsPromoted === 'function') ? _evIsPromoted(e) : false;
 
   var badgeHtml = isMyEvent ?
     '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;padding:6px 16px;border-radius:var(--rad-pill);background:linear-gradient(135deg,var(--accent),var(--accent-deep));letter-spacing:0.4px;">ORGANIZER · MY EVENT</div>' :
-    promoted ?
-    '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;padding:6px 16px;border-radius:var(--rad-pill);background:'+bd.bg+';letter-spacing:0.4px;display:flex;align-items:center;gap:6px;"><span>🔥</span><span>'+bd.t+'</span></div>' : '';
+    (promoted && bd) ?
+    '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;padding:6px 16px;border-radius:var(--rad-pill);background:'+bd.bg+';letter-spacing:0.4px;display:flex;align-items:center;gap:6px;"><span style="display:inline-flex;">'+icon('flame',13)+'</span><span>'+bd.t+'</span></div>' : '';
 
   var capFlagHtml = (!isMyEvent && promoted && fLeft <= 6) ?
     '<div style="font-size:var(--fs-xs);font-weight:700;color:#fff;background:linear-gradient(135deg,#791515,#9e1b1b);padding:6px 16px;border-radius:var(--rad-pill);">Only '+fLeft+' left</div>' : '';
@@ -7674,7 +7678,7 @@ function openHangoutDetailModal(evtId) {
 
       // Description section
       '<div style="margin-bottom:14px;padding:12px 14px;'+_cardSoft+'">' +
-        '<div style="font-size:var(--fs-2xs);font-weight:700;color:'+_attHue+';text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">✨ ABOUT THIS EVENT</div>' +
+        '<div style="font-size:var(--fs-2xs);font-weight:700;color:'+_attHue+';text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:flex;align-items:center;gap:4px;">'+icon('sparkles',13)+' ABOUT THIS EVENT</div>' +
         '<div style="font-size:var(--fs-base);color:rgba(255,255,255,0.9);line-height:1.55;white-space:pre-line;">'+desc+'</div>' +
       '</div>' +
 
@@ -8044,7 +8048,7 @@ function _deleteMyEventById(idOrName) {
   var evName = ev ? ev.name : 'this event';
   ugzConfirm({
     type: 'warning',
-    title: '🗑 Delete event',
+    title: 'Delete event',
     message: '"' + evName + '" and its linked group chat will be deleted.\n\nAttendees will lose access to the chat and this action CANNOT be undone.',
     confirmText: 'Delete',
     cancelText: 'Cancel',
@@ -8119,7 +8123,7 @@ function _boostMyEvent(idOrName) {
   // Nothing paid for yet → sell the plan instead of the action.
   if (!isAplus && boosts <= 0) {
     if (typeof premAlert === 'function') {
-      premAlert('🚀 Boost your event\n\nPut "' + evName + '" at the top of the feed with a glowing border so the whole campus sees it.\n\nAvailable with the A+ Student plan ($19.99/yr), or buy a single Hangout Boost in the Store.');
+      premAlert(''+icon('rocket',13)+' Boost your event\n\nPut "' + evName + '" at the top of the feed with a glowing border so the whole campus sees it.\n\nAvailable with the A+ Student plan ($19.99/yr), or buy a single Hangout Boost in the Store.');
     }
     return;
   }
@@ -8127,7 +8131,7 @@ function _boostMyEvent(idOrName) {
   var cost = isAplus ? 'Included with your A+ plan' : ('You have ' + boosts + ' boost' + (boosts === 1 ? '' : 's') + ' left');
   ugzConfirm({
     type: 'info',
-    title: '🚀 Boost event',
+    title: ''+icon('rocket',13)+' Boost event',
     message: 'Boost "' + evName + '"?\n\nIt goes to the top of the feed with a glowing border for 24h.\n\n' + cost + '.',
     confirmText: 'Boost it',
     cancelText: 'Cancel',
@@ -8232,7 +8236,7 @@ function _editMyEventCard(idOrName) {
   }
 
   var heading = document.querySelector('#evp-create .mtitle');
-  if (heading) heading.textContent = '✏️ Edit Event';
+  if (heading) heading.textContent = 'Edit Event';
   var submitBtn = document.querySelector('#evp-create .gbtn');
   if (submitBtn) submitBtn.textContent = 'Save Changes';
 
@@ -8499,11 +8503,11 @@ function joinHangoutEv(section,name,restriction,btn){
   
   if(!isJoined){
     var g=userGender,age=userPro.age||20,r=restriction||'all';
-    if(r==='female'&&g!=='female'){alert('🚫 This event is for women only.');return;}
-    if(r==='male'&&g!=='male'){alert('🚫 This event is for men only.');return;}
-    if(r==='other'&&g!=='other'){alert('🚫 This event is for Other-identifying attendees only.');return;}
-    if(r==='18plus'&&age<18){alert('🚫 This event is 18+ only.');return;}
-    if(r==='21plus'&&age<21){alert('🚫 This event is 21+ only.');return;}
+    if(r==='female'&&g!=='female'){alert('This event is for women only.');return;}
+    if(r==='male'&&g!=='male'){alert('This event is for men only.');return;}
+    if(r==='other'&&g!=='other'){alert('This event is for Other-identifying attendees only.');return;}
+    if(r==='18plus'&&age<18){alert('This event is 18+ only.');return;}
+    if(r==='21plus'&&age<21){alert('This event is 21+ only.');return;}
 
     if (dbEv && dbEv.id && typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
       apiClient.joinEvent(dbEv.id)
@@ -8913,11 +8917,11 @@ function ugCreateOther(otherPct){
 
 function joinEv(btn,name,restriction,joinMode,requireMsg){
   var r=restriction||'all';var g=userGender;var age=userPro.age||20;
-  if(r==='female'&&g!=='female'){alert('🚫 This event is for women only.');return;}
-  if(r==='male'&&g!=='male'){alert('🚫 This event is for men only.');return;}
-  if(r==='other'&&g!=='other'){alert('🚫 This event is for Other-identifying attendees only.');return;}
-  if(r==='18plus'&&age<18){alert('🚫 This event is 18+ only.');return;}
-  if(r==='21plus'&&age<21){alert('🚫 This event is 21+ only.');return;}
+  if(r==='female'&&g!=='female'){alert('This event is for women only.');return;}
+  if(r==='male'&&g!=='male'){alert('This event is for men only.');return;}
+  if(r==='other'&&g!=='other'){alert('This event is for Other-identifying attendees only.');return;}
+  if(r==='18plus'&&age<18){alert('This event is 18+ only.');return;}
+  if(r==='21plus'&&age<21){alert('This event is 21+ only.');return;}
   // Toggle join/leave
   if(btn.dataset.joined==='1'){btn.dataset.joined='0';btn.textContent='Join event';btn.style.background=uni?uni.p:'var(--p)';btn.disabled=false;
     var card=btn.closest('.ev-inner');if(card){card.querySelectorAll('span').forEach(function(s){var m=s.textContent.match(/(\d+)\/(\d+)/);if(m){var cur=Math.max(0,parseInt(m[1])-1);s.textContent=cur+'/'+m[2];var bar=card.querySelector('.bar-f');if(bar)bar.style.width=Math.round(cur/parseInt(m[2])*100)+'%';}});}
@@ -8949,7 +8953,7 @@ function joinEv(btn,name,restriction,joinMode,requireMsg){
         var cur=parseInt(m[1])+1;var max=parseInt(m[2]);
         s.textContent=cur+'/'+max;
         var bar=card.querySelector('.bar-f');if(bar)bar.style.width=Math.round(cur/max*100)+'%';
-        if(cur>=max){setTimeout(function(){alert('🎉 "'+name+'" is full! Group chat is now open — it disappears in 24 hours.');},400);}
+        if(cur>=max){setTimeout(function(){alert('"'+name+'" is full! Group chat is now open — it disappears in 24 hours.');},400);}
       }
     });
   } else {
@@ -8982,7 +8986,7 @@ async function createEv(){
   var n=document.getElementById('ev-nm')&&document.getElementById('ev-nm').value.trim();if(!n){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('Give your event a name');return;}
   if(hasBanned(n)){if(typeof _ehOpenStep==='function')_ehOpenStep(1);alert('⚠️ The event name contains restricted language. Please choose another.');return;}
   var section=(document.getElementById('ev-section')&&document.getElementById('ev-section').value)||'nightlife';
-  var _yt=[];var _ytb=document.getElementById('ev-year-chips');if(_ytb)Array.prototype.forEach.call(_ytb.querySelectorAll('.yr-chip.on'),function(c){_yt.push(c.getAttribute('data-yt'));});var yearTarget=(!_yt.length||_yt.indexOf('all')>-1)?'all':_yt;var _ytL={freshman:'Freshmen',sophomore:'Sophomores',junior:'Juniors',senior:'Seniors',alumni:'Alumni'};var yearBadge=(yearTarget==='all')?'':'<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(96,165,250,0.18);color:#93c5fd;border-color:rgba(96,165,250,0.4);">🎓 '+yearTarget.map(function(y){return _ytL[y]||y;}).join(', ')+'</span>';
+  var _yt=[];var _ytb=document.getElementById('ev-year-chips');if(_ytb)Array.prototype.forEach.call(_ytb.querySelectorAll('.yr-chip.on'),function(c){_yt.push(c.getAttribute('data-yt'));});var yearTarget=(!_yt.length||_yt.indexOf('all')>-1)?'all':_yt;var _ytL={freshman:'Freshmen',sophomore:'Sophomores',junior:'Juniors',senior:'Seniors',alumni:'Alumni'};var yearBadge=(yearTarget==='all')?'':'<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(96,165,250,0.18);color:#93c5fd;border-color:rgba(96,165,250,0.4);">'+icon('grad',11)+' '+yearTarget.map(function(y){return _ytL[y]||y;}).join(', ')+'</span>';
   if(section==='exclusive'&&curPlan!=='aplus'){premAlert();return;}
   if(section==='networking'&&(obMode||userMode)!=='alumni'){if(typeof _ehOpenStep==='function')_ehOpenStep(1);if(typeof _prettyAlert==='function')_prettyAlert('Networking events are hosted by alumni. You can browse and join them, but only alumni can create them.');else alert('Only alumni can create Networking events.');return;}
   var descRaw=document.getElementById('ev-desc')&&document.getElementById('ev-desc').value||'';
@@ -9034,7 +9038,7 @@ async function createEv(){
   var myOrg=userPro&&userPro.org;var partner=myOrg?_greekPartner(myOrg):null;
   var _short=function(o){return o?o.split(' ').slice(1).join(' '):'';};
   var greekBadges='';
-  if(myOrg)greekBadges+='<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(43,95,217,0.18);color:#a9c4ff;border-color:rgba(43,95,217,0.4);">🏛️ '+_short(myOrg)+'</span>';
+  if(myOrg)greekBadges+='<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(43,95,217,0.18);color:#a9c4ff;border-color:rgba(43,95,217,0.4);">'+icon('landmark',11)+' '+_short(myOrg)+'</span>';
   if(coHostOn&&partner)greekBadges+='<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(43,95,217,0.18);color:#a9c4ff;border-color:rgba(43,95,217,0.4);">🤝 '+_short(partner)+'</span>';
   if(rushOpen)greekBadges+='<span class="tag" style="font-size:var(--fs-2xs);margin-left:5px;background:rgba(34,197,94,0.18);color:#4ade80;border-color:rgba(34,197,94,0.4);">'+icon('search',16)+' Rush-open</span>';
   var evCard='<div class="gc"><div class="ev-inner">'+
@@ -9162,6 +9166,116 @@ async function createEv(){
   }
 }
 
+<<<<<<< HEAD
+=======
+// ── MAIN FEED ──
+function togglePoll(btn){pollOpen=!pollOpen;var box=document.getElementById('poll-box');if(box)box.style.display=pollOpen?'block':'none';if(btn)btn.classList.toggle('on',pollOpen);}
+function toggleCommentMode(btn){commentsOn=!commentsOn;if(btn){btn.textContent=commentsOn?'Comments On':'Comments Off';btn.classList.toggle('on',!commentsOn);}}
+function toggleAnon(){anonMode=!anonMode;var icon=document.getElementById('anon-icon');if(icon)icon.style.opacity=anonMode?'1':'0.5';var btn=document.getElementById('anon-btn');if(btn){btn.style.background=anonMode?'rgba(255,255,255,0.15)':'transparent';btn.style.color=anonMode?'#fff':'var(--fg2)';btn.style.borderColor=anonMode?'rgba(255,255,255,0.3)':'var(--gbdl)';}}
+function previewPostImg(inp){if(!inp.files[0])return;var url=URL.createObjectURL(inp.files[0]);var prev=document.getElementById('compose-img-preview');if(prev){prev.src=url;prev.style.display='block';}}
+
+function doPost(){
+  var ta=document.getElementById('compose-ta');var txt=ta?ta.value.trim():'';
+  var hasImg=document.getElementById('compose-img-preview')&&document.getElementById('compose-img-preview').style.display!=='none';
+  var hasPoll=pollOpen&&document.getElementById('poll-a')&&document.getElementById('poll-a').value.trim();
+  if(!txt&&!hasImg&&!hasPoll){alert('Write something first!');return;}
+  var color=uni?uni.p:'#3d7bff';var init=anonMode?'🕵️':(userPro.name||'U').charAt(0);var handle=anonMode?'Anonymous':(userPro.handle||'@you');
+  var avBg=anonMode?'#374151':color;var imgHtml='',pollHtml='';
+  if(hasImg){var src2=document.getElementById('compose-img-preview').src;imgHtml='<div style="padding:0 13px 10px;"><img src="'+src2+'" class="post-img-preview"/></div>';}
+  if(hasPoll){var optA=document.getElementById('poll-a').value.trim();var optB=document.getElementById('poll-b')&&document.getElementById('poll-b').value.trim()||'B';var pid='poll_'+Date.now();pollHtml='<div class="poll-rendered" id="'+pid+'"><div class="poll-opt-row" onclick="votePoll(this,0,\''+pid+'\')"><div class="poll-opt-bar"><div class="poll-opt-fill" style="background:'+color+';width:0%"></div><div class="poll-opt-label">'+optA+'</div><div class="poll-opt-pct">0%</div></div></div><div class="poll-opt-row" onclick="votePoll(this,1,\''+pid+'\')"><div class="poll-opt-bar"><div class="poll-opt-fill" style="background:'+color+';width:0%"></div><div class="poll-opt-label">'+optB+'</div><div class="poll-opt-pct">0%</div></div></div><div class="poll-voters" id="'+pid+'-voters">0 votes</div></div>';}
+  var commentsOnState=commentsOn;
+  var displayHandle=anonMode?'Anonymous':handle;
+  var displayInit=anonMode?'🕵️':init;
+  var postHtml='<div class="gc fp" data-mypost="1"><div class="pt">'+
+    '<div class="pav" style="background:'+avBg+';cursor:pointer;" onclick="'+(anonMode?'void 0':'openUserPopup({handle:\''+handle+'\',name:\''+userPro.name+'\',major:\''+userPro.major+'\',grad:\''+userPro.grad+'\',bio:\''+userPro.bio+'\',interests:[]})')+'">'+displayInit+'</div>'+
+    '<div style="flex:1;"><div class="pn">'+displayHandle+'</div><div class="pt2">Just now</div></div>'+
+    (userPro.major&&!anonMode?'<span class="tag">'+userPro.major+'</span>':'')+
+    '</div>'+
+    (txt?'<div class="pb" style="color:#fff;">'+txt+'</div>':'')+
+    imgHtml+pollHtml+
+    '<div class="pacts">'+
+      '<button class="pa" onclick="votePost(this,1)">▲ 0</button>'+
+      '<button class="pa" onclick="votePost(this,-1)">▼ 0</button>'+
+      (commentsOnState?'<button class="pa" onclick="toggleCommentBox(this)">'+icon('chat',16)+' Comment</button>':'')+
+      '<button class="pa" onclick="showShareModal(this)">'+icon('arrowUpRight',16)+' Share</button>'+
+    '</div>'+
+    (commentsOnState?'<div class="comments-section" style="display:none;"><div class="comment-input-row"><input class="comment-input" type="text" placeholder="Write a comment…" onkeydown="if(event.key===\'Enter\')postComment(this)"/><button class="comment-send" onclick="postComment(this.previousElementSibling)">↑</button></div></div>':'')+
+    '</div>';
+  var feed=document.getElementById('feed');if(feed){var tmp=document.createElement('div');tmp.innerHTML=postHtml;feed.insertBefore(tmp.firstChild,feed.firstChild);}
+  if(ta)ta.value='';
+  var prev=document.getElementById('compose-img-preview');if(prev){prev.src='';prev.style.display='none';}
+  pollOpen=false;var pb=document.getElementById('poll-box');if(pb)pb.style.display='none';
+  var bpoll=document.getElementById('btn-poll');if(bpoll)bpoll.classList.remove('on');
+  if(!anonMode)addToActivity(txt||'[Photo post]');
+}
+
+
+function toggleCommentBox(btn){var post=btn.closest('.gc');if(!post)return;var cs=post.querySelector('.comments-section');if(cs)cs.style.display=cs.style.display==='none'?'block':'none';}
+
+function postComment(inp){
+  if(!inp||!inp.value.trim())return;var cs=inp.closest('.comments-section');if(!cs)return;
+  var div=document.createElement('div');div.className='comment-item';div.dataset.mine='1';
+  var bg=uni?uni.p:'#3d7bff';var init=(userPro.name||'U').charAt(0);var txt=inp.value.trim();
+  div.innerHTML='<div class="comment-av" style="background:'+bg+';font-size:var(--fs-xs);">'+init+'</div>'+
+    '<div style="flex:1;"><div class="comment-bubble"><div class="comment-author">'+(userPro.handle||'@you')+'</div><div class="comment-text">'+txt+'</div></div>'+
+    '<div class="comment-actions"><button class="cact-btn" onclick="voteComment(this,1)">▲ 0</button><button class="cact-btn" onclick="voteComment(this,-1)">▼ 0</button><button class="cact-btn" onclick="replyComment(this)">↩ Reply</button><button class="cact-btn" onclick="deleteComment(this)" style="color:#dc2626;margin-left:4px;" title="Delete comment">🗑</button></div></div>';
+  cs.insertBefore(div,cs.querySelector('.comment-input-row'));inp.value='';
+}
+function deleteComment(btn){
+  var fp=btn.closest('.fp');var isMyPost=fp&&fp.dataset.mypost==='1';
+  var item=btn.closest('.comment-item');if(!item)return;
+  var isMine=item.dataset.mine==='1';
+  ugzConfirm({
+    type: 'warning',
+    title: 'Delete Comment',
+    message: 'Delete this comment?',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    onConfirm: function() {
+      item.style.transition='opacity 0.25s';item.style.opacity='0';
+      setTimeout(function(){item.remove();},250);
+    }
+  });
+}
+function voteComment(btn,dir){
+  var actions=btn.closest('.comment-actions');if(!actions)return;
+  var upBtn=actions.querySelector('[onclick*="voteComment"][onclick*=",1"]');
+  var downBtn=actions.querySelector('[onclick*="voteComment"][onclick*=",-1"]');
+  if(!upBtn||!downBtn)return;
+  var curVote=actions.dataset.vote||'none';
+  var upN=parseInt(upBtn.textContent.replace(/[^0-9]/g,''))||0;
+  var downN=parseInt(downBtn.textContent.replace(/[^0-9]/g,''))||0;
+  if(dir===1){
+    if(curVote==='up'){// undo upvote
+      upBtn.textContent='▲ '+(Math.max(0,upN-1));upBtn.style.color='';actions.dataset.vote='none';
+    }else{
+      if(curVote==='down'){downBtn.textContent='▼ '+Math.max(0,downN-1);downBtn.style.color='';}
+      upBtn.textContent='▲ '+(upN+1);upBtn.style.color='#4ade80';actions.dataset.vote='up';
+    }
+  }else{
+    if(curVote==='down'){// undo downvote
+      downBtn.textContent='▼ '+(Math.max(0,downN-1));downBtn.style.color='';actions.dataset.vote='none';
+    }else{
+      if(curVote==='up'){upBtn.textContent='▲ '+Math.max(0,upN-1);upBtn.style.color='';}
+      downBtn.textContent='▼ '+(downN+1);downBtn.style.color='#dc2626';actions.dataset.vote='down';
+    }
+  }
+}
+function replyComment(btn){var cs=btn.closest('.comments-section');if(!cs)return;var author=btn.closest('.comment-item')&&btn.closest('.comment-item').querySelector('.comment-author');var inp=cs.querySelector('.comment-input');if(inp&&author){inp.value='@'+author.textContent.replace('@','')+' ';inp.focus();}}
+
+function votePoll(row,opt,pid){var container=document.getElementById(pid);if(!container||container.dataset.voted)return;container.dataset.voted='1';var votes=[1,0];if(opt===1)votes=[0,1];var total=1;var rows=container.querySelectorAll('.poll-opt-row');rows.forEach(function(r,i){var fill=r.querySelector('.poll-opt-fill');var pct=r.querySelector('.poll-opt-pct');var pctVal=Math.round(votes[i]/total*100);if(fill)fill.style.width=pctVal+'%';if(pct)pct.textContent=pctVal+'%';r.style.cursor='default';});var voters=document.getElementById(pid+'-voters');if(voters)voters.textContent='1 vote';}
+
+function showShareModal(btn){
+  var friends=[{name:'Ana M.',handle:'@anam',color:'#e91e63'},{name:'Miguel R.',handle:'@miguelr',color:'#3b82f6'},{name:'Sofía T.',handle:'@sofiat',color:'#3d7bff'},{name:'Carlos M.',handle:'@carlosm',color:'#f59e0b'}];
+  var modal=document.getElementById('share-modal');
+  if(!modal){modal=document.createElement('div');modal.id='share-modal';modal.className='mov';modal.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Share with</div><div id="share-friends-list"></div><button class="gbtn-ghost" onclick="document.getElementById(\'share-modal\').classList.remove(' + "'open'" + ')" style="margin-top:10px;">Cancel</button></div>';document.body.appendChild(modal);}
+  var list=document.getElementById('share-friends-list');
+  if(list){list.innerHTML=friends.map(function(f){return '<div class="frr" style="justify-content:space-between;"><div style="display:flex;gap:10px;align-items:center;"><div style="width:36px;height:36px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;">'+f.name.charAt(0)+'</div><div><div style="font-size:var(--fs-base);font-weight:500;color:#fff;">'+f.name+'</div><div class="t-meta">'+f.handle+'</div></div></div><button onclick="sendToFriend(\''+f.handle+'\',\''+f.name+'\',this)" style="padding:6px 14px;border-radius:var(--rad-lg);border:none;background:var(--p);color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">Send</button></div>';}).join('');}
+  modal.classList.add('open');
+}
+function sendToFriend(handle,name,btn){if(btn){btn.innerHTML=icon('check',12)+' Sent';btn.style.background='#16a34a';btn.disabled=true;}}
+
+>>>>>>> 4687079 (Rediseno)
 // ══ ACTIVITY > EVENTS CREATED / JOINED ══
 // Two sub-buttons over a compact list. Rows reuse .adm-sub-btn (the app-wide
 // sub-tab language) and openHangoutDetailModal, which already accepts a
@@ -9562,7 +9676,7 @@ function _renderUniTab(){
 
       '<!-- NEON CATEGORY SUBPILLS -->'+
       '<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px;padding-bottom:4px;">'+
-        _renderMkSubpill('All', '🔥 Todos', '#ffffff', true)+
+        _renderMkSubpill('All', 'Todos', '#ffffff', true)+
         _renderMkSubpill('Libros', '📖 Libros', '#22c55e', false)+
         _renderMkSubpill('Tecnología', '💻 Tecnología', '#3b82f6', false)+
         _renderMkSubpill('Muebles', '💺 Muebles', '#eab308', false)+
@@ -9863,7 +9977,7 @@ function submitCreateProduct(e) {
   if (typeof showToast === 'function') {
     showToast('🎉 ¡Producto publicado en Marketplace!');
   } else {
-    alert('🎉 ¡Producto publicado en Marketplace!');
+    alert('¡Producto publicado en Marketplace!');
   }
 }
 
@@ -10108,7 +10222,7 @@ function submitCreateTicket(e) {
   if (typeof showToast === 'function') {
     showToast('🎉 ¡Boletos publicados en StubHub Campus exitosamente!');
   } else {
-    alert('🎉 ¡Boletos publicados exitosamente!');
+    alert('¡Boletos publicados exitosamente!');
   }
 }
 
@@ -10357,7 +10471,7 @@ function buildHingeStackHtml(p,opts){
     var _thi=_shouldShowCrushTapHint();
     if(_thi>=0){
       var _thPos=(_thi%3===0)?'top:14%;':((_thi%3===1)?'top:43%;':'bottom:26%;');
-      _tapHint='<div class="crush-tap-hint" style="position:absolute;left:50%;'+_thPos+'z-index:7;pointer-events:none;"><div style="display:inline-flex;align-items:center;gap:7px;font-size:var(--fs-sm);font-weight:800;color:#fff;background:rgba(10,8,22,0.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.42);border-radius:var(--rad-pill);padding:9px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.55);white-space:nowrap;">👆 '+(window.currentLang==='es'?'Toca para ver el perfil':'Tap to see the profile')+'</div></div>';
+      _tapHint='<div class="crush-tap-hint" style="position:absolute;left:50%;'+_thPos+'z-index:7;pointer-events:none;"><div style="display:inline-flex;align-items:center;gap:7px;font-size:var(--fs-sm);font-weight:800;color:#fff;background:rgba(10,8,22,0.74);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1.5px solid rgba(255,255,255,0.42);border-radius:var(--rad-pill);padding:9px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.55);white-space:nowrap;">'+icon('hand',15)+' '+(window.currentLang==='es'?'Toca para ver el perfil':'Tap to see the profile')+'</div></div>';
     }
   }
   // Build the scrollable stack
@@ -10405,11 +10519,11 @@ function buildHingeStackHtml(p,opts){
     var qf=[];var chip=function(txt,bg){qf.push('<span style="font-size:var(--fs-sm);font-weight:600;color:#fff;background:'+(bg||'rgba(255,255,255,0.08)')+';border:1px solid var(--gbdl);padding:5px 11px;border-radius:var(--rad-lg);">'+txt+'</span>');};
     // Status feature removed per request — no status chip on the card.
     // Zodiac chip removed from quick-facts — it now lives in the Lifestyle block
-    (isSelf?(userPro.identityTags||[]):_profileIdentity(p)).filter(function(k){return k!=='firstgen';}).forEach(function(k){var _tf=isSelf?userPro.transferFrom:p.transferFrom;var lbl=(k==='transfer'&&_tf&&_tf.name)?('🔄 From '+_tf.name):_identityLabel(k);chip(lbl,'rgba(43,95,217,0.22)');});
-    if(!isSelf&&_profileActive(p).online)chip('🟢 Active now','rgba(74,222,128,0.18)');
-    if(_isOutNow(p,isSelf))chip('🌙 Out now','rgba(43,95,217,0.3)');
-    if(!isSelf&&_sharedEvent(p))chip('🎟️ Both going: '+_sharedEvent(p),'rgba(245,158,11,0.22)');
-    if((isSelf?userPro.photoVerified:_profilePhotoVerified(p)))chip('📸 Verified','rgba(59,130,246,0.22)');
+    (isSelf?(userPro.identityTags||[]):_profileIdentity(p)).filter(function(k){return k!=='firstgen';}).forEach(function(k){var _tf=isSelf?userPro.transferFrom:p.transferFrom;var lbl=(k==='transfer'&&_tf&&_tf.name)?(icon('refresh',12)+' From '+_tf.name):_identityLabel(k);chip(lbl,'rgba(43,95,217,0.22)');});
+    if(!isSelf&&_profileActive(p).online)chip(icon('dot',11)+' Active now','rgba(74,222,128,0.18)');
+    if(_isOutNow(p,isSelf))chip(icon('moon',12)+' Out now','rgba(43,95,217,0.3)');
+    if(!isSelf&&_sharedEvent(p))chip(icon('ticket',12)+' Both going: '+_sharedEvent(p),'rgba(245,158,11,0.22)');
+    if((isSelf?userPro.photoVerified:_profilePhotoVerified(p)))chip(icon('camera',12)+' Verified','rgba(59,130,246,0.22)');
     // Kind/MVP badge removed from the Crush card per request
     // Quick-facts bubble removed per request (Active now / Verified live by the name now)
     bQuick='';
@@ -10424,21 +10538,21 @@ function buildHingeStackHtml(p,opts){
     var shared=(p.ints||[]).filter(function(i){return mineL.indexOf(strip(i))>-1;});
     // matched-on chips: shared interests + shared this-or-that + zodiac compatibility
     var moChips=[];
-    var _gr=_greekRelation(p);if(_gr==='same')moChips.push('🏛️ Same house · '+p.org);else if(_gr==='paired')moChips.push('🤝 Sister/Brother chapter');
-    var _se=_sharedEvent(p);if(_se)moChips.push('🎟️ '+_se);
+    var _gr=_greekRelation(p);if(_gr==='same')moChips.push(icon('landmark',12)+' Same house · '+p.org);else if(_gr==='paired')moChips.push(icon('handshake',12)+' Sister/Brother chapter');
+    var _se=_sharedEvent(p);if(_se)moChips.push(icon('ticket',12)+' '+_se);
     shared.forEach(function(i){moChips.push(i);});
-    _sharedTOT(p).forEach(function(t){moChips.push('⚔️ '+t);});
+    // This or That se retiró: sus chips de matched-on ya no se agregan.
     var myZ=(userPro&&userPro.zodiac)?userPro.zodiac:null;var theirZ=_profileZodiac(p);
     var zc=myZ?_zodiacCompat(myZ,theirZ.s):null;
     if(zc!=null&&zc>=0.8)moChips.push((theirZ.e||'♌')+' '+myZ+' × '+theirZ.s);
     if(moChips.length){
-      sharedBlock='<div style="margin-top:10px;padding:12px 14px;background:#000;border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-md);"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">💞 YOU MATCHED ON</div><div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;">'+moChips.map(function(i){return '<div class="ln-chip" style="--ln-hue:#3d7bff;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div>';
+      sharedBlock='<div style="margin-top:10px;padding:12px 14px;background:#000;border:1.5px solid rgba(61,123,255,0.45);border-radius:var(--rad-md);"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">'+icon('heart',14)+' YOU MATCHED ON</div><div class="no-deemoji" style="display:flex;flex-wrap:wrap;gap:6px;">'+moChips.map(function(i){return '<div class="ln-chip" style="--ln-hue:#3d7bff;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div>';
     }
   }
   if(mutualRow||sharedBlock)bMatched='<div class="crush-info-block">'+(mutualRow||'')+sharedBlock+'</div>';
   // 🟢 Green flags + ⚔️ This-or-that
   var gf=isSelf?(p.greenFlags||[]):_profileGreenFlags(p);
-  if(gf&&gf.length)bGreen='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:#86efac;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🟢 Green flags</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+gf.map(function(f){return '<div class="ln-chip" style="--ln-hue:#4ade80;font-size:var(--fs-xs);">'+f+'</div>';}).join('')+'</div></div>';
+  if(gf&&gf.length)bGreen='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:#86efac;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">'+icon('dot',12)+' Green flags</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+gf.map(function(f){return '<div class="ln-chip" style="--ln-hue:#4ade80;font-size:var(--fs-xs);">'+f+'</div>';}).join('')+'</div></div>';
   var totMap=isSelf?(p.tot||{}):_profileTOT(p);var totPolls=_totPolls();
   if(totPolls.length){
     var mine2=_myTOT();
@@ -10447,7 +10561,7 @@ function buildHingeStackHtml(p,opts){
     }).join('');
     var customRows='';
     if(isSelf&&p.customTots&&p.customTots.length){customRows=p.customTots.map(function(ct){return '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);"><span class="t-sub">'+ct.q+'</span><span class="t-sub-strong">'+_ctMine(ct)+'</span></div>';}).join('');}
-    if((totRows+customRows).replace(/\s/g,''))bTot='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px;">⚔️ This or That</div>'+totRows+customRows+'</div>';
+    // This or That se retiró: el bloque de la card ya no se renderiza (bTot queda vacío).
   }
   // (Anthem removed — may return later with real Spotify integration)
   // 🌿 Lifestyle — workout + diet (love language is now a prompt)
@@ -10480,7 +10594,7 @@ function buildHingeStackHtml(p,opts){
   if(sm)lifeRows.push(['Smoking',sm,false]);
   if(lifeRows.length){
     var _lifeIc={'Zodiac':(_zod?_zod.e:'🌀'),'Height':'📏','Workout':'🏃','Diet':'🍽️','Lives':'🏠','Pronouns':'🔤','Orientation':'🌈','Gender':'⚧','House':'🏛️','Drinking':'🍸','Smoking':'🚭','Transferred from':'🔄'};
-    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">🌿 ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Verified Student Government/.test(r[0])?'🏛️':(/Verified Content Creator/.test(r[0])?'✨':(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'))));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
+    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">'+icon('leaf',14)+' ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Verified Student Government/.test(r[0])?'🏛️':(/Verified Content Creator/.test(r[0])?'✨':(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'))));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
   }
   // 🤝 Wingmate endorsement
   // (Secret prompt removed per user request — voice note + 3 prompts only)
@@ -10496,8 +10610,8 @@ function buildHingeStackHtml(p,opts){
   }
   // Likes / Speaks (split into separate sections so they can be ordered independently)
   var speaksList = isSelf ? (userPro.languages || userPro.langs || userPro.flags || []) : (p.flags || (p.background && p.background.languages) || p.languages || []);
-  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">🗣️ IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+_langLabel(f)+'</div>';}).join('')+'</div></div></div>';
-  if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">❤️ LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div class="ln-chip" style="--ln-hue:#dc2626;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div></div>';
+  if(speaksList && speaksList.length)bSpeaks='<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(96,165,250,0.4);">'+icon('chat',14)+' IDIOMAS QUE HABLO</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+speaksList.map(function(f){var flagIco = _getLangFlag(f); return '<div class="ln-chip" style="--ln-hue:#60a5fa;font-size:var(--fs-sm);">'+flagIco+' '+_langLabel(f)+'</div>';}).join('')+'</div></div></div>';
+  if(p.ints&&p.ints.length)bLikes='<div class="crush-info-block no-deemoji"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(240,62,90,0.4);">'+icon('heart',14)+' LO QUE ME GUSTA</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+p.ints.map(function(i){return '<div class="ln-chip" style="--ln-hue:#dc2626;font-size:var(--fs-sm);">'+i+'</div>';}).join('')+'</div></div></div>';
   // Ethnicity / Religion / Politics — misma plantilla que "Idiomas que hablo" y
   // "Lo que me gusta": header en color con subrayado + opciones como ln-chip
   // subrayadas. Cada uno con su color.
@@ -10509,16 +10623,16 @@ function buildHingeStackHtml(p,opts){
     return '<div class="crush-info-block"><div style="margin-bottom:0;"><div style="font-size:var(--fs-xs);font-weight:700;color:'+rgb+';text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px color-mix(in srgb,'+rgb+' 40%,transparent);">'+emoji+' '+title+'</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+arr.map(function(v){return '<div class="ln-chip" style="--ln-hue:'+rgb+';font-size:var(--fs-sm);">'+v+'</div>';}).join('')+'</div></div></div>';
   };
   var bPolitics='';
-  if(p.ethnicity)bEthnicity=_idBlock('🌎','ETHNICITY','#22c55e',p.ethnicity);
-  if(p.religion&&!p.religionHideOnUnicrush)bReligion=_idBlock('🙏','RELIGION','#a855f7',p.religion);
-  if(p.politics&&!p.politicsHideOnUnicrush)bPolitics=_idBlock('🗳️','POLITICS','#f59e0b',p.politics);
+  if(p.ethnicity)bEthnicity=_idBlock(icon('globe',14),'ETHNICITY','#22c55e',p.ethnicity);
+  if(p.religion&&!p.religionHideOnUnicrush)bReligion=_idBlock(icon('star',14),'RELIGION','#a855f7',p.religion);
+  if(p.politics&&!p.politicsHideOnUnicrush)bPolitics=_idBlock(icon('landmark',14),'POLITICS','#f59e0b',p.politics);
   // Clubs
   if(p.clubs&&p.clubs.length)bClubs='<div class="crush-info-block">'+'<div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;color:#3d7bff;">'+icon('target',16)+' Clubs</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+p.clubs.map(function(c){return '<div style="display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-xs);padding:4px 9px;background:rgba(255,255,255,0.10);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-weight:500;">'+icon('clubShield',12)+c+'</div>';}).join('')+'</div></div>';
   // 🎙️ Voice prompt block (one per card)
   var _vUsedQ=null;var voiceBlk='';
   if(isSelf){
     if(userVoicePrompt&&userVoicePrompt.audio){
-      voiceBlk='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">🎙️ Voice prompt</div>'+
+      voiceBlk='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">'+icon('mic',13)+' Voice prompt</div>'+
         '<div style="display:flex;align-items:center;gap:11px;padding:11px;background:rgba(240,62,90,0.07);border:1px solid rgba(240,62,90,0.3);border-radius:var(--rad-md);">'+
         '<button onclick="playMyVoice()" style="width:42px;height:42px;border-radius:50%;border:none;background:#791515;color:#fff;font-size:var(--fs-lg);cursor:pointer;flex-shrink:0;">▶</button>'+
         '<div style="flex:1;"><div class="t-sub-strong">'+userVoicePrompt.q+'</div><div style="font-size:var(--fs-xs);color:#dc2626;">Your voice · tap to listen</div></div>'+
@@ -10528,7 +10642,7 @@ function buildHingeStackHtml(p,opts){
     }
   }else if(p.prompts&&p.prompts.length&&p.prompts[0].q&&p.prompts[0].a){
     var vp=p.prompts[0];_vUsedQ=vp.q;_voiceLines[p.name]=vp.a;var fn=(p.name||'').split(' ')[0];
-    voiceBlk='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">🎙️ Voice prompt</div>'+
+    voiceBlk='<div class="crush-info-block"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:6px;">'+icon('mic',13)+' Voice prompt</div>'+
       '<div style="display:flex;align-items:center;gap:11px;padding:11px;background:rgba(240,62,90,0.07);border:1px solid rgba(240,62,90,0.3);border-radius:var(--rad-md);">'+
       '<button onclick="playProfileVoice(\''+p.name.replace(/'/g,"\\'")+'\')" style="width:42px;height:42px;border-radius:50%;border:none;background:#791515;color:#fff;font-size:var(--fs-lg);cursor:pointer;flex-shrink:0;">▶</button>'+
       '<div style="flex:1;"><div class="t-sub-strong">'+vp.q+'</div><div style="font-size:var(--fs-xs);color:#dc2626;">🔊 Tap to hear '+fn+'\'s answer</div></div></div></div>';
@@ -12219,7 +12333,7 @@ function revealLikedYou(){
   if(curPlan==='aplus'){_renderLikedYouReveal(true);return;}
   var pref=(typeof crushGenderPref!=='undefined')?crushGenderPref:'female';
   var pool=(crushDataAll||[]).filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);}).slice(0,8);
-  if(_likedAvailable(pool.length)<=0){alert('💘 Keep swiping — your next reveal is on the way!\n\nOr go A+ Student for unlimited reveals.');return;}
+  if(_likedAvailable(pool.length)<=0){alert('Keep swiping — your next reveal is on the way!\n\nOr go A+ Student for unlimited reveals.');return;}
   _likedSetRevealed(Math.min(pool.length,_likedRevealed()+1));
   _renderLikedYouReveal(false);
 }
@@ -12462,9 +12576,9 @@ function _mergedAdmirersPool(){
 
 // Small badge telling you why this person is on the list.
 function _admirerSrcTag(src){
-  if(src === 'both') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde047;">♥ + 👁</span>';
-  if(src === 'like') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#ec4899;">♥ te dio like</span>';
-  return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fb923c;">👁 vio tu perfil</span>';
+  if(src === 'both') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde047;">'+icon('heart',10)+' + '+icon('eye',10)+'</span>';
+  if(src === 'like') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#ec4899;">te dio like</span>';
+  return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fb923c;">vio tu perfil</span>';
 }
 
 // The A+ gate for Admirers. Tapping a hidden admirer used to open a full-screen
@@ -12539,7 +12653,7 @@ function _likedSawHtml(pool,unlimited){
         '<div style="position:absolute;left:0;right:0;bottom:0;padding:22px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent);"><div style="font-size:var(--fs-base);font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:3px;">? ? ?</div></div>'+
       '</div>';
     }
-    var _emptyMsg='<div style="text-align:center;padding:14px var(--s) 6px;color:var(--fg2);font-size:var(--fs-sm);font-weight:500;">'+(isEs?'Aún nadie… por ahora 🕶️':'No one yet… for now 🕶️')+'<br><span style="font-size:var(--fs-xs);color:color-mix(in srgb, var(--uni-accent,var(--p)) 45%, #fff);">'+(isEs?'Mantén tu perfil activo para atraer miradas':'Keep your profile fresh to draw more eyes')+'</span></div>';
+    var _emptyMsg='<div style="text-align:center;padding:14px var(--s) 6px;color:var(--fg2);font-size:var(--fs-sm);font-weight:500;">'+(isEs?'Aún nadie… por ahora':'No one yet… for now')+'<br><span style="font-size:var(--fs-xs);color:color-mix(in srgb, var(--uni-accent,var(--p)) 45%, #fff);">'+(isEs?'Mantén tu perfil activo para atraer miradas':'Keep your profile fresh to draw more eyes')+'</span></div>';
     return banner+_emptyMsg+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+_ph+'</div>';
   }
 
@@ -12747,7 +12861,7 @@ function swipe(dir){
   // Free users get a limited number of likes per day
   if((dir==='like'||dir==='maybe')&&typeof _consumeLike==='function'&&!_consumeLike()){
     var cap=(typeof _effLikeCap==='function')?_effLikeCap():MAX_FREE_LIKES;
-    if(confirm('💘 You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)')){if(typeof openReferral==='function')openReferral();}else{sw('premium','Plans');}
+    if(confirm('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)')){if(typeof openReferral==='function')openReferral();}else{sw('premium','Plans');}
     return;
   }
   
@@ -12768,7 +12882,7 @@ function swipeBack(){
   if(_leftSwipeStack.length===0){return;}// nothing to go back to
   _checkGoBackReset();
   if(curPlan==='free'){
-    if(goBackUsedThisWeek>=2){alert('🔒 You\'ve used your 2 free go-backs this week.\n\nUpgrade to A+ Student for unlimited!');sw('premium','Plans');return;}
+    if(goBackUsedThisWeek>=2){alert('You\'ve used your 2 free go-backs this week.\n\nUpgrade to A+ Student for unlimited!');sw('premium','Plans');return;}
     goBackUsedThisWeek++;
   }
   crushIdx=_leftSwipeStack.pop();
@@ -12797,7 +12911,7 @@ function _addSentLikeCard(p){
 function quickLikeProfile(name,bg,cardEl){
   if(typeof _consumeLike==='function'&&!_consumeLike()){
     var cap=(typeof _effLikeCap==='function')?_effLikeCap():15;
-    if(confirm('💘 You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)')){if(typeof openReferral==='function')openReferral();}else if(typeof sw==='function'){sw('premium','Plans');}
+    if(confirm('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)')){if(typeof openReferral==='function')openReferral();}else if(typeof sw==='function'){sw('premium','Plans');}
     return;
   }
   var p=_findProfileByName(name);
@@ -13062,9 +13176,8 @@ function _sendDateIdea(i){
 function openChatGame(){
   if(typeof curChatId==='undefined'||!curChatId){alert('Open a chat first to play.');return;}
   var games=[
-    {e:'⚔️',t:'This or That',m:function(){var tots=_totPolls();if(!tots.length)return '⚔️ This or That: coffee ☕ or energy drink ⚡? You pick first 👀';var poll=tots[Math.floor(Math.random()*tots.length)];return '⚔️ This or That: '+poll.opts.map(function(o){return o.e+' '+o.l;}).join('  or  ')+'? You pick first 👀';}},
     {e:'🎭',t:'Two Truths & a Lie',m:function(){return '🎭 Two truths and a lie — I\'ll guess yours if you guess mine. You go first!';}},
-    {e:'🔥',t:'Hot Take',m:function(){var hot=['pineapple on pizza — yes or crime?','cereal before milk or after?','is a hotdog a sandwich?','beach trip > mountain trip — defend or deny.','texting "k" — rude or efficient?'];return '🔥 Hot take: '+hot[Math.floor(Math.random()*hot.length)];}},
+    {e:'🔥',t:'Hot Take',m:function(){var hot=['pineapple on pizza — yes or crime?','cereal before milk or after?','is a hotdog a sandwich?','beach trip > mountain trip — defend or deny.','texting "k" — rude or efficient?'];return 'Hot take: '+hot[Math.floor(Math.random()*hot.length)];}},
     {e:'🌶️',t:'Rapid Fire',m:function(){var rf=['texter or caller?','morning or night person?','coffee or energy drink?','concerts or festivals?','dogs or cats?'];return '🌶️ Rapid fire, first thing that comes to mind: '+rf[Math.floor(Math.random()*rf.length)];}}
   ];
   window._chatGames=games;
@@ -13755,7 +13868,7 @@ function groupRemoveMember(chatId, handle) {
   var meta = _getGroupMeta(chatId);
   ugzConfirm({
     type: 'warning',
-    title: '✕ Desinvitar integrante',
+    title: 'Desinvitar integrante',
     message: '¿Sacar a @' + handle + ' del grupo?',
     confirmText: 'Desinvitar',
     cancelText: 'Cancelar',
@@ -13775,7 +13888,7 @@ function groupPromoteAdmin(chatId, handle) {
   var meta = _getGroupMeta(chatId);
   ugzConfirm({
     type: 'confirm',
-    title: '👑 Hacer administrador',
+    title: 'Hacer administrador',
     message: '¿Nombrar a @' + handle + ' administrador del grupo?',
     confirmText: 'Hacer Admin',
     cancelText: 'Cancelar',
@@ -13815,7 +13928,7 @@ function groupDeleteChatCompletely(chatId) {
 function groupExitGroup(chatId) {
   ugzConfirm({
     type: 'warning',
-    title: '🚪 Salir del grupo',
+    title: 'Salir del grupo',
     message: '¿Salir de este grupo?',
     confirmText: 'Salir',
     cancelText: 'Cancelar',
@@ -13843,7 +13956,7 @@ function renderMsgs(){
     box.innerHTML='<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px;gap:12px;">'+
       '<div style="width:64px;height:64px;border-radius:50%;background:'+_ecl+';display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,0.45);">'+_e(_eic)+'</div>'+
       '<div style="font-size:var(--fs-md);font-weight:800;color:#fff;">'+(isGrp?_e(_enm):('You matched with '+_e(_enm)))+'</div>'+
-      '<div style="font-size:var(--fs-sm);color:var(--fg2);">Say something 👀</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);">Say something</div>'+
     '</div>';
     try{ if(typeof renderIcebreakers==='function')renderIcebreakers(curChatId); var _ib0=document.getElementById('icebreaker-bar'); if(_ib0)_ib0.style.display=''; }catch(e){}
     return;
@@ -13995,7 +14108,7 @@ function renderMsgs(){
     if (m.type === 'FILE' || (m.mediaUrl && !isAudio)) {
       var fileUrl = m.mediaUrl;
       div.style.padding = '8px 12px';
-      div.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">📎</span><div><a href="' + fileUrl + '" target="_blank" style="color:#fff;text-decoration:underline;font-weight:600;font-size:var(--fs-sm);">' + (m.txt || 'Attachment') + '</a></div></div>';
+      div.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">'+icon('link',18)+'</span><div><a href="' + fileUrl + '" target="_blank" style="color:#fff;text-decoration:underline;font-weight:600;font-size:var(--fs-sm);">' + (m.txt || 'Attachment') + '</a></div></div>';
       box.appendChild(div);return;
     }
 
@@ -14003,7 +14116,7 @@ function renderMsgs(){
     if (m.type === 'GAME' || (m.txt && (m.txt.includes('This or That') || m.txt.includes('Truth or Dare') || m.txt.includes('2 Truths') || m.txt.includes('Would You Rather')))) {
       div.style.background = 'transparent';
       div.style.padding = '0';
-      div.innerHTML = '<div class="msg-game-card"><div class="msg-game-badge">🎮 Icebreaker Game</div><div class="msg-game-title">' + _e(m.txt) + '</div></div>';
+      div.innerHTML = '<div class="msg-game-card"><div class="msg-game-badge">'+icon('dice',13)+' Icebreaker Game</div><div class="msg-game-title">' + _e(m.txt) + '</div></div>';
       box.appendChild(div);return;
     }
 
@@ -14163,25 +14276,25 @@ function _initCitemSwipeGestures() {
 
     var btnPin = document.createElement('div');
     btnPin.className = 'citem-act-btn citem-act-pin';
-    btnPin.innerHTML = '📌';
+    btnPin.innerHTML = icon('thumbtack',16);
     btnPin.title = 'Fijar';
     btnPin.onclick = function(e) { e.stopPropagation(); alert('📌 Chat fijado'); };
 
     var btnMute = document.createElement('div');
     btnMute.className = 'citem-act-btn citem-act-mute';
-    btnMute.innerHTML = '🚫';
+    btnMute.innerHTML = icon('ban',16);
     btnMute.title = 'Silenciar';
-    btnMute.onclick = function(e) { e.stopPropagation(); alert('🚫 Chat silenciado'); };
+    btnMute.onclick = function(e) { e.stopPropagation(); alert('Chat silenciado'); };
 
     var btnFlag = document.createElement('div');
     btnFlag.className = 'citem-act-btn citem-act-flag';
-    btnFlag.innerHTML = '🚩';
+    btnFlag.innerHTML = icon('flag',16);
     btnFlag.title = 'Reportar';
     btnFlag.onclick = function(e) { e.stopPropagation(); alert('🚩 Chat reportado'); };
 
     var btnClose = document.createElement('div');
     btnClose.className = 'citem-act-btn citem-act-close';
-    btnClose.innerHTML = '❌';
+    btnClose.innerHTML = icon('x',16);
     btnClose.title = 'Cerrar';
     btnClose.onclick = function(e) {
       e.stopPropagation();
@@ -15885,7 +15998,7 @@ function _sharedTOT(p){
   return shared;
 }
 // ── LOVE LANGUAGE / WORKOUT / DIET / ANTHEM / FREE-WEEKEND ──
-var LOVE_LANGS=['💬 Words of affirmation','⏰ Quality time','🎁 Gifts','🤝 Acts of service','🤗 Physical touch'];
+var LOVE_LANGS=['💬 Words of affirmation','Quality time','🎁 Gifts','🤝 Acts of service','🤗 Physical touch'];
 var WORKOUTS=['🏋️ Gym rat','🏃 Runner','⚽ Sports','🙏 Yoga/Pilates','🚶 Casual mover','🛋️ Not my thing'];
 var POLITICS_OPTS=['Liberal','Moderate','Conservative','Apolitical'];
 var DRINK_OPTS=['Non-drinker','Social drinker','Regular drinker'];
@@ -15961,7 +16074,7 @@ var QUIZ=[
   {id:'q_comm',q:'How do you text?',opts:['⚡ Fast replier','📞 I\'d rather call','🎙️ Voice notes','😂 Memes only']},
   {id:'q_energy',q:'You recharge by…',opts:['🥳 Being around people','🙏 Alone time','🏃 Moving my body','📚 A good book/show']},
   {id:'q_plan',q:'Your plan style?',opts:['🗓️ Planner','🎲 Spontaneous','🤝 Down for whatever','😅 Chronically late']},
-  {id:'q_love',q:'You feel loved when someone…',opts:['💬 Hypes you up','⏰ Gives you their time','🤝 Does things for you','🤗 Is physically close']},
+  {id:'q_love',q:'You feel loved when someone…',opts:['💬 Hypes you up','Gives you their time','🤝 Does things for you','🤗 Is physically close']},
   {id:'q_goal',q:'Right now you want…',opts:['💘 Something serious','😏 Keep it casual','🤷 See where it goes','👯 New friends']}
 ];
 function _profileQuiz(p){if(p.quiz)return p.quiz;if(p._qz)return p._qz;var out={};QUIZ.forEach(function(qq){out[qq.id]=_strHash((p.name||'')+qq.id)%qq.opts.length;});p._qz=out;return out;}
@@ -16028,7 +16141,7 @@ function _renderHotTake(){
   if(ans===undefined){
     body='<div style="display:flex;gap:10px;"><button onclick="_htAnswer(false)" style="flex:1;background:rgba(255,255,255,0.06);border:1.5px solid var(--gbdl);border-radius:var(--rad-md);padding:15px;color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🙅 Nope</button><button onclick="_htAnswer(true)" style="flex:1;background:rgba(61,123,255,0.12);border:1.5px solid var(--p);border-radius:var(--rad-md);padding:15px;color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🔥 Agree</button></div>';
   }else{
-    body='<div style="text-align:center;margin-bottom:12px;"><div style="font-size:var(--fs-base);font-weight:600;color:#4ade80;">You said '+(ans?'🔥 Agree':'🙅 Nope')+'</div><div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:3px;">'+pct+'% of campus agrees with this</div></div><button class="gbtn" style="background:var(--p);" onclick="window._htIdx++;_renderHotTake()">Next →</button>';
+    body='<div style="text-align:center;margin-bottom:12px;"><div style="font-size:var(--fs-base);font-weight:600;color:#4ade80;">You said '+(ans?'Agree':'🙅 Nope')+'</div><div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:3px;">'+pct+'% of campus agrees with this</div></div><button class="gbtn" style="background:var(--p);" onclick="window._htIdx++;_renderHotTake()">Next →</button>';
   }
   m.innerHTML='<div class="msheet" style="max-width:380px;"><div class="mhnd"></div>'+
     '<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-bottom:14px;"><div style="height:100%;width:'+prog+'%;background:var(--p);border-radius:3px;transition:width 0.3s;"></div></div>'+
@@ -16044,10 +16157,10 @@ function _hotTakesDone(){var m=document.getElementById('hottakes-modal');if(m)m.
 function _quizFinish(){
   userPro.quiz=_quizAnswers;
   // the love-language question maps onto your love language
-  try{var li=_quizAnswers['q_love'];var map=['💬 Words of affirmation','⏰ Quality time','🤝 Acts of service','🤗 Physical touch'];if(li!=null&&map[li])userPro.loveLanguage=map[li];}catch(e){}
+  try{var li=_quizAnswers['q_love'];var map=['💬 Words of affirmation','Quality time','🤝 Acts of service','🤗 Physical touch'];if(li!=null&&map[li])userPro.loveLanguage=map[li];}catch(e){}
   if(typeof _vibeSave==='function')_vibeSave();if(typeof saveProfile==='function')try{saveProfile();}catch(e){}
   var m=document.getElementById('quiz-modal');if(m)m.remove();
-  alert('🎯 Quiz complete!\n\nYour match % is now personalized, and high matches show why you\'d vibe.');
+  alert('Quiz complete!\n\nYour match % is now personalized, and high matches show why you\'d vibe.');
   if(typeof renderCrush==='function')renderCrush();
 }
 // 💞 ONE compatibility number per card, fusing interests + zodiac + love language + this-or-that
@@ -16247,7 +16360,7 @@ function openCampusWrapped(type){
       stat('🎉 Events joined',events)+
       stat('💘 New matches',matches)+
       stat('💬 Messages sent',msgs)+
-      stat('📍 Most active in',topSection)+
+      stat('Most active in',topSection)+
       stat('✨ Your top vibe',topVibe)+
       stat('🏆 You were',' Top '+pct+'% most active')+
     '</div>'+
@@ -16422,9 +16535,9 @@ function renderSpotlight(){
 
   var noUniMsg = 'Aún no hay más estudiantes de tu universidad. Con A+ ves perfiles de todos los campus.';
   box.innerHTML=
-    hdr('✨ Best Picks For You', '#f59e0b', bestPicks.length)+
+    hdr(icon('sparkles',14)+' Best Picks For You', '#f59e0b', bestPicks.length)+
       (best ? row(best) : _fyEmptyHtml('#f59e0b', noUniMsg))+
-    hdr('🆕 New Picks This Week', '#4ade80', freshPicks.length)+
+    hdr('New Picks This Week', '#4ade80', freshPicks.length)+
       (fresh ? row(fresh) : _fyEmptyHtml('#4ade80', noUniMsg));
 }
 var SPOTLIGHT_LIKE_BONUS=20;
@@ -16589,7 +16702,7 @@ function _renderLeaderboard(){
   m=document.createElement('div');m.id='leaderboard-modal';m.className='mov open';m.style.zIndex='10001';
   m.innerHTML='<div class="msheet" style="max-width:400px;max-height:88vh;overflow-y:auto;"><div class="mhnd"></div>'+
     '<div style="text-align:center;margin-bottom:10px;"><div style="font-size:30px;">🏆</div><div class="t-title">Campus leaderboard</div><div class="t-meta">Earned by real activity — impossible to fake. You\'re #'+myRank+'.</div></div>'+
-    '<div style="display:flex;gap:5px;background:rgba(255,255,255,0.05);border-radius:var(--rad-sm);padding:4px;margin-bottom:12px;">'+tab('hosts','🎉 Hosts')+tab('active','🔥 Active')+tab('liked','❤️ Most liked')+'</div>'+
+    '<div style="display:flex;gap:5px;background:rgba(255,255,255,0.05);border-radius:var(--rad-sm);padding:4px;margin-bottom:12px;">'+tab('hosts','🎉 Hosts')+tab('active','Active')+tab('liked','❤️ Most liked')+'</div>'+
     list+'<button class="gbtn-ghost" style="margin-top:10px;" onclick="document.getElementById(\'leaderboard-modal\').remove()">Close</button></div>';
   document.body.appendChild(m);
 }
@@ -16634,7 +16747,7 @@ function _wmSendRequest(){if(!window._wmBy){alert('Pick a friend first.');return
   setTimeout(function(){if(window._wmSent&&!window._wmDraft){window._wmDraft=WINGMATE_LINES[_strHash(window._wmBy+'wm'+(window._wmSeed||0))%WINGMATE_LINES.length];if(document.getElementById('wingmate-modal'))openWingmate();}},900);
 }
 function _wmAnother(){window._wmSeed=(window._wmSeed||0)+1;window._wmDraft=WINGMATE_LINES[_strHash(window._wmBy+'wm'+window._wmSeed)%WINGMATE_LINES.length];openWingmate();}
-function _wmAccept(){if(!window._wmBy||!window._wmDraft)return;userPro.wingmate={by:window._wmBy,text:window._wmDraft};if(typeof _vibeSave==='function')try{_vibeSave();}catch(e){}var m=document.getElementById('wingmate-modal');if(m)m.remove();if(typeof renderCrushPreview==='function')renderCrushPreview();alert('🤝 Wingmate added! '+window._wmBy+'\'s endorsement now shows on your card.');}
+function _wmAccept(){if(!window._wmBy||!window._wmDraft)return;userPro.wingmate={by:window._wmBy,text:window._wmDraft};if(typeof _vibeSave==='function')try{_vibeSave();}catch(e){}var m=document.getElementById('wingmate-modal');if(m)m.remove();if(typeof renderCrushPreview==='function')renderCrushPreview();alert('Wingmate added! '+window._wmBy+'\'s endorsement now shows on your card.');}
 // ══════════ 🤗 ANONYMOUS SUPPORT CIRCLES ══════════
 var SUP_ADJ=['Quiet','Brave','Kind','Calm','Hopeful','Gentle','Steady','Warm','Soft','Bright'];
 var SUP_ANI=['Fox','Owl','Deer','Wolf','Sparrow','Otter','Heron','Bear','Moth','Lark'];
@@ -16808,11 +16921,11 @@ function openReferral(){
 }
 function _simulateInvite(){
   _refLoad();
-  if(referralState.count>=REF_MAX){alert('🎉 You\'ve maxed out referrals — enjoy +'+_bonusLikes()+' likes/day and 10% off!');return;}
+  if(referralState.count>=REF_MAX){alert('You\'ve maxed out referrals — enjoy +'+_bonusLikes()+' likes/day and 10% off!');return;}
   referralState.count++;_refSave();
   var disc=_referralDiscount();var c=referralState.count;
   var reward=(c===1)?'🌟 You unlocked a Spotlight + Boost on Crush!':('+'+_bonusLikes()+' likes/day'+(disc?' · '+disc+'% off premium':''));
-  alert('🎉 A friend joined with your link!\n\n'+reward);
+  alert('A friend joined with your link!\n\n'+reward);
   if(typeof renderReferralCard==='function')renderReferralCard();
   openReferral();
 }
@@ -16991,7 +17104,7 @@ function processPayment() {
     m.dataset.bizLaunch = '';
   }
   if (curPayPlan === 'cheat') {
-    alert('🎉 Purchase complete! Your boost is now active.');
+    alert('Purchase complete! Your boost is now active.');
     return;
   }
   // Remember the state to roll back to: the purchase is applied locally first so
@@ -17027,12 +17140,12 @@ function processPayment() {
     });
   }
   if (isBiz) {
-    alert('🎉 Business account activated!\n\nWelcome to Undrgradz.');
+    alert('Business account activated!\n\nWelcome to Undrgradz.');
     if (typeof launch === 'function') launch();
   } else {
     var sp = document.getElementById('settings-plan');
     if (sp) sp.textContent = curPlan;
-    alert('🎉 You\'re now subscribed!\n\nEnjoy premium features.');
+    alert('You\'re now subscribed!\n\nEnjoy premium features.');
   }
 }
 
@@ -17169,7 +17282,7 @@ function sendFriendRequest(){
   var toEl=document.getElementById('friend-req-to');var to=toEl?toEl.textContent:'@user';
   var modal=document.getElementById('friend-req-modal');if(modal)modal.classList.remove('open');
   var fbtn=document.getElementById('popup-friend-btn');if(fbtn){fbtn.textContent='✅ Request Sent';fbtn.disabled=true;fbtn.style.background='#16a34a';}
-  setTimeout(function(){alert('🤝 Friend request sent to '+to+'!');},150);
+  setTimeout(function(){alert('Friend request sent to '+to+'!');},150);
 }
 async function msgPopup() {
   var m = document.getElementById('user-profile-modal');
@@ -17445,7 +17558,7 @@ function _addFriendProfile(name) {
   var bar = document.getElementById('uc-relation-bar');
   if (bar) {
     var b = bar.querySelector('button');
-    if (b) { b.textContent = '✅ Enviada'; b.disabled = true; b.style.background = 'rgba(255,255,255,0.10)'; b.style.color = 'var(--fg2)'; }
+    if (b) { b.textContent = '✓ Enviada'; b.disabled = true; b.style.background = 'rgba(255,255,255,0.10)'; b.style.color = 'var(--fg2)'; }
   }
 }
 
@@ -17560,7 +17673,7 @@ function _userEventsHtml(name){
   var evs=[{t:first+'’s Study Group',spots:7,cap:12,time:'Wed 3pm',emoji:'📚'},{t:'Birthday Pre-game',spots:20,cap:20,time:'Sat 9pm',emoji:'🎉'}];
   return evs.map(function(e){
     var full=e.spots>=e.cap;var cd=_evCountdown({time:e.time});var ended=(cd==='ENDED');
-    var badge=ended?'<span style="color:#dc2626;font-weight:600;font-size:var(--fs-sm);">⛔ Ended</span>':(full?'<span style="color:#dc2626;font-weight:600;font-size:var(--fs-sm);">'+icon('ban',16)+' Full</span>':'<span style="color:#4ade80;font-weight:600;font-size:var(--fs-sm);">✅ Open</span>');
+    var badge=ended?'<span style="color:#dc2626;font-weight:600;font-size:var(--fs-sm);">'+icon('ban',15)+' Ended</span>':(full?'<span style="color:#dc2626;font-weight:600;font-size:var(--fs-sm);">'+icon('ban',16)+' Full</span>':'<span style="color:#4ade80;font-weight:600;font-size:var(--fs-sm);">'+icon('check',15)+' Open</span>');
     return '<div class="gc" style="margin:0 0 10px;"><div style="padding:12px;">'+
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><div class="t-body-strong">'+e.emoji+' '+e.t+'</div>'+badge+'</div>'+
       '<div style="font-size:var(--fs-sm);color:var(--fg2);margin:5px 0 9px;">'+icon('mapPin',16)+' Campus · '+e.time+' · '+e.spots+'/'+e.cap+((cd&&!ended&&!full)?' · '+icon('hourglass',16)+' '+cd:'')+'</div>'+
@@ -17570,8 +17683,8 @@ function _userEventsHtml(name){
 }
 function sendFriendRequestFromCard(){
   var u=window._ucViewUser||{};if(u.crossLocked){premAlert();return;}var fbtn=document.getElementById('uc-addfriend');
-  if(fbtn){fbtn.textContent='✅ Sent';fbtn.disabled=true;fbtn.style.background='#16a34a';}
-  setTimeout(function(){alert('🤝 Friend request sent to '+(u.name||'this user')+'!');},120);
+  if(fbtn){fbtn.innerHTML=icon('check',12)+' Sent';fbtn.disabled=true;fbtn.style.background='#16a34a';}
+  setTimeout(function(){alert('Friend request sent to '+(u.name||'this user')+'!');},120);
 }
 
 // ── SETTINGS ──
@@ -17644,7 +17757,7 @@ function _setPhone(){
     if(typeof saveProfile==='function')try{saveProfile();}catch(e){}
   });
 }
-function openPasswordSecurity(){alert('🔒 Password & Security\n\nChange your password, enable 2-factor authentication and review recent login activity. (Demo)');}
+function openPasswordSecurity(){alert('Password & Security\n\nChange your password, enable 2-factor authentication and review recent login activity. (Demo)');}
 function _changeLanguage(){
   var curLang = localStorage.getItem('ugz_lang') || 'en';
   var nextLang = curLang === 'en' ? 'es' : 'en';
@@ -17657,8 +17770,8 @@ function _changeLanguage(){
   window.location.reload();
 }
 function _editProfileField(){document.getElementById('settings-modal').classList.remove('open');if(typeof sw==='function')sw('profile','Profile');if(typeof onEditProfileBtn==='function')try{onEditProfileBtn();}catch(e){}}
-function openBlockedUsers(){var ids=Object.keys((typeof blockedUsers!=='undefined'&&blockedUsers)||{});var msg=ids.length?('Blocked:\n\n'+ids.join('\n')):'You haven\'t blocked anyone.';alert('🚫 Blocked Users\n\n'+msg);}
-function _giveFeedback(){var f=prompt('Tell us how to improve UndrGradz:');if(f&&f.trim())alert('🙏 Thanks for the feedback!');}
+function openBlockedUsers(){var ids=Object.keys((typeof blockedUsers!=='undefined'&&blockedUsers)||{});var msg=ids.length?('Blocked:\n\n'+ids.join('\n')):'You haven\'t blocked anyone.';alert('Blocked Users\n\n'+msg);}
+function _giveFeedback(){var f=prompt('Tell us how to improve UndrGradz:');if(f&&f.trim())alert('Thanks for the feedback!');}
 var _typingTimeout = null;
 window._lastTypingState = false;
 function _handleCinpInput() {
@@ -19484,7 +19597,7 @@ function createNetEvent(){var nm=document.getElementById('net-ev-nm');if(!nm||!n
   var degEl=document.getElementById('al-degree');var yrEl=document.getElementById('al-gradyr');
   var degText=degEl?degEl.value:'';var yrText=yrEl?("'"+yrEl.value):'';
   card.innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-bottom:9px;"><div style="width:44px;height:44px;border-radius:50%;background:var(--p);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:var(--fs-lg);color:#fff;">'+(userPro.name||'U').charAt(0)+'</div><div><div class="t-body-strong">'+nm.value.trim()+'</div><div class="t-sub">'+degText+' · Alumni '+yrText+' · by '+(userPro.handle||'@you')+'</div></div></div>'+(desc&&desc.value?'<div style="font-size:var(--fs-base);color:var(--fg);line-height:1.5;margin-bottom:10px;">'+desc.value+'</div>':'')+'<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);margin-bottom:4px;"><span>Spots</span><span>0/'+capVal+'</span></div><div class="bar-t"><div class="bar-f" style="background:var(--p);width:0%"></div></div></div><div style="font-size:var(--fs-sm);color:#4ade80;font-weight:500;text-align:center;padding:6px;">✅ Your Event</div>'+'<div style="display:flex;gap:6px;margin-top:8px;"><button onclick="editMyEvent(this)" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:5px 0;border-radius:var(--rad-xs);font-size:var(--fs-sm);font-weight:500;cursor:pointer;">'+icon('edit',16)+' Edit</button><button onclick="deleteMyEvent(this)" style="flex:1;background:#ef4444;color:#fff;border:none;padding:5px 0;border-radius:var(--rad-xs);font-size:var(--fs-sm);font-weight:500;cursor:pointer;">'+icon('trash',16)+' Delete</button></div>';
-  myEvSec.appendChild(card);}var m=document.getElementById('net-create-modal');if(m)m.classList.remove('open');alert('🎉 Network event created!');}
+  myEvSec.appendChild(card);}var m=document.getElementById('net-create-modal');if(m)m.classList.remove('open');alert('Network event created!');}
 
 function editMyEvent(btn){
   var card=btn.closest('.net-card');if(!card)return;
@@ -19543,7 +19656,7 @@ function publishBizEvent(){
   var bizEvList=document.getElementById('biz-events-list');
   if(bizEvList){bizEvList.innerHTML='<div class="gc" style="margin:0 0 8px;width:100%;"><div class="ev-inner"><div class="ev-title">'+nm.value.trim()+'</div><div class="ev-meta">'+icon('mapPin',16)+' '+(addr?addr.value:'')+'</div></div></div>';}
   var m=document.getElementById('biz-event-create-modal');if(m)m.classList.remove('open');
-  alert('🎉 Event published! It will appear in the Student Events section.');
+  alert('Event published! It will appear in the Student Events section.');
 }
 
 // ── ALUMNI PROFILE: Show Class of + Age ──
@@ -19834,10 +19947,10 @@ function addCommentMediaButtons(){
   document.querySelectorAll('.comment-input-row').forEach(function(row){
     if(row.dataset.mediaAdded)return;row.dataset.mediaAdded='1';
     var gifBtn=document.createElement('button');gifBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:var(--fg2);font-size:var(--fs-base);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
-    gifBtn.textContent='🎞';gifBtn.title='GIF';
+    gifBtn.innerHTML=icon('film',15);gifBtn.title='GIF';
     gifBtn.onclick=function(e){e.stopPropagation();window._activeCommentInput=row.querySelector('.comment-input');gifPickerTarget='comment';openGifPicker('comment');};
     var stkBtn=document.createElement('button');stkBtn.style.cssText='width:28px;height:28px;border-radius:50%;border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:var(--fg2);font-size:var(--fs-base);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;position:relative;';
-    stkBtn.textContent='😀';stkBtn.title='Stickers';
+    stkBtn.innerHTML=icon('smile',15);stkBtn.title='Stickers';
     stkBtn.onclick=function(e){e.stopPropagation();window._activeCommentInput=row.querySelector('.comment-input');openStickerPicker(e,'comment');};
     var sendBtn=row.querySelector('.comment-send');if(sendBtn){row.insertBefore(gifBtn,sendBtn);row.insertBefore(stkBtn,sendBtn);(function(r,s){s.onclick=function(){postComment(r.querySelector('.comment-input'));};})(row,sendBtn);}
   });
@@ -19876,7 +19989,7 @@ var blockedUsers={};
 
 // ── FIX SEND MSG - prevent sending to blocked ──
 var _origSendMsg=sendMsg;
-sendMsg=function(){if(blockedUsers[curChatId]){alert('🚫 You have blocked this user. Unblock them to send messages.');return;}_origSendMsg();};
+sendMsg=function(){if(blockedUsers[curChatId]){alert('You have blocked this user. Unblock them to send messages.');return;}_origSendMsg();};
 
 // ── FIX CHAT POLLS ──
 insertChatPoll=function(){
@@ -20017,17 +20130,17 @@ function _gsMemberRowHtml(chatId, meta, m, isUserAdmin, myHandle, openHandle) {
   var photo = m.photo || ('https://randomuser.me/api/portraits/' + (m.name.length % 2 === 0 ? 'women' : 'men') + '/' + (Math.abs(_strHash(m.name)) % 70) + '.jpg');
   var nick = (meta.nicknames && meta.nicknames[m.handle]) || '';
   var badge = m.isAdmin
-    ? '<span class="tag gold" style="font-size:var(--fs-2xs);padding:2px 6px;">👑 Admin</span>'
+    ? '<span class="tag gold" style="font-size:var(--fs-2xs);padding:2px 6px;">'+icon('crown',11)+' Admin</span>'
     : '<span style="font-size:var(--fs-2xs);color:var(--fg3);">Integrante</span>';
 
   // Nickname is open to every member; promote/remove stay admin-only.
   var acts = '';
   if (isUserAdmin && !isMe && !m.isAdmin) {
-    acts += '<button class="gsx-btn gsx-btn--green" onclick="groupPromoteAdmin(\'' + chatId + '\',\'' + _e(m.handle) + '\')">👑 Hacer Admin</button>';
+    acts += '<button class="gsx-btn gsx-btn--green" onclick="groupPromoteAdmin(\'' + chatId + '\',\'' + _e(m.handle) + '\')">'+icon('crown',13)+' Hacer Admin</button>';
   }
-  acts += '<button class="gsx-btn gsx-btn--neutral" onclick="groupSetMemberNickname(\'' + chatId + '\',\'' + _e(m.handle) + '\')">✏️ Cambiar Nickname</button>';
+  acts += '<button class="gsx-btn gsx-btn--neutral" onclick="groupSetMemberNickname(\'' + chatId + '\',\'' + _e(m.handle) + '\')">'+icon('edit',13)+' Cambiar Nickname</button>';
   if (isUserAdmin && !isMe) {
-    acts += '<button class="gsx-btn gsx-btn--wine" onclick="groupRemoveMember(\'' + chatId + '\',\'' + _e(m.handle) + '\')">✕ Desinvitar</button>';
+    acts += '<button class="gsx-btn gsx-btn--wine" onclick="groupRemoveMember(\'' + chatId + '\',\'' + _e(m.handle) + '\')">'+icon('x',13)+' Desinvitar</button>';
   }
 
   var chev = '<button class="gsx-chev" onclick="_gsToggleMember(this)" aria-label="Acciones de integrante">' +
@@ -20136,7 +20249,7 @@ function _gsBuildGroupSheet(chatId) {
     label('INTEGRANTES DEL GRUPO (' + meta.members.length + ')', 'gsx-count') +
     // Invite sits directly above the list it affects.
     (isUserAdmin
-      ? '<button class="gsx-btn gsx-btn--invite" style="margin-bottom:10px;" onclick="groupInviteMembers(\'' + chatId + '\')">➕ Invitar Integrantes</button>'
+      ? '<button class="gsx-btn gsx-btn--invite" style="margin-bottom:10px;" onclick="groupInviteMembers(\'' + chatId + '\')">'+icon('plus',14)+' Invitar Integrantes</button>'
       : '') +
     // No max-height here on purpose: the whole list is visible and .msheet
     // does the scrolling, so there is no nested scroll to fight.
@@ -20177,8 +20290,8 @@ function _gsBuildGroupSheet(chatId) {
     // Destructive action alone at the bottom, behind a divider.
     '<div class="gsx-divider"></div>' +
     (isUserAdmin
-      ? '<button class="gsx-btn gsx-btn--danger" onclick="groupDeleteChatCompletely(\'' + chatId + '\')">🗑️ Borrar Chat por Completo</button>'
-      : '<button class="gsx-btn gsx-btn--danger" onclick="groupExitGroup(\'' + chatId + '\')">🚪 Salir del Grupo</button>') +
+      ? '<button class="gsx-btn gsx-btn--danger" onclick="groupDeleteChatCompletely(\'' + chatId + '\')">'+icon('trash',14)+' Borrar Chat por Completo</button>'
+      : '<button class="gsx-btn gsx-btn--danger" onclick="groupExitGroup(\'' + chatId + '\')">'+icon('undo',14)+' Salir del Grupo</button>') +
   '</div>';
 
   document.body.appendChild(modal);
@@ -20253,14 +20366,14 @@ function openChatSettings(){
   function statCard(ic,col,n,l){return '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px 14px;display:flex;align-items:center;gap:11px;min-width:130px;"><div style="font-size:var(--fs-xl);color:'+col+';">'+ic+'</div><div><div style="font-size:var(--fs-lg);font-weight:900;color:#fff;line-height:1;">'+n+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;">'+l+'</div></div></div>';}
   function row(icBg,ic,title,sub,right,onclick,extra){return '<div class="cps-row"'+(onclick?' onclick="'+onclick+'" style="cursor:pointer;'+(extra||'')+'"':(extra?' style="'+extra+'"':''))+'><div class="cps-ic" style="background:'+icBg+';">'+ic+'</div><div style="flex:1;min-width:0;"><div style="font-size:var(--fs-md);font-weight:600;color:#fff;">'+title+'</div><div class="t-sub">'+sub+'</div></div>'+(right||'')+'</div>';}
   
-  var crushLine = isGroup ? '' : (isCrushMatch ? '<div style="font-size:var(--fs-base);font-weight:600;color:#dc2626;margin:3px 0 8px;display:flex;align-items:center;gap:5px;">❤️ Crush Match</div>' : '<div style="font-size:var(--fs-base);font-weight:600;color:#3b82f6;margin:3px 0 8px;display:flex;align-items:center;gap:5px;">🤝 Friends</div>');
+  var crushLine = isGroup ? '' : (isCrushMatch ? '<div style="font-size:var(--fs-base);font-weight:600;color:#dc2626;margin:3px 0 8px;display:flex;align-items:center;gap:5px;">'+icon('heart',12)+' Crush Match</div>' : '<div style="font-size:var(--fs-base);font-weight:600;color:#3b82f6;margin:3px 0 8px;display:flex;align-items:center;gap:5px;">'+icon('handshake',12)+' Friends</div>');
 
   var statsHtml = '';
   if (isCrushMatch) {
-    statsHtml += statCard('❤️','#dc2626',compat+'%','Compatibility');
+    statsHtml += statCard(icon('heart',16),'#dc2626',compat+'%','Compatibility');
   }
-  statsHtml += statCard('🔥','#f97316',convos,'Conversations');
-  statsHtml += statCard('📅','#3d7bff',days,'Days talking');
+  statsHtml += statCard(icon('flame',16),'#f97316',convos,'Conversations');
+  statsHtml += statCard(icon('calendar',16),'#3d7bff',days,'Days talking');
 
   var partnerIsVerified = _getPartnerVerifiedStatus(partner, displayName, curChatId);
 
@@ -20276,7 +20389,7 @@ function openChatSettings(){
       '<button onclick="openPartnerProfileCard(\''+curChatId+'\')" style="margin-top:12px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-pill);padding:9px 20px;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">View Profile ›</button>'+
     '</div>'+
     '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin:6px 0 10px;">CHAT CUSTOMIZATION</div>'+
-    row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))','🎨','Chat Background','Change the look of this chat','<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>',"toggleBgSheet();document.getElementById('chat-settings-modal').remove();")+
+    row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))',icon('palette',16),'Chat Background','Change the look of this chat','<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>',"toggleBgSheet();document.getElementById('chat-settings-modal').remove();")+
     row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))','<span style=\"font-weight:900;\">Aa</span>','Nickname','Set a nickname for '+first,'<span style="color:var(--fg2);font-size:var(--fs-base);">'+(nick||'')+' <span style="color:var(--fg3);">›</span></span>',"chatSetNickname()")+
     row('linear-gradient(135deg, var(--uni-accent,var(--p)), var(--p2))',''+icon('bell',16)+'','Notifications','Mute or customize notifications','<span style="color:var(--fg2);font-size:var(--fs-base);" id="cps-notif">'+(muted?'Off':'On')+' <span style="color:var(--fg3);">›</span></span>',"_chatToggleNotif()")+
     '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin:18px 0 10px;">PRIVACY & SUPPORT</div>'+
@@ -20492,17 +20605,8 @@ function openChatGame() {
       </div>
 
       <div style="display:flex;flex-direction:column;gap:10px;max-height:360px;overflow-y:auto;padding-right:4px;">
-        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('⚖️ This or That: Tacos 🌮 or Pizza 🍕?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
-          <div style="font-weight:800;color:#38bdf8;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">⚖️ THIS OR THAT</div>
-          <div style="color:#fff;font-weight:600;font-size:14px;">Tacos 🌮 o Pizza 🍕?</div>
-        </div>
 
-        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('⚖️ This or That: Salir de fiesta 🍺 o Netflix & chill 🍿?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
-          <div style="font-weight:800;color:#38bdf8;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">⚖️ THIS OR THAT</div>
-          <div style="color:#fff;font-weight:600;font-size:14px;">Salir de fiesta 🍺 o Netflix & chill 🍿?</div>
-        </div>
-
-        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('🎯 Truth or Dare: ¿Cuál ha sido tu anécdota más graciosa o vergonzosa en la universidad?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
+        <div class="ugz-game-option" onclick="_selectAndSendGamePrompt('Truth or Dare: ¿Cuál ha sido tu anécdota más graciosa o vergonzosa en la universidad?')" style="padding:12px 14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;cursor:pointer;">
           <div style="font-weight:800;color:#f43f5e;font-size:11px;margin-bottom:2px;letter-spacing:0.5px;">🎯 TRUTH OR DARE</div>
           <div style="color:#fff;font-weight:600;font-size:14px;">¿Cuál ha sido tu anécdota más graciosa en la universidad?</div>
         </div>
@@ -21008,7 +21112,7 @@ function renderInviteEarn(){
     }).join('');
   } else {
     friendsInvitedHtml = '<div style="text-align:center;padding:12px 0;font-size:var(--fs-sm);color:var(--fg3);">' +
-      'No friends invited yet 🚀<br><span style="font-size:var(--fs-2xs);color:var(--fg2);">Share your link below to get rewards!</span>' +
+      'No friends invited yet<br><span style="font-size:var(--fs-2xs);color:var(--fg2);">Share your link below to get rewards!</span>' +
     '</div>';
   }
   var topRecruitersHtml = '';
@@ -21023,7 +21127,7 @@ function renderInviteEarn(){
     }).join('');
   } else {
     topRecruitersHtml = '<div style="text-align:center;padding:12px 0;font-size:var(--fs-sm);color:var(--fg3);">' +
-      'No top recruiters yet 👑<br><span style="font-size:var(--fs-2xs);color:var(--fg2);">Be the first on the leaderboard!</span>' +
+      'No top recruiters yet<br><span style="font-size:var(--fs-2xs);color:var(--fg2);">Be the first on the leaderboard!</span>' +
     '</div>';
   }
   // Every panel below used to hand-roll its own neon edge in its own hue —
@@ -21045,7 +21149,7 @@ function renderInviteEarn(){
   '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:8px;">' + _giftSvg + '<span>Invite & Earn</span></div><span onclick="if(typeof _prettyAlert===\'function\')_prettyAlert(\'Invite friends with your code. Each friend who joins gives you bonus likes/day and unlocks rewards forever.\')" style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:5px 11px;cursor:pointer;">ⓘ How it works</span></div>'+
   '<div onclick="_ieCopyCode(this,\''+code+'\')" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;border:1.5px dashed color-mix(in srgb, '+IV+' 60%, transparent);background:color-mix(in srgb, '+IV+' 12%, rgba(255,255,255,0.02));border-radius:var(--rad-lg);padding:14px 16px;margin-bottom:16px;">'+
     '<div style="text-align:left;min-width:0;"><div id="ie-copy-lbl" style="font-size:var(--fs-2xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.5px;">Your code · tap to copy</div><div style="font-size:var(--fs-2xl);font-weight:900;color:'+IV+';letter-spacing:2px;line-height:1;margin-top:4px;">'+code+'</div></div>'+
-    '<div style="font-size:var(--fs-lg);flex-shrink:0;">📋</div>'+
+    '<div style="flex-shrink:0;color:#a855f7;">'+icon('link',18)+'</div>'+
   '</div>'+
   '<div class="neon-card on" style="--neon:'+IV+';border-radius:var(--rad-lg);padding:15px;margin-bottom:14px;"><div style="display:flex;justify-content:space-between;gap:12px;text-align:left;"><div style="flex:1;"><div style="font-size:var(--fs-xs);font-weight:700;color:#a9c4ff;text-transform:uppercase;letter-spacing:.5px;">Your recruit level</div><div style="display:inline-block;font-size:var(--fs-2xs);font-weight:700;color:#fff;background:'+IV+';border-radius:var(--rad-sm);padding:2px 10px;margin:6px 0 8px;">Level '+lvl+'</div><div class="bar-t"><div class="bar-f" style="background:linear-gradient(90deg,#a855f7,#d946ef);box-shadow:0 0 8px color-mix(in srgb, '+IV+' 55%, transparent);width:'+pct+'%;"></div></div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;">'+c+' / '+nextT+' friends joined</div></div><div style="text-align:right;flex-shrink:0;"><div style="font-size:var(--fs-2xs);color:var(--fg2);">Today you earn</div><div style="font-size:var(--fs-2xl);font-weight:900;color:'+IV+';text-shadow:0 0 10px color-mix(in srgb, '+IV+' 40%, transparent);">+'+bonus+'</div><div style="font-size:var(--fs-2xs);font-weight:600;color:#4ade80;">LIKES PER DAY '+icon('arrowUpRight',16)+'</div></div></div>'+(toNext>0?'<div style="margin-top:12px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:9px 12px;font-size:var(--fs-sm);color:#fff;text-align:center;">🔥 Only <b style="color:'+IV+';">'+toNext+' more friends</b> to unlock <b style="color:'+IV+';">'+(PATH[Math.min(3,lvl)].r)+'</b>!</div>':'')+'</div>'+
   '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;text-align:left;">Rewards path</div><div class="plans-bleed" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:6px;margin-bottom:14px;">'+PATH.map(function(x){return _iePath(x,c,nextT);}).join('')+'</div>'+
@@ -21909,7 +22013,7 @@ function _renderClubs(){
     // create button
     '<button onclick="openClubCreate()" style="width:100%;box-sizing:border-box;background:linear-gradient(90deg,#9e1b1b,#791515 60%,#791515);border:none;border-radius:var(--rad-md);padding:14px;color:#fff;font-family:var(--font);font-size:var(--fs-md);font-weight:700;cursor:pointer;margin-bottom:12px;">＋ Create a community</button>'+
     // search + filters
-    '<div style="display:flex;gap:8px;margin-bottom:12px;"><input id="club-search" oninput="_clubQuery=this.value;_renderClubsList()" placeholder="🔍 Search communities…" style="flex:1;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:11px 15px;"/><button style="background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-sm);font-weight:600;padding:0 16px;cursor:pointer;white-space:nowrap;">⚙ Filters</button></div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:12px;"><input id="club-search" oninput="_clubQuery=this.value;_renderClubsList()" placeholder="Search communities…" style="flex:1;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:11px 15px;"/><button style="background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-sm);font-weight:600;padding:0 16px;cursor:pointer;white-space:nowrap;">⚙ Filters</button></div>'+
     // category tabs
     '<div style="display:flex;gap:7px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:6px;margin-bottom:8px;">'+tabs+'</div>'+
     // trending
@@ -21939,7 +22043,7 @@ function _removeClubChat(name){var el=document.getElementById('clist-club_'+name
 function _joinClubNow(name,btn){
   userPro.clubs=userPro.clubs||[];if(userPro.clubs.indexOf(name)===-1)userPro.clubs.push(name);
   if(btn){btn.textContent='✓ Joined';btn.style.background='#16a34a';}
-  if(typeof pushNotification==='function')pushNotification('🎯 Joined '+name,'event');
+  if(typeof pushNotification==='function')pushNotification('Joined '+name,'event');
   _addClubChat(name);
   if(typeof saveProfile==='function')try{saveProfile();}catch(e){}
   if(typeof updateProfileUI==='function')try{updateProfileUI();}catch(e){}
@@ -21954,7 +22058,7 @@ function _toggleClub(name,btn){
     var msg=prompt('"'+name+'" is request-to-join. Send a message to the organizers:');
     if(!msg||!msg.trim())return;
     if(btn){btn.textContent='Requested…';btn.style.background='#f59e0b';}
-    setTimeout(function(){_joinClubNow(name,btn);alert('🎯 You\'re in! The organizers of "'+name+'" accepted your request.');},1400);
+    setTimeout(function(){_joinClubNow(name,btn);alert('You\'re in! The organizers of "'+name+'" accepted your request.');},1400);
     return;
   }
   _joinClubNow(name,btn);
@@ -21995,7 +22099,7 @@ function _createClub(){
   if(typeof saveProfile==='function')try{saveProfile();}catch(e){}if(typeof updateProfileUI==='function')try{updateProfileUI();}catch(e){}if(typeof renderCrushPreview==='function')try{renderCrushPreview();}catch(e){}
   var m=document.getElementById('clubcreate-modal');if(m)m.remove();
   _renderClubs();
-  setTimeout(function(){alert('🎯 "'+name+'" created! You\'re the first member, and its chat is in Chats → Clubs.');},150);
+  setTimeout(function(){alert('"'+name+'" created! You\'re the first member, and its chat is in Chats → Clubs.');},150);
 }
 
 // ══════════ SAFETY TOOLKIT ══════════
@@ -22071,7 +22175,7 @@ function renderSafetyPanel(){
         : '<button onclick="_safetyPanelShareLoc()" style="width:100%;margin-top:12px;padding:12px;border-radius:var(--rad-md);border:none;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;box-shadow:0 0 18px rgba(34,197,94,0.32);'+(fN===0?'opacity:0.5;':'')+'">'+icon('mapPin',16)+' Share my live location</button>')+
     '</div>'+
     '<div style="margin:0 0 16px;padding:18px 16px;background:rgba(13,13,17,0.75);border:1px solid var(--gbdl, rgba(255,255,255,0.12));border-radius:var(--rad-xl);max-width:420px;margin-left:auto;margin-right:auto;backdrop-filter:blur(10px);">'+
-      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">🚨 Emergency contacts</div>'+
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:4px;">'+icon('alert',15)+' Emergency contacts</div>'+
       '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:12px;line-height:1.4;font-weight:500;">Up to 2 contacts we\'ll alert automatically in an emergency.</div>'+
       emerg+
       emergForm+
@@ -22098,7 +22202,7 @@ function openSafety(){
     '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Your safety contacts <span style="color:var(--fg3);font-weight:600;">(up to 3)</span></div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;">'+contactChips+'</div>'+
     '<button class="gbtn" style="background:#16a34a;margin-bottom:8px;" onclick="shareLocationStart()">'+icon('mapPin',16)+' Share my live location</button>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="panicAlert()">🚨 Panic — alert my contacts</button>'+
+    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="panicAlert()">'+icon('alert',15)+' Panic — alert my contacts</button>'+
     '<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;line-height:1.5;margin:6px 0 10px;">In an emergency, always call <b style="color:var(--fg);">911</b>.</div>'+
     '<button class="gbtn-ghost" onclick="document.getElementById(\'safety-modal\').remove()">Close</button>'+
   '</div>';
@@ -22108,10 +22212,10 @@ function shareLocationStart(){
   _safetyLoad();
   if(!safetyContacts.length){alert('Add at least one safety contact first (tap a friend above).');return;}
   _locShareActive=safetyContacts.join(', ');
-  alert('📍 Live location sharing started.\n\n'+_locShareActive+' can now see where you are in real time. We\'ll keep them updated until you tap Stop.');
+  alert('Live location sharing started.\n\n'+_locShareActive+' can now see where you are in real time. We\'ll keep them updated until you tap Stop.');
   openSafety();
 }
-function stopLocationShare(){_locShareActive=null;alert('📍 Location sharing stopped.');openSafety();}
+function stopLocationShare(){_locShareActive=null;alert('Location sharing stopped.');openSafety();}
 function panicAlert(){
   _safetyLoad();
   if(!safetyContacts.length){alert('Add at least one safety contact first so we know who to alert.');return;}
@@ -22251,7 +22355,7 @@ function openWeeklyRecap(){
     {e:'🔥',n:'Login streak',v:streak+' days'}
   ];
   // a friendly headline based on the standout stat
-  var headline=views>=80?'🔥 You were on fire this week':newMatches>=3?'💘 Cupid mode: activated':streak>=5?'🔥 Streak king/queen':'✨ Solid week on campus';
+  var headline=views>=80?'You were on fire this week':newMatches>=3?'💘 Cupid mode: activated':streak>=5?'Streak king/queen':'✨ Solid week on campus';
   var m=document.getElementById('recap-modal');if(m)m.remove();
   m=document.createElement('div');m.id='recap-modal';m.className='mov open';m.style.zIndex='9999';
   m.innerHTML='<div class="msheet" style="max-width:370px;max-height:88vh;overflow-y:auto;"><div class="mhnd"></div>'+
@@ -22271,7 +22375,7 @@ function _setNotifFilter(c,el){_notifFilter=c;var box=el&&el.parentElement;if(bo
 function _renderNotifBody(){
   var body=document.getElementById('notif-body');if(!body)return;
   var list=notifData.filter(function(n){return _notifFilter==='all'||_notifCat(n.type)===_notifFilter;});
-  if(!list.length){body.innerHTML='<div style="text-align:center;padding:32px 0;color:var(--fg3);font-size:var(--fs-base);">Nothing here ✨</div>';return;}
+  if(!list.length){body.innerHTML='<div style="text-align:center;padding:32px 0;color:var(--fg3);font-size:var(--fs-base);">'+icon('bell',22)+'<br>Nothing here</div>';return;}
   var h='';
   list.forEach(function(n){
     var isNew=!notifRead[n.id];
@@ -22325,7 +22429,7 @@ async function openNotifications(){
   modal=document.createElement('div');modal.id='notif-modal';modal.className='mov open';
   var unread=notifData.filter(function(n){return !notifRead[n.id];});
   _notifFilter='all';
-  var chips=[['all','All'],['social','❤️ Social'],['campus','🎓 Campus'],['events','📅 Events'],['requests','👤 Requests'],['system','⚙️ System']];
+  var chips=[['all','All'],['social',icon('heart',12)+' Social'],['campus',icon('grad',12)+' Campus'],['events',icon('calendar',12)+' Events'],['requests',icon('user',12)+' Requests'],['system',icon('settings',12)+' System']];
   var sh='<div class="msheet" style="padding-bottom:24px;"><div class="mhnd"></div>';
   sh+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><div class="t-title" style="display:flex;align-items:center;gap:6px;"><button onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'notif-modal\').remove()" title="Back" aria-label="Back" style="background:none;border:none;color:#fff;cursor:pointer;padding:2px;margin:-2px 2px -2px -4px;display:inline-flex;align-items:center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>Notifications'+(unread.length?' <span style="font-size:var(--fs-xs);background:var(--p);color:#fff;border-radius:var(--rad-sm);padding:1px 8px;vertical-align:middle;">'+unread.length+'</span>':'')+'</div>';
   if(unread.length>0)sh+='<button onclick="markAllNotifsRead()" style="background:none;border:none;color:var(--p);font-size:var(--fs-sm);font-weight:600;cursor:pointer;">Mark all read</button>';
@@ -22431,14 +22535,14 @@ openChatSettings=function(){
     if(meta.sub)sh+='<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;">'+meta.sub+'</div>';
     sh+='</div>';
     if(isCreator){
-      sh+='<div class="settings-row" style="cursor:pointer;" onclick="cgChangePic(\''+curChatId+'\')"><div><div class="settings-label">📷 Change Group Photo</div><div class="settings-sub">Upload a new group picture</div></div><span style="color:var(--fg3);">→</span></div>';
+      sh+='<div class="settings-row" style="cursor:pointer;" onclick="cgChangePic(\''+curChatId+'\')"><div><div class="settings-label">'+icon('camera',14)+' Change Group Photo</div><div class="settings-sub">Upload a new group picture</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div>';
     }
-    sh+='<div class="settings-row" style="cursor:pointer;" onclick="toggleBgSheet();document.getElementById(\'chat-settings-modal\').remove();"><div><div class="settings-label">🎨 Background Color</div><div class="settings-sub">Change chat background</div></div><span style="color:var(--fg3);">→</span></div>';
+    sh+='<div class="settings-row" style="cursor:pointer;" onclick="toggleBgSheet();document.getElementById(\'chat-settings-modal\').remove();"><div><div class="settings-label">'+icon('palette',14)+' Background Color</div><div class="settings-sub">Change chat background</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div>';
     sh+='<div style="margin-top:16px;">';
     if(isCreator){
       sh+='<button class="epb" onclick="cgDeleteGroup(\''+curChatId+'\')" style="color:#dc2626;border-color:rgba(248,113,113,0.3);">'+icon('trash',16)+' Delete Group</button>';
     }else{
-      sh+='<button class="epb" onclick="cgExitGroup(\''+curChatId+'\')" style="color:#dc2626;border-color:rgba(248,113,113,0.3);">🚪 Exit Group</button>';
+      sh+='<button class="epb" onclick="cgExitGroup(\''+curChatId+'\')" style="color:#dc2626;border-color:rgba(248,113,113,0.3);">'+icon('undo',14)+' Exit Group</button>';
     }
     sh+='</div>';
     sh+='<button class="gbtn-ghost" onclick="document.getElementById(\'chat-settings-modal\').remove()" style="margin-top:8px;">Close</button></div>';
@@ -22451,7 +22555,7 @@ openChatSettings=function(){
     modal2=document.createElement('div');modal2.id='chat-settings-modal';modal2.className='mov open';
     modal2.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Chat Settings</div>'+
       '<div style="text-align:center;margin-bottom:14px;"><div style="font-size:var(--fs-2xl);margin-bottom:4px;">💘</div><div style="font-size:var(--fs-md);font-weight:600;color:#fff;">'+matchName+'</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:3px;">Crush Match</div></div>'+
-      '<div class="settings-row" style="cursor:pointer;" onclick="toggleBgSheet();document.getElementById(\'chat-settings-modal\').remove();"><div><div class="settings-label">🎨 Background Color</div><div class="settings-sub">Change chat background</div></div><span style="color:var(--fg3);">→</span></div>'+
+      '<div class="settings-row" style="cursor:pointer;" onclick="toggleBgSheet();document.getElementById(\'chat-settings-modal\').remove();"><div><div class="settings-label">'+icon('palette',14)+' Background Color</div><div class="settings-sub">Change chat background</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div>'+
       '<div style="margin-top:16px;">'+
       '<button class="epb" onclick="deleteMatchChat(\''+curChatId+'\')" style="color:#dc2626;border-color:rgba(248,113,113,0.3);">'+icon('trash',16)+' Delete Chat</button>'+
       '<button class="epb" onclick="chatReport()" style="color:#dc2626;border-color:rgba(248,113,113,0.3);">'+icon('alert',16)+' Report</button>'+
@@ -22816,7 +22920,7 @@ function _checkMatchExpiry(){
       if(item){
         var pre=item.querySelector('.cpre');
         if(pre&&pre.style.color==='rgb(251, 191, 36)'||pre&&pre.textContent.includes('Expires')){
-          pre.textContent='⏰ Match expired';pre.style.color='var(--fg3)';
+          pre.textContent='Match expired';pre.style.color='var(--fg3)';
           item.style.opacity='0.5';
         }
       }
@@ -23160,6 +23264,311 @@ doSignupAuth=function(){
   _origDoSignupAuth();
 };
 
+<<<<<<< HEAD
+=======
+// Photos are now collected as the final onboarding step (obs6); no post-launch gate.
+
+// ══════════════ WELLNESS ══════════════
+// Difficulty tiers — exciting names; XP scales with effort
+var WL_TIERS={easy:{label:'⚡ Quick Win',xp:10,color:'#22c55e'},mid:{label:'Momentum',xp:20,color:'#f59e0b'},hard:{label:'💪 Power Move',xp:35,color:'#ef4444'}};
+var WELLNESS=[
+  {cat:'Move',color:'#16a34a',grad:'#0f766e,#16a34a',items:[
+    {id:'walk',tier:'easy',t:'Take a 15-min walk',emoji:'🚶'},
+    {id:'stairs',tier:'easy',t:'Take the stairs all day',emoji:'📈'},
+    {id:'stretch',tier:'easy',t:'Stretch for 10 minutes',emoji:'🙏'},
+    {id:'pushups',tier:'easy',t:'Do 20 push-ups in your room',emoji:'💪'},
+    {id:'squats',tier:'easy',t:'Do 50 bodyweight squats',emoji:'🦶'},
+    {id:'situps',tier:'easy',t:'Do 25 sit-ups',emoji:'🆙'},
+    {id:'plank',tier:'easy',t:'Hold a 1-minute plank',emoji:'⏳'},
+    {id:'gym',tier:'mid',t:'Go to the gym today',emoji:'🏋️'},
+    {id:'run',tier:'mid',t:'Go for a 2-mile run',emoji:'🏃'},
+    {id:'pr',tier:'hard',t:'Hit a new PR at the gym',emoji:'💥'},
+    {id:'hourwo',tier:'hard',t:'Crush a full 1-hour workout',emoji:'🏋️‍♀️'}
+  ]},
+  {cat:'Mind',color:'#2b5fd9',grad:'#5b21b6,#2b5fd9',items:[
+    {id:'read',tier:'easy',t:'Read 1 page of a book',emoji:'📖'},
+    {id:'breathe',tier:'easy',t:'5-minute breathing exercise',emoji:'🌬️'},
+    {id:'todo',tier:'easy',t:'Write your to-do list',emoji:'📝'},
+    {id:'study',tier:'mid',t:'Study for 25 minutes',emoji:'⏱️'},
+    {id:'journal',tier:'mid',t:'Journal a full page',emoji:'📓'},
+    {id:'meditate',tier:'mid',t:'Meditate for 10 minutes',emoji:'💡'},
+    {id:'chapter',tier:'hard',t:'Read a full chapter',emoji:'📕'},
+    {id:'deepstudy',tier:'hard',t:'1-hour focused study session',emoji:'📚'}
+  ]},
+  {cat:'Connect',color:'#0ea5e9',grad:'#0369a1,#0ea5e9',items:[
+    {id:'textfriend',tier:'easy',t:'Text an old friend',emoji:'💌'},
+    {id:'compliment',tier:'easy',t:'Compliment someone today',emoji:'😊'},
+    {id:'callfam',tier:'easy',t:'Call family',emoji:'📞'},
+    {id:'lunch',tier:'mid',t:'Grab lunch with a friend',emoji:'🍽️'},
+    {id:'walkfriend',tier:'mid',t:'Go for a walk with a friend',emoji:'🚶‍♀️'},
+    {id:'dormevent',tier:'hard',t:'Create an event at your dorm',emoji:'🏠'},
+    {id:'studygroup',tier:'hard',t:'Host a study group',emoji:'👥'}
+  ]},
+  {cat:'Grow',color:'#f59e0b',grad:'#b45309,#f59e0b',items:[
+    {id:'bed',tier:'easy',t:'Make your bed',emoji:'🛏️'},
+    {id:'water',tier:'easy',t:'Drink 6 glasses of water',emoji:'💧'},
+    {id:'tidy',tier:'easy',t:'Tidy your room',emoji:'🧼'},
+    {id:'sleep',tier:'mid',t:'Get 8 hours of sleep',emoji:'😴'},
+    {id:'mealprep',tier:'mid',t:'Meal-prep for tomorrow',emoji:'🥗'},
+    {id:'hw3',tier:'hard',t:'Finish 3 assignments due this week',emoji:'✅'},
+    {id:'planweek',tier:'hard',t:'Plan out your whole week',emoji:'🗓️'}
+  ]}
+];
+var wellnessState={xp:0,streak:0,done:{},lastDay:null,dayKey:null,completedToday:0};
+var WL_DAILY_CAP=6;
+function _wlTitle(id){for(var i=0;i<WELLNESS.length;i++){for(var j=0;j<WELLNESS[i].items.length;j++){if(WELLNESS[i].items[j].id===id)return WELLNESS[i].items[j].t;}}return 'this challenge';}
+function _wlSave(){try{localStorage.setItem('ugz_wellness',JSON.stringify(wellnessState));}catch(e){}}
+function _wlLoad(){
+  try{var s=JSON.parse(localStorage.getItem('ugz_wellness'));if(s&&typeof s==='object')wellnessState=s;}catch(e){}
+  if(!wellnessState.done)wellnessState.done={};
+  if(typeof wellnessState.completedToday!=='number')wellnessState.completedToday=0;
+  var today=new Date().toDateString();
+  if(!wellnessState.dayKey)wellnessState.dayKey=today;
+  if(wellnessState.dayKey!==today){
+    // New day: reset daily challenges; break the streak if a full day was skipped
+    var last=wellnessState.lastDay?new Date(wellnessState.lastDay):null;
+    var y=new Date();y.setDate(y.getDate()-1);
+    if(!last||isNaN(last)||last.toDateString()!==y.toDateString())wellnessState.streak=0;
+    wellnessState.done={};wellnessState.completedToday=0;wellnessState.dayKey=today;
+    _wlSave();
+  }
+}
+var _wlFriends=[{name:'Ana M.',init:'A',color:'#e91e63',lvl:4,streak:6},{name:'Miguel R.',init:'M',color:'#3b82f6',lvl:2,streak:1},{name:'Sofía T.',init:'S',color:'#3d7bff',lvl:6,streak:12},{name:'Carlos M.',init:'C',color:'#f59e0b',lvl:3,streak:0}];
+function _wlLevel(xp){return Math.floor(xp/100)+1;}
+function _wlCatEmoji(c){return c==='Move'?'🏃':c==='Mind'?'💡':c==='Connect'?'💬':'🌱';}
+function renderWellness(){
+  var box=document.getElementById('wellness-content');if(!box)return;
+  var lvl=_wlLevel(wellnessState.xp),prog=wellnessState.xp%100;
+  var hero='<div style="padding:18px var(--s) 8px;">'+
+    '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">🌱 Wellness</div>'+
+    '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:14px;">Small daily actions for a healthier college life.</div>'+
+    '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
+      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Lv <span data-count="'+lvl+'">'+lvl+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Level</div></div>'+
+      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fbbf24;"><span class="flame-pulse">🔥</span> <span data-count="'+wellnessState.streak+'">'+wellnessState.streak+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Day streak</div></div>'+
+      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#4ade80;"><span data-count="'+wellnessState.xp+'">'+wellnessState.xp+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Total XP</div></div>'+
+    '</div>'+
+    '<div style="background:rgba(255,255,255,0.08);border-radius:var(--rad-xs);height:10px;overflow:hidden;margin-bottom:2px;"><div style="height:100%;width:'+prog+'%;background:linear-gradient(90deg,#16a34a,#4ade80);animation:barGrow 0.95s cubic-bezier(.2,.8,.3,1);"></div></div>'+
+    '<div style="font-size:var(--fs-2xs);color:var(--fg3);">'+prog+'/100 XP to Level '+(lvl+1)+'</div>'+
+    '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-top:6px;">← Swipe each row to see all challenges</div>'+
+  '</div>';
+  var cats=WELLNESS.map(function(c){
+    // Only show challenges NOT yet completed — finishing one reveals the next in the pool
+    var active=c.items.filter(function(it){return !wellnessState.done[it.id];});
+    if(!active.length)return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div><div style="padding:0 var(--s) 12px;font-size:var(--fs-sm);color:#4ade80;font-weight:500;">🎉 All done in '+c.cat+' — check back tomorrow!</div></div>';
+    var cards=active.map(function(it){
+      var tier=WL_TIERS[it.tier]||WL_TIERS.easy;
+      return '<div style="flex:0 0 200px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid var(--gbdl);background:#0b0b0e;">'+
+        '<div style="height:120px;background:linear-gradient(150deg,'+c.grad+');display:flex;align-items:center;justify-content:center;font-size:54px;position:relative;"><span style="position:absolute;top:8px;left:8px;font-size:var(--fs-2xs);font-weight:600;background:rgba(0,0,0,0.45);color:#fff;padding:3px 8px;border-radius:var(--rad-sm);">'+tier.label+'</span>'+it.emoji+'</div>'+
+        '<div style="padding:11px;">'+
+          '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;line-height:1.3;min-height:34px;">'+it.t+'</div>'+
+          '<div style="font-size:var(--fs-xs);font-weight:600;color:'+tier.color+';margin:6px 0 8px;">+'+tier.xp+' XP</div>'+
+          '<button class="gbtn" style="background:var(--p);padding:9px;" onclick="completeChallenge(\''+it.id+'\','+tier.xp+')">Complete</button>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div>'+
+      '<div style="display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 12px;-webkit-overflow-scrolling:touch;">'+cards+'</div></div>';
+  }).join('');
+  var friends='<div style="padding:8px var(--s) 6px;"><div class="sep"></div><div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin:8px 0 8px;">👥 Friends\' levels</div>'+
+    _wlFriends.map(function(f){
+      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);">'+
+        '<div style="width:40px;height:40px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;">'+f.init+'</div>'+
+        '<div style="flex:1;"><div class="t-body-strong">'+f.name+'</div><div class="t-meta">Lv '+f.lvl+' · 🔥 '+f.streak+' day streak</div></div>'+
+        (f.streak>0?'<button onclick="motivateFriend(\''+f.name.replace(/'/g,"")+'\',this)" style="padding:6px 12px;border-radius:var(--rad-md);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:600;cursor:pointer;">💪 Motivate</button>':'<span style="font-size:var(--fs-xs);color:var(--fg3);">streak ended</span>')+
+      '</div>';
+    }).join('')+'</div>';
+  var safe=function(fn){try{return fn();}catch(e){return '';}};
+  box.innerHTML=hero+safe(_wlCheckinHtml)+cats+safe(_wlPactsHtml)+safe(_wlBuddyHtml)+safe(_wlSupportHtml)+friends;
+  if(typeof _animateCounts==='function')setTimeout(function(){_animateCounts(box);},0);
+}
+function _wlSupportHtml(){
+  return '<div style="padding:6px var(--s);"><div onclick="openSupportCircles()" style="cursor:pointer;background:linear-gradient(135deg,rgba(43,95,217,0.08),rgba(240,62,90,0.06));border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;"><div style="font-size:var(--fs-2xl);">🤗</div><div style="flex:1;"><div class="t-body-strong">Support circles</div><div class="t-meta">Anonymous peer support — vent, relate, feel less alone.</div></div><div style="font-size:var(--fs-lg);color:var(--fg2);">›</div></div></div>';
+}
+// ══════════ 😌 DAILY CHECK-IN (mood) ══════════
+var MOODS=[{e:'😄',l:'Great'},{e:'🙂',l:'Good'},{e:'😐',l:'Meh'},{e:'😟',l:'Stressed'},{e:'😢',l:'Low'}];
+var checkinState={day:null,mood:null,streak:0,last:null};
+function _checkinLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_checkin'));if(s)checkinState=s;}catch(e){}}
+function _checkinSave(){try{localStorage.setItem('ugz_checkin',JSON.stringify(checkinState));}catch(e){}}
+function _wlCheckinHtml(){
+  _checkinLoad();var today=new Date().toDateString();var done=checkinState.day===today;
+  var inner;
+  if(done){
+    var m=MOODS[checkinState.mood]||MOODS[1];
+    inner='<div style="display:flex;align-items:center;gap:12px;"><div style="font-size:34px;">'+m.e+'</div><div style="flex:1;"><div class="t-body-strong">Checked in — feeling '+m.l.toLowerCase()+'</div><div class="t-meta">🔥 '+checkinState.streak+'-day check-in streak · come back tomorrow</div></div></div>'+
+      (checkinState.mood>=3?'<div style="margin-top:10px;font-size:var(--fs-xs);color:#fbbf24;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:var(--rad-sm);padding:9px 11px;line-height:1.5;">💛 Rough day? You\'re not alone. Campus Counseling: (555) 100-2000 · 988 Suicide & Crisis Lifeline (call/text).</div>':'');
+  }else{
+    inner='<div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-bottom:10px;">How are you today?</div><div style="display:flex;gap:8px;justify-content:space-between;">'+
+      MOODS.map(function(mo,i){return '<button onclick="wlDoCheckin('+i+')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:11px 4px;cursor:pointer;"><div style="font-size:var(--fs-2xl);">'+mo.e+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;margin-top:3px;">'+mo.l+'</div></button>';}).join('')+'</div>';
+  }
+  return '<div style="padding:6px var(--s) 4px;"><div style="background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(14,165,233,0.07));border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">😌 Daily check-in</div>'+inner+'</div></div>';
+}
+function wlDoCheckin(i){
+  _checkinLoad();var today=new Date().toDateString();if(checkinState.day===today)return;
+  var y=new Date(Date.now()-86400000).toDateString();
+  checkinState.streak=(checkinState.last===y)?(checkinState.streak+1):1;
+  checkinState.day=today;checkinState.last=today;checkinState.mood=i;_checkinSave();
+  if(typeof _bumpKindness==='function')_bumpKindness(1);// engagement: showing up
+  if(i>=3)setTimeout(function(){alert('💛 Thanks for checking in. Rough patch?\n\nCampus Counseling: (555) 100-2000\n988 Suicide & Crisis Lifeline — call or text, 24/7.\n\nYou\'ve got people here.');},250);
+  if(typeof renderWellness==='function')renderWellness();
+}
+// ══════════ 🔥 GROUP CHALLENGE — your house/dorm vs a rival ══════════
+var _wlGroup=null;
+function _wlGroupLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_wlgroup'));if(s)_wlGroup=s;}catch(e){}}
+function _wlGroupSave(){try{localStorage.setItem('ugz_wlgroup',JSON.stringify(_wlGroup));}catch(e){}}
+// pick a deterministic rival university (different from yours) from the real UNI_LIST
+function _allUniNames(){try{return Object.keys(UNI).map(function(d){return UNI[d].name;}).filter(Boolean);}catch(e){return ['State University','City College','Tech University'];}}
+function _rivalUniversity(myName){
+  var list=_allUniNames().filter(function(n){return n&&n!==myName;});
+  if(!list.length)return 'Rival University';
+  return list[_strHash((myName||'u')+'rival')%list.length];
+}
+function openGroupChallenge(){
+  var m=document.getElementById('grpchal-modal');if(m)m.remove();
+  m=document.createElement('div');m.id='grpchal-modal';m.className='mov open';m.style.zIndex='10001';
+  var myUni=(uni&&uni.name)||'My University';
+  var rivalUni=_rivalUniversity(myUni);
+  var opts='';
+  // 1) University vs University — the headline matchup
+  opts+='<button onclick="_setGroupChallenge(\''+myUni.replace(/'/g,"\\'")+'\',\''+rivalUni.replace(/'/g,"\\'")+'\',\'uni\')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px;border-radius:var(--rad-sm);border:1px solid rgba(61,123,255,0.35);background:rgba(61,123,255,0.10);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🎓 '+myUni+' <span style="color:var(--fg2);font-weight:500;">vs '+rivalUni+'</span></button>';
+  // 2) Fraternity / Sorority chapter vs chapter
+  if(userPro&&userPro.org){var pn=_greekPartner(userPro.org);opts+='<button onclick="_setGroupChallenge(\''+userPro.org.replace(/'/g,"\\'")+'\',\''+(pn||'Rival Chapter').replace(/'/g,"\\'")+'\',\'greek\')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px;border-radius:var(--rad-sm);border:1px solid var(--gbdl);background:rgba(43,95,217,0.08);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🏛️ '+userPro.org+' chapter <span style="color:var(--fg2);font-weight:500;">vs '+(pn||'a rival chapter')+'</span></button>';}
+  else{opts+='<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:2px 0 8px;line-height:1.4;">Add your fraternity/sorority in your profile to unlock a chapter-vs-chapter showdown.</div>';}
+  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🔥</div><div class="t-title">Pick your showdown</div><div class="t-sub">Rep your school or chapter in a friendly wellness battle.</div></div>'+opts+
+    '<button class="gbtn" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1205;margin-top:4px;" onclick="openUniLeaderboard()">🏆 See the all-universities leaderboard</button>'+
+    '<button class="gbtn-ghost" style="margin-top:8px;" onclick="document.getElementById(\'grpchal-modal\').remove()">Cancel</button></div>';
+  document.body.appendChild(m);
+}
+function _setGroupChallenge(name,rival,type){_wlGroup={name:name,rival:rival,type:type};_wlGroupSave();var m=document.getElementById('grpchal-modal');if(m)m.remove();if(typeof renderWellness==='function')renderWellness();}
+// 🏆 Leaderboard of ALL universities, ranked by total wellness points (deterministic demo data)
+function openUniLeaderboard(){
+  var m=document.getElementById('unilb-modal');if(m)m.remove();
+  m=document.createElement('div');m.id='unilb-modal';m.className='mov open';m.style.zIndex='10002';
+  var myUni=(uni&&uni.name)||'My University';
+  var names=_allUniNames();if(!names.length)names=[myUni,'State University','City College'];
+  if(names.indexOf(myUni)<0)names.unshift(myUni);
+  var rows=names.map(function(n){var pts=2000+(_strHash(n+'lb')%9000)+(n===myUni?(wellnessState.xp||0):0);return {n:n,pts:pts,me:n===myUni};});
+  rows.sort(function(a,b){return b.pts-a.pts;});
+  var myRank=rows.findIndex(function(r){return r.me;})+1;
+  var top=rows.slice(0,25);
+  var list=top.map(function(r,i){var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'<span style="display:inline-block;width:22px;color:var(--fg3);font-weight:600;">'+(i+1)+'</span>';return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:var(--rad-sm);margin-bottom:6px;background:'+(r.me?'rgba(61,123,255,0.13)':'rgba(255,255,255,0.04)')+';border:1px solid '+(r.me?'rgba(61,123,255,0.4)':'var(--gbdl)')+';"><div style="font-size:var(--fs-md);width:26px;text-align:center;">'+medal+'</div><div style="flex:1;font-size:var(--fs-base);font-weight:'+(r.me?'900':'700')+';color:#fff;">'+r.n+(r.me?' <span style="font-size:var(--fs-2xs);color:var(--p);">(you)</span>':'')+'</div><div style="font-size:var(--fs-sm);font-weight:600;color:#fbbf24;">'+r.pts.toLocaleString()+'</div></div>';}).join('');
+  m.innerHTML='<div class="msheet" style="max-width:400px;max-height:86vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:10px;"><div style="font-size:30px;">🏆</div><div class="t-title">University leaderboard</div><div class="t-meta">Ranked by total wellness points this season. '+myUni+' is #'+myRank+'.</div></div>'+list+'<button class="gbtn-ghost" style="margin-top:10px;" onclick="document.getElementById(\'unilb-modal\').remove()">Close</button></div>';
+  document.body.appendChild(m);
+}
+// ══════════ 🤝 HABIT PACTS ══════════
+var HABITS=['🏋️ Gym','🏃 Run','📚 Study','💧 Hydrate','😴 Sleep by 12','🙏 Meditate','🥗 Eat clean'];
+var _wlPacts=[];
+function _pactsLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_pacts'));if(Array.isArray(s))_wlPacts=s;}catch(e){}}
+function _pactsSave(){try{localStorage.setItem('ugz_pacts',JSON.stringify(_wlPacts));}catch(e){}}
+function _wlPactsHtml(){
+  _pactsLoad();
+  var rows=_wlPacts.map(function(p,i){
+    var meDone=p.myDone||0,theyDone=p.theirDone||0;
+    var bar=function(d){return '<div style="display:flex;gap:3px;">'+Array.from({length:p.freq}).map(function(_,k){return '<div style="flex:1;height:6px;border-radius:3px;background:'+(k<d?'#4ade80':'rgba(255,255,255,0.12)')+';"></div>';}).join('')+'</div>';};
+    var doneToday=meDone>=p.freq;
+    return '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;margin-bottom:8px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="t-body-strong">'+p.habit+' · '+p.freq+'x/wk</div><button onclick="_pactRemove('+i+')" style="background:none;border:none;color:var(--fg3);font-size:var(--fs-base);cursor:pointer;">✕</button></div>'+
+      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:3px;">You · '+meDone+'/'+p.freq+'</div>'+bar(meDone)+
+      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin:7px 0 3px;">🤝 '+p.partner+' · '+theyDone+'/'+p.freq+'</div>'+bar(theyDone)+
+      '<button class="gbtn" style="background:'+(doneToday?'#16a34a':'var(--p)')+';margin-top:10px;padding:9px;" onclick="_pactCheck('+i+')"'+(doneToday?' disabled':'')+'>'+(doneToday?'✓ Goal hit this week!':'✓ Did it today')+'</button>'+
+    '</div>';
+  }).join('');
+  return '<div style="padding:6px var(--s);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="t-body-black">🤝 Habit pacts</div><button onclick="openPactCreate()" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">＋ New pact</button></div>'+
+    (rows||'<div style="font-size:var(--fs-sm);color:var(--fg2);padding:4px 0 6px;">Make a pact with a friend — "we both hit the gym 3x this week." You keep each other honest.</div>')+'</div>';
+}
+function openPactCreate(){
+  var pool=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
+  window._pactDraft={habit:HABITS[0],freq:3,partners:[]};
+  _renderPactCreate();
+}
+function _renderPactCreate(){
+  var d=window._pactDraft;var pool=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
+  var m=document.getElementById('pact-modal');if(m)m.remove();
+  m=document.createElement('div');m.id='pact-modal';m.className='mov open';m.style.zIndex='10001';
+  var hchips=HABITS.map(function(h){var on=d.habit===h;return '<div onclick="_pactSet(\'habit\',\''+h.replace(/'/g,"\\'")+'\')" style="cursor:pointer;font-size:var(--fs-sm);font-weight:500;padding:7px 11px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';color:#fff;">'+h+'</div>';}).join('');
+  var fchips=[2,3,4,5].map(function(f){var on=d.freq===f;return '<div onclick="_pactSet(\'freq\','+f+')" style="cursor:pointer;font-size:var(--fs-base);font-weight:600;padding:9px 15px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';color:#fff;">'+f+'x</div>';}).join('');
+  var pchips=pool.map(function(f){var on=(d.partners||[]).indexOf(f.n)>-1;return '<div onclick="_pactTogglePartner(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';"><div style="width:22px;height:22px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;">'+f.i+'</div><span style="font-size:var(--fs-sm);font-weight:500;color:#fff;">'+f.n+'</span>'+(on?'<span style="color:var(--p);font-size:var(--fs-sm);">✓</span>':'')+'</div>';}).join('');
+  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🤝</div><div class="t-title">New habit pact</div></div>'+
+    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Habit</div><div class="t-chip-row">'+hchips+'</div>'+
+    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Times per week</div><div style="display:flex;gap:8px;margin-bottom:14px;">'+fchips+'</div>'+
+    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Pact partner <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg3);">(up to 2)</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">'+pchips+'</div>'+
+    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_createPact()">Make pact 🤝</button><button class="gbtn-ghost" onclick="document.getElementById(\'pact-modal\').remove()">Cancel</button></div>';
+  document.body.appendChild(m);
+}
+function _pactSet(k,v){window._pactDraft[k]=v;_renderPactCreate();}
+function _pactTogglePartner(n){var d=window._pactDraft;d.partners=d.partners||[];var i=d.partners.indexOf(n);if(i>-1)d.partners.splice(i,1);else{if(d.partners.length>=2){alert('You can pact with up to 2 people.');return;}d.partners.push(n);}_renderPactCreate();}
+function _createPact(){
+  var d=window._pactDraft;var partners=(d.partners||[]).slice();if(!partners.length){alert('Pick at least one partner.');return;}
+  var label=partners.join(' & ');
+  _pactsLoad();_wlPacts.push({habit:d.habit,freq:d.freq,partner:label,partners:partners,myDone:0,theirDone:Math.floor(d.freq/2)});_pactsSave();
+  var m=document.getElementById('pact-modal');if(m)m.remove();
+  if(typeof renderWellness==='function')renderWellness();
+  alert('Pact made with '+label+'!\n\n'+d.habit+' '+d.freq+'x this week. Keep each other honest 💪');
+}
+function _pactCheck(i){_pactsLoad();var p=_wlPacts[i];if(!p)return;p.myDone=Math.min(p.freq,(p.myDone||0)+1);if(Math.random()>0.4)p.theirDone=Math.min(p.freq,(p.theirDone||0)+1);_pactsSave();if(typeof renderWellness==='function')renderWellness();}
+function _pactRemove(i){if(!confirm('Drop this pact?'))return;_pactsLoad();_wlPacts.splice(i,1);_pactsSave();if(typeof renderWellness==='function')renderWellness();}
+// ══════════ 🙏 WELLNESS BUDDY ══════════
+var WL_ACTS=['🏋️ Gym','🏃 Running','📚 Study','🙏 Yoga','🚶 Walks','🚴 Cycling'];
+var _wlBuddy=null;
+function _buddyLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_buddy'));if(s)_wlBuddy=s;}catch(e){}}
+function _buddySave(){try{localStorage.setItem('ugz_buddy',JSON.stringify(_wlBuddy));}catch(e){}}
+function _wlBuddyHtml(){
+  _buddyLoad();
+  if(_wlBuddy){
+    return '<div style="padding:6px var(--s);"><div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--rad-md);padding:13px;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">🙏 Your wellness buddy</div><div style="display:flex;align-items:center;gap:11px;"><div style="width:44px;height:44px;border-radius:50%;background:'+_wlBuddy.color+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:900;color:#fff;">'+_wlBuddy.init+'</div><div style="flex:1;"><div class="t-body-strong">'+_wlBuddy.name+'</div><div class="t-meta">'+_wlBuddy.act+' buddy · keeps you accountable</div></div><button onclick="_buddyMessage()" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:8px 13px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">Message</button></div><div style="text-align:center;margin-top:12px;"><button onclick="_buddyEnd()" style="background:var(--p);border:none;color:#fff;font-size:var(--fs-sm);font-weight:600;cursor:pointer;padding:9px 20px;border-radius:var(--rad-xl);font-family:var(--font);">End partnership</button></div></div></div>';
+  }
+  return '<div style="padding:6px var(--s);"><div style="background:rgba(255,255,255,0.04);border:1px dashed var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;text-align:center;"><div style="font-size:var(--fs-xl);">🙏</div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin:4px 0;">Find a wellness buddy</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:10px;line-height:1.5;">Get matched with someone for the gym, runs, or study accountability. Not a date — just a teammate.</div><button class="gbtn" style="background:var(--p);width:auto;display:inline-block;padding:9px 18px;" onclick="openWellnessBuddy()">Find a buddy</button></div></div>';
+}
+function openWellnessBuddy(){
+  window._buddyAct=WL_ACTS[0];
+  _renderBuddyPick();
+}
+function _renderBuddyPick(){
+  var m=document.getElementById('buddy-modal');if(m)m.remove();
+  m=document.createElement('div');m.id='buddy-modal';m.className='mov open';m.style.zIndex='10001';
+  var chips=WL_ACTS.map(function(a){var on=window._buddyAct===a;return '<div onclick="window._buddyAct=\''+a.replace(/'/g,"\\'")+'\';_renderBuddyPick()" style="cursor:pointer;font-size:var(--fs-sm);font-weight:500;padding:8px 12px;border-radius:var(--rad-lg);border:1px solid '+(on?'#22c55e':'var(--gbdl)')+';background:'+(on?'rgba(34,197,94,0.14)':'rgba(255,255,255,0.04)')+';color:#fff;">'+a+'</div>';}).join('');
+  m.innerHTML='<div class="msheet" style="max-width:370px;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🙏</div><div class="t-title">Find a wellness buddy</div><div class="t-sub">What do you want a teammate for?</div></div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;">'+chips+'</div>'+
+    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_findBuddy()">Match me 🤝</button><button class="gbtn-ghost" onclick="document.getElementById(\'buddy-modal\').remove()">Cancel</button></div>';
+  document.body.appendChild(m);
+}
+function _findBuddy(){
+  var pool=(typeof crushDataAll!=='undefined'&&crushDataAll&&crushDataAll.length)?crushDataAll:(typeof _FRIEND_POOL!=='undefined'?_FRIEND_POOL.map(function(f){return {name:f.n,init:f.i,bg:f.c};}):[]);
+  if(!pool.length){alert('No buddies available right now.');return;}
+  var act=window._buddyAct;var pick=pool[_strHash(act+(pool.length))%pool.length];
+  _wlBuddy={name:pick.name,init:pick.init||(pick.name||'B').charAt(0),color:pick.bg||'#22c55e',act:act};
+  _buddySave();
+  var m=document.getElementById('buddy-modal');if(m)m.remove();
+  if(typeof renderWellness==='function')renderWellness();
+  alert('Matched! '+_wlBuddy.name+' is your '+act+' buddy.\n\nMessage them to set your first session.');
+}
+function _buddyMessage(){
+  if(!_wlBuddy)return;var id='buddy_'+_wlBuddy.name.replace(/\s/g,'');
+  if(typeof openChat==='function')openChat(id,_wlBuddy.name+' 🙏',_wlBuddy.color,_wlBuddy.init,false,['Hey! We got matched as '+_wlBuddy.act+' buddies 💪','When are you free to start?'],true);
+}
+function _buddyEnd(){if(!confirm('End your buddy partnership?'))return;_wlBuddy=null;try{localStorage.removeItem('ugz_buddy');}catch(e){}if(typeof renderWellness==='function')renderWellness();}
+function completeChallenge(id,xp){
+  if(wellnessState.done[id])return;
+  var today=new Date().toDateString();
+  if(wellnessState.dayKey!==today){wellnessState.done={};wellnessState.completedToday=0;wellnessState.dayKey=today;}
+  // Daily cap keeps it honest — you can't farm every challenge at once
+  if(wellnessState.completedToday>=WL_DAILY_CAP){alert('🌙 You\'ve logged '+WL_DAILY_CAP+' challenges today — come back tomorrow to keep your streak going. (This keeps it honest 💪)');return;}
+  // Honor-system confirmation
+  if(!confirm('Did you really do this?\n\n“'+_wlTitle(id)+'”\n\nBe honest — it only counts if you actually did it. 🌱'))return;
+  wellnessState.done[id]=true;wellnessState.xp+=xp;wellnessState.completedToday++;
+  if(typeof _bumpKindness==='function')_bumpKindness(1);// engagement: wellness
+  if(wellnessState.lastDay!==today){wellnessState.streak++;wellnessState.lastDay=today;if(wellnessState.streak%7===0&&typeof _celebrate==='function')_celebrate(['🔥','🌱','✨','🎉','💚']);}
+  var before=_wlLevel(wellnessState.xp-xp),after=_wlLevel(wellnessState.xp);
+  _wlSave();
+  renderWellness();
+  if(after>before){if(typeof _celebrate==='function')_celebrate(['🌟','✨','🎉','💫','🌱']);setTimeout(function(){alert('Level up! You reached Level '+after+'. Keep the streak going!');},150);}
+  else if(typeof pushNotification==='function'){pushNotification('🌱 +'+xp+' XP — nice! 🔥 '+wellnessState.streak+'-day streak','event');}
+}
+function motivateFriend(name,btn){
+  if(btn){btn.innerHTML=icon('check',12)+' Sent';btn.disabled=true;btn.style.background='#16a34a';}
+  setTimeout(function(){alert('💪 Sent '+name+' a motivation nudge before their streak ends!');},120);
+}
+
+>>>>>>> 4687079 (Rediseno)
 // Populate the major / Greek filter chips from the shared lists so they stay in sync with registration
 try{_populateFilterChips();}catch(e){}
 try{_applyPlanLocks();}catch(e){}
@@ -23434,7 +23843,7 @@ async function sendCrushFriendRequest(userId, btn) {
   
   try {
     await apiClient.sendFriendRequest(userId);
-    btn.textContent = '✅ Sent';
+    btn.textContent = '✓ Sent';
     if (typeof addToActivity === 'function') {
       addToActivity("Sent a friend request to a student.");
     }
