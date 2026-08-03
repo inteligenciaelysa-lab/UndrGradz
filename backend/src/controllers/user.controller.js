@@ -1,6 +1,7 @@
 const userService = require('../services/user.service');
 const { updateProfileSchema, updateLocationSchema, addPhotoSchema, updateGhostModeSchema, submitVerificationSchema } = require('../validators/user.validator');
 const AppError = require('../errors/appError');
+const { isProductionGCP } = require('../integrations/gcs');
 
 class UserController {
   async getMe(req, res, next) {
@@ -112,6 +113,12 @@ class UserController {
 
   // Mock handler to simulate GCS PUT upload locally
   async mockUploadReceiver(req, res, next) {
+    if (isProductionGCP) {
+      return res.status(501).json({
+        status: 'error',
+        message: 'Mock upload endpoint is disabled in production. Uploads must go through the real GCS signed URL flow.',
+      });
+    }
     try {
       const { fileName } = req.query;
       console.log(`[GCS MOCK] File upload received for path: ${fileName}`);

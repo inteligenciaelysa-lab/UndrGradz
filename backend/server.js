@@ -6,7 +6,8 @@ const PORT = process.env.PORT || 3000;
 
 const { setupSocket } = require('./src/socket');
 
-const server = app.listen(PORT, async () => {
+// Explicit 0.0.0.0 bind required by some container platforms; matches previous default behavior.
+const server = app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   
   try {

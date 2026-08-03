@@ -1,0 +1,43 @@
+node_modules
+.env
+.env.*
+!.env.example
+npm-debug.log
+
+# Local dev artifacts
+public/mock-uploads
+
+# QA / maintenance one-off scripts (not part of the runtime app)
+audit_*.js
+audit_results.json
+check_*.js
+clear_*.js
+create_*.js
+db_stats.js
+deep_*.js
+e2e_*.js
+fix_*.js
+import_*.js
+inspect_*.js
+phase4_*.js
+real_ui_qa_automation.js
+rename_*.js
+seed_*.js
+test_*.js
+update_*.js
+verify_*.js
+qa_screenshots
+
+# Backup dumps (must never enter the build context)
+*.sql
+*.sql.gz
+backup_*.json
+
+# git / editor
+.git
+.gitignore
+.vscode
+
+# Docker meta
+Dockerfile
+.dockerignore

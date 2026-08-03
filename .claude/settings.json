@@ -62,7 +62,18 @@
       "Bash(node --check src/routes/geo.routes.js)",
       "Bash(node --check src/app.js)",
       "Bash(node --check src/controllers/user.controller.js)",
-      "Bash(node --check src/routes/user.routes.js)"
+      "Bash(node --check src/routes/user.routes.js)",
+      "Bash(where pg_dump)",
+      "Bash(pg_dump --version)",
+      "Bash(ls \"/c/Program Files/PostgreSQL\" 2>&1)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Bash(PGPASSWORD=admin123 \"/c/Program Files/PostgreSQL/18/bin/pg_dump.exe\" -h localhost -p 5432 -U postgres -d undrgradz --no-owner --no-acl --format=plain -f backup_cloudsql.sql)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(wmic process *)",
+      "Bash(taskkill //F //PID 3060 //PID 5560 //PID 14312)",
+      "Bash(taskkill //F //PID 20120)",
+      "Bash(docker version *)"
     ]
   }
 }

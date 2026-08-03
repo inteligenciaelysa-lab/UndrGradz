@@ -161,7 +161,7 @@ class AppealService {
     });
 
     const { forceNotify } = require('../socket');
-    const delivered = forceNotify(userId, 'appealResolved', { status, title, message });
+    const delivered = await forceNotify(userId, 'appealResolved', { status, title, message });
     if (delivered) {
       await prisma.notification.update({ where: { id: notification.id }, data: { isRead: true } });
     }

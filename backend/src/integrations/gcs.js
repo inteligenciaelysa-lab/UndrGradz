@@ -2,7 +2,10 @@ const { Storage } = require('@google-cloud/storage');
 const crypto = require('crypto');
 
 // Initialize Google Cloud Storage
-const isProductionGCP = process.env.GCS_BUCKET_NAME && process.env.GOOGLE_APPLICATION_CREDENTIALS;
+// On Cloud Run, real auth comes from the attached service account (Application Default
+// Credentials), not a credentials file. NODE_ENV=production or K_SERVICE (injected
+// automatically by Cloud Run) are the real environment signals for "production mode".
+const isProductionGCP = process.env.NODE_ENV === 'production' || !!process.env.K_SERVICE;
 
 let storage;
 let bucket;
@@ -112,5 +115,6 @@ const generateChatAudioSignedUrl = async (userId, matchId, contentType = 'audio/
 module.exports = {
   generateUploadSignedUrl,
   generateChatAudioSignedUrl,
+  isProductionGCP,
 };
 

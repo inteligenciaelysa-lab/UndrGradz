@@ -1,10 +1,10 @@
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
 const { verifyAccessToken } = require('./utils/jwt');
 const prisma = require('./database/prisma');
 const { validateAudioFile } = require('./utils/audioValidator');
+const { pubClient, subClient, isRedisEnabled } = require('./config/redis');
 
-// Store online users mapping: userId -> socketId
-const onlineUsers = new Map();
 let ioInstance;
 
 const setupSocket = (server) => {
@@ -15,6 +15,13 @@ const setupSocket = (server) => {
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
     },
   });
+
+  if (isRedisEnabled) {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log('🔗 Socket.io using Redis adapter (multi-instance ready)');
+  } else {
+    console.log('⚠️ REDIS_URL not set — Socket.io using in-memory adapter (single-instance only)');
+  }
 
   ioInstance = io;
 
@@ -41,7 +48,7 @@ const setupSocket = (server) => {
 
   io.on('connection', (socket) => {
     const userId = socket.user.userId;
-    onlineUsers.set(userId, socket.id);
+    socket.data.userId = userId; // Exposed on RemoteSocket objects via fetchSockets(), incl. across instances with the Redis adapter
     socket.join(`user_${userId}`);
     socket.join(userId);
     console.log(`🔌 Socket connected: User ${userId} (Socket ID: ${socket.id})`);
@@ -62,7 +69,7 @@ const setupSocket = (server) => {
     socket.on('sendMessage', async ({ matchId, content, type = 'TEXT', mediaUrl, duration }) => {
       try {
         const msgType = (type || 'TEXT').toUpperCase();
-        
+
         if (msgType === 'TEXT' && (!content || content.trim() === '')) return;
 
         // Verify if user is part of the match
@@ -87,15 +94,11 @@ const setupSocket = (server) => {
 
         // Find recipient ID
         const receiverId = match.userOneId === userId ? match.userTwoId : match.userOneId;
-        const receiverSocketId = onlineUsers.get(receiverId);
 
-        let isRead = false;
-        if (receiverSocketId) {
-          const receiverSocket = io.sockets.sockets.get(receiverSocketId);
-          if (receiverSocket && receiverSocket.rooms.has(`room_${matchId}`)) {
-            isRead = true;
-          }
-        }
+        // Is the receiver currently viewing this match's chat room? Checked via the
+        // adapter's fetchSockets(), which works across instances (not just locally).
+        const socketsInRoom = await io.in(`room_${matchId}`).fetchSockets();
+        const isRead = socketsInRoom.some((s) => s.data.userId === receiverId);
 
         // Save message to Postgres database
         const message = await prisma.message.create({
@@ -124,12 +127,13 @@ const setupSocket = (server) => {
         console.log(`✉️ Message sent in room_${matchId} by ${userId}`);
 
         // If the receiver is online but not in the room, send the message to their socket directly so they get real-time badge updates
-        if (!isRead && receiverSocketId) {
-          io.to(receiverSocketId).emit('messageReceived', message);
+        if (!isRead) {
+          io.to(`user_${receiverId}`).emit('messageReceived', message);
         }
 
-        // If receiver is offline, send a Push Notification!
-        const isOnline = onlineUsers.has(receiverId);
+        // If receiver is offline (no active socket on any instance), send a Push Notification!
+        const receiverSockets = await io.in(`user_${receiverId}`).fetchSockets();
+        const isOnline = receiverSockets.length > 0;
         if (!isOnline) {
           const { sendPushToUser } = require('./integrations/firebase');
           await sendPushToUser(receiverId, {
@@ -179,18 +183,14 @@ const setupSocket = (server) => {
         const friendService = require('./services/friend.service');
         const friendsList = await friendService.getFriends(userId);
 
-        // 4. Notify online friends
+        // 4. Notify friends (a no-op for friends who have no active socket, on this or any other instance)
         friendsList.forEach(f => {
-          const friendId = f.friend.id;
-          const friendSocketId = onlineUsers.get(friendId);
-          if (friendSocketId) {
-            io.to(friendSocketId).emit('friendLocationUpdated', {
-              friendId: userId,
-              latitude,
-              longitude,
-              lastActive: new Date()
-            });
-          }
+          io.to(`user_${f.friend.id}`).emit('friendLocationUpdated', {
+            friendId: userId,
+            latitude,
+            longitude,
+            lastActive: new Date()
+          });
         });
 
         console.log(`📍 Live location update from ${userId}: ${latitude}, ${longitude}`);
@@ -201,7 +201,6 @@ const setupSocket = (server) => {
 
     // Disconnect
     socket.on('disconnect', () => {
-      onlineUsers.delete(userId);
       console.log(`🔌 Socket disconnected: User ${userId}`);
     });
   });
@@ -212,14 +211,17 @@ const setupSocket = (server) => {
 /**
  * Emits an arbitrary event to every tab/device a user has open, without
  * disconnecting them (unlike forceLogoutUser). Returns true if the user was
- * actually online and the event was delivered, false otherwise, so callers
- * can decide whether a fallback (e.g. an unread Notification row) is needed.
+ * actually online (on this or any other instance) and the event was delivered,
+ * false otherwise, so callers can decide whether a fallback (e.g. an unread
+ * Notification row) is needed.
  */
-const forceNotify = (userId, event, payload) => {
+const forceNotify = async (userId, event, payload) => {
   if (!ioInstance) return false;
-  if (!onlineUsers.has(userId)) return false;
   try {
-    ioInstance.to(`user_${userId}`).emit(event, payload);
+    const room = `user_${userId}`;
+    const sockets = await ioInstance.in(room).fetchSockets();
+    if (sockets.length === 0) return false;
+    ioInstance.to(room).emit(event, payload);
     return true;
   } catch (error) {
     console.error(`❌ Failed to notify user via socket (${event}):`, error);
@@ -240,19 +242,16 @@ const notifyGhostModeChanged = async (userId, isGhostMode) => {
     }
 
     friendsList.forEach(f => {
-      const friendId = f.friend.id;
-      const friendSocketId = onlineUsers.get(friendId);
-      if (friendSocketId) {
-        if (isGhostMode) {
-          ioInstance.to(friendSocketId).emit('friendLocationRemoved', { friendId: userId });
-        } else if (profileData?.profile?.latitude !== null && profileData?.profile?.longitude !== null) {
-          ioInstance.to(friendSocketId).emit('friendLocationUpdated', {
-            friendId: userId,
-            latitude: profileData.profile.latitude,
-            longitude: profileData.profile.longitude,
-            lastActive: profileData.profile.lastActive
-          });
-        }
+      const friendRoom = `user_${f.friend.id}`;
+      if (isGhostMode) {
+        ioInstance.to(friendRoom).emit('friendLocationRemoved', { friendId: userId });
+      } else if (profileData?.profile?.latitude !== null && profileData?.profile?.longitude !== null) {
+        ioInstance.to(friendRoom).emit('friendLocationUpdated', {
+          friendId: userId,
+          latitude: profileData.profile.latitude,
+          longitude: profileData.profile.longitude,
+          lastActive: profileData.profile.lastActive
+        });
       }
     });
   } catch (error) {
@@ -281,25 +280,15 @@ const notifyMatchCreated = (userAId, userBId, payloadA, payloadB) => {
 /**
  * Immediately expels a user who has just been suspended/banned by an admin:
  * pushes a 'forceLogout' event to every tab/device they have open, then
- * disconnects those sockets. Iterates the `user_${userId}` room (not just
- * the single-socket onlineUsers map) so all tabs are covered.
+ * disconnects those sockets. Uses the adapter's room-aware emit/disconnectSockets
+ * so it also reaches sockets connected to other instances, not just this one.
  */
 const forceLogoutUser = (userId, payload) => {
   if (!ioInstance) return;
   try {
     const room = `user_${userId}`;
     ioInstance.to(room).emit('forceLogout', payload);
-
-    const socketIds = ioInstance.sockets.adapter.rooms.get(room);
-    if (socketIds) {
-      socketIds.forEach((socketId) => {
-        const s = ioInstance.sockets.sockets.get(socketId);
-        if (s) s.disconnect(true);
-        if (onlineUsers.get(userId) === socketId) {
-          onlineUsers.delete(userId);
-        }
-      });
-    }
+    ioInstance.in(room).disconnectSockets(true);
   } catch (error) {
     console.error('❌ Failed to force logout user:', error);
   }
@@ -315,5 +304,6 @@ const notifyUniversityCatalogUpdated = (uniData) => {
   }
 };
 
-module.exports = { setupSocket, onlineUsers, notifyGhostModeChanged, notifyMatchCreated, notifyUniversityCatalogUpdated, forceLogoutUser, forceNotify };
+const getIO = () => ioInstance;
 
+module.exports = { setupSocket, getIO, notifyGhostModeChanged, notifyMatchCreated, notifyUniversityCatalogUpdated, forceLogoutUser, forceNotify };

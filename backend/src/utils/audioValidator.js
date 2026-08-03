@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Storage } = require('@google-cloud/storage');
-
-const isProductionGCP = process.env.GCS_BUCKET_NAME && process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const { isProductionGCP } = require('../integrations/gcs');
 
 /**
  * Robustly parses container headers (WebM, MP4/AAC, OGG, WAV) to extract real audio duration in seconds.

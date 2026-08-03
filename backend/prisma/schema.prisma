@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -11,103 +9,77 @@ datasource db {
 }
 
 model User {
-  id String @id @default(cuid())
-
-  email  String  @unique
-  phone  String? @unique
-  handle String? @unique
-
-  passwordHash String
-
-  firstName String
-  lastName  String
-
-  birthDate DateTime
-
-  isEmailVerified   Boolean @default(false)
-  isPhoneVerified   Boolean @default(false)
-  isVerified        Boolean @default(false) // Student ID verification badge 🎓 / ✅
-  isCreatorVerified Boolean @default(false) // Content Creator verification badge ✨
-  isAthleteVerified Boolean @default(false) // Campus Athlete verification badge 🏅
-  isGovtVerified    Boolean @default(false) // Student Government verification badge 🏛️
-
-  // Administrative & Security fields
-  role                String    @default("STUDENT") // 'STUDENT', 'SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'
-  status              String    @default("ACTIVE") // 'ACTIVE', 'SUSPENDED', 'BANNED', 'DELETED'
-  isDeleted           Boolean   @default(false)
-  deletedAt           DateTime?
-  suspensionReason    String?
-  suspendedUntil      DateTime?
-  suspendedAt         DateTime?
-  suspendedById       String?
-  banReason           String?
-  bannedAt            DateTime?
-  bannedById          String?
-  failedLoginAttempts Int       @default(0)
-  lockoutUntil        DateTime?
-  twoFactorEnabled    Boolean   @default(false)
-  twoFactorSecret     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  profile UserProfile?
-  photos  Photo[]
-
-  sentSwipes     Swipe[] @relation("SentSwipes")
-  receivedSwipes Swipe[] @relation("ReceivedSwipes")
-
-  matchesOne Match[] @relation("UserOneMatches")
-  matchesTwo Match[] @relation("UserTwoMatches")
-
-  referralCode  String? @unique
-  referredById  String?
-  referredBy    User?   @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
-  referredUsers User[]  @relation("Referrals")
-
-  suspendedBy        User?  @relation("SuspendedByAdmin", fields: [suspendedById], references: [id], onDelete: SetNull)
-  suspensionsIssued  User[] @relation("SuspendedByAdmin")
-  bannedBy           User?  @relation("BannedByAdmin", fields: [bannedById], references: [id], onDelete: SetNull)
-  bansIssued         User[] @relation("BannedByAdmin")
-
-  sentFriendships      Friendship[]  @relation("SentFriendships")
-  receivedFriendships  Friendship[]  @relation("ReceivedFriendships")
-  sentProfileViews     ProfileView[] @relation("SentViews")
-  receivedProfileViews ProfileView[] @relation("ReceivedViews")
-  messages             Message[]
-  createdEvents        Event[]       @relation("CreatedEvents")
-  joinedEvents         Event[]       @relation("EventAttendees")
-
-  // Admin relations
-  adminAuditLogs        AuditLog[]            @relation("AdminAuditLogs")
-  reportsFiled          Report[]              @relation("ReportsFiled")
-  reportsReceived       Report[]              @relation("ReportsReceived")
-  resolvedReports       Report[]              @relation("ResolvedReports")
+  id                    String                @id @default(cuid())
+  email                 String                @unique
+  phone                 String?               @unique
+  passwordHash          String
+  firstName             String
+  lastName              String
+  birthDate             DateTime
+  isEmailVerified       Boolean               @default(false)
+  isPhoneVerified       Boolean               @default(false)
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  referralCode          String?               @unique
+  referredById          String?
+  handle                String?               @unique
+  deletedAt             DateTime?
+  failedLoginAttempts   Int                   @default(0)
+  isDeleted             Boolean               @default(false)
+  lockoutUntil          DateTime?
+  role                  String                @default("STUDENT")
+  status                String                @default("ACTIVE")
+  suspendedUntil        DateTime?
+  suspensionReason      String?
+  twoFactorEnabled      Boolean               @default(false)
+  twoFactorSecret       String?
+  isCreatorVerified     Boolean               @default(false)
+  isVerified            Boolean               @default(false)
+  isAthleteVerified     Boolean               @default(false)
+  isGovtVerified        Boolean               @default(false)
+  banReason             String?
+  bannedAt              DateTime?
+  bannedById            String?
+  suspendedAt           DateTime?
+  suspendedById         String?
   adminSessions         AdminSession[]
-  sentNotifications     Notification[]        @relation("SentNotifications")
+  appealsResolved       Appeal[]              @relation("AppealsResolved")
+  appealsFiled          Appeal[]              @relation("AppealsFiled")
+  adminAuditLogs        AuditLog[]            @relation("AdminAuditLogs")
+  createdEvents         Event[]               @relation("CreatedEvents")
+  receivedFriendships   Friendship[]          @relation("ReceivedFriendships")
+  sentFriendships       Friendship[]          @relation("SentFriendships")
+  matchesOne            Match[]               @relation("UserOneMatches")
+  matchesTwo            Match[]               @relation("UserTwoMatches")
+  messages              Message[]
   receivedNotifications Notification[]        @relation("ReceivedNotifications")
-  verificationRequests  VerificationRequest[] @relation("UserVerificationRequests")
+  sentNotifications     Notification[]        @relation("SentNotifications")
+  photos                Photo[]
+  receivedProfileViews  ProfileView[]         @relation("ReceivedViews")
+  sentProfileViews      ProfileView[]         @relation("SentViews")
+  reportsFiled          Report[]              @relation("ReportsFiled")
+  resolvedReports       Report[]              @relation("ResolvedReports")
+  reportsReceived       Report[]              @relation("ReportsReceived")
+  receivedSwipes        Swipe[]               @relation("ReceivedSwipes")
+  sentSwipes            Swipe[]               @relation("SentSwipes")
+  bannedBy              User?                 @relation("BannedByAdmin", fields: [bannedById], references: [id])
+  bansIssued            User[]                @relation("BannedByAdmin")
+  referredBy            User?                 @relation("Referrals", fields: [referredById], references: [id])
+  referredUsers         User[]                @relation("Referrals")
+  suspendedBy           User?                 @relation("SuspendedByAdmin", fields: [suspendedById], references: [id])
+  suspensionsIssued     User[]                @relation("SuspendedByAdmin")
+  profile               UserProfile?
   reviewedVerifications VerificationRequest[] @relation("ReviewedVerifications")
-  appealsFiled          Appeal[]               @relation("AppealsFiled")
-  appealsResolved       Appeal[]               @relation("AppealsResolved")
+  verificationRequests  VerificationRequest[] @relation("UserVerificationRequests")
+  joinedEvents          Event[]               @relation("EventAttendees")
 }
 
 model UserProfile {
   id                 String      @id @default(cuid())
   userId             String      @unique
-  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   bio                String?
-  gender             String? // 'MAN', 'WOMAN', 'NON_BINARY'
-  interestedIn       String? // 'MAN', 'WOMAN', 'EVERYONE'
-  university         String? // Legacy string representation
-  universityId       String?
-  universityRef      University? @relation(fields: [universityId], references: [id], onDelete: SetNull)
-  // Schema-ready for future use; not yet wired to any onboarding/registration UI.
-  campusId           String?
-  campusRef          Campus?     @relation(fields: [campusId], references: [id], onDelete: SetNull)
-  major              String?
-  grad               String? // Año de graduación, ej. "May '26"
-  crossover          Boolean     @default(false)
+  gender             String?
+  interestedIn       String?
   latitude           Float?
   longitude          Float?
   minAge             Int         @default(18)
@@ -115,51 +87,50 @@ model UserProfile {
   maxDistanceKm      Int         @default(20)
   lastActive         DateTime    @default(now())
   isGhostMode        Boolean     @default(false)
-  subscriptionTier   String      @default("FREE") // 'FREE', 'GOLD', 'PLATINUM', 'APLUS'
-  subscriptionEnds   DateTime?
-  // Which billing period was bought: 'mo' | '6mo' | 'yr'. Needed to rank the
-  // subscription — a longer plan cannot be downgraded while it is still active,
-  // only upgraded, and the tier alone doesn't say which one you are on.
-  subscriptionPeriod String?
   boostEndsAt        DateTime?
+  subscriptionEnds   DateTime?
+  subscriptionTier   String      @default("FREE")
   fcmToken           String?
-
-  // Metadatos JSON estructurados
-  interests      Json? // Array de strings
-  prompts        Json? // Array de objetos { q: String, a: String }
-  bucketList     Json? // Array de strings
-  identityTags   Json? // Array de strings
-  lookingForTags Json? // Array de strings
-  lifestyle      Json? // { diet, drinking, smoking, sports, workout, loveLanguage, zodiac }
-  academic       Json? // { minor, degree, advDegrees, company, clubs, backOnCampus... }
-  background     Json? // { religion, politics, ethnicity, pronouns, relationshipStatus }
-  customization  Json? // { accentText, anthem, cardStyle, badgeColor, uniNameColor... }
-  socials        Json? // { ig, website, otherlink }
-
-  // Deportes con verificación APROBADA, ej. ['Soccer','Baseball'].
-  // Desnormalizado a propósito: se recalcula en cada approve/reject de una
-  // VerificationRequest de tipo ATHLETE, y así llega a todas las rutas que ya
-  // devuelven el perfil completo (getProfile, feed de descubrimiento) sin tocarlas.
-  verifiedSports Json?
+  academic           Json?
+  background         Json?
+  bucketList         Json?
+  crossover          Boolean     @default(false)
+  customization      Json?
+  grad               String?
+  identityTags       Json?
+  interests          Json?
+  lifestyle          Json?
+  lookingForTags     Json?
+  major              String?
+  prompts            Json?
+  socials            Json?
+  university         String?
+  universityId       String?
+  subscriptionPeriod String?
+  verifiedSports     Json?
+  campusId           String?
+  campusRef          Campus?     @relation(fields: [campusId], references: [id])
+  universityRef      University? @relation(fields: [universityId], references: [id])
+  user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Photo {
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   url       String
   order     Int
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Swipe {
   id         String   @id @default(cuid())
   senderId   String
-  sender     User     @relation("SentSwipes", fields: [senderId], references: [id], onDelete: Cascade)
   receiverId String
-  receiver   User     @relation("ReceivedSwipes", fields: [receiverId], references: [id], onDelete: Cascade)
-  type       String // 'PASS', 'LIKE', 'SUPERLIKE', 'ROSE'
+  type       String
   createdAt  DateTime @default(now())
+  receiver   User     @relation("ReceivedSwipes", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentSwipes", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
 }
@@ -167,12 +138,12 @@ model Swipe {
 model Match {
   id              String    @id @default(cuid())
   userOneId       String
-  userOne         User      @relation("UserOneMatches", fields: [userOneId], references: [id], onDelete: Cascade)
   userTwoId       String
-  userTwo         User      @relation("UserTwoMatches", fields: [userTwoId], references: [id], onDelete: Cascade)
   streamChannelId String?
   isActive        Boolean   @default(true)
   createdAt       DateTime  @default(now())
+  userOne         User      @relation("UserOneMatches", fields: [userOneId], references: [id], onDelete: Cascade)
+  userTwo         User      @relation("UserTwoMatches", fields: [userTwoId], references: [id], onDelete: Cascade)
   messages        Message[]
   reports         Report[]
 
@@ -182,12 +153,12 @@ model Match {
 model Friendship {
   id         String   @id @default(cuid())
   senderId   String
-  sender     User     @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
   receiverId String
-  receiver   User     @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
-  status     String // 'PENDING', 'ACCEPTED', 'DECLINED'
+  status     String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  receiver   User     @relation("ReceivedFriendships", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentFriendships", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
 }
@@ -195,76 +166,73 @@ model Friendship {
 model Message {
   id        String   @id @default(cuid())
   matchId   String
-  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
   senderId  String
-  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
   content   String?
-  type      String   @default("TEXT")
-  mediaUrl  String?
-  duration  Int?
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+  duration  Int?
+  mediaUrl  String?
+  type      String   @default("TEXT")
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model Event {
   id          String    @id @default(cuid())
   name        String
   emoji       String
-  section     String // 'nightlife', 'study', 'sports', 'networking'
+  section     String
   address     String
   time        String
   hostHandle  String
   capacity    Int
   description String?
-  filters     Json? // e.g. { majors: [], years: [] }
-  status      String    @default("ACTIVE") // 'ACTIVE', 'HIDDEN', 'REJECTED'
-  isDeleted   Boolean   @default(false)
-  deletedAt   DateTime?
+  filters     Json?
   creatorId   String
-  creator     User      @relation("CreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
-  attendees   User[]    @relation("EventAttendees")
-  reports     Report[]  @relation("EventReports")
   createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  isDeleted   Boolean   @default(false)
+  status      String    @default("ACTIVE")
+  creator     User      @relation("CreatedEvents", fields: [creatorId], references: [id], onDelete: Cascade)
+  reports     Report[]  @relation("EventReports")
+  attendees   User[]    @relation("EventAttendees")
 }
 
 model ProfileView {
   id        String   @id @default(cuid())
   viewerId  String
-  viewer    User     @relation("SentViews", fields: [viewerId], references: [id], onDelete: Cascade)
   viewedId  String
-  viewed    User     @relation("ReceivedViews", fields: [viewedId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  viewed    User     @relation("ReceivedViews", fields: [viewedId], references: [id], onDelete: Cascade)
+  viewer    User     @relation("SentViews", fields: [viewerId], references: [id], onDelete: Cascade)
 
   @@unique([viewerId, viewedId])
 }
 
 model University {
   id             String             @id @default(cuid())
-  // Mirror of one row in `domains` below, kept in sync by the service layer.
-  // Every other reader (getProfile, admin table, public catalog) keeps using
-  // this scalar column unchanged; `domains` is the real, fully-editable set.
-  domain         String             @unique
   name           String
-  acronym        String
-  type           String             @default("public") // 'public', 'private'
-  primaryColor   String?
-  secondaryColor String?
-  website        String?
-  coverPhotos    Json? // Array of image URLs
+  domain         String             @unique
   city           String?
   state          String?
   country        String             @default("Mexico")
   logoUrl        String?
   isOfficial     Boolean            @default(false)
-  status         String             @default("AVAILABLE") // 'AVAILABLE', 'PENDING', 'INTEGRATED', 'SUSPENDED'
-  isDeleted      Boolean            @default(false)
-  deletedAt      DateTime?
-  userProfiles   UserProfile[]
-  domains        UniversityDomain[]
-  campuses       Campus[]
+  status         String             @default("AVAILABLE")
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
+  acronym        String
+  coverPhotos    Json?
+  deletedAt      DateTime?
+  isDeleted      Boolean            @default(false)
+  primaryColor   String?
+  secondaryColor String?
+  type           String             @default("public")
+  website        String?
+  campuses       Campus[]
+  domains        UniversityDomain[]
+  userProfiles   UserProfile[]
 
   @@index([name])
   @@index([acronym])
@@ -272,101 +240,95 @@ model University {
   @@index([status])
 }
 
-// All institutional email domains a university accepts. `University.domain`
-// mirrors exactly one of these rows for backward compatibility with existing
-// readers — see the comment on that field.
 model UniversityDomain {
   id           String     @id @default(cuid())
   universityId String
-  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
   domain       String     @unique
   createdAt    DateTime   @default(now())
+  university   University @relation(fields: [universityId], references: [id], onDelete: Cascade)
 
   @@index([universityId])
 }
 
-// A physical location under one university (e.g. Tec de Monterrey campus
-// Guadalajara). Brand-level fields (colors, logo, domains, type) stay on the
-// parent University and are not duplicated here.
 model Campus {
   id           String        @id @default(cuid())
   universityId String
-  university   University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
   name         String
   city         String?
   state        String?
   country      String?       @default("Mexico")
   isDeleted    Boolean       @default(false)
   deletedAt    DateTime?
-  userProfiles UserProfile[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  university   University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  userProfiles UserProfile[]
 
   @@index([universityId])
 }
 
 model Report {
-  id              String   @id @default(cuid())
-  reporterId      String
-  reporter        User     @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
-  targetType      String // 'USER', 'EVENT', 'MESSAGE', 'PHOTO'
-  targetId        String
-  targetUserId    String?
-  targetUser      User?    @relation("ReportsReceived", fields: [targetUserId], references: [id], onDelete: SetNull)
-  eventId         String?
-  event           Event?   @relation("EventReports", fields: [eventId], references: [id], onDelete: SetNull)
-  matchId         String?
-  match           Match?   @relation(fields: [matchId], references: [id], onDelete: SetNull)
-  reason          String // 'SPAM', 'HARASSMENT', 'INAPPROPRIATE_CONTENT', 'IMPERSONATION', 'THREATS', 'FAKE_PROFILE', 'OTHER'
-  details         String?
-  evidenceSnapshot Json? // Array of { id, senderId, content, type, createdAt } — last 20 chat messages at time of report
-  status          String   @default("PENDING") // 'PENDING', 'UNDER_REVIEW', 'RESOLVED', 'DISMISSED'
-  resolutionNotes String?
-  resolvedById    String?
-  resolvedBy      User?    @relation("ResolvedReports", fields: [resolvedById], references: [id], onDelete: SetNull)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id               String   @id @default(cuid())
+  reporterId       String
+  targetType       String
+  targetId         String
+  targetUserId     String?
+  eventId          String?
+  reason           String
+  details          String?
+  status           String   @default("PENDING")
+  resolutionNotes  String?
+  resolvedById     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  evidenceSnapshot Json?
+  matchId          String?
+  event            Event?   @relation("EventReports", fields: [eventId], references: [id])
+  match            Match?   @relation(fields: [matchId], references: [id])
+  reporter         User     @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  resolvedBy       User?    @relation("ResolvedReports", fields: [resolvedById], references: [id])
+  targetUser       User?    @relation("ReportsReceived", fields: [targetUserId], references: [id])
 }
 
 model Appeal {
   id               String    @id @default(cuid())
   userId           String
-  user             User      @relation("AppealsFiled", fields: [userId], references: [id], onDelete: Cascade)
-  moderationStatus String // 'SUSPENDED', 'BANNED' — snapshot of the sanction type at the time of filing
-  originalReason   String? // snapshot of suspensionReason/banReason at the time of filing
+  moderationStatus String
+  originalReason   String?
   message          String
-  status           String    @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED'
+  status           String    @default("PENDING")
   resolutionNotes  String?
   resolvedById     String?
-  resolvedBy       User?     @relation("AppealsResolved", fields: [resolvedById], references: [id], onDelete: SetNull)
   resolvedAt       DateTime?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+  resolvedBy       User?     @relation("AppealsResolved", fields: [resolvedById], references: [id])
+  user             User      @relation("AppealsFiled", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AuditLog {
   id         String   @id @default(cuid())
-  adminId    String? // null for student-initiated actions (e.g. REPORT_CREATED) — the actor is in `details` instead
-  admin      User?    @relation("AdminAuditLogs", fields: [adminId], references: [id], onDelete: SetNull)
-  action     String // e.g., 'USER_SUSPENDED', 'USER_ROLE_UPDATED', 'EVENT_HIDDEN', 'REPORT_CREATED'
-  targetType String? // 'USER', 'EVENT', 'REPORT', 'UNIVERSITY', 'SETTING'
+  adminId    String?
+  action     String
+  targetType String?
   targetId   String?
   details    Json?
   ipAddress  String?
   createdAt  DateTime @default(now())
+  admin      User?    @relation("AdminAuditLogs", fields: [adminId], references: [id])
 }
 
 model AdminSession {
   id         String   @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tokenHash  String   @unique
   ipAddress  String?
   userAgent  String?
   deviceInfo String?
   lastActive DateTime @default(now())
   isRevoked  Boolean  @default(false)
   createdAt  DateTime @default(now())
+  tokenHash  String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model LoginAttempt {
@@ -382,16 +344,16 @@ model LoginAttempt {
 model Notification {
   id               String   @id @default(cuid())
   senderId         String?
-  sender           User?    @relation("SentNotifications", fields: [senderId], references: [id], onDelete: SetNull)
   recipientId      String?
-  recipient        User?    @relation("ReceivedNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
   title            String
   message          String
-  type             String   @default("SYSTEM") // 'SYSTEM', 'ANNOUNCEMENT', 'WARNING', 'MODERATION'
+  type             String   @default("SYSTEM")
   targetUniversity String?
   targetCriteria   Json?
   isRead           Boolean  @default(false)
   createdAt        DateTime @default(now())
+  recipient        User?    @relation("ReceivedNotifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender           User?    @relation("SentNotifications", fields: [senderId], references: [id])
 }
 
 model PlatformSetting {
@@ -404,29 +366,25 @@ model PlatformSetting {
 }
 
 model VerificationRequest {
-  id              String  @id @default(cuid())
+  id              String    @id @default(cuid())
   userId          String
-  user            User    @relation("UserVerificationRequests", fields: [userId], references: [id], onDelete: Cascade)
-  type            String // 'STUDENT_ID', 'CREATOR_BADGE', 'ATHLETE', 'STUDENT_GOVT'
-  status          String  @default("PENDING") // 'PENDING', 'APPROVED', 'REJECTED'
-  credentialUrl   String? // Documento: data: URI (base64) o URL. Nunca se expone públicamente.
-  socialLinks     Json? // { instagram, tiktok, youtube, twitch, x, followerCount, notes }
-  creatorCategory String? // 'Campus Vlogger', 'Gaming', 'Lifestyle', 'Tech', 'Student Athlete', etc.
-  notes           String? // User applicant message
-  adminNotes      String? // Notes left by admin reviewer
-
-  // ATHLETE: un deporte por solicitud, para que el admin apruebe/rechace cada
-  // deporte por separado. Null en el resto de tipos.
-  sport        String?
-  metadata     Json? // Extensible. STUDENT_GOVT -> { roles: ['President'] }
-  documentName String? // Nombre original del archivo subido
-  documentMime String? // 'application/pdf' | 'image/jpeg' | 'image/png'
-
-  reviewedById String?
-  reviewedBy   User?     @relation("ReviewedVerifications", fields: [reviewedById], references: [id], onDelete: SetNull)
-  reviewedAt   DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  type            String
+  status          String    @default("PENDING")
+  credentialUrl   String?
+  socialLinks     Json?
+  creatorCategory String?
+  notes           String?
+  adminNotes      String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  documentMime    String?
+  documentName    String?
+  metadata        Json?
+  sport           String?
+  reviewedBy      User?     @relation("ReviewedVerifications", fields: [reviewedById], references: [id])
+  user            User      @relation("UserVerificationRequests", fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type, status])
   @@index([status, createdAt])
