@@ -1,5 +1,6 @@
 # ---- Stage 1: install deps & generate Prisma client ----
 FROM node:22-bookworm-slim AS deps
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma
@@ -7,6 +8,7 @@ RUN npm ci
 
 # ---- Stage 2: production runtime ----
 FROM node:22-bookworm-slim AS runner
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production
 
