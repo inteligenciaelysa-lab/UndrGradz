@@ -920,6 +920,14 @@ window.ugzModal = (function() {
       message = message || (window.currentLang === 'es' ? 'Esta función requiere Cheats.\n\nCompra un cheat para desbloquear esta función.' : 'This feature requires Cheats.\n\nPurchase a cheat to unlock this feature.');
       confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Cheats' : 'Go to Cheats');
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Ahora no' : 'Not Now');
+    } else if (type === 'subscribed') {
+      // Post-purchase celebration — title/message are always passed in by the
+      // caller (they carry the specific plan name + renewal date), so there is
+      // no generic copy to fall back to here.
+      icon = 'crown';
+      title = title || (window.currentLang === 'es' ? '¡Ya eres A+!' : "You're A+ now!");
+      confirmText = opts.confirmText || (window.currentLang === 'es' ? '¡Vamos!' : "Let's go!");
+      allowBackdropClose = true;
     }
 
     var overlay = _getOrCreateDOM();
@@ -950,7 +958,7 @@ window.ugzModal = (function() {
     }
 
     var cancelBtn = document.getElementById('ugz-modal-cancel-btn');
-    var isSingleBtn = (type === 'info' || type === 'success' || type === 'error');
+    var isSingleBtn = (type === 'info' || type === 'success' || type === 'error' || type === 'subscribed');
     if (cancelBtn) {
       cancelBtn.style.display = isSingleBtn ? 'none' : 'inline-flex';
       cancelBtn.textContent = cancelText;
@@ -959,6 +967,28 @@ window.ugzModal = (function() {
     var confirmBtn = document.getElementById('ugz-modal-confirm-btn');
     if (confirmBtn) {
       confirmBtn.textContent = confirmText;
+    }
+
+    // Confetti burst for the post-purchase celebration only — cleared on every
+    // show() so a rapid re-open never stacks pieces from the previous one.
+    var existingConfetti = card.querySelector('.ugz-confetti');
+    if (existingConfetti) existingConfetti.remove();
+    if (type === 'subscribed') {
+      var confettiColors = ['#f59e0b', '#dc2626', '#3d7bff', '#22c55e', '#a855f7', '#fbbf24'];
+      var confetti = document.createElement('div');
+      confetti.className = 'ugz-confetti';
+      var piecesHtml = '';
+      for (var ci = 0; ci < 16; ci++) {
+        var left = Math.round(Math.random() * 100);
+        var delay = (Math.random() * 0.5).toFixed(2);
+        var duration = (1.6 + Math.random() * 0.9).toFixed(2);
+        var color = confettiColors[ci % confettiColors.length];
+        var drift = Math.round((Math.random() - 0.5) * 60);
+        piecesHtml += '<span class="ugz-confetti-piece" style="left:' + left + '%;background:' + color +
+          ';animation-delay:' + delay + 's;animation-duration:' + duration + 's;--drift:' + drift + 'px;"></span>';
+      }
+      confetti.innerHTML = piecesHtml;
+      card.appendChild(confetti);
     }
 
     overlay.style.display = 'flex';
@@ -977,6 +1007,8 @@ window.ugzModal = (function() {
         overlay.classList.remove('ugz-open');
         setTimeout(function() {
           overlay.style.display = 'none';
+          var c = card.querySelector('.ugz-confetti');
+          if (c) c.remove();
         }, 220);
 
         confirmBtn.onclick = null;
@@ -1043,6 +1075,16 @@ window.ugzModal = (function() {
         onConfirm: onConfirm || function() {
           if (typeof sw === 'function') sw('premium', 'Plans');
         }
+      });
+    },
+    subscribed: function(opts) {
+      opts = opts || {};
+      return show({
+        type: 'subscribed',
+        title: opts.title,
+        message: opts.message,
+        confirmText: opts.confirmText,
+        onConfirm: opts.onConfirm
       });
     }
   };
@@ -1937,6 +1979,13 @@ window.addEventListener('load', function() {
           userPro.crossover = profile.crossover || false;
           userPro.isGhostMode = profile.isGhostMode || false;
           userPro.subscriptionTier = profile.subscriptionTier || 'FREE';
+          // These three drove the "Tu plan activo · renueva el ..." Plans-screen
+          // label and every curPlan==='aplus' gate in the app — on a plain
+          // reload (as opposed to a fresh doLoginAuth()) they were never set,
+          // so a paid subscription looked like it had vanished after F5.
+          curPlan = profile.subscriptionTier ? profile.subscriptionTier.toLowerCase() : 'free';
+          curPlanPeriod = profile.subscriptionPeriod || '';
+          curPlanEnds = profile.subscriptionEnds ? new Date(profile.subscriptionEnds) : null;
           if (profile.gender) {
             userPro.gender = profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other';
             userGender = userPro.gender;
@@ -5454,7 +5503,12 @@ function buildNav(){
     btn.onclick=(function(id,lbl){return function(){sw(id,lbl);};})(item.id,lblText);nav.appendChild(btn);
   });
   var targetItem = items.find(function(it){return it.id === targetId;}) || items[defIdx];
-  var targetLbl = _ll || targetItem.lbl;
+  // _ll is only trustworthy when we're actually restoring the screen it was
+  // saved for (targetId === _ls). When targetId got overridden back to the
+  // default tab (e.g. the saved screen was 'premium', which is excluded above),
+  // using the stale _ll left the title bar reading "Plans" while Campus was
+  // the section actually shown.
+  var targetLbl = (targetId === _ls && _ll) ? _ll : targetItem.lbl;
   if (window.currentLang === 'es' && targetItem) {
     if (targetItem.id === 'hangouts') targetLbl = 'Planes';
     else if (targetItem.id === 'unicrush') targetLbl = 'Crush';
@@ -17516,7 +17570,38 @@ function processPayment() {
   if (curPayPlan === 'aplus') curPlanPeriod = _aplusBillSel;
   if (typeof _applyPlanLocks === 'function') _applyPlanLocks();
   if (curPayPlan === 'silver' || curPayPlan === 'gold' || curPayPlan === 'aplus') userDatingTier = curPayPlan;
-  if (!isBiz && curPayPlan !== 'cheat' && typeof apiClient !== 'undefined') {
+  if (isBiz) {
+    alert('Business account activated!\n\nWelcome to Undrgradz.');
+    if (typeof launch === 'function') launch();
+    return;
+  }
+  var sp = document.getElementById('settings-plan');
+  if (sp) sp.textContent = curPlan;
+
+  // The celebration modal fires only once the server actually confirms the
+  // purchase — showing it right away (as this used to) meant a 409 rejection
+  // (e.g. trying to downgrade mid-term) landed a contradicting error alert
+  // right after "you're now subscribed!".
+  function _celebrateSubscription() {
+    var planLabel = (curPayPlan === 'aplus' && typeof _APLUS_BILL !== 'undefined' && _APLUS_BILL[curPlanPeriod])
+      ? _APLUS_BILL[curPlanPeriod].name
+      : (curPayPlan ? curPayPlan.charAt(0).toUpperCase() + curPayPlan.slice(1) : 'Premium');
+    var renewsLabel = (typeof _planEndsLabel === 'function') ? _planEndsLabel() : '';
+    var isEs = window.currentLang === 'es';
+    var title = isEs ? '¡Ya eres ' + planLabel + '!' : "You're " + planLabel + ' now!';
+    var message = renewsLabel
+      ? (isEs ? 'Tu membresía está activa y se renueva el ' + renewsLabel + '.\n\nDisfruta tus nuevas funciones.'
+              : 'Your membership is active and renews on ' + renewsLabel + '.\n\nEnjoy your new features.')
+      : (isEs ? 'Tu membresía ya está activa. Disfruta tus nuevas funciones.'
+              : 'Your membership is now active. Enjoy your new features.');
+    if (window.ugzModal && typeof window.ugzModal.subscribed === 'function') {
+      window.ugzModal.subscribed({ title: title, message: message });
+    } else {
+      alert(title + '\n\n' + message);
+    }
+  }
+
+  if (curPayPlan !== 'cheat' && typeof apiClient !== 'undefined') {
     var _period = (curPayPlan === 'aplus') ? _aplusBillSel : null;
     apiClient.purchasePremium(curPayPlan.toUpperCase(), _period).then(function(data) {
       // Take the expiry and period from the server rather than recomputing them
@@ -17528,6 +17613,7 @@ function processPayment() {
       if (typeof showPlansForGender === 'function') showPlansForGender();
       if (typeof loadCrushFeed === 'function') loadCrushFeed();
       if (typeof fetchAndRenderHangouts === 'function') fetchAndRenderHangouts();
+      _celebrateSubscription();
     }).catch(function(e) {
       console.error("DB update failed", e);
       curPlan = _prevPlan; curPlanPeriod = _prevPeriod; curPlanEnds = _prevEnds;
@@ -17539,14 +17625,10 @@ function processPayment() {
           : 'No se pudo completar la compra: ' + ((e && e.message) ? e.message : 'error'));
       }
     });
-  }
-  if (isBiz) {
-    alert('Business account activated!\n\nWelcome to Undrgradz.');
-    if (typeof launch === 'function') launch();
   } else {
-    var sp = document.getElementById('settings-plan');
-    if (sp) sp.textContent = curPlan;
-    alert('You\'re now subscribed!\n\nEnjoy premium features.');
+    // No network path available (e.g. apiClient not loaded) — fall back to an
+    // immediate celebration rather than silently doing nothing.
+    _celebrateSubscription();
   }
 }
 
