@@ -19,5 +19,8 @@ router.delete('/me/photos/:photoId', userController.deletePhoto);
 router.patch('/me/ghost-mode', userController.updateGhostMode);
 router.post('/me/verification-request', userController.submitVerificationRequest);
 router.get('/me/verification-request', userController.getVerificationStatus);
+router.get('/me/notifications', userController.getNotifications);
+router.patch('/me/notifications/read-all', userController.markAllNotificationsRead);
+router.patch('/me/notifications/:id/read', userController.markNotificationRead);
 
 module.exports = router;

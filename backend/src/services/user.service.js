@@ -367,6 +367,34 @@ class UserService {
     return requestRecord;
   }
 
+  async getNotifications(userId) {
+    return prisma.notification.findMany({
+      where: { recipientId: userId },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      select: {
+        id: true, title: true, message: true, type: true,
+        isRead: true, createdAt: true,
+      },
+    });
+  }
+
+  async markNotificationRead(userId, notificationId) {
+    await prisma.notification.updateMany({
+      where: { id: notificationId, recipientId: userId },
+      data: { isRead: true },
+    });
+    return { success: true };
+  }
+
+  async markAllNotificationsRead(userId) {
+    await prisma.notification.updateMany({
+      where: { recipientId: userId, isRead: false },
+      data: { isRead: true },
+    });
+    return { success: true };
+  }
+
   async getVerificationStatus(userId) {
     const user = await prisma.user.findUnique({
       where: { id: userId },

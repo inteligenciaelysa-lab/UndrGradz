@@ -3763,21 +3763,41 @@ function _ob4P4(){
     [['Non-smoker','No fumo'],['Socially','Socialmente'],['Regularly','Regularmente'],['Vape','Vape']]:
     [['Non-smoker','Non-smoker'],['Socially','Socially'],['Regularly','Regularly'],['Vape','Vape']];
 
-  // Country / State / City
-  var countries = (typeof GEO_COUNTRIES!=='undefined'?GEO_COUNTRIES:['Mexico','United States','Canada','Other']);
+  // Country / State / City — live from the /geo API (all countries), with the
+  // static tables above as an instant fallback while the fetch is in flight.
+  if (!_geoApiCountries) _geoLoadCountries();
+  var countries = _geoApiCountries
+    ? _geoApiCountries.map(function(c){return c.name;})
+    : (typeof GEO_COUNTRIES!=='undefined'?GEO_COUNTRIES:['Mexico','United States','Canada','Other']);
   var selCountry=_ob4State.fromCountry||'';
   var countryOpts='<option value="">'+(isEs?'País':'Country')+'</option>'+countries.map(function(c){return '<option value="'+c+'"'+(selCountry===c?' selected':'')+'>'+c+'</option>';}).join('');
 
+  var countryIso = _geoApiCountryIso[selCountry];
   var selState=_ob4State.fromState||'';
   var stateOpts='<option value="">'+(isEs?'Estado / Provincia':'State / Province')+'</option>';
-  if(selCountry&&typeof GEO_STATES!=='undefined'&&GEO_STATES[selCountry]){
+  if (selCountry && countryIso) {
+    if (!_geoApiStates[countryIso]) {
+      _geoLoadStates(countryIso);
+      stateOpts += '<option value="" disabled>'+(isEs?'Cargando…':'Loading…')+'</option>';
+    } else {
+      stateOpts += _geoApiStates[countryIso].map(function(s){return '<option value="'+s.name+'"'+(selState===s.name?' selected':'')+'>'+s.name+'</option>';}).join('');
+    }
+  } else if(selCountry&&typeof GEO_STATES!=='undefined'&&GEO_STATES[selCountry]){
     stateOpts+=GEO_STATES[selCountry].map(function(s){return '<option value="'+s+'"'+(selState===s?' selected':'')+'>'+s+'</option>';}).join('');
   }
 
+  var stateIso = (countryIso && _geoApiStateIso[countryIso]) ? _geoApiStateIso[countryIso][selState] : undefined;
   var selCity=_ob4State.fromCity||'';
   var cityOpts='<option value="">'+(isEs?'Ciudad de origen':'Hometown city')+'</option>';
   var cityList = [];
-  if(selState&&typeof GEO_CITIES!=='undefined'&&GEO_CITIES[selState]){
+  if (selState && countryIso && stateIso) {
+    var cKey = countryIso + '|' + stateIso;
+    if (!_geoApiCities[cKey]) {
+      _geoLoadCities(countryIso, stateIso);
+    } else {
+      cityList = _geoApiCities[cKey];
+    }
+  } else if(selState&&typeof GEO_CITIES!=='undefined'&&GEO_CITIES[selState]){
     cityList = GEO_CITIES[selState];
   } else if(selCountry&&typeof GEO_COUNTRY_CITIES!=='undefined'&&GEO_COUNTRY_CITIES[selCountry]){
     cityList = GEO_COUNTRY_CITIES[selCountry];
@@ -5552,6 +5572,7 @@ function sw(id,label,opts){
   if(id==='wellness'&&typeof renderWellness==='function')renderWellness();
   if(id==='profile'){
     if(typeof renderBadges==='function')renderBadges();
+    if(typeof syncVerificationStatus==='function')syncVerificationStatus();
     if(typeof apiClient!=='undefined'&&apiClient.getAccessToken()){
       apiClient.getMe().then(function(dbProfile){
         userPro.friendsCount=dbProfile.friendsCount||0;
@@ -6300,8 +6321,123 @@ async function syncVerificationStatus(){
           box.innerHTML='✅ Student ID uploaded — Blue badge pending review';
         }
       }
+      _ugzLastVerificationStatus = data;
+      _ugzRenderInvolvementVerifications(data);
+    } else {
+      _ugzRenderInvolvementVerifications(_ugzLastVerificationStatus);
     }
-  } catch(e){}
+  } catch(e){ _ugzRenderInvolvementVerifications(_ugzLastVerificationStatus); }
+}
+var _ugzLastVerificationStatus = null;
+
+// ── Involvement verification reminders (Athlete / Student Government /
+// Content Creator) — shown on Profile only when the user claimed one of
+// these during sign up (userPro.involved / userPro.sports) but it isn't
+// verified yet. Mirrors the Student ID box's done/pending/upload states.
+var _UGZ_INV_BOX = {
+  ATHLETE:      { id:'verify-athlete-box', label:'sports team',              badgeLbl:'Verified Athlete Badge' },
+  STUDENT_GOVT: { id:'verify-govt-box',    label:'Student Government',       badgeLbl:'Verified Badge' },
+  CREATOR_BADGE:{ id:'verify-creator-box', label:'content creator status',  badgeLbl:'Verified Badge' }
+};
+function _ugzWantsInvolvement(type){
+  var involved = (typeof userPro!=='undefined' && userPro && userPro.involved) || [];
+  if(type==='ATHLETE') return involved.indexOf('Athletics')>-1 || !!(userPro.sports && userPro.sports.length);
+  if(type==='STUDENT_GOVT') return involved.indexOf('Student Government')>-1;
+  if(type==='CREATOR_BADGE') return involved.indexOf('Content Creator')>-1;
+  return false;
+}
+function _ugzRenderInvolvementVerifications(statusData){
+  Object.keys(_UGZ_INV_BOX).forEach(function(type){
+    var meta = _UGZ_INV_BOX[type];
+    var box = document.getElementById(meta.id);
+    if(!box) return;
+    if(!_ugzWantsInvolvement(type)){ box.style.display='none'; return; }
+    box.style.display='block';
+    box.classList.remove('done');
+    box.onclick = function(){ _ugzOpenInvolvementVerify(type); };
+
+    var isVerified = (typeof userPro!=='undefined' && userPro) && (
+      (type==='ATHLETE' && userPro.isAthleteVerified) ||
+      (type==='STUDENT_GOVT' && userPro.isGovtVerified) ||
+      (type==='CREATOR_BADGE' && userPro.isCreatorVerified)
+    );
+    var isPending = false;
+    if(statusData && statusData.verifications){
+      if(type==='ATHLETE'){
+        isPending = (statusData.verifications.ATHLETE.sports||[]).some(function(s){return s.status==='PENDING';});
+      } else {
+        var v = statusData.verifications[type];
+        isPending = v && v.status==='PENDING';
+      }
+    }
+    if(isVerified){
+      box.classList.add('done');
+      box.innerHTML='✅ '+meta.badgeLbl+' active';
+      box.onclick=null;
+    } else if(isPending){
+      box.classList.add('done');
+      box.innerHTML='✅ Uploaded — '+meta.badgeLbl+' pending review';
+    } else {
+      var icons={ATHLETE:'🏅',STUDENT_GOVT:'🏛️',CREATOR_BADGE:'✨'};
+      box.innerHTML=icons[type]+' Upload proof of your '+meta.label+' → '+meta.badgeLbl;
+    }
+  });
+}
+function _ugzOpenInvolvementVerify(type){
+  var meta=_UGZ_INV_BOX[type];if(!meta)return;
+  var box=document.getElementById(meta.id);
+  if(box && box.classList.contains('done')) return; // already uploaded/verified — nothing to do
+  var inp=document.getElementById('verify-inv-file');
+  if(!inp){
+    inp=document.createElement('input');
+    inp.type='file';
+    inp.accept='image/*,application/pdf';
+    inp.id='verify-inv-file';
+    inp.style.display='none';
+    document.body.appendChild(inp);
+  }
+  inp.onchange=function(){
+    if(inp.files && inp.files[0]) _ugzInvolvementUploadDone(type, inp.files[0]);
+  };
+  inp.value='';
+  inp.click();
+}
+async function _ugzInvolvementUploadDone(type, file){
+  var meta=_UGZ_INV_BOX[type];
+  var box=document.getElementById(meta.id);
+  if(box){ box.style.opacity='0.7'; box.innerHTML='⏳ Uploading…'; }
+  try {
+    var base64Url = await new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onload = function(e){ resolve(e.target.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    // Athletes are approved one sport at a time on the backend, so a single
+    // upload submits one request per selected sport (same document on each).
+    var sportsToSubmit = (type==='ATHLETE') ? ((userPro && userPro.sports && userPro.sports.length) ? userPro.sports : [null]) : [null];
+    for (var i=0;i<sportsToSubmit.length;i++){
+      var body = { type: type, credentialUrl: base64Url, notes: 'Subido desde el perfil' };
+      if(type==='ATHLETE') body.sport = sportsToSubmit[i];
+      if(typeof apiClient !== 'undefined' && apiClient.request){
+        await apiClient.request('/users/me/verification-request', { method:'POST', body: body });
+      } else {
+        var token = (typeof apiClient !== 'undefined' && apiClient.getAccessToken) ? apiClient.getAccessToken() : (localStorage.getItem('token') || localStorage.getItem('ugz_token') || localStorage.getItem('accessToken'));
+        var baseApiUrl = (window.location.origin.includes('8080') || window.location.origin.includes('5500') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('localhost')) ? 'http://localhost:3000/api/v1' : '/api/v1';
+        await fetch(baseApiUrl + '/users/me/verification-request', {
+          method:'POST',
+          headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
+          body: JSON.stringify(body)
+        });
+      }
+    }
+    if(box){ box.style.opacity='1'; box.classList.add('done'); box.innerHTML='✅ Uploaded — '+meta.badgeLbl+' pending review'; }
+    alert('✅ Your document has been submitted. The admin team will review it soon.');
+  } catch(err){
+    console.error('Error submitting involvement verification:', err);
+    if(box){ box.style.opacity='1'; }
+    alert('Something went wrong uploading your document. Please try again.');
+  }
 }
 function verifyEmail(){var vb=document.getElementById('vbadge');if(vb){vb.style.display='flex';vb.style.background='#1d9bf0';vb.title='Email Verified';}var box=document.getElementById('verify-box');if(box)box.innerHTML='✅ Email verified — 🔵 Blue badge active';}
 function addLink(){var url=prompt('Enter URL (Instagram, YouTube, LinkedIn, etc.)');if(!url)return;if(!url.startsWith('http'))url='https://'+url;var list=document.getElementById('links-list');if(!list)return;var icon=''+icon('link',16)+'';if(url.includes('instagram'))icon=''+icon('camera',16)+'';else if(url.includes('youtube'))icon='▶️';else if(url.includes('linkedin'))icon='💼';var d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:8px var(--s);font-size:var(--fs-base);color:var(--fg2);';d.innerHTML=icon+' <a href="'+url+'" target="_blank" style="color:var(--fg2);text-decoration:none;">'+url.replace('https://','').split('/')[0]+'</a>';list.appendChild(d);}
@@ -10758,7 +10894,7 @@ function buildHingeStackHtml(p,opts){
   // ── Build content blocks, then interleave with photos: picture, section, picture, section … ──
   var _reply=function(key){return '<button class="crush-reply" onclick="replyToSection(\''+p.name.replace(/'/g,"\\'")+'\',\''+key+'\')">'+icon('chat',16)+' Reply</button>';};
   var blocks=[];
-  var bBlind='',bQuick='',bMatched='',bGreen='',bTot='',bLifestyle='',bWingmate='',bSecret='',bFromGreek='',bLikes='',bSpeaks='',bEthnicity='',bReligion='',bClubs='';
+  var bBlind='',bQuick='',bMatched='',bGreen='',bTot='',bLifestyle='',bWingmate='',bSecret='',bFromGreek='',bLikes='',bSpeaks='',bEthnicity='',bReligion='',bClubs='',bVerifications='';
   if(blindHide)bBlind='<div class="crush-info-block" style="text-align:center;"><div style="font-size:var(--fs-xl);">🕯️</div><div style="font-size:var(--fs-base);font-weight:700;color:#a9c4ff;">Blind date</div><div style="font-size:var(--fs-xs);color:var(--fg2);line-height:1.5;">Photos hidden — match on personality.<br>You\'ll both reveal after a few messages.</div></div>';
   // ── Quick facts: all the badges that used to crowd the photo, now a clean chip row below it ──
   (function(){
@@ -10827,21 +10963,27 @@ function buildHingeStackHtml(p,opts){
   var _gmap={female:'Female',male:'Male'};var _gnd=isSelf?(userPro.genderIdentity||_gmap[userPro.gender]||''):(p.genderIdentity||_gmap[p.gender]||'');if(_gnd&&(!isSelf||userPro.hideIdentityLife!==true))lifeRows.push(['Gender',_gnd,false]);
   var _tff=isSelf?userPro.transferFrom:p.transferFrom;if(_tff&&_tff.name)lifeRows.push(['Transferred from',_tff.name,false]);
   var _spts=isSelf?(userPro.athlete?(userPro.sports||[]):[]):(p.sports||[]);if(_spts&&_spts.length)lifeRows.push(['\uD83C\uDFC5 Athlete',_spts.join(', '),false]);
-  // Admin-approved involvement verifications. The third element flags the row
-  // as verified, which renders it green with a trailing \u2713. Only APPROVED
-  // requests ever set these, so pending/rejected ones stay hidden.
-  var _vsrc=isSelf?(typeof userPro!=='undefined'?userPro:{}):(p||{});
-  var _vSports=_vsrc.verifiedSports||(_vsrc.profile&&_vsrc.profile.verifiedSports)||[];
-  if(_vsrc.isAthleteVerified&&_vSports.length)lifeRows.push(['\uD83C\uDFC5 Verified Athlete',_vSports.join(', '),true]);
-  if(_vsrc.isGovtVerified)lifeRows.push(['\uD83C\uDFDB Verified Student Government',(window.currentLang==='es'?'Miembro':'Member'),true]);
-  if(_vsrc.isCreatorVerified)lifeRows.push(['\u2728 Verified Content Creator',(window.currentLang==='es'?'Creador':'Creator'),true]);
   var _gh=isSelf?userPro.greekHouse:p.greekHouse;if(_gh)lifeRows.push(['House',_gh,false]);
   if(dr)lifeRows.push(['Drinking',dr,false]);
   if(sm)lifeRows.push(['Smoking',sm,false]);
   if(lifeRows.length){
     var _lifeIc={'Zodiac':(_zod?_zod.e:'🌀'),'Height':'📏','Workout':'🏃','Diet':'🍽️','Lives':'🏠','Pronouns':'🔤','Orientation':'🌈','Gender':'⚧','House':'🏛️','Drinking':'🍸','Smoking':'🚭','Transferred from':'🔄'};
-    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">'+icon('leaf',14)+' ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Verified Student Government/.test(r[0])?'🏛️':(/Verified Content Creator/.test(r[0])?'✨':(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'))));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:'+(r[2]?'#4ade80':'#fff')+';text-align:right;">'+r[1]+(r[2]?' ✓':'')+'</span></div>';}).join('')+'</div>';
+    bLifestyle='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">'+icon('leaf',14)+' ESTILO DE VIDA</div>'+lifeRows.map(function(r,i){var lbl=r[0].replace(/^[^A-Za-z]+/,'');var ic=(/Athlete/.test(r[0])?'🏅':(_lifeIc[r[0]]||'•'));return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<lifeRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+ic+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+lbl+'</span><span style="font-size:var(--fs-base);font-weight:600;color:#fff;text-align:right;">'+r[1]+'</span></div>';}).join('')+'</div>';
   }
+  // ✅ Verifications — admin-approved involvement badges (athlete / student
+  // government / content creator). Its own block so it doesn't get buried in
+  // Lifestyle; sits right under "Idiomas que hablo".
+  (function(){
+    var _vsrc=isSelf?(typeof userPro!=='undefined'?userPro:{}):(p||{});
+    var _vSports=_vsrc.verifiedSports||(_vsrc.profile&&_vsrc.profile.verifiedSports)||[];
+    var vRows=[];
+    if(_vsrc.isAthleteVerified&&_vSports.length)vRows.push(['🏅',(window.currentLang==='es'?'Atleta Verificado':'Verified Athlete'),_vSports.join(', ')]);
+    if(_vsrc.isGovtVerified)vRows.push(['🏛️',(window.currentLang==='es'?'Gobierno Estudiantil Verificado':'Verified Student Government'),(window.currentLang==='es'?'Miembro':'Member')]);
+    if(_vsrc.isCreatorVerified)vRows.push(['✨',(window.currentLang==='es'?'Creador de Contenido Verificado':'Verified Content Creator'),(window.currentLang==='es'?'Creador':'Creator')]);
+    if(!vRows.length)return;
+    var title=window.currentLang==='es'?'VERIFICACIONES':'VERIFICATIONS';
+    bVerifications='<div class="crush-info-block no-deemoji"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;display:flex;align-items:center;gap:6px;text-shadow:0 0 10px rgba(74,222,128,0.4);">'+icon('check',14)+' '+title+'</div>'+vRows.map(function(r,i){return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;'+(i<vRows.length-1?'border-bottom:1px solid rgba(74,222,128,0.32);box-shadow:0 1px 6px -3px rgba(74,222,128,0.55);':'')+'"><span style="font-size:var(--fs-md);width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">'+r[0]+'</span><span style="flex:1;font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:600;">'+r[1]+'</span><span style="font-size:var(--fs-base);font-weight:600;color:#4ade80;text-align:right;">'+r[2]+' ✓</span></div>';}).join('')+'</div>';
+  })();
   // 🤝 Wingmate endorsement
   // (Secret prompt removed per user request — voice note + 3 prompts only)
   // From / Greek strip — Greek chip only shows if explicitly declared (member); never phantom on your own card
@@ -10907,6 +11049,7 @@ function buildHingeStackHtml(p,opts){
   _add(bFromGreek);   // Where you're from + Greek life — FIRST
   _add(bQuick);_add(bMatched);   // identity chips + "you matched on" highlights
   _add(bSpeaks);      // Speaks
+  _add(bVerifications); // Verifications (athlete/govt/creator) — right under Speaks
   _add(bEthnicity);   // Ethnicity
   _add(bReligion);    // Religion
   _add(bPolitics);    // Politics
@@ -11509,7 +11652,12 @@ function mapDbProfileToCrush(dbUser) {
     academic: profile.academic || {},
     background: profile.background || {},
     customization: profile.customization || {},
-    socials: profile.socials || {}
+    socials: profile.socials || {},
+    sports: (profile.lifestyle && profile.lifestyle.sports) || [],
+    isAthleteVerified: dbUser.isAthleteVerified || false,
+    isGovtVerified: dbUser.isGovtVerified || false,
+    isCreatorVerified: dbUser.isCreatorVerified || false,
+    verifiedSports: profile.verifiedSports || []
   };
 }
 
@@ -12891,17 +13039,8 @@ function _likedSawHtml(pool,unlimited){
   '</div>';
 
   if(!pool.length){
-    var _ph='';
-    for(var _i=0;_i<4;_i++){
-      _ph+='<div onclick="_admirerPaywall()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid color-mix(in srgb, var(--uni-accent,var(--p)) 55%, transparent);position:relative;height:180px;background:linear-gradient(160deg, color-mix(in srgb, var(--uni-accent,var(--p)) 32%, #000), #0b0b0e);">'+
-        '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">'+
-          '<div style="width:44px;height:44px;border-radius:50%;background:var(--uni-accent,var(--p));display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #fff;box-shadow:0 0 18px color-mix(in srgb, var(--uni-accent,var(--p)) 60%, transparent);animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',20)+'</div>'+
-        '</div>'+
-        '<div style="position:absolute;left:0;right:0;bottom:0;padding:22px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.95), transparent);"><div style="font-size:var(--fs-base);font-weight:900;color:rgba(255,255,255,0.5);letter-spacing:3px;">? ? ?</div></div>'+
-      '</div>';
-    }
     var _emptyMsg='<div style="text-align:center;padding:14px var(--s) 6px;color:var(--fg2);font-size:var(--fs-sm);font-weight:500;">'+(isEs?'Aún nadie… por ahora':'No one yet… for now')+'<br><span style="font-size:var(--fs-xs);color:color-mix(in srgb, var(--uni-accent,var(--p)) 45%, #fff);">'+(isEs?'Mantén tu perfil activo para atraer miradas':'Keep your profile fresh to draw more eyes')+'</span></div>';
-    return banner+_emptyMsg+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 var(--s) 14px;">'+_ph+'</div>';
+    return banner+_emptyMsg;
   }
 
   // Every profile stays hidden without A+ — there is no free reveal any more,
@@ -19214,6 +19353,73 @@ var GEO_STATES={'United States':['Alabama','Alaska','Arizona','Arkansas','Califo
 var GEO_CITIES={'Alabama':['Birmingham','Montgomery','Huntsville','Mobile','Tuscaloosa','Auburn','Dothan','Hoover','Florence','Decatur','Madison','Prattville','Gadsden'],'Alaska':['Anchorage','Fairbanks','Juneau','Sitka','Ketchikan','Wasilla','Kenai','Kodiak','Palmer'],'Arizona':['Phoenix','Tucson','Tempe','Mesa','Scottsdale','Flagstaff','Chandler','Glendale','Gilbert','Peoria','Yuma','Prescott','Surprise','Goodyear','Casa Grande'],'Arkansas':['Little Rock','Fayetteville','Fort Smith','Conway','Jonesboro','Springdale','Rogers','Bentonville','Hot Springs','Pine Bluff','Russellville'],'California':['Los Angeles','San Francisco','San Diego','San Jose','Sacramento','Berkeley','Long Beach','Irvine','Fresno','Oakland','Anaheim','Santa Barbara','Santa Cruz','Davis','Riverside','Bakersfield','Chico','Pasadena','Santa Monica','Fullerton','Pomona','Stockton','Modesto','Palo Alto','Santa Clara','Sunnyvale','Torrance','Redlands','San Luis Obispo'],'Colorado':['Denver','Boulder','Colorado Springs','Fort Collins','Aurora','Pueblo','Greeley','Golden','Loveland','Grand Junction','Durango','Westminster','Arvada','Littleton'],'Connecticut':['Hartford','New Haven','Stamford','Bridgeport','Storrs','Norwalk','Waterbury','Danbury','New London','Middletown','West Hartford'],'Delaware':['Wilmington','Newark','Dover','Rehoboth Beach','Middletown','Bear','Georgetown'],'Washington DC':['Washington','Georgetown','Foggy Bottom','Capitol Hill'],'Florida':['Miami','Orlando','Tampa','Jacksonville','Tallahassee','Gainesville','Fort Lauderdale','Boca Raton','Coral Gables','Pensacola','Sarasota','Fort Myers','St. Petersburg','Naples','Daytona Beach','Melbourne','West Palm Beach','Kissimmee','Coral Springs','Lakeland'],'Georgia':['Atlanta','Athens','Savannah','Augusta','Columbus','Macon','Marietta','Valdosta','Statesboro','Kennesaw','Alpharetta','Sandy Springs','Roswell','Milledgeville','Carrollton'],'Hawaii':['Honolulu','Hilo','Kailua','Kailua-Kona','Kaneohe','Kahului','Waipahu','Pearl City','Lahaina'],'Idaho':['Boise','Idaho Falls','Pocatello','Moscow','Nampa','Meridian','Twin Falls','Rexburg','Caldwell','Lewiston'],'Illinois':['Chicago','Champaign','Springfield','Naperville','Evanston','Peoria','Bloomington','Normal','DeKalb','Carbondale','Rockford','Aurora','Schaumburg','Wheaton','Urbana','Charleston','Macomb'],'Indiana':['Indianapolis','Bloomington','Fort Wayne','South Bend','West Lafayette','Muncie','Terre Haute','Evansville','Carmel','Fishers','Valparaiso','Notre Dame','Gary','Lafayette'],'Iowa':['Des Moines','Iowa City','Ames','Cedar Rapids','Cedar Falls','Davenport','Waterloo','Sioux City','Council Bluffs','Dubuque','Grinnell'],'Kansas':['Wichita','Lawrence','Topeka','Manhattan','Overland Park','Kansas City','Emporia','Hays','Salina','Pittsburg','Olathe','Lenexa'],'Kentucky':['Louisville','Lexington','Bowling Green','Richmond','Murray','Highland Heights','Owensboro','Covington','Frankfort','Morehead'],'Louisiana':['New Orleans','Baton Rouge','Lafayette','Shreveport','Hammond','Ruston','Monroe','Alexandria','Lake Charles','Natchitoches','Thibodaux','Bossier City'],'Maine':['Portland','Bangor','Orono','Augusta','Lewiston','Waterville','Brunswick','Biddeford','Presque Isle','Gorham'],'Maryland':['Baltimore','College Park','Annapolis','Rockville','Towson','Frederick','Salisbury','Gaithersburg','Bethesda','Silver Spring','Bowie','Chestertown'],'Massachusetts':['Boston','Cambridge','Worcester','Amherst','Springfield','Lowell','Medford','Waltham','Newton','Salem','Framingham','Chestnut Hill','Northampton','Williamstown','Dartmouth','Quincy','Somerville'],'Michigan':['Detroit','Ann Arbor','Grand Rapids','East Lansing','Lansing','Kalamazoo','Flint','Ypsilanti','Mount Pleasant','Dearborn','Big Rapids','Marquette','Rochester','Warren'],'Minnesota':['Minneapolis','St. Paul','Duluth','Rochester','Mankato','St. Cloud','Moorhead','Winona','Bloomington','Northfield','Bemidji'],'Mississippi':['Jackson','Oxford','Gulfport','Hattiesburg','Starkville','Biloxi','Cleveland','Columbus','Meridian','Tupelo'],'Missouri':['Kansas City','St. Louis','Columbia','Springfield','Rolla','Cape Girardeau','Joplin','Warrensburg','Kirksville','St. Charles','Independence','Maryville'],'Montana':['Billings','Missoula','Bozeman','Helena','Great Falls','Butte','Kalispell','Havre','Dillon'],'Nebraska':['Omaha','Lincoln','Bellevue','Kearney','Grand Island','Wayne','Chadron','Fremont'],'Nevada':['Las Vegas','Reno','Henderson','Carson City','Sparks','Elko','North Las Vegas'],'New Hampshire':['Manchester','Durham','Concord','Nashua','Hanover','Keene','Plymouth','Portsmouth','Dover'],'New Jersey':['Newark','Jersey City','Princeton','New Brunswick','Trenton','Montclair','Glassboro','Hoboken','Camden','Paterson','Union','Madison','Teaneck','Piscataway','Ewing'],'New Mexico':['Albuquerque','Santa Fe','Las Cruces','Roswell','Portales','Silver City','Farmington','Rio Rancho','Alamogordo'],'New York':['New York City','Buffalo','Rochester','Albany','Syracuse','Ithaca','Binghamton','Stony Brook','Poughkeepsie','Brooklyn','Queens','Bronx','Troy','Potsdam','Geneseo','Oswego','New Paltz','Hamilton','Saratoga Springs'],'North Carolina':['Charlotte','Raleigh','Durham','Chapel Hill','Greensboro','Asheville','Wilmington','Winston-Salem','Boone','Cullowhee','Elon','Fayetteville','Wilson','High Point','Cary'],'North Dakota':['Fargo','Bismarck','Grand Forks','Minot','Dickinson','Williston','Jamestown'],'Ohio':['Columbus','Cleveland','Cincinnati','Athens','Dayton','Akron','Kent','Oxford','Toledo','Bowling Green','Youngstown','Canton','Springfield','Wooster','Oberlin','Ada'],'Oklahoma':['Oklahoma City','Tulsa','Norman','Stillwater','Edmond','Tahlequah','Weatherford','Ada','Durant','Broken Arrow','Lawton'],'Oregon':['Portland','Eugene','Salem','Corvallis','Bend','Ashland','Monmouth','La Grande','Klamath Falls','Beaverton','Hillsboro','Medford'],'Pennsylvania':['Philadelphia','Pittsburgh','State College','Harrisburg','Allentown','Bethlehem','Villanova','Scranton','Erie','Lancaster','West Chester','Indiana','Carlisle','Gettysburg','Swarthmore','Easton','Selinsgrove'],'Rhode Island':['Providence','Newport','Kingston','Bristol','Smithfield','Warwick','Cranston'],'South Carolina':['Charleston','Columbia','Greenville','Clemson','Rock Hill','Spartanburg','Conway','Florence','Myrtle Beach','Orangeburg','Aiken'],'South Dakota':['Sioux Falls','Rapid City','Brookings','Vermillion','Aberdeen','Spearfish','Madison'],'Tennessee':['Nashville','Memphis','Knoxville','Chattanooga','Murfreesboro','Johnson City','Clarksville','Cookeville','Jackson','Sewanee','Franklin','Martin'],'Texas':['Houston','San Antonio','Dallas','Austin','Fort Worth','El Paso','Arlington','Lubbock','College Station','Waco','Denton','Richardson','Plano','Irving','Corpus Christi','Laredo','Beaumont','Huntsville','Kingsville','Nacogdoches','San Marcos','Tyler','Commerce','Prairie View','Abilene','Wichita Falls','Georgetown','Round Rock','Denison','Alpine'],'Utah':['Salt Lake City','Provo','Ogden','Logan','Cedar City','St. George','Orem','Ephraim','Draper','Sandy','Layton'],'Vermont':['Burlington','Montpelier','Rutland','Middlebury','Northfield','Castleton','Johnson','Bennington'],'Virginia':['Richmond','Virginia Beach','Charlottesville','Arlington','Norfolk','Blacksburg','Harrisonburg','Lynchburg','Williamsburg','Fairfax','Radford','Farmville','Lexington','Roanoke','Newport News','Fredericksburg'],'Washington':['Seattle','Spokane','Tacoma','Bellevue','Pullman','Bellingham','Walla Walla','Ellensburg','Cheney','Olympia','Vancouver','Everett','Kirkland'],'West Virginia':['Charleston','Morgantown','Huntington','Buckhannon','Shepherdstown','Wheeling','Parkersburg'],'Wisconsin':['Milwaukee','Madison','Green Bay','Eau Claire','La Crosse','Oshkosh','Whitewater','Stevens Point','Kenosha','Racine','Appleton','Platteville'],'Wyoming':['Cheyenne','Laramie','Casper','Powell','Gillette','Sheridan','Rock Springs'],'Aguascalientes':['Aguascalientes'],'Baja California':['Tijuana','Mexicali','Ensenada'],'Baja California Sur':['La Paz','Los Cabos','Cabo San Lucas'],'Campeche':['Campeche','Ciudad del Carmen'],'Chiapas':['Tuxtla Gutiérrez','San Cristóbal de las Casas','Tapachula'],'Chihuahua':['Chihuahua','Ciudad Juárez'],'Coahuila':['Saltillo','Torreón','Monclova','Piedras Negras'],'Colima':['Colima','Manzanillo'],'Durango':['Durango','Gómez Palacio'],'Guanajuato':['León','Guanajuato','Irapuato','Celaya'],'Guerrero':['Acapulco','Chilpancingo','Iguala'],'Hidalgo':['Pachuca','Tulancingo'],'Jalisco':['Guadalajara','Zapopan','Puerto Vallarta','Tlaquepaque'],'Mexico City':['Mexico City'],'State of Mexico':['Toluca','Ecatepec','Naucalpan','Tlalnepantla'],'Michoacán':['Morelia','Uruapan','Zamora'],'Morelos':['Cuernavaca','Cuautla'],'Nayarit':['Tepic','Bahía de Banderas'],'Nuevo León':['Monterrey','San Pedro Garza García','Guadalupe','San Nicolás'],'Oaxaca':['Oaxaca','Salina Cruz'],'Puebla':['Puebla','Cholula','Tehuacán'],'Querétaro':['Querétaro','San Juan del Río'],'Quintana Roo':['Cancún','Playa del Carmen','Chetumal','Tulum'],'San Luis Potosí':['San Luis Potosí','Ciudad Valles'],'Sinaloa':['Culiacán','Mazatlán','Los Mochis'],'Sonora':['Hermosillo','Ciudad Obregón','Nogales'],'Tabasco':['Villahermosa'],'Tamaulipas':['Reynosa','Matamoros','Tampico','Nuevo Laredo'],'Tlaxcala':['Tlaxcala','Apizaco'],'Veracruz':['Veracruz','Xalapa','Coatzacoalcos'],'Yucatán':['Mérida','Valladolid'],'Zacatecas':['Zacatecas','Fresnillo'],'Alberta':['Calgary','Edmonton','Red Deer'],'British Columbia':['Vancouver','Victoria','Surrey','Kelowna'],'Manitoba':['Winnipeg','Brandon'],'New Brunswick':['Moncton','Fredericton','Saint John'],'Newfoundland and Labrador':['St. John\'s'],'Nova Scotia':['Halifax','Sydney'],'Ontario':['Toronto','Ottawa','Mississauga','Hamilton','London','Waterloo','Kingston'],'Prince Edward Island':['Charlottetown'],'Quebec':['Montreal','Quebec City','Laval','Gatineau','Sherbrooke'],'Saskatchewan':['Saskatoon','Regina'],'Northwest Territories':['Yellowknife'],'Nunavut':['Iqaluit'],'Yukon':['Whitehorse']};
 var GEO_COUNTRY_CITIES={'Afghanistan':['Kabul','Kandahar','Herat','Mazar-i-Sharif'],'Albania':['Tirana','Durrës','Vlorë'],'Algeria':['Algiers','Oran','Constantine'],'Angola':['Luanda','Huambo','Lobito'],'Argentina':['Buenos Aires','Córdoba','Rosario','Mendoza','La Plata'],'Armenia':['Yerevan','Gyumri'],'Australia':['Sydney','Melbourne','Brisbane','Perth','Adelaide','Canberra'],'Austria':['Vienna','Graz','Linz','Salzburg'],'Azerbaijan':['Baku','Ganja'],'Bangladesh':['Dhaka','Chittagong','Khulna'],'Belarus':['Minsk','Gomel'],'Belgium':['Brussels','Antwerp','Ghent','Bruges'],'Bolivia':['La Paz','Santa Cruz','Cochabamba','Sucre'],'Bosnia & Herzegovina':['Sarajevo','Banja Luka','Mostar'],'Brazil':['São Paulo','Rio de Janeiro','Brasília','Salvador','Belo Horizonte','Curitiba','Porto Alegre','Recife'],'Bulgaria':['Sofia','Plovdiv','Varna'],'Cambodia':['Phnom Penh','Siem Reap'],'Cameroon':['Douala','Yaoundé'],'Chile':['Santiago','Valparaíso','Concepción','Viña del Mar'],'China':['Beijing','Shanghai','Guangzhou','Shenzhen','Chengdu','Hangzhou','Xian','Wuhan'],'Colombia':['Bogotá','Medellín','Cali','Barranquilla','Cartagena'],'Congo (DRC)':['Kinshasa','Lubumbashi'],'Costa Rica':['San José','Alajuela','Cartago'],'Croatia':['Zagreb','Split','Rijeka','Dubrovnik'],'Cuba':['Havana','Santiago de Cuba'],'Czech Republic':['Prague','Brno','Ostrava'],'Denmark':['Copenhagen','Aarhus','Odense'],'Dominican Republic':['Santo Domingo','Santiago','Punta Cana'],'Ecuador':['Quito','Guayaquil','Cuenca'],'Egypt':['Cairo','Alexandria','Giza'],'El Salvador':['San Salvador','Santa Ana'],'Ethiopia':['Addis Ababa','Dire Dawa'],'Finland':['Helsinki','Espoo','Tampere'],'France':['Paris','Marseille','Lyon','Toulouse','Nice','Bordeaux','Lille'],'Georgia':['Tbilisi','Batumi','Kutaisi'],'Germany':['Berlin','Munich','Hamburg','Cologne','Frankfurt','Stuttgart','Düsseldorf'],'Ghana':['Accra','Kumasi'],'Greece':['Athens','Thessaloniki','Patras'],'Guatemala':['Guatemala City','Quetzaltenango'],'Haiti':['Port-au-Prince','Cap-Haïtien'],'Honduras':['Tegucigalpa','San Pedro Sula'],'Hungary':['Budapest','Debrecen','Szeged'],'India':['Mumbai','Delhi','Bangalore','Hyderabad','Chennai','Kolkata','Pune','Ahmedabad'],'Indonesia':['Jakarta','Surabaya','Bandung','Medan','Bali'],'Iran':['Tehran','Mashhad','Isfahan','Shiraz'],'Iraq':['Baghdad','Basra','Erbil'],'Ireland':['Dublin','Cork','Galway','Limerick'],'Israel':['Jerusalem','Tel Aviv','Haifa'],'Italy':['Rome','Milan','Naples','Turin','Florence','Bologna','Venice'],'Jamaica':['Kingston','Montego Bay'],'Japan':['Tokyo','Osaka','Kyoto','Yokohama','Nagoya','Sapporo','Fukuoka'],'Jordan':['Amman','Zarqa','Irbid'],'Kazakhstan':['Almaty','Astana','Shymkent'],'Kenya':['Nairobi','Mombasa','Kisumu'],'Kuwait':['Kuwait City'],'Lebanon':['Beirut','Tripoli'],'Libya':['Tripoli','Benghazi'],'Malaysia':['Kuala Lumpur','George Town','Johor Bahru'],'Morocco':['Casablanca','Rabat','Marrakesh','Fez','Tangier'],'Nepal':['Kathmandu','Pokhara'],'Netherlands':['Amsterdam','Rotterdam','The Hague','Utrecht','Eindhoven'],'New Zealand':['Auckland','Wellington','Christchurch'],'Nicaragua':['Managua','León'],'Nigeria':['Lagos','Abuja','Kano','Ibadan'],'Norway':['Oslo','Bergen','Trondheim','Stavanger'],'Pakistan':['Karachi','Lahore','Islamabad','Faisalabad'],'Panama':['Panama City','Colón'],'Paraguay':['Asunción','Ciudad del Este'],'Peru':['Lima','Arequipa','Cusco','Trujillo'],'Philippines':['Manila','Quezon City','Cebu','Davao'],'Poland':['Warsaw','Kraków','Łódź','Wrocław','Gdańsk'],'Portugal':['Lisbon','Porto','Braga','Coimbra'],'Puerto Rico':['San Juan','Bayamón','Ponce'],'Qatar':['Doha','Al Rayyan'],'Romania':['Bucharest','Cluj-Napoca','Timișoara','Iași'],'Russia':['Moscow','Saint Petersburg','Novosibirsk','Yekaterinburg','Kazan'],'Rwanda':['Kigali'],'Saudi Arabia':['Riyadh','Jeddah','Mecca','Medina','Dammam'],'Senegal':['Dakar'],'Serbia':['Belgrade','Novi Sad','Niš'],'Singapore':['Singapore'],'Slovakia':['Bratislava','Košice'],'Somalia':['Mogadishu','Hargeisa'],'South Africa':['Johannesburg','Cape Town','Durban','Pretoria','Port Elizabeth'],'South Korea':['Seoul','Busan','Incheon','Daegu','Daejeon'],'South Sudan':['Juba'],'Spain':['Madrid','Barcelona','Valencia','Seville','Bilbao','Málaga','Granada'],'Sri Lanka':['Colombo','Kandy','Galle'],'Sudan':['Khartoum','Omdurman'],'Sweden':['Stockholm','Gothenburg','Malmö','Uppsala'],'Switzerland':['Zurich','Geneva','Basel','Bern','Lausanne'],'Syria':['Damascus','Aleppo','Homs'],'Taiwan':['Taipei','Kaohsiung','Taichung','Tainan'],'Tanzania':['Dar es Salaam','Dodoma','Arusha'],'Thailand':['Bangkok','Chiang Mai','Phuket','Pattaya'],'Tunisia':['Tunis','Sfax'],'Turkey':['Istanbul','Ankara','Izmir','Bursa','Antalya'],'Uganda':['Kampala','Entebbe'],'Ukraine':['Kyiv','Kharkiv','Odesa','Lviv','Dnipro'],'United Arab Emirates':['Dubai','Abu Dhabi','Sharjah','Al Ain'],'United Kingdom':['London','Manchester','Birmingham','Edinburgh','Glasgow','Liverpool','Leeds','Bristol'],'Uruguay':['Montevideo','Salto','Punta del Este'],'Venezuela':['Caracas','Maracaibo','Valencia','Barquisimeto'],'Vietnam':['Ho Chi Minh City','Hanoi','Da Nang','Hai Phong'],'Yemen':['Sana\'a','Aden'],'Zambia':['Lusaka','Kitwe'],'Zimbabwe':['Harare','Bulawayo']};
 GEO_CITIES['Texas'].push('Eagle Pass');GEO_CITIES['Quebec'].push('La Pocatière');
+
+// Live country → state → city data from the backend /geo API (full world
+// coverage via the country-state-city dataset). The static GEO_STATES/
+// GEO_CITIES tables above stay as an instant fallback while a fetch is in
+// flight or if it fails, so the picker never shows an empty dropdown.
+var _geoApiCountries = null;
+var _geoApiCountryIso = {};
+var _geoApiStates = {};
+var _geoApiStateIso = {};
+var _geoApiCities = {};
+var _geoApiLoading = {};
+
+function _geoApiBaseUrl(){
+  var b = (typeof BASE_URL !== 'undefined' && BASE_URL)
+    ? BASE_URL
+    : ((typeof API_BASE_URL !== 'undefined' && API_BASE_URL) ? API_BASE_URL : 'http://127.0.0.1:3000/api/v1');
+  b = String(b).replace(/\/+$/, '');
+  if (!/\/api\/v1$/.test(b)) b += '/api/v1';
+  return b;
+}
+function _geoRerenderStep4IfActive(){
+  if (typeof _ob4Phase !== 'undefined' && _ob4Phase === 4 && typeof _ob4Go === 'function') _ob4Go(4);
+}
+async function _geoLoadCountries(){
+  if (_geoApiCountries || _geoApiLoading.countries) return;
+  _geoApiLoading.countries = true;
+  try {
+    var res = await fetch(_geoApiBaseUrl() + '/geo/countries');
+    if (res.ok) {
+      var data = await res.json();
+      var list = (data && data.data && data.data.countries) || [];
+      _geoApiCountries = list;
+      list.forEach(function(c){ _geoApiCountryIso[c.name] = c.isoCode; });
+      _geoRerenderStep4IfActive();
+    }
+  } catch(e) {} finally { _geoApiLoading.countries = false; }
+}
+async function _geoLoadStates(countryIso){
+  if (!countryIso || _geoApiStates[countryIso] || _geoApiLoading['s'+countryIso]) return;
+  _geoApiLoading['s'+countryIso] = true;
+  try {
+    var res = await fetch(_geoApiBaseUrl() + '/geo/states?countryCode=' + encodeURIComponent(countryIso));
+    if (res.ok) {
+      var data = await res.json();
+      var list = (data && data.data && data.data.states) || [];
+      _geoApiStates[countryIso] = list;
+      var map = _geoApiStateIso[countryIso] = {};
+      list.forEach(function(s){ map[s.name] = s.isoCode; });
+      _geoRerenderStep4IfActive();
+    }
+  } catch(e) {} finally { _geoApiLoading['s'+countryIso] = false; }
+}
+async function _geoLoadCities(countryIso, stateIso){
+  var key = countryIso + '|' + stateIso;
+  if (!countryIso || !stateIso || _geoApiCities[key] || _geoApiLoading['c'+key]) return;
+  _geoApiLoading['c'+key] = true;
+  try {
+    var res = await fetch(_geoApiBaseUrl() + '/geo/cities?countryCode=' + encodeURIComponent(countryIso) + '&stateCode=' + encodeURIComponent(stateIso));
+    if (res.ok) {
+      var data = await res.json();
+      var list = (data && data.data && data.data.cities) || [];
+      _geoApiCities[key] = list.map(function(c){ return c.name; });
+      _geoRerenderStep4IfActive();
+    }
+  } catch(e) {} finally { _geoApiLoading['c'+key] = false; }
+}
+
 function _geoStrip(s){return String(s||'').replace(/^[\u{1F1E6}-\u{1F1FF}]{2}\s*/u,'').trim();}
 function _cityDD(list){return '<select class="gi" id="ob-city" onchange="_onCitySel(this)"><option value="">Select city…</option>'+list.map(function(ct){return "<option>"+ct+"</option>";}).join("")+'<option>Other</option></select>';}
 function _onCitySel(sel){if(sel&&sel.value==="Other"){var cw=document.getElementById("ob-city-wrap");if(cw){cw.innerHTML='<input class="gi" type="text" id="ob-city" placeholder="Type your city"/>';var inp=document.getElementById("ob-city");if(inp)inp.focus();}}if(typeof renderObCrushPreview==="function")renderObCrushPreview();}
@@ -22759,20 +22965,54 @@ function _renderNotifBody(){
   });
   body.innerHTML=h;
 }
+// Notifications the backend persisted for this user — admin broadcasts/
+// targeted sends (Notificaciones Administrativas) and verification approval/
+// rejection messages. Without this, those rows only ever reached someone who
+// happened to be connected over the socket at the exact moment they were
+// created; everyone else never saw them.
+var _UGZ_NOTIF_TYPE_ICON={SYSTEM:'🔔',ANNOUNCEMENT:'📣',WARNING:'⚠️',MODERATION:'🛡️'};
+var _UGZ_NOTIF_TYPE_COLOR={SYSTEM:'#22d3ee',ANNOUNCEMENT:'#3d7bff',WARNING:'#ef4444',MODERATION:'#f59e0b'};
+async function _ugzFetchServerNotifications(){
+  if(typeof apiClient==='undefined'||!apiClient.getAccessToken())return;
+  try{
+    var res=await apiClient.request('/users/me/notifications',{method:'GET'});
+    var rows=(res&&res.data&&res.data.notifications)||[];
+    var existingIds={};notifData.forEach(function(n){existingIds[n.id]=true;});
+    rows.forEach(function(r){
+      if(existingIds[r.id])return;
+      notifData.push({
+        type:'system',
+        from:r.title||'Undrgradz',
+        av:_UGZ_NOTIF_TYPE_ICON[r.type]||'🔔',
+        color:_UGZ_NOTIF_TYPE_COLOR[r.type]||'#22d3ee',
+        msg:r.message||'',
+        time:_timeAgo(r.createdAt),
+        id:r.id,
+        _createdAt:r.createdAt
+      });
+      if(r.isRead)notifRead[r.id]=true;
+    });
+    notifData.sort(function(a,b){
+      var ta=a._createdAt?new Date(a._createdAt).getTime():Infinity;
+      var tb=b._createdAt?new Date(b._createdAt).getTime():Infinity;
+      return tb-ta;
+    });
+  }catch(e){ console.error("Error loading server notifications:",e); }
+}
 async function openNotifications(){
   var modal=document.getElementById('notif-modal');if(modal)modal.remove();
-  
+
   if (typeof apiClient !== 'undefined' && apiClient.getAccessToken()) {
     try {
       const pendingFr = await apiClient.getPendingFriendRequests();
       notifData = notifData.filter(function(n) { return n.type !== 'friend'; });
-      
+
       pendingFr.forEach(function(r) {
         var rName = r.sender.firstName + ' ' + (r.sender.lastName || '');
         var bg = (r.sender.profile && r.sender.profile.customization && r.sender.profile.customization.badgeColor) || '#3d7bff';
         var photoUrl = (r.sender.photos && r.sender.photos[0] && r.sender.photos[0].url) || '';
         var init = r.sender.firstName.charAt(0).toUpperCase();
-        
+
         notifData.unshift({
           type: 'friend',
           from: rName,
@@ -22788,6 +23028,7 @@ async function openNotifications(){
     } catch (e) {
       console.error("Error loading pending friend requests for notifications:", e);
     }
+    await _ugzFetchServerNotifications();
   }
 
   modal=document.createElement('div');modal.id='notif-modal';modal.className='mov open';
@@ -22833,10 +23074,21 @@ async function notifFriendAction(action,id){
     openNotifications();
   }
 }
-function dismissNotif(id){notifData=notifData.filter(function(n){return n.id!==id;});if(typeof _updateNotifBadge==='function')_updateNotifBadge();var m=document.getElementById('notif-modal');if(m)m.remove();openNotifications();}
+function _ugzIsServerNotifId(id){return !!id&&!/^(fr_|verif_)/.test(id);}
+function dismissNotif(id){
+  notifData=notifData.filter(function(n){return n.id!==id;});
+  if(typeof _updateNotifBadge==='function')_updateNotifBadge();
+  if(_ugzIsServerNotifId(id)&&typeof apiClient!=='undefined'&&apiClient.getAccessToken()){
+    apiClient.request('/users/me/notifications/'+id+'/read',{method:'PATCH'}).catch(function(){});
+  }
+  var m=document.getElementById('notif-modal');if(m)m.remove();openNotifications();
+}
 function markAllNotifsRead(){
   notifData.forEach(function(n){notifRead[n.id]=true;});
   _updateNotifBadge();
+  if(typeof apiClient!=='undefined'&&apiClient.getAccessToken()){
+    apiClient.request('/users/me/notifications/read-all',{method:'PATCH'}).catch(function(){});
+  }
   var m=document.getElementById('notif-modal');if(m)m.remove();
   openNotifications();
 }
@@ -22848,8 +23100,16 @@ function _updateNotifBadge(){
   else{badge.style.display='none';badge.textContent='';}
   window._lastNotifCount=count;
 }
-// Show badge on load
-(function(){setTimeout(_updateNotifBadge,800);})();
+// Show badge on load — also pull any server-persisted notifications (admin
+// broadcasts, verification results) so the unread count is right even if the
+// user wasn't connected to the socket when they were sent.
+(function(){setTimeout(function(){
+  if(typeof _ugzFetchServerNotifications==='function'){
+    _ugzFetchServerNotifications().then(_updateNotifBadge);
+  } else {
+    _updateNotifBadge();
+  }
+},800);})();
 
 // ── CHAT SEARCH TAB SWITCHER ──
 function searchClasses(){
@@ -23030,6 +23290,7 @@ updateProfileUI=function(){
     box.classList.add('done');
     box.innerHTML = '✅ Insignia Azul Verificada (Credencial Aprobada 💙)';
   }
+  if(typeof _ugzRenderInvolvementVerifications==='function')_ugzRenderInvolvementVerifications(typeof _ugzLastVerificationStatus!=='undefined'?_ugzLastVerificationStatus:null);
   // Sync the "Interested In" match-filter chips + DD panel with the saved/current preference
   var prow=document.getElementById('crush-int-chips');
   if(prow){

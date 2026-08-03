@@ -252,6 +252,39 @@ class UserController {
       next(error);
     }
   }
+
+  async getNotifications(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const notifications = await userService.getNotifications(userId);
+      res.status(200).json({
+        status: 'success',
+        data: { notifications },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async markNotificationRead(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const result = await userService.markNotificationRead(userId, req.params.id);
+      res.status(200).json({ status: 'success', data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async markAllNotificationsRead(req, res, next) {
+    try {
+      const userId = req.user.userId || req.user.id;
+      const result = await userService.markAllNotificationsRead(userId);
+      res.status(200).json({ status: 'success', data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

@@ -14,6 +14,7 @@ const billingRoutes = require('./routes/billing.routes');
 const eventRoutes = require('./routes/event.routes');
 const reportRoutes = require('./routes/report.routes');
 const adminRoutes = require('./routes/admin.routes');
+const geoRoutes = require('./routes/geo.routes');
 const rateLimit = require('express-rate-limit');
 const AppError = require('./errors/appError');
 const { recordSystemError } = require('./services/systemHealth.service');
@@ -86,6 +87,7 @@ app.use('/api/v1/chats', chatRoutes);
 app.use('/api/v1/billing', billingRoutes);
 app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/geo', geoRoutes);
 
 // Admin Routes
 app.use('/api/v1/admin', adminRoutes);
