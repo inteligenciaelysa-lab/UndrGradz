@@ -74,7 +74,8 @@
       "Bash(taskkill //F //PID 3060 //PID 5560 //PID 14312)",
       "Bash(taskkill //F //PID 20120)",
       "Bash(docker version *)",
-      "Bash(node -e \"require\\('./src/app.js'\\); console.log\\('app.js loaded OK'\\)\")"
+      "Bash(node -e \"require\\('./src/app.js'\\); console.log\\('app.js loaded OK'\\)\")",
+      "Bash(node -e \"require\\('./src/utils/dataUriImage.js'\\); require\\('./src/validators/event.validator.js'\\); require\\('./src/controllers/chat.controller.js'\\); console.log\\('OK'\\)\")"
     ]
   }
 }

@@ -1,5 +1,6 @@
 const chatService = require('../services/chat.service');
 const AppError = require('../errors/appError');
+const { validateImageDataUri } = require('../utils/dataUriImage');
 
 class ChatController {
   async getToken(req, res, next) {
@@ -65,6 +66,13 @@ class ChatController {
       const userId = req.user.userId;
       const { matchId } = req.params;
       const { content, type, mediaUrl, duration } = req.body;
+
+      if (type === 'IMAGE' && mediaUrl) {
+        const result = validateImageDataUri(mediaUrl);
+        if (!result.valid) {
+          throw new AppError(result.reason, 400);
+        }
+      }
 
       console.log(`[CHAT DEBUG BACKEND] POST /chats/${matchId}/messages received | userId: ${userId} | content: "${content}"`);
 

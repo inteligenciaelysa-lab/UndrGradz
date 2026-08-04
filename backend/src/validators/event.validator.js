@@ -1,4 +1,5 @@
 const { z } = require('zod');
+const { validateImageDataUri } = require('../utils/dataUriImage');
 
 const createEventSchema = z.object({
   name: z.string().min(1, 'Event name is required').max(100, 'Event name must be less than 100 characters'),
@@ -12,6 +13,14 @@ const createEventSchema = z.object({
   capacity: z.number().int().min(1, 'Capacity must be at least 1'),
   description: z.string().optional().nullable(),
   filters: z.record(z.any()).optional().nullable(),
+}).superRefine((data, ctx) => {
+  const cover = data.filters && data.filters.cover;
+  if (typeof cover === 'string' && cover.length > 0) {
+    const result = validateImageDataUri(cover);
+    if (!result.valid) {
+      ctx.addIssue({ code: 'custom', path: ['filters', 'cover'], message: result.reason });
+    }
+  }
 });
 
 module.exports = {
