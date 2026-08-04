@@ -16,6 +16,7 @@ const updateProfileSchema = z.object({
   university: z.string().optional().nullable(),
   major: z.string().optional().nullable(),
   grad: z.string().optional().nullable(),
+  gradSemester: z.enum(['SPRING', 'SUMMER', 'FALL']).optional().nullable(),
   crossover: z.boolean().optional(),
 
   // Rich metadata JSON fields

@@ -748,7 +748,7 @@ ul, ol { list-style: none; }
   .ch-photo { position: absolute; width: 100%; left: 0 !important; right: 0 !important; }
   .ch-visual::after { width: 100%; left: 0 !important; right: 0 !important; }
   .ch-photo + .ui-panel { position: relative; top: auto; margin: 0 auto; }
-  .chapter .ui-panel, .chapter-rev .ui-panel { transform: rotate(0deg); left: auto; right: auto; }
+  .chapter .ui-panel, .chapter-rev .ui-panel { transform: rotate(0deg) !important; left: auto !important; right: auto !important; }
 
   .dl-cards { flex-direction: column; align-items: center; }
   .store-card { width: 100%; max-width: 380px; }
@@ -756,6 +756,18 @@ ul, ol { list-style: none; }
   .foot-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
   .mega { font-size: 13vw; }
   .foot-base { flex-direction: column; align-items: flex-start; }
+
+  /* crush deck — fluid sizing so the id text / action buttons never
+     crowd the card edges on small phones (iPhone SE, small Android) */
+  .ui-deck-id { left: clamp(10px, 3vw, 14px); right: clamp(10px, 3vw, 14px); bottom: clamp(9px, 2.5vw, 12px); }
+  .ui-deck-id strong { font-size: clamp(16px, 4.4vw, 19px); }
+  .ui-deck-id small { font-size: clamp(11px, 3vw, 12px); }
+  .ui-deck-uni { font-size: clamp(8.5px, 2.3vw, 9.5px); }
+  .ui-actions { gap: clamp(9px, 3vw, 13px); }
+  .ua { width: clamp(38px, 10.5vw, 44px); height: clamp(38px, 10.5vw, 44px); }
+  .ua .ic { width: clamp(15px, 4vw, 18px); height: clamp(15px, 4vw, 18px); }
+  .ua-big { width: clamp(45px, 12.5vw, 52px); height: clamp(45px, 12.5vw, 52px); }
+  .ua-big .ic { width: clamp(18px, 5vw, 22px); height: clamp(18px, 5vw, 22px); }
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────── */

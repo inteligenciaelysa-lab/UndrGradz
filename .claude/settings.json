@@ -75,7 +75,21 @@
       "Bash(taskkill //F //PID 20120)",
       "Bash(docker version *)",
       "Bash(node -e \"require\\('./src/app.js'\\); console.log\\('app.js loaded OK'\\)\")",
-      "Bash(node -e \"require\\('./src/utils/dataUriImage.js'\\); require\\('./src/validators/event.validator.js'\\); require\\('./src/controllers/chat.controller.js'\\); console.log\\('OK'\\)\")"
+      "Bash(node -e \"require\\('./src/utils/dataUriImage.js'\\); require\\('./src/validators/event.validator.js'\\); require\\('./src/controllers/chat.controller.js'\\); console.log\\('OK'\\)\")",
+      "Bash(firebase deploy *)",
+      "Read(//c/Users/IA ELYSA/.config/**)",
+      "Bash(where gcloud *)",
+      "Bash(mkdir -p 'C:\\\\Users\\\\IA ELYSA/gcloud-sdk')",
+      "Read(//c/Users/IA ELYSA/**)",
+      "Bash(curl -s -o gcloud.zip \"https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe\" -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(rm -f 'C:\\\\Users\\\\IA ELYSA/gcloud-sdk/gcloud.zip')",
+      "Read(//c/Users/IA ELYSA/gcloud-sdk/**)",
+      "Bash(curl -sL -o gcloud-cli.zip \"https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-cli-windows-x86_64-bundled-python.zip\" -w \"HTTP %{http_code} size=%{size_download}\\\\n\")",
+      "Bash(curl -sL -o gcloud-cli.zip \"https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-cli-windows-x86_64.zip\" -w \"HTTP %{http_code} size=%{size_download}\\\\n\")",
+      "Bash(cat \"$HOME/gcloud-sdk/gcloud-cli.zip\")",
+      "Bash(node build.js)",
+      "Bash(curl -s \"https://undrgradz-app.web.app/index.html\" -o /tmp/live_index.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(curl -s -o /dev/null -w \"app.js HTTP %{http_code}\\\\n\" \"https://undrgradz-app.web.app/app.js\")"
     ]
   }
 }

@@ -1,4 +1,4 @@
-window.currentLang = localStorage.getItem('ugz_lang') || 'en';
+﻿window.currentLang = localStorage.getItem('ugz_lang') || 'en';
 var I18N = {
   en: {
     "auth-tab-su-btn": "Sign Up",
@@ -3078,6 +3078,7 @@ function _ob4P2(){
   var lblMajor = window.currentLang==='es'?'Carrera principal':'Major';
   var lblMinor = window.currentLang==='es'?'Carrera secundaria (opcional)':'Minor (optional)';
   var lblGradYr = window.currentLang==='es'?'Año de graduación':'Graduation year';
+  var lblGradSem = window.currentLang==='es'?'Semestre de graduación':'Graduation semester';
   var lblLivingLabel = window.currentLang==='es'?'Vivo en…':'I live…';
   var lblInvolvedLabel = window.currentLang==='es'?'Participo en…':'I am involved in…';
   var btnContinue = window.currentLang==='es'?'Continuar':'Continue';
@@ -3152,8 +3153,12 @@ function _ob4P2(){
     var majOpt='<option value="">'+majSelectDefault+'</option>'+MAJORS.map(function(m){return '<option'+(m===st.major?' selected':'')+'>'+m+'</option>';}).join('');
     var minOpt='<option value="">'+minSelectDefault+'</option>'+MINORS.filter(function(m){return m!=='None';}).map(function(m){return '<option'+(m===st.minor?' selected':'')+'>'+m+'</option>';}).join('');
     var yNow=new Date().getFullYear();var gyOpt='<option value="">'+gradYrSelectDefault+'</option>';for(var y=yNow;y<yNow+6;y++)gyOpt+='<option'+(String(y)===String(st.gradyr)?' selected':'')+'>'+y+'</option>';
+    var gradSemDefault = window.currentLang==='es'?'Selecciona…':'Select…';
+    var GRAD_SEM_OPTS=[['SPRING','Spring'],['SUMMER','Summer'],['FALL','Fall']];
+    var gradSemOpt='<option value="">'+gradSemDefault+'</option>'+GRAD_SEM_OPTS.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===st.gradSemester?' selected':'')+'>'+s[1]+'</option>';}).join('');
     acad='<div class="ob4-flabel">'+lblMajor+'</div><select class="gi" id="ob4-major" onchange="_ob4State.major=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+majOpt+'</select>'+
-      '<div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select>';
+      '<div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select>'+
+      '<div class="ob4-flabel">'+lblGradSem+'</div><select class="gi" id="ob4-gradsem" onchange="_ob4State.gradSemester=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gradSemOpt+'</select>';
   }
   
   var living = window.currentLang==='es'?
@@ -3431,9 +3436,10 @@ function _ob4ValidateAll2(){
   var isAlumni=!!window._regAlumni;
   var major=isAlumni?(st.field||'').trim():(st.major||'');
   var grad=(st.gradyr||'').trim();
+  var gradSemester=isAlumni||!!(st.gradSemester||'').trim();
   var living=(st.living||'');
   var involvedValid=(_ob4Involved&&_ob4Involved.length>0);
-  
+
   var creatorValid=true;
   if(_ob4Involved&&_ob4Involved.indexOf('Content Creator')>-1){
     var insta=(st.creatorInsta||'').trim();
@@ -3448,7 +3454,7 @@ function _ob4ValidateAll2(){
     if(cvPanel) cvPanel.style.display=(insta||tiktok||youtube)?'':'none';
   }
 
-  var isValid=!!major&&!!grad&&!!living&&involvedValid&&creatorValid;
+  var isValid=!!major&&!!grad&&gradSemester&&!!living&&involvedValid&&creatorValid;
   var btn=document.getElementById('ob4-continue-btn-p2');
   if(btn){
     if(isValid){
@@ -3465,9 +3471,10 @@ function _ob4Next2(){
   var isAlumni=!!window._regAlumni;
   var major=isAlumni?(st.field||'').trim():(st.major||'');
   var grad=(st.gradyr||'').trim();
+  var gradSemester=isAlumni||!!(st.gradSemester||'').trim();
   var living=(st.living||'');
   var involvedValid=(_ob4Involved&&_ob4Involved.length>0);
-  
+
   var creatorValid=true;
   if(_ob4Involved&&_ob4Involved.indexOf('Content Creator')>-1){
     var insta=(st.creatorInsta||'').trim();
@@ -3477,8 +3484,8 @@ function _ob4Next2(){
       creatorValid=false;
     }
   }
-  
-  if(!major||!grad||!living||!involvedValid||!creatorValid){
+
+  if(!major||!grad||!gradSemester||!living||!involvedValid||!creatorValid){
     alert('Please fill out all the required info before continuing.');
     return;
   }
@@ -4138,20 +4145,6 @@ function _ob4AddCustom(){var v=prompt('Add a custom interest:');if(v&&v.trim()){
 
 // ---------- PHASE 4: Preview ----------
 // ---------- PHASE 5: Preview ----------
-window._ob4PreviewPhotoIdx = window._ob4PreviewPhotoIdx || 0;
-
-function _ob4CardPhotoClick(ev, totalPhotos){
-  if (totalPhotos <= 1) return;
-  var rect = ev.currentTarget.getBoundingClientRect();
-  var clickX = ev.clientX - rect.left;
-  var width = rect.width;
-  if (clickX < width * 0.4) {
-    window._ob4PreviewPhotoIdx = (window._ob4PreviewPhotoIdx - 1 + totalPhotos) % totalPhotos;
-  } else {
-    window._ob4PreviewPhotoIdx = (window._ob4PreviewPhotoIdx + 1) % totalPhotos;
-  }
-  _ob4Go(5);
-}
 
 function _ob4Bio(v){
   _ob4State.bio = v;
@@ -4159,74 +4152,46 @@ function _ob4Bio(v){
 }
 
 function _ob4P5(){
-  var nm=(suData&&suData.fname)||'You';var age=(suData&&suData.age)||'';var uniN=(uni&&uni.name)||'Your University';
+  var nm=(suData&&suData.fname)||'You';var age=(suData&&suData.age)||'';
   var gy=window._regAlumni?_ob4State.gradyr:(_ob4State.gradyr?String(_ob4State.gradyr).slice(-2):'');
   var major=window._regAlumni?_ob4State.field:_ob4State.major;
+  var GRAD_SEM_LABEL={SPRING:'Spring',SUMMER:'Summer',FALL:'Fall'};
+  var gradSemLbl=GRAD_SEM_LABEL[_ob4State.gradSemester]||'';
+  var gradDisp=(!window._regAlumni&&gradSemLbl&&gy)?(gradSemLbl+" '"+gy):gy;
 
   var photos = (window.userDatingPhotos || []).filter(Boolean);
   if (photos.length === 0 && userDatingPhotos && userDatingPhotos[0]) photos = [userDatingPhotos[0]];
 
-  var photoIdx = window._ob4PreviewPhotoIdx % (photos.length || 1);
-  if (photoIdx < 0) photoIdx = 0;
-  var activePhotoUrl = photos[photoIdx] || null;
-
-  var coverStyle = activePhotoUrl ?
-    ('background-image:url(\'' + activePhotoUrl + '\');background-size:cover;background-position:center;') :
-    ('background:linear-gradient(160deg,' + ((uni && uni.p) || '#2b5fd9') + ',rgba(0,0,0,0.85));');
-
-  var storyBars = '';
-  if (photos.length > 1) {
-    storyBars = '<div style="position:absolute;top:10px;left:10px;right:10px;display:flex;gap:4px;z-index:5;">' +
-      photos.map(function(p, i){
-        var isActive = (i === photoIdx);
-        return '<div style="flex:1;height:3px;border-radius:2px;background:' + (isActive ? '#fff' : 'rgba(255,255,255,0.35)') + ';box-shadow:' + (isActive ? '0 0 6px rgba(255,255,255,0.8)' : 'none') + ';transition:all 0.2s ease;"></div>';
-      }).join('') +
-    '</div>';
-  }
-
-  var cardPhotoHtml = '<div style="width:100%;aspect-ratio:3/4;border-radius:var(--rad-lg);' + coverStyle + 'position:relative;cursor:pointer;border:2px solid var(--uni-p, #dc2626);margin-bottom:14px;overflow:hidden;user-select:none;" onclick="_ob4CardPhotoClick(event, ' + (photos.length) + ')">' +
-    storyBars +
-    '<span style="position:absolute;bottom:10px;right:10px;font-size:var(--fs-xs);font-weight:700;color:#fff;background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.25);border-radius:var(--rad-sm);padding:3px 10px;backdrop-filter:blur(6px);z-index:4;">' +
-      (photos.length > 0 ? (photoIdx + 1) + '/' + photos.length : '1/1') +
-    '</span>' +
-  '</div>';
-
-  var chips=selectedHobbies.slice(0,4).map(function(h){return '<span style="font-size:var(--fs-xs);font-weight:600;color:#fff;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:var(--rad-pill);padding:5px 12px;">'+h+'</span>';}).join('');
-  var more=selectedHobbies.length>4?('<span style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">+'+(selectedHobbies.length-4)+'</span>'):'';
-
-  var selLangs = _ob4State.languages || [];
-  // Stored as "code·Name" (e.g. "us·English") — show the actual FLAG, not "us·".
-  var _flagOf = function(cc){ try{ return (cc||'').toUpperCase().replace(/[A-Z]/g, function(c){ return String.fromCodePoint(127397 + c.charCodeAt(0)); }); }catch(e){ return ''; } };
-  var _langsDisp = selLangs.map(function(u){ var parts=String(u).split('·'); var cc=parts[0]||''; var nm=parts.slice(1).join('·')||u; return (cc.length===2 ? _flagOf(cc)+' ' : '') + nm; }).join(', ');
-  var langsBadge = selLangs.length > 0 ?
-    ('<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:4px;display:flex;align-items:center;gap:4px;">🗣️ <span style="color:#fff;font-weight:500;">' + _langsDisp + '</span></div>') : '';
-
-  var lk = window.currentLang==='es'?
-    [['Friends','🤗','Amigos'],['Events','🎉','Eventos'],['Connections','💫','Conexiones']]:
-    [['Friends','🤗','Friends'],['Events','🎉','Events'],['Connections','💫','Connections']];
-  var lkHtml=lk.map(function(x){var on=_ob4State.looking.indexOf(x[0])>-1;return '<div onclick="_ob4Looking(this,\''+x[0]+'\')" style="font-size:var(--fs-sm);font-weight:600;color:'+(on?'#fbbf24':'var(--fg2)')+';background:'+(on?'rgba(251,191,36,0.14)':'rgba(255,255,255,0.04)')+';border:1px solid '+(on?'rgba(251,191,36,0.5)':'var(--gbdl)')+';border-radius:var(--rad-md);padding:7px 14px;cursor:pointer;">'+x[1]+' '+x[2]+'</div>';}).join('');
-
-  var displayUniName = (((_ob4State.uniNameStyle==='acronym')&&uni&&uni.acronym)?uni.acronym:uniN);
-  var locationText = ((uni&&uni.name)?(window.currentLang==='es'?'En el campus':'On campus'):'—');
+  // Stored as "code·Name" (e.g. "us·English"); buildCrushCardSelfPreviewHtml matches
+  // langs against FLAGS by plain language name, so strip the country-code prefix.
+  var langsForCard = (_ob4State.languages || []).map(function(u){
+    var parts = String(u).split('·');
+    return parts.length > 1 ? parts.slice(1).join('·') : parts[0];
+  });
 
   var lblAboutMe = window.currentLang==='es'?'Sobre mí':'About me';
   var placeholderBio = window.currentLang==='es'?'Cuéntanos un poco sobre ti…':'Share a little about yourself…';
   var lblPrompts = window.currentLang==='es'?'Preguntas para conocerte':'Prompts';
-  var lblLookingFor = window.currentLang==='es'?'Busco':'Looking for';
   var btnFinish = window.currentLang==='es'?'¡Empecemos!':'Let\'s go!';
   var btnBack = window.currentLang==='es'?'← Volver a editar':'← Back to edit';
 
-  return '<div style="background:linear-gradient(145deg, rgba(13,13,17,0.92), rgba(11,11,14,0.96));border:1.5px solid var(--uni-p, rgba(240,62,90,0.5));border-radius:var(--rad-xl);padding:16px;box-sizing:border-box;max-width:100%;">'+
-    cardPhotoHtml+
-    '<div style="padding-bottom:2px;">'+
-      '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;display:flex;align-items:center;gap:6px;">'+nm+(age?(', '+age):'')+' <span style="color:#3b82f6;font-size:var(--fs-md);">✓</span></div>'+
-      '<div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.7);font-weight:500;margin-top:2px;">'+icon('grad',13)+' '+displayUniName+' '+(gy?('\''+gy):'')+'</div>'+
-      (major?('<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:2px;">📖 '+major+'</div>'):'')+
-      '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-top:2px;">'+icon('mapPin',16)+' '+locationText+'</div>'+
-      langsBadge+
-      (chips?('<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center;">'+chips+more+'</div>'):'')+
-    '</div>'+
-  '</div>'+
+  var cardHtml = buildCrushCardSelfPreviewHtml({
+    photos: photos,
+    name: nm,
+    age: age,
+    major: major,
+    minor: window._regAlumni ? '' : _ob4State.minor,
+    grad: gradDisp,
+    bio: _ob4State.bio || '',
+    ints: typeof selectedHobbies!=='undefined'?selectedHobbies:[],
+    langs: langsForCard,
+    org: window._ob4Greek || '',
+    clubs: typeof selectedClubs!=='undefined'?selectedClubs.slice():[],
+    prompts: (typeof selectedPrompts!=='undefined'?selectedPrompts:[]).filter(function(p){return p&&p.a&&p.a.trim();}),
+    verified: true
+  });
+
+  return cardHtml+
   '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-xl);padding:16px;margin-top:14px;box-sizing:border-box;">'+
     '<div class="ob4-flabel" style="margin:0 0 12px;">'+(window.currentLang==='es'?'✨ Toques finales':'✨ Finishing touches')+'</div>'+
     '<div style="margin-bottom:14px;"><div class="ob4-flabel" style="margin:0 0 6px;">'+lblAboutMe+'</div><textarea oninput="_ob4Bio(this.value)" placeholder="'+placeholderBio+'" style="width:100%;box-sizing:border-box;height:75px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-size:var(--fs-base);padding:10px 12px;resize:none;">'+(_ob4State.bio||'')+'</textarea></div>'+
@@ -4382,7 +4347,14 @@ function _ob4Finish(){
   if(st.email)userPro.email=st.email;
   if(st.phone)userPro.phone=(st.code||'')+' '+st.phone;
   if(window._regAlumni){if(st.gradyr)userPro.grad="May '"+st.gradyr;if(st.field)userPro.major=st.field;userPro.advDegrees=(st.advDegrees||[]).map(function(d){return {lvl:d};});userPro.degree=(st.advDegrees&&st.advDegrees[0])||'';userMode='alumni';obMode='alumni';}
-  else{if(st.major)userPro.major=st.major;if(st.minor)userPro.minor=st.minor;if(st.gradyr)userPro.grad="May '"+String(st.gradyr).slice(-2);}
+  else{
+    if(st.major)userPro.major=st.major;
+    if(st.minor)userPro.minor=st.minor;
+    var GRAD_SEM_LABEL={SPRING:'Spring',SUMMER:'Summer',FALL:'Fall'};
+    var gradSemLbl=GRAD_SEM_LABEL[st.gradSemester]||'Spring';
+    if(st.gradyr)userPro.grad=gradSemLbl+" '"+String(st.gradyr).slice(-2);
+    userPro.gradSemester=st.gradSemester||'';
+  }
   if(st.living)userPro.living=st.living;userPro.uniNameStyle=_ob4State.uniNameStyle||'full';
   userPro.languages=st.languages||[];
   window._obAthlete=!!(window._ob4Sports&&window._ob4Sports.length);
@@ -4793,6 +4765,7 @@ async function launch(){
       university: uni ? uni.name : '',
       major: userPro.major || (_ob4State && _ob4State.major) || '',
       grad: userPro.grad || (_ob4State && _ob4State.gradyr ? String(_ob4State.gradyr) : '') || '',
+      gradSemester: userPro.gradSemester || (_ob4State && _ob4State.gradSemester) || '',
       crossover: userPro.crossover || false,
       interests: userPro.interests || selectedHobbies || [],
       prompts: userPro.prompts || selectedPrompts || [],
@@ -5623,7 +5596,6 @@ function sw(id,label,opts){
   if(id==='alumnihub'&&typeof _alumniHubList==='function')_alumniHubList();
   if((id==='uchats'||id==='chats')&&typeof fetchAndRenderChats==='function')fetchAndRenderChats();
   if(id==='hangouts'&&typeof fetchAndRenderHangouts==='function')fetchAndRenderHangouts();
-  if(id==='wellness'&&typeof renderWellness==='function')renderWellness();
   if(id==='profile'){
     if(typeof renderBadges==='function')renderBadges();
     if(typeof syncVerificationStatus==='function')syncVerificationStatus();
@@ -5861,7 +5833,7 @@ function openEdit(){var m=document.getElementById('edit-modal');if(m)m.classList
   '<div class="field"><label>Other Links</label><input class="gi" type="url" id="ed-otherlink" placeholder="https://linktr.ee/mybusiness" value="'+((userPro.otherlink||''))+'"/></div>'+
   '<button class="gbtn" style="background:var(--p);" onclick="saveEdit()">Save Profile</button>'+
   '<button class="gbtn-ghost" onclick="document.getElementById(\'edit-modal\').classList.remove(\'open\')">Cancel</button>';}
-  else{['ed-bio','ed-major','ed-minor','ed-ig'].forEach(function(id){var el=document.getElementById(id);var key=id.replace('ed-','');if(el)el.value=userPro[key]||'';});var _s=(userPro&&userPro.uniNameStyle)||'full';var f=document.getElementById('uns-full-ed'),a=document.getElementById('uns-acr-ed');if(f){f.style.background=(_s==='full')?'var(--p)':'rgba(255,255,255,0.08)';f.style.color=(_s==='full')?'#fff':'var(--fg2)';}if(a){a.style.background=(_s==='acronym')?'var(--p)':'rgba(255,255,255,0.08)';a.style.color=(_s==='acronym')?'#fff':'var(--fg2)';}var _ys=(userPro&&userPro.yearStyle)||'full';var yf=document.getElementById('ys-full-ed'),ya=document.getElementById('ys-acr-ed');if(yf){yf.style.background=(_ys==='full')?'var(--p)':'rgba(255,255,255,0.08)';yf.style.color=(_ys==='full')?'#fff':'var(--fg2)';}if(ya){ya.style.background=(_ys==='acronym')?'var(--p)':'rgba(255,255,255,0.08)';ya.style.color=(_ys==='acronym')?'#fff':'var(--fg2)';}}}
+  else{['ed-bio','ed-major','ed-minor','ed-ig','ed-gradsem'].forEach(function(id){var el=document.getElementById(id);var key=id==='ed-gradsem'?'gradSemester':id.replace('ed-','');if(el)el.value=userPro[key]||'';});var _s=(userPro&&userPro.uniNameStyle)||'full';var f=document.getElementById('uns-full-ed'),a=document.getElementById('uns-acr-ed');if(f){f.style.background=(_s==='full')?'var(--p)':'rgba(255,255,255,0.08)';f.style.color=(_s==='full')?'#fff':'var(--fg2)';}if(a){a.style.background=(_s==='acronym')?'var(--p)':'rgba(255,255,255,0.08)';a.style.color=(_s==='acronym')?'#fff':'var(--fg2)';}var _ys=(userPro&&userPro.yearStyle)||'full';var yf=document.getElementById('ys-full-ed'),ya=document.getElementById('ys-acr-ed');if(yf){yf.style.background=(_ys==='full')?'var(--p)':'rgba(255,255,255,0.08)';yf.style.color=(_ys==='full')?'#fff':'var(--fg2)';}if(ya){ya.style.background=(_ys==='acronym')?'var(--p)':'rgba(255,255,255,0.08)';ya.style.color=(_ys==='acronym')?'#fff':'var(--fg2)';}}}
 // ── Inline profile-tab editor (replaces the Edit Profile modal for students) ──
 function onEditProfileBtn(){
   var mode=(typeof obMode!=='undefined'&&obMode)||(typeof userMode!=='undefined'&&userMode)||'student';
@@ -5884,6 +5856,7 @@ function _initProfileEditor(){
   var b=document.getElementById('pf-bio');if(b&&document.activeElement!==b)b.value=userPro.bio||'';
   if(mj&&document.activeElement!==mj)mj.value=userPro.major||'';
   var mn=document.getElementById('pf-minor');if(mn&&document.activeElement!==mn)mn.value=userPro.minor||'';
+  var gs=document.getElementById('pf-gradsem');if(gs&&document.activeElement!==gs)gs.value=userPro.gradSemester||'';
   _pfStyleBtns('uns',userPro.uniNameStyle||'full');
   _pfStyleBtns('ys',userPro.yearStyle||'full');
 }
@@ -5905,7 +5878,7 @@ function setYearStyleEd(s){
   if(typeof renderCrushPreview==='function'&&document.getElementById('crush-profile-preview'))renderCrushPreview();
   if(typeof saveProfile==='function')saveProfile();
 }
-function saveEdit(){var get=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};var nameInp=document.getElementById('ed-name');if(nameInp&&nameInp.value.trim())userPro.name=nameInp.value.trim();var handleInp=document.getElementById('ed-handle');if(handleInp&&handleInp.value.trim()){var h=handleInp.value.trim();userPro.handle=h.startsWith('@')?h:'@'+h;}userPro.bio=get('ed-bio');var _ig=document.getElementById('ed-ig');if(_ig)userPro.ig=_ig.value.trim();var mode=obMode||userMode||'student';if(mode==='business'){userPro.bizCat=get('ed-biz-cat');userPro.website=get('ed-website');userPro.otherlink=get('ed-otherlink');var catEl=document.getElementById('biz-prof-cat');if(catEl&&userPro.bizCat)catEl.textContent=userPro.bizCat;var webEl=document.getElementById('biz-web-link');if(webEl&&userPro.website)webEl.innerHTML='<a href="'+userPro.website+'" target="_blank" style="color:var(--fg);font-size:var(--fs-base);text-decoration:none;">'+userPro.website.replace('https://','')+'</a>';}else{userPro.major=get('ed-major');userPro.minor=get('ed-minor');}var m=document.getElementById('edit-modal');if(m)m.classList.remove('open');if(typeof saveProfile==='function')saveProfile();updateProfileUI();}
+function saveEdit(){var get=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};var nameInp=document.getElementById('ed-name');if(nameInp&&nameInp.value.trim())userPro.name=nameInp.value.trim();var handleInp=document.getElementById('ed-handle');if(handleInp&&handleInp.value.trim()){var h=handleInp.value.trim();userPro.handle=h.startsWith('@')?h:'@'+h;}userPro.bio=get('ed-bio');var _ig=document.getElementById('ed-ig');if(_ig)userPro.ig=_ig.value.trim();var mode=obMode||userMode||'student';if(mode==='business'){userPro.bizCat=get('ed-biz-cat');userPro.website=get('ed-website');userPro.otherlink=get('ed-otherlink');var catEl=document.getElementById('biz-prof-cat');if(catEl&&userPro.bizCat)catEl.textContent=userPro.bizCat;var webEl=document.getElementById('biz-web-link');if(webEl&&userPro.website)webEl.innerHTML='<a href="'+userPro.website+'" target="_blank" style="color:var(--fg);font-size:var(--fs-base);text-decoration:none;">'+userPro.website.replace('https://','')+'</a>';}else{userPro.major=get('ed-major');userPro.minor=get('ed-minor');userPro.gradSemester=get('ed-gradsem');}var m=document.getElementById('edit-modal');if(m)m.classList.remove('open');if(typeof saveProfile==='function')saveProfile();updateProfileUI();}
 // ── IMAGE POSITION PICKER ──
 var _bannerUrl='',_profilePicUrl='';
 var _ipX=0,_ipY=0,_ipDW=0,_ipDH=0,_ipFW=0,_ipFH=0,_ipBaseScale=1,_ipZoom=1;
@@ -11367,7 +11340,7 @@ var SwipeEngineV2 = (function() {
         var op = Math.min(dx / 100, 1);
         overlayLike.style.opacity = op;
         overlayLike.style.setProperty('transform', 'scale(' + (0.8 + op * 0.2) + ') rotate(-15deg)', 'important');
-        overlayLike.textContent = 'LIKE';
+        overlayLike.textContent = 'A+';
         overlayLike.style.color = '#4ade80';
         overlayLike.style.border = '4px solid #4ade80';
         overlayLike.style.background = 'transparent';
@@ -11377,7 +11350,7 @@ var SwipeEngineV2 = (function() {
         var op = Math.min(-dx / 100, 1);
         overlayReject.style.opacity = op;
         overlayReject.style.setProperty('transform', 'scale(' + (0.8 + op * 0.2) + ') rotate(15deg)', 'important');
-        overlayReject.textContent = 'NOPE';
+        overlayReject.textContent = 'F';
         overlayReject.style.color = '#dc2626';
         overlayReject.style.border = '4px solid #dc2626';
         overlayReject.style.background = 'transparent';
@@ -13025,7 +12998,7 @@ function _mergedAdmirersPool(){
 
 // Small badge telling you why this person is on the list.
 function _admirerSrcTag(src){
-  if(src === 'both') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde047;">'+icon('heart',10)+' + '+icon('eye',10)+'</span>';
+  if(src === 'both') return '';
   if(src === 'like') return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#ec4899;">te dio like</span>';
   return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fb923c;">vio tu perfil</span>';
 }
@@ -16390,9 +16363,6 @@ var BADGES=[
   {id:'aplus',e:'⭐',t:'A+ Student',d:'Subscribe to A+ Student',chk:function(){return curPlan==='aplus';}},
   {id:'host',e:'🎉',t:'Host',d:'Create your first event',chk:function(){return (window._myCreatedEvents||[]).length>0;}},
   {id:'joiner',e:'🙌',t:'Joiner',d:'Join an event',chk:function(){return Object.keys(typeof joinedHangouts!=='undefined'?joinedHangouts:{}).length>0;}},
-  {id:'streak7',e:'🔥',t:'On Fire',d:'7-day wellness streak',chk:function(){return (wellnessState&&wellnessState.streak||0)>=7;}},
-  {id:'regular',e:'📅',t:'Regular',d:'7-day login streak',chk:function(){return (loginState&&loginState.streak||0)>=7;}},
-  {id:'level5',e:'🏆',t:'Level 5',d:'Reach Wellness Level 5',chk:function(){return _wlLevel(wellnessState?wellnessState.xp:0)>=5;}},
   {id:'complete',e:'📸',t:'All Set',d:'Add a bio + 2 photos',chk:function(){return !!(userPro&&userPro.bio)&&(userPro.interests&&userPro.interests.length>0);}}
 ];
 function renderBadges(){
@@ -20365,6 +20335,7 @@ function saveProfile(){
       university: uni ? uni.name : '',
       major: userPro.major || '',
       grad: userPro.grad || '',
+      gradSemester: userPro.gradSemester || '',
       crossover: userPro.crossover || false,
       interests: data.interests,
       prompts: userPro.prompts || [],
@@ -20445,73 +20416,231 @@ launch=function(){
   // Save full state snapshot for refresh restoration
   setTimeout(_saveSessionState, 100);
   if(typeof maybeShowTutorial==='function')maybeShowTutorial();
-  if(typeof dailyCheckIn==='function')setTimeout(dailyCheckIn,700);
   if(typeof seedSmartNotifications==='function')try{seedSmartNotifications();}catch(e){}
 };
 // ══════════ SKIPPABLE SIGNUP TUTORIAL (shows once, after sign-in) ══════════
+// type:'auto' steps play a demo automatically; 'interactive' steps require a real
+// gesture (swipe / tap) before Next unlocks; 'closing' is the final auto step.
 var TUT_STEPS=[
-  {e:'👋',t:'Welcome to Undrgradz!',b:'Here\'s a 30-second tour of everything you can do. You can skip anytime.'},
-  {e:'🎉',t:'Hangouts',b:'Find and host campus events. Set the spots, a gender ratio, reserve seats for friends, and invite people who match your filters.'},
-  {e:'💬',t:'Chats',b:'Message friends, create group chats by section, and find class study groups. Tap a chat\'s name to open their Crush card.'},
-  {e:'💘',t:'Crush',b:'Swipe to match. Reply to any section of someone\'s card to like them — you match when they like you back. Filters help you find your type (A+ Student unlocks more).'},
-  {e:'🌱',t:'Wellness',b:'Complete daily challenges, build a streak, level up, and see your friends\' levels. Motivate them before their streak ends!'},
-  {e:'👤',t:'Profile',b:'Edit your bio, photos, interests and university name. Get verified with your student ID for a badge.'},
-  {e:'✅',t:'You\'re all set!',b:'Explore at your own pace. Important confirmations (like edit or delete) will still ask you. Enjoy! 🎓'}
+  {id:'welcome',type:'auto',e:'👋',t:'Welcome to Undrgradz!',b:'Here\'s a 30-second tour of everything you can do. You can skip anytime.',init:_tutInitWelcome},
+  {id:'hangouts',type:'auto',e:'🎉',t:'Hangouts',b:'Find and host campus events. Set the spots, a gender ratio, reserve seats for friends, and invite people who match your filters.',init:_tutInitHangouts},
+  {id:'chats',type:'auto',e:'💬',t:'Chats',b:'Message friends, create group chats by section, and find class study groups. Tap a chat\'s name to open their Crush card.',init:_tutInitChats},
+  {id:'crush',type:'interactive',e:'💘',t:'Crush',b:'Swipe to match. Reply to any section of someone\'s card to like them — you match when they like you back.',init:_tutInitCrush,cleanup:_tutCleanupCrush},
+  {id:'profile',type:'interactive',e:'👤',t:'Profile',b:'Edit your bio, photos, interests and university name. Get verified with your student ID for a badge.',init:_tutInitProfile},
+  {id:'done',type:'closing',e:'✅',t:'You\'re all set!',b:'Explore at your own pace. Important confirmations (like edit or delete) will still ask you. Enjoy! 🎓',init:_tutInitDone}
 ];
 var _tutStep=0;
+var _tutTimers=[];
+var _tutCleanupFn=null;
+function _tutCleanupTimers(){_tutTimers.forEach(function(id){clearTimeout(id);clearInterval(id);});_tutTimers=[];}
 function maybeShowTutorial(){try{if(localStorage.getItem('ugz_tut_done'))return;}catch(e){}setTimeout(startTutorial,450);}
 function startTutorial(){_tutStep=0;var m=document.getElementById('tutorial-overlay');if(m)m.remove();m=document.createElement('div');m.id='tutorial-overlay';m.className='mov open';m.style.zIndex='10000';document.body.appendChild(m);renderTutStep();}
+function _tutUnlockNext(autoAdvance){
+  var btn=document.getElementById('tut-next-btn');
+  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.pointerEvents='auto';}
+  if(autoAdvance){var t=setTimeout(tutNext,550);_tutTimers.push(t);}
+}
 function renderTutStep(){
+  if(_tutCleanupFn){try{_tutCleanupFn();}catch(e){}_tutCleanupFn=null;}
+  _tutCleanupTimers();
   var m=document.getElementById('tutorial-overlay');if(!m)return;var s=TUT_STEPS[_tutStep];var last=(_tutStep===TUT_STEPS.length-1);
   var dots=TUT_STEPS.map(function(_,i){return '<span style="width:7px;height:7px;border-radius:50%;background:'+(i===_tutStep?'var(--p)':'rgba(255,255,255,0.25)')+';display:inline-block;margin:0 3px;"></span>';}).join('');
+  var locked=(s.type==='interactive');
   m.innerHTML='<div class="msheet" style="max-width:360px;text-align:center;">'+
     '<div class="mhnd"></div>'+
     '<div style="font-size:54px;margin:6px 0 10px;">'+s.e+'</div>'+
     '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;margin-bottom:8px;">'+s.t+'</div>'+
-    '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.55;margin-bottom:16px;">'+s.b+'</div>'+
+    '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.55;margin-bottom:14px;">'+s.b+'</div>'+
+    '<div id="tut-demo" style="margin-bottom:14px;"></div>'+
     '<div style="margin-bottom:16px;">'+dots+'</div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="tutNext()">'+(last?'Start exploring 🚀':'Next →')+'</button>'+
+    '<button id="tut-next-btn" class="gbtn" style="background:var(--p);margin-bottom:8px;'+(locked?'opacity:0.35;pointer-events:none;':'')+'" onclick="tutNext()"'+(locked?' disabled':'')+'>'+(last?'Start exploring 🚀':'Next →')+'</button>'+
     (last?'':'<button class="gbtn-ghost" onclick="tutSkip()">Skip tour</button>')+
   '</div>';
+  var demo=document.getElementById('tut-demo');
+  if(s.init){try{s.init(demo);}catch(e){}}
+  _tutCleanupFn=s.cleanup||_tutCleanupTimers;
 }
 function tutNext(){if(_tutStep<TUT_STEPS.length-1){_tutStep++;renderTutStep();}else{tutDone();}}
-function tutSkip(){tutDone();}
-function tutDone(){try{localStorage.setItem('ugz_tut_done','1');}catch(e){}var m=document.getElementById('tutorial-overlay');if(m)m.remove();}
-// ── LOGIN STREAK + DAILY CHECK-IN (verifiable: app records each day you open it) ──
-var loginState={streak:0,last:null};
-function _loadLogin(){try{var s=JSON.parse(localStorage.getItem('ugz_login'));if(s&&typeof s==='object')loginState=s;}catch(e){}}
-function _saveLogin(){try{localStorage.setItem('ugz_login',JSON.stringify(loginState));}catch(e){}}
-function dailyCheckIn(){
-  var today=new Date().toDateString();
-  if(loginState.last===today)return;// already counted today
-  var y=new Date();y.setDate(y.getDate()-1);
-  loginState.streak=(loginState.last===y.toDateString())?(loginState.streak+1):1;
-  loginState.last=today;_saveLogin();
-  // Reward: +5 likes today
-  if(typeof _likeCount==='number'){_likeCount=Math.max(0,_likeCount-5);if(typeof _saveLikes==='function')_saveLikes();}
-  // Don't stack on top of the first-run tutorial
-  var tutDoneFlag=false;try{tutDoneFlag=!!localStorage.getItem('ugz_tut_done');}catch(e){}
-  if(!tutDoneFlag)return;
-  var milestone=(loginState.streak%7===0);
-  // ── 'Today' hook: happening tonight + your Crush likes ──
-  var _tCount=0;try{_tCount=(typeof HANGOUT_EVENTS!=='undefined'?HANGOUT_EVENTS:[]).filter(function(e){var c=(typeof _evCountdown==='function')?_evCountdown(e):'';return c&&c.indexOf('hour')>-1&&e.spots<e.cap;}).length;if(window._userCreatedEvents)_tCount+=window._userCreatedEvents.length;}catch(e){}
-  var _showLike=false;try{var _lh=localStorage.getItem('ugz_likehook_last');var _nowMs=Date.now();if(!_lh||(_nowMs-parseInt(_lh))>=432000000){_showLike=true;localStorage.setItem('ugz_likehook_last',String(_nowMs));}}catch(e){_showLike=true;}
-  var _todayHtml='<div style="text-align:left;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:6px;margin-bottom:14px;">';
-  if(_tCount>0)_todayHtml+='<div onclick="document.getElementById(\'checkin-modal\').remove();sw(\'hangouts\',\'Hangouts\');" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--rad-sm);cursor:pointer;"><div style="font-size:var(--fs-xl);">\uD83D\uDD25</div><div style="flex:1;"><div class="t-body-strong">Happening tonight</div><div class="t-meta">'+_tCount+' event'+(_tCount>1?'s':'')+' near you \u00B7 tap to see</div></div><div style="color:var(--fg3);font-weight:700;">\u2192</div></div>';
-  if(_showLike)_todayHtml+='<div onclick="document.getElementById(\'checkin-modal\').remove();sw(\'discover\',\'Campus\');if(typeof switchCrushTab===\'function\')switchCrushTab(\'liked\');" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--rad-sm);cursor:pointer;border-top:'+(_tCount>0?'1px solid rgba(255,255,255,0.07)':'none')+';"><div style="font-size:var(--fs-xl);">\uD83D\uDC98</div><div style="flex:1;"><div class="t-body-strong">Discover who liked you</div><div style="font-size:var(--fs-xs);color:#dc2626;">\uD83D\uDD12 Unlock to see who\u2019s into you</div></div><div style="color:var(--fg3);font-weight:700;">\u2192</div></div>';
-  _todayHtml+='</div>';
-  var m=document.getElementById('checkin-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='checkin-modal';m.className='mov open';m.style.zIndex='9999';
-  m.innerHTML='<div class="msheet" style="max-width:340px;text-align:center;"><div class="mhnd"></div>'+
-    '<div style="font-size:54px;margin:6px 0 6px;">🔥</div>'+
-    '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Day '+loginState.streak+'!</div>'+
-    '<div style="font-size:var(--fs-base);color:var(--fg2);margin:6px 0 14px;line-height:1.5;">'+(milestone?'🎉 '+loginState.streak+'-day streak — you\'re on fire!<br>':'')+'You\'re back! Here\'s <b style="color:#4ade80;">+5 bonus likes</b> for today.</div>'+
-    '<div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px;">'+[0,1,2,3,4,5,6].map(function(i){var on=(i<(loginState.streak%7||7));return '<div style="width:26px;height:26px;border-radius:50%;background:'+(on?'#fbbf24':'rgba(255,255,255,0.1)')+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);">'+(on?'🔥':'')+'</div>';}).join('')+'</div>'+
-    _todayHtml+
-    '<button class="gbtn" style="background:var(--p);" onclick="document.getElementById(\'checkin-modal\').remove()">Let\'s go 🚀</button>'+
-  '</div>';
-  document.body.appendChild(m);
-  if(milestone&&typeof _celebrate==='function')setTimeout(function(){_celebrate(['🔥','🎉','✨','🌟','💫']);},250);
+function tutSkip(){if(_tutCleanupFn){try{_tutCleanupFn();}catch(e){}_tutCleanupFn=null;}_tutCleanupTimers();tutDone();}
+function tutDone(){if(_tutCleanupFn){try{_tutCleanupFn();}catch(e){}_tutCleanupFn=null;}_tutCleanupTimers();try{localStorage.setItem('ugz_tut_done','1');}catch(e){}var m=document.getElementById('tutorial-overlay');if(m)m.remove();}
+
+// ── Tutorial step demos ──
+function _tutEnsureKeyframes(){
+  if(document.getElementById('tut-anim-style'))return;
+  var style=document.createElement('style');style.id='tut-anim-style';
+  style.textContent='@keyframes tutPopIn{0%{opacity:0;transform:translateY(12px) scale(0.9);}100%{opacity:1;transform:translateY(0) scale(1);}}';
+  document.head.appendChild(style);
+}
+function _tutInitWelcome(el){
+  _tutEnsureKeyframes();
+  var icons=[{e:'🎉',l:'Hangouts'},{e:'💬',l:'Chats'},{e:'💘',l:'Crush'},{e:'👤',l:'Profile'}];
+  el.innerHTML='<div style="display:flex;justify-content:center;gap:14px;">'+icons.map(function(ic,i){
+    return '<div style="opacity:0;animation:tutPopIn 0.5s ease '+(i*0.18)+'s forwards;text-align:center;">'+
+      '<div style="width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 5px;">'+ic.e+'</div>'+
+      '<div style="font-size:var(--fs-2xs);color:var(--fg3);">'+ic.l+'</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+function _tutInitHangouts(el){
+  function cycle(){
+    el.innerHTML='<div style="background:#0b0b0e;border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:14px;text-align:left;">'+
+      '<div style="font-weight:700;color:#fff;font-size:var(--fs-base);margin-bottom:8px;">🍕 Pizza Night</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:8px;">👥 <span data-count="12">0</span> going</div>'+
+      '<div style="background:rgba(255,255,255,0.08);border-radius:var(--rad-xs);height:8px;overflow:hidden;margin-bottom:6px;"><div id="tut-hg-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2b5fd9,#3d7bff);transition:width 1s cubic-bezier(.2,.8,.3,1);"></div></div>'+
+      '<div style="font-size:var(--fs-2xs);color:var(--fg3);margin-bottom:8px;">Gender ratio filling up…</div>'+
+      '<div id="tut-hg-check" style="font-size:var(--fs-sm);color:#4ade80;font-weight:600;opacity:0;transition:opacity 0.4s;">✅ Seat reserved</div>'+
+    '</div>';
+    if(typeof _animateCounts==='function')_animateCounts(el);
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      var bar=document.getElementById('tut-hg-bar');if(bar)bar.style.width='72%';
+    });});
+    var t1=setTimeout(function(){var chk=document.getElementById('tut-hg-check');if(chk)chk.style.opacity='1';},1050);
+    _tutTimers.push(t1);
+  }
+  cycle();
+  var loop=setInterval(cycle,3500);
+  _tutTimers.push(loop);
+}
+function _tutInitChats(el){
+  var full='Hey! Free for the study group? 📚';
+  function cycle(){
+    el.innerHTML='<div style="background:#0b0b0e;border:1px solid var(--gbdl);border-radius:var(--rad-lg);padding:14px;text-align:left;">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><div style="width:30px;height:30px;border-radius:50%;background:#3d7bff;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:var(--fs-xs);">S</div><div class="t-body-strong" style="font-size:var(--fs-sm);">Sofía</div></div>'+
+      '<div id="tut-chat-bubble" style="display:inline-block;background:rgba(255,255,255,0.07);border-radius:var(--rad-md) var(--rad-md) var(--rad-md) 4px;padding:9px 12px;font-size:var(--fs-sm);color:#fff;min-height:20px;max-width:90%;">●&nbsp;&nbsp;●&nbsp;&nbsp;●</div>'+
+      '<div id="tut-chat-reply" style="margin-top:8px;opacity:0;transition:opacity 0.4s;text-align:right;"><div style="display:inline-block;background:var(--p);border-radius:var(--rad-md) var(--rad-md) 4px var(--rad-md);padding:9px 12px;font-size:var(--fs-sm);color:#fff;">Yes! 🙌</div></div>'+
+    '</div>';
+    var t1=setTimeout(function(){
+      var bubble=document.getElementById('tut-chat-bubble');if(!bubble)return;
+      bubble.innerHTML='<span id="tut-chat-text"></span><span style="opacity:0.6;">|</span>';
+      var txt=document.getElementById('tut-chat-text');var i=0;
+      var typer=setInterval(function(){
+        if(!txt){clearInterval(typer);return;}
+        i++;txt.textContent=full.slice(0,i);
+        if(i>=full.length){clearInterval(typer);
+          var t2=setTimeout(function(){var r=document.getElementById('tut-chat-reply');if(r)r.style.opacity='1';},500);
+          _tutTimers.push(t2);
+        }
+      },40);
+      _tutTimers.push(typer);
+    },900);
+    _tutTimers.push(t1);
+  }
+  cycle();
+  var loop=setInterval(cycle,4600);
+  _tutTimers.push(loop);
+}
+function _tutEnsureCrushStampStyle(){
+  if(document.getElementById('tut-stamp-style'))return;
+  var style=document.createElement('style');style.id='tut-stamp-style';
+  // Scoped clones of the real #swipe-overlay-like/#swipe-overlay-reject neon stamps,
+  // sized down for the tutorial's smaller demo card and using unique ids so they
+  // never collide with the real Crush deck's overlay elements.
+  style.textContent=
+    '#tut-overlay-like,#tut-overlay-reject{position:absolute;top:12px;display:flex;align-items:center;justify-content:center;width:66px;height:66px;border-radius:50%;font-family:\'Caveat\',cursive;font-weight:700;font-size:30px;line-height:1;border:4px solid transparent;text-transform:uppercase;opacity:0;pointer-events:none;z-index:5;transition:opacity 0.15s ease;}'+
+    '#tut-overlay-like{left:10px;border-color:#4ade80;color:#4ade80;box-shadow:0 0 14px rgba(74,222,128,0.55),inset 0 0 8px rgba(74,222,128,0.35);transform:rotate(-15deg) scale(0.85);}'+
+    '#tut-overlay-reject{right:10px;border-color:#dc2626;color:#dc2626;box-shadow:0 0 14px rgba(220,38,38,0.55),inset 0 0 8px rgba(220,38,38,0.35);transform:rotate(15deg) scale(0.85);}';
+  document.head.appendChild(style);
+}
+function _tutInitCrush(el){
+  _tutEnsureCrushStampStyle();
+  el.innerHTML='<div style="position:relative;display:flex;justify-content:center;padding:6px 0 2px;">'+
+    '<div id="tut-crush-card" style="width:180px;height:230px;border-radius:var(--rad-lg);overflow:hidden;background:linear-gradient(150deg,#5b21b6,#2b5fd9);position:relative;box-shadow:0 8px 24px rgba(0,0,0,0.35);touch-action:pan-y;cursor:grab;">'+
+      '<div id="tut-crush-photo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px;transition:opacity 0.25s ease;">🎓</div>'+
+      '<div id="tut-crush-info" style="position:absolute;inset:0;background:#12121a;padding:14px;text-align:left;opacity:0;pointer-events:none;transition:opacity 0.25s ease;">'+
+        '<div style="color:#fff;font-weight:700;font-size:var(--fs-sm);margin-bottom:8px;">Sofía, 20</div>'+
+        '<div style="color:var(--fg2);font-size:var(--fs-2xs);margin-bottom:10px;">🎓 Junior · Biology</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:5px;">'+
+          '<span class="cpill" style="font-size:var(--fs-2xs);">☕ Coffee</span>'+
+          '<span class="cpill" style="font-size:var(--fs-2xs);">🎸 Music</span>'+
+          '<span class="cpill" style="font-size:var(--fs-2xs);">📚 Study groups</span>'+
+        '</div>'+
+      '</div>'+
+      '<div id="tut-overlay-like">A+</div>'+
+      '<div id="tut-overlay-reject">F</div>'+
+      '<div style="position:absolute;bottom:0;left:0;right:0;padding:10px;background:linear-gradient(0deg,rgba(0,0,0,0.55),transparent);pointer-events:none;"><div style="color:#fff;font-weight:700;font-size:var(--fs-sm);">Sofía, 20</div><div style="color:rgba(255,255,255,0.8);font-size:var(--fs-2xs);">Junior · Biology · tap for more info</div></div>'+
+      '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;top:10px;right:10px;animation:lySwipeArrow 1.2s infinite;color:rgba(255,255,255,0.85);pointer-events:none;"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>'+
+    '</div></div>'+
+    '<div id="tut-crush-hint" style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:6px;">👉 Swipe to like/pass, or tap for more info</div>';
+  var card=document.getElementById('tut-crush-card');if(!card)return;
+  var sx=0,dragging=false,resolved=false,infoShown=false;
+  function overlays(dx){
+    var like=document.getElementById('tut-overlay-like');
+    var rej=document.getElementById('tut-overlay-reject');
+    if(like)like.style.opacity=(dx>10)?Math.min(dx/90,1):0;
+    if(rej)rej.style.opacity=(dx<-10)?Math.min(-dx/90,1):0;
+  }
+  function pos(dx){card.style.transform='translateX('+dx+'px) rotate('+(dx/14)+'deg)';}
+  function start(x){if(resolved)return;dragging=true;sx=x;card.style.transition='none';}
+  function move(x){if(!dragging||resolved)return;var dx=x-sx;pos(dx);overlays(dx);}
+  function toggleInfo(){
+    infoShown=!infoShown;
+    var photo=document.getElementById('tut-crush-photo'),info=document.getElementById('tut-crush-info');
+    if(photo)photo.style.opacity=infoShown?'0':'1';
+    if(info){info.style.opacity=infoShown?'1':'0';info.style.pointerEvents=infoShown?'auto':'none';}
+    var hint=document.getElementById('tut-crush-hint');if(hint)hint.textContent=infoShown?'👆 Tap again for the photo':'👉 Swipe to like/pass, or tap for more info';
+    _tutUnlockNext(false);
+  }
+  function end(x){
+    if(!dragging||resolved)return;dragging=false;
+    var dx=x-sx;
+    card.style.transition='transform 0.3s ease';
+    if(Math.abs(dx)>70){
+      resolved=true;
+      var liked=dx>0;
+      overlays(liked?100:-100);
+      card.style.transform='translateX('+(liked?420:-420)+'px) rotate('+(liked?28:-28)+'deg)';
+      var hint=document.getElementById('tut-crush-hint');if(hint)hint.textContent=liked?'💘 Liked!':'✕ Passed';
+      _tutUnlockNext(true);
+    }else if(Math.abs(dx)<8){
+      pos(0);overlays(0);toggleInfo();
+    }else{
+      pos(0);overlays(0);
+    }
+  }
+  function onTouchStart(e){start(e.touches[0].clientX);}
+  function onTouchMove(e){move(e.touches[0].clientX);}
+  function onTouchEnd(e){end(e.changedTouches[0].clientX);}
+  function onDown(e){start(e.clientX);}
+  function onMove(e){move(e.clientX);}
+  function onUp(e){end(e.clientX);}
+  card.addEventListener('touchstart',onTouchStart,{passive:true});
+  card.addEventListener('touchmove',onTouchMove,{passive:true});
+  card.addEventListener('touchend',onTouchEnd,{passive:true});
+  card.addEventListener('pointerdown',onDown);
+  card.addEventListener('pointermove',onMove);
+  card.addEventListener('pointerup',onUp);
+  card._tutRemove=function(){
+    card.removeEventListener('touchstart',onTouchStart);
+    card.removeEventListener('touchmove',onTouchMove);
+    card.removeEventListener('touchend',onTouchEnd);
+    card.removeEventListener('pointerdown',onDown);
+    card.removeEventListener('pointermove',onMove);
+    card.removeEventListener('pointerup',onUp);
+  };
+}
+function _tutCleanupCrush(){
+  var card=document.getElementById('tut-crush-card');
+  if(card&&card._tutRemove)try{card._tutRemove();}catch(e){}
+  _tutCleanupTimers();
+}
+function _tutInitProfile(el){
+  el.innerHTML='<div style="display:flex;justify-content:center;">'+
+    '<div id="tut-profile-chip" class="cpill" style="cursor:pointer;font-size:var(--fs-sm);">☕ Coffee</div>'+
+  '</div>'+
+  '<div id="tut-profile-hint" style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:8px;">👉 Tap the chip to select it</div>';
+  var chip=document.getElementById('tut-profile-chip');if(!chip)return;
+  chip.addEventListener('click',function onClick(){
+    if(chip.classList.contains('on'))return;
+    chip.classList.add('on');
+    var hint=document.getElementById('tut-profile-hint');if(hint)hint.textContent='✓ Added to your profile';
+    chip.removeEventListener('click',onClick);
+    _tutUnlockNext(true);
+  });
+}
+function _tutInitDone(el){
+  el.innerHTML='';
+  var t=setTimeout(function(){if(typeof _celebrate==='function')_celebrate(['🎉','✨','🎓','💫','🔥']);},150);
+  _tutTimers.push(t);
 }
 
 // ── AGE RANGE DUAL THUMB ──
@@ -22989,7 +23118,6 @@ function seedSmartNotifications(){
 
 function openWeeklyRecap(){
   var wk=_weekKey();var seed=_strHash(wk+(userPro&&userPro.handle||''));
-  var streak=(typeof loginState!=='undefined'&&loginState&&loginState.streak)||0;
   var views=18+(seed%120);var likesGot=5+(seed%40);var topPct=88+(seed%11);
   var newMatches=1+(seed%5);
   var eventsJoined=Object.keys(typeof joinedHangouts!=='undefined'?joinedHangouts:{}).length||2;
@@ -22998,12 +23126,10 @@ function openWeeklyRecap(){
     {e:'💘',n:'New likes',v:likesGot},
     {e:'✨',n:'New matches',v:newMatches},
     {e:'💞',n:'Top match this week',v:topPct+'%'},
-    {e:'🎉',n:'Events joined',v:eventsJoined},
-    {e:'🌱',n:'Wellness XP',v:(typeof wellnessState!=='undefined'&&wellnessState?wellnessState.xp:0)},
-    {e:'🔥',n:'Login streak',v:streak+' days'}
+    {e:'🎉',n:'Events joined',v:eventsJoined}
   ];
   // a friendly headline based on the standout stat
-  var headline=views>=80?'You were on fire this week':newMatches>=3?'💘 Cupid mode: activated':streak>=5?'Streak king/queen':'✨ Solid week on campus';
+  var headline=views>=80?'You were on fire this week':newMatches>=3?'💘 Cupid mode: activated':eventsJoined>=3?'You were out and about this week':'✨ Solid week on campus';
   var m=document.getElementById('recap-modal');if(m)m.remove();
   m=document.createElement('div');m.id='recap-modal';m.className='mov open';m.style.zIndex='9999';
   m.innerHTML='<div class="msheet" style="max-width:370px;max-height:88vh;overflow-y:auto;"><div class="mhnd"></div>'+
@@ -23973,311 +24099,10 @@ doSignupAuth=function(){
 
 // Photos are now collected as the final onboarding step (obs6); no post-launch gate.
 
-// ══════════════ WELLNESS ══════════════
-// Difficulty tiers — exciting names; XP scales with effort
-var WL_TIERS={easy:{label:'⚡ Quick Win',xp:10,color:'#22c55e'},mid:{label:'Momentum',xp:20,color:'#f59e0b'},hard:{label:'💪 Power Move',xp:35,color:'#ef4444'}};
-var WELLNESS=[
-  {cat:'Move',color:'#16a34a',grad:'#0f766e,#16a34a',items:[
-    {id:'walk',tier:'easy',t:'Take a 15-min walk',emoji:'🚶'},
-    {id:'stairs',tier:'easy',t:'Take the stairs all day',emoji:'📈'},
-    {id:'stretch',tier:'easy',t:'Stretch for 10 minutes',emoji:'🙏'},
-    {id:'pushups',tier:'easy',t:'Do 20 push-ups in your room',emoji:'💪'},
-    {id:'squats',tier:'easy',t:'Do 50 bodyweight squats',emoji:'🦶'},
-    {id:'situps',tier:'easy',t:'Do 25 sit-ups',emoji:'🆙'},
-    {id:'plank',tier:'easy',t:'Hold a 1-minute plank',emoji:'⏳'},
-    {id:'gym',tier:'mid',t:'Go to the gym today',emoji:'🏋️'},
-    {id:'run',tier:'mid',t:'Go for a 2-mile run',emoji:'🏃'},
-    {id:'pr',tier:'hard',t:'Hit a new PR at the gym',emoji:'💥'},
-    {id:'hourwo',tier:'hard',t:'Crush a full 1-hour workout',emoji:'🏋️‍♀️'}
-  ]},
-  {cat:'Mind',color:'#2b5fd9',grad:'#5b21b6,#2b5fd9',items:[
-    {id:'read',tier:'easy',t:'Read 1 page of a book',emoji:'📖'},
-    {id:'breathe',tier:'easy',t:'5-minute breathing exercise',emoji:'🌬️'},
-    {id:'todo',tier:'easy',t:'Write your to-do list',emoji:'📝'},
-    {id:'study',tier:'mid',t:'Study for 25 minutes',emoji:'⏱️'},
-    {id:'journal',tier:'mid',t:'Journal a full page',emoji:'📓'},
-    {id:'meditate',tier:'mid',t:'Meditate for 10 minutes',emoji:'💡'},
-    {id:'chapter',tier:'hard',t:'Read a full chapter',emoji:'📕'},
-    {id:'deepstudy',tier:'hard',t:'1-hour focused study session',emoji:'📚'}
-  ]},
-  {cat:'Connect',color:'#0ea5e9',grad:'#0369a1,#0ea5e9',items:[
-    {id:'textfriend',tier:'easy',t:'Text an old friend',emoji:'💌'},
-    {id:'compliment',tier:'easy',t:'Compliment someone today',emoji:'😊'},
-    {id:'callfam',tier:'easy',t:'Call family',emoji:'📞'},
-    {id:'lunch',tier:'mid',t:'Grab lunch with a friend',emoji:'🍽️'},
-    {id:'walkfriend',tier:'mid',t:'Go for a walk with a friend',emoji:'🚶‍♀️'},
-    {id:'dormevent',tier:'hard',t:'Create an event at your dorm',emoji:'🏠'},
-    {id:'studygroup',tier:'hard',t:'Host a study group',emoji:'👥'}
-  ]},
-  {cat:'Grow',color:'#f59e0b',grad:'#b45309,#f59e0b',items:[
-    {id:'bed',tier:'easy',t:'Make your bed',emoji:'🛏️'},
-    {id:'water',tier:'easy',t:'Drink 6 glasses of water',emoji:'💧'},
-    {id:'tidy',tier:'easy',t:'Tidy your room',emoji:'🧼'},
-    {id:'sleep',tier:'mid',t:'Get 8 hours of sleep',emoji:'😴'},
-    {id:'mealprep',tier:'mid',t:'Meal-prep for tomorrow',emoji:'🥗'},
-    {id:'hw3',tier:'hard',t:'Finish 3 assignments due this week',emoji:'✅'},
-    {id:'planweek',tier:'hard',t:'Plan out your whole week',emoji:'🗓️'}
-  ]}
-];
-var wellnessState={xp:0,streak:0,done:{},lastDay:null,dayKey:null,completedToday:0};
-var WL_DAILY_CAP=6;
-function _wlTitle(id){for(var i=0;i<WELLNESS.length;i++){for(var j=0;j<WELLNESS[i].items.length;j++){if(WELLNESS[i].items[j].id===id)return WELLNESS[i].items[j].t;}}return 'this challenge';}
-function _wlSave(){try{localStorage.setItem('ugz_wellness',JSON.stringify(wellnessState));}catch(e){}}
-function _wlLoad(){
-  try{var s=JSON.parse(localStorage.getItem('ugz_wellness'));if(s&&typeof s==='object')wellnessState=s;}catch(e){}
-  if(!wellnessState.done)wellnessState.done={};
-  if(typeof wellnessState.completedToday!=='number')wellnessState.completedToday=0;
-  var today=new Date().toDateString();
-  if(!wellnessState.dayKey)wellnessState.dayKey=today;
-  if(wellnessState.dayKey!==today){
-    // New day: reset daily challenges; break the streak if a full day was skipped
-    var last=wellnessState.lastDay?new Date(wellnessState.lastDay):null;
-    var y=new Date();y.setDate(y.getDate()-1);
-    if(!last||isNaN(last)||last.toDateString()!==y.toDateString())wellnessState.streak=0;
-    wellnessState.done={};wellnessState.completedToday=0;wellnessState.dayKey=today;
-    _wlSave();
-  }
-}
-var _wlFriends=[{name:'Ana M.',init:'A',color:'#e91e63',lvl:4,streak:6},{name:'Miguel R.',init:'M',color:'#3b82f6',lvl:2,streak:1},{name:'Sofía T.',init:'S',color:'#3d7bff',lvl:6,streak:12},{name:'Carlos M.',init:'C',color:'#f59e0b',lvl:3,streak:0}];
-function _wlLevel(xp){return Math.floor(xp/100)+1;}
-function _wlCatEmoji(c){return c==='Move'?'🏃':c==='Mind'?'💡':c==='Connect'?'💬':'🌱';}
-function renderWellness(){
-  var box=document.getElementById('wellness-content');if(!box)return;
-  var lvl=_wlLevel(wellnessState.xp),prog=wellnessState.xp%100;
-  var hero='<div style="padding:18px var(--s) 8px;">'+
-    '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;font-family:var(--font-serif);">🌱 Wellness</div>'+
-    '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:14px;">Small daily actions for a healthier college life.</div>'+
-    '<div style="display:flex;gap:10px;margin-bottom:8px;">'+
-      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">Lv <span data-count="'+lvl+'">'+lvl+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Level</div></div>'+
-      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#fbbf24;"><span class="flame-pulse">🔥</span> <span data-count="'+wellnessState.streak+'">'+wellnessState.streak+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Day streak</div></div>'+
-      '<div style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;text-align:center;"><div style="font-size:var(--fs-xl);font-weight:900;color:#4ade80;"><span data-count="'+wellnessState.xp+'">'+wellnessState.xp+'</span></div><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;">Total XP</div></div>'+
-    '</div>'+
-    '<div style="background:rgba(255,255,255,0.08);border-radius:var(--rad-xs);height:10px;overflow:hidden;margin-bottom:2px;"><div style="height:100%;width:'+prog+'%;background:linear-gradient(90deg,#16a34a,#4ade80);animation:barGrow 0.95s cubic-bezier(.2,.8,.3,1);"></div></div>'+
-    '<div style="font-size:var(--fs-2xs);color:var(--fg3);">'+prog+'/100 XP to Level '+(lvl+1)+'</div>'+
-    '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-top:6px;">← Swipe each row to see all challenges</div>'+
-  '</div>';
-  var cats=WELLNESS.map(function(c){
-    // Only show challenges NOT yet completed — finishing one reveals the next in the pool
-    var active=c.items.filter(function(it){return !wellnessState.done[it.id];});
-    if(!active.length)return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div><div style="padding:0 var(--s) 12px;font-size:var(--fs-sm);color:#4ade80;font-weight:500;">🎉 All done in '+c.cat+' — check back tomorrow!</div></div>';
-    var cards=active.map(function(it){
-      var tier=WL_TIERS[it.tier]||WL_TIERS.easy;
-      return '<div style="flex:0 0 200px;scroll-snap-align:start;border-radius:var(--rad-lg);overflow:hidden;border:1px solid var(--gbdl);background:#0b0b0e;">'+
-        '<div style="height:120px;background:linear-gradient(150deg,'+c.grad+');display:flex;align-items:center;justify-content:center;font-size:54px;position:relative;"><span style="position:absolute;top:8px;left:8px;font-size:var(--fs-2xs);font-weight:600;background:rgba(0,0,0,0.45);color:#fff;padding:3px 8px;border-radius:var(--rad-sm);">'+tier.label+'</span>'+it.emoji+'</div>'+
-        '<div style="padding:11px;">'+
-          '<div style="font-size:var(--fs-base);font-weight:600;color:#fff;line-height:1.3;min-height:34px;">'+it.t+'</div>'+
-          '<div style="font-size:var(--fs-xs);font-weight:600;color:'+tier.color+';margin:6px 0 8px;">+'+tier.xp+' XP</div>'+
-          '<button class="gbtn" style="background:var(--p);padding:9px;" onclick="completeChallenge(\''+it.id+'\','+tier.xp+')">Complete</button>'+
-        '</div>'+
-      '</div>';
-    }).join('');
-    return '<div style="margin-bottom:6px;"><div style="font-size:var(--fs-base);font-weight:700;color:#fff;padding:6px var(--s) 8px;">'+_wlCatEmoji(c.cat)+' '+c.cat+'</div>'+
-      '<div style="display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:0 var(--s) 12px;-webkit-overflow-scrolling:touch;">'+cards+'</div></div>';
-  }).join('');
-  var friends='<div style="padding:8px var(--s) 6px;"><div class="sep"></div><div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin:8px 0 8px;">👥 Friends\' levels</div>'+
-    _wlFriends.map(function(f){
-      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);">'+
-        '<div style="width:40px;height:40px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;">'+f.init+'</div>'+
-        '<div style="flex:1;"><div class="t-body-strong">'+f.name+'</div><div class="t-meta">Lv '+f.lvl+' · 🔥 '+f.streak+' day streak</div></div>'+
-        (f.streak>0?'<button onclick="motivateFriend(\''+f.name.replace(/'/g,"")+'\',this)" style="padding:6px 12px;border-radius:var(--rad-md);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:600;cursor:pointer;">💪 Motivate</button>':'<span style="font-size:var(--fs-xs);color:var(--fg3);">streak ended</span>')+
-      '</div>';
-    }).join('')+'</div>';
-  var safe=function(fn){try{return fn();}catch(e){return '';}};
-  box.innerHTML=hero+safe(_wlCheckinHtml)+cats+safe(_wlPactsHtml)+safe(_wlBuddyHtml)+safe(_wlSupportHtml)+friends;
-  if(typeof _animateCounts==='function')setTimeout(function(){_animateCounts(box);},0);
-}
-function _wlSupportHtml(){
-  return '<div style="padding:6px var(--s);"><div onclick="openSupportCircles()" style="cursor:pointer;background:linear-gradient(135deg,rgba(43,95,217,0.08),rgba(240,62,90,0.06));border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;"><div style="font-size:var(--fs-2xl);">🤗</div><div style="flex:1;"><div class="t-body-strong">Support circles</div><div class="t-meta">Anonymous peer support — vent, relate, feel less alone.</div></div><div style="font-size:var(--fs-lg);color:var(--fg2);">›</div></div></div>';
-}
-// ══════════ 😌 DAILY CHECK-IN (mood) ══════════
-var MOODS=[{e:'😄',l:'Great'},{e:'🙂',l:'Good'},{e:'😐',l:'Meh'},{e:'😟',l:'Stressed'},{e:'😢',l:'Low'}];
-var checkinState={day:null,mood:null,streak:0,last:null};
-function _checkinLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_checkin'));if(s)checkinState=s;}catch(e){}}
-function _checkinSave(){try{localStorage.setItem('ugz_checkin',JSON.stringify(checkinState));}catch(e){}}
-function _wlCheckinHtml(){
-  _checkinLoad();var today=new Date().toDateString();var done=checkinState.day===today;
-  var inner;
-  if(done){
-    var m=MOODS[checkinState.mood]||MOODS[1];
-    inner='<div style="display:flex;align-items:center;gap:12px;"><div style="font-size:34px;">'+m.e+'</div><div style="flex:1;"><div class="t-body-strong">Checked in — feeling '+m.l.toLowerCase()+'</div><div class="t-meta">🔥 '+checkinState.streak+'-day check-in streak · come back tomorrow</div></div></div>'+
-      (checkinState.mood>=3?'<div style="margin-top:10px;font-size:var(--fs-xs);color:#fbbf24;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:var(--rad-sm);padding:9px 11px;line-height:1.5;">💛 Rough day? You\'re not alone. Campus Counseling: (555) 100-2000 · 988 Suicide & Crisis Lifeline (call/text).</div>':'');
-  }else{
-    inner='<div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin-bottom:10px;">How are you today?</div><div style="display:flex;gap:8px;justify-content:space-between;">'+
-      MOODS.map(function(mo,i){return '<button onclick="wlDoCheckin('+i+')" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:11px 4px;cursor:pointer;"><div style="font-size:var(--fs-2xl);">'+mo.e+'</div><div style="font-size:var(--fs-2xs);color:var(--fg2);font-weight:500;margin-top:3px;">'+mo.l+'</div></button>';}).join('')+'</div>';
-  }
-  return '<div style="padding:6px var(--s) 4px;"><div style="background:linear-gradient(135deg,rgba(34,197,94,0.07),rgba(14,165,233,0.07));border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">😌 Daily check-in</div>'+inner+'</div></div>';
-}
-function wlDoCheckin(i){
-  _checkinLoad();var today=new Date().toDateString();if(checkinState.day===today)return;
-  var y=new Date(Date.now()-86400000).toDateString();
-  checkinState.streak=(checkinState.last===y)?(checkinState.streak+1):1;
-  checkinState.day=today;checkinState.last=today;checkinState.mood=i;_checkinSave();
-  if(typeof _bumpKindness==='function')_bumpKindness(1);// engagement: showing up
-  if(i>=3)setTimeout(function(){alert('💛 Thanks for checking in. Rough patch?\n\nCampus Counseling: (555) 100-2000\n988 Suicide & Crisis Lifeline — call or text, 24/7.\n\nYou\'ve got people here.');},250);
-  if(typeof renderWellness==='function')renderWellness();
-}
-// ══════════ 🔥 GROUP CHALLENGE — your house/dorm vs a rival ══════════
-var _wlGroup=null;
-function _wlGroupLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_wlgroup'));if(s)_wlGroup=s;}catch(e){}}
-function _wlGroupSave(){try{localStorage.setItem('ugz_wlgroup',JSON.stringify(_wlGroup));}catch(e){}}
-// pick a deterministic rival university (different from yours) from the real UNI_LIST
-function _allUniNames(){try{return Object.keys(UNI).map(function(d){return UNI[d].name;}).filter(Boolean);}catch(e){return ['State University','City College','Tech University'];}}
-function _rivalUniversity(myName){
-  var list=_allUniNames().filter(function(n){return n&&n!==myName;});
-  if(!list.length)return 'Rival University';
-  return list[_strHash((myName||'u')+'rival')%list.length];
-}
-function openGroupChallenge(){
-  var m=document.getElementById('grpchal-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='grpchal-modal';m.className='mov open';m.style.zIndex='10001';
-  var myUni=(uni&&uni.name)||'My University';
-  var rivalUni=_rivalUniversity(myUni);
-  var opts='';
-  // 1) University vs University — the headline matchup
-  opts+='<button onclick="_setGroupChallenge(\''+myUni.replace(/'/g,"\\'")+'\',\''+rivalUni.replace(/'/g,"\\'")+'\',\'uni\')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px;border-radius:var(--rad-sm);border:1px solid rgba(61,123,255,0.35);background:rgba(61,123,255,0.10);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🎓 '+myUni+' <span style="color:var(--fg2);font-weight:500;">vs '+rivalUni+'</span></button>';
-  // 2) Fraternity / Sorority chapter vs chapter
-  if(userPro&&userPro.org){var pn=_greekPartner(userPro.org);opts+='<button onclick="_setGroupChallenge(\''+userPro.org.replace(/'/g,"\\'")+'\',\''+(pn||'Rival Chapter').replace(/'/g,"\\'")+'\',\'greek\')" style="display:block;width:100%;text-align:left;margin-bottom:8px;padding:13px;border-radius:var(--rad-sm);border:1px solid var(--gbdl);background:rgba(43,95,217,0.08);color:#fff;font-size:var(--fs-base);font-weight:600;cursor:pointer;">🏛️ '+userPro.org+' chapter <span style="color:var(--fg2);font-weight:500;">vs '+(pn||'a rival chapter')+'</span></button>';}
-  else{opts+='<div style="font-size:var(--fs-xs);color:var(--fg3);text-align:center;margin:2px 0 8px;line-height:1.4;">Add your fraternity/sorority in your profile to unlock a chapter-vs-chapter showdown.</div>';}
-  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🔥</div><div class="t-title">Pick your showdown</div><div class="t-sub">Rep your school or chapter in a friendly wellness battle.</div></div>'+opts+
-    '<button class="gbtn" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1205;margin-top:4px;" onclick="openUniLeaderboard()">🏆 See the all-universities leaderboard</button>'+
-    '<button class="gbtn-ghost" style="margin-top:8px;" onclick="document.getElementById(\'grpchal-modal\').remove()">Cancel</button></div>';
-  document.body.appendChild(m);
-}
-function _setGroupChallenge(name,rival,type){_wlGroup={name:name,rival:rival,type:type};_wlGroupSave();var m=document.getElementById('grpchal-modal');if(m)m.remove();if(typeof renderWellness==='function')renderWellness();}
-// 🏆 Leaderboard of ALL universities, ranked by total wellness points (deterministic demo data)
-function openUniLeaderboard(){
-  var m=document.getElementById('unilb-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='unilb-modal';m.className='mov open';m.style.zIndex='10002';
-  var myUni=(uni&&uni.name)||'My University';
-  var names=_allUniNames();if(!names.length)names=[myUni,'State University','City College'];
-  if(names.indexOf(myUni)<0)names.unshift(myUni);
-  var rows=names.map(function(n){var pts=2000+(_strHash(n+'lb')%9000)+(n===myUni?(wellnessState.xp||0):0);return {n:n,pts:pts,me:n===myUni};});
-  rows.sort(function(a,b){return b.pts-a.pts;});
-  var myRank=rows.findIndex(function(r){return r.me;})+1;
-  var top=rows.slice(0,25);
-  var list=top.map(function(r,i){var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'<span style="display:inline-block;width:22px;color:var(--fg3);font-weight:600;">'+(i+1)+'</span>';return '<div style="display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:var(--rad-sm);margin-bottom:6px;background:'+(r.me?'rgba(61,123,255,0.13)':'rgba(255,255,255,0.04)')+';border:1px solid '+(r.me?'rgba(61,123,255,0.4)':'var(--gbdl)')+';"><div style="font-size:var(--fs-md);width:26px;text-align:center;">'+medal+'</div><div style="flex:1;font-size:var(--fs-base);font-weight:'+(r.me?'900':'700')+';color:#fff;">'+r.n+(r.me?' <span style="font-size:var(--fs-2xs);color:var(--p);">(you)</span>':'')+'</div><div style="font-size:var(--fs-sm);font-weight:600;color:#fbbf24;">'+r.pts.toLocaleString()+'</div></div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:400px;max-height:86vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:10px;"><div style="font-size:30px;">🏆</div><div class="t-title">University leaderboard</div><div class="t-meta">Ranked by total wellness points this season. '+myUni+' is #'+myRank+'.</div></div>'+list+'<button class="gbtn-ghost" style="margin-top:10px;" onclick="document.getElementById(\'unilb-modal\').remove()">Close</button></div>';
-  document.body.appendChild(m);
-}
-// ══════════ 🤝 HABIT PACTS ══════════
-var HABITS=['🏋️ Gym','🏃 Run','📚 Study','💧 Hydrate','😴 Sleep by 12','🙏 Meditate','🥗 Eat clean'];
-var _wlPacts=[];
-function _pactsLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_pacts'));if(Array.isArray(s))_wlPacts=s;}catch(e){}}
-function _pactsSave(){try{localStorage.setItem('ugz_pacts',JSON.stringify(_wlPacts));}catch(e){}}
-function _wlPactsHtml(){
-  _pactsLoad();
-  var rows=_wlPacts.map(function(p,i){
-    var meDone=p.myDone||0,theyDone=p.theirDone||0;
-    var bar=function(d){return '<div style="display:flex;gap:3px;">'+Array.from({length:p.freq}).map(function(_,k){return '<div style="flex:1;height:6px;border-radius:3px;background:'+(k<d?'#4ade80':'rgba(255,255,255,0.12)')+';"></div>';}).join('')+'</div>';};
-    var doneToday=meDone>=p.freq;
-    return '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:12px;margin-bottom:8px;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="t-body-strong">'+p.habit+' · '+p.freq+'x/wk</div><button onclick="_pactRemove('+i+')" style="background:none;border:none;color:var(--fg3);font-size:var(--fs-base);cursor:pointer;">✕</button></div>'+
-      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:3px;">You · '+meDone+'/'+p.freq+'</div>'+bar(meDone)+
-      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin:7px 0 3px;">🤝 '+p.partner+' · '+theyDone+'/'+p.freq+'</div>'+bar(theyDone)+
-      '<button class="gbtn" style="background:'+(doneToday?'#16a34a':'var(--p)')+';margin-top:10px;padding:9px;" onclick="_pactCheck('+i+')"'+(doneToday?' disabled':'')+'>'+(doneToday?'✓ Goal hit this week!':'✓ Did it today')+'</button>'+
-    '</div>';
-  }).join('');
-  return '<div style="padding:6px var(--s);"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div class="t-body-black">🤝 Habit pacts</div><button onclick="openPactCreate()" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">＋ New pact</button></div>'+
-    (rows||'<div style="font-size:var(--fs-sm);color:var(--fg2);padding:4px 0 6px;">Make a pact with a friend — "we both hit the gym 3x this week." You keep each other honest.</div>')+'</div>';
-}
-function openPactCreate(){
-  var pool=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
-  window._pactDraft={habit:HABITS[0],freq:3,partners:[]};
-  _renderPactCreate();
-}
-function _renderPactCreate(){
-  var d=window._pactDraft;var pool=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
-  var m=document.getElementById('pact-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='pact-modal';m.className='mov open';m.style.zIndex='10001';
-  var hchips=HABITS.map(function(h){var on=d.habit===h;return '<div onclick="_pactSet(\'habit\',\''+h.replace(/'/g,"\\'")+'\')" style="cursor:pointer;font-size:var(--fs-sm);font-weight:500;padding:7px 11px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';color:#fff;">'+h+'</div>';}).join('');
-  var fchips=[2,3,4,5].map(function(f){var on=d.freq===f;return '<div onclick="_pactSet(\'freq\','+f+')" style="cursor:pointer;font-size:var(--fs-base);font-weight:600;padding:9px 15px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';color:#fff;">'+f+'x</div>';}).join('');
-  var pchips=pool.map(function(f){var on=(d.partners||[]).indexOf(f.n)>-1;return '<div onclick="_pactTogglePartner(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:var(--rad-lg);border:1px solid '+(on?'var(--p)':'var(--gbdl)')+';background:'+(on?'rgba(61,123,255,0.1)':'rgba(255,255,255,0.04)')+';"><div style="width:22px;height:22px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;">'+f.i+'</div><span style="font-size:var(--fs-sm);font-weight:500;color:#fff;">'+f.n+'</span>'+(on?'<span style="color:var(--p);font-size:var(--fs-sm);">✓</span>':'')+'</div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:380px;max-height:84vh;overflow-y:auto;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🤝</div><div class="t-title">New habit pact</div></div>'+
-    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Habit</div><div class="t-chip-row">'+hchips+'</div>'+
-    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Times per week</div><div style="display:flex;gap:8px;margin-bottom:14px;">'+fchips+'</div>'+
-    '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;">Pact partner <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--fg3);">(up to 2)</span></div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">'+pchips+'</div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_createPact()">Make pact 🤝</button><button class="gbtn-ghost" onclick="document.getElementById(\'pact-modal\').remove()">Cancel</button></div>';
-  document.body.appendChild(m);
-}
-function _pactSet(k,v){window._pactDraft[k]=v;_renderPactCreate();}
-function _pactTogglePartner(n){var d=window._pactDraft;d.partners=d.partners||[];var i=d.partners.indexOf(n);if(i>-1)d.partners.splice(i,1);else{if(d.partners.length>=2){alert('You can pact with up to 2 people.');return;}d.partners.push(n);}_renderPactCreate();}
-function _createPact(){
-  var d=window._pactDraft;var partners=(d.partners||[]).slice();if(!partners.length){alert('Pick at least one partner.');return;}
-  var label=partners.join(' & ');
-  _pactsLoad();_wlPacts.push({habit:d.habit,freq:d.freq,partner:label,partners:partners,myDone:0,theirDone:Math.floor(d.freq/2)});_pactsSave();
-  var m=document.getElementById('pact-modal');if(m)m.remove();
-  if(typeof renderWellness==='function')renderWellness();
-  alert('Pact made with '+label+'!\n\n'+d.habit+' '+d.freq+'x this week. Keep each other honest 💪');
-}
-function _pactCheck(i){_pactsLoad();var p=_wlPacts[i];if(!p)return;p.myDone=Math.min(p.freq,(p.myDone||0)+1);if(Math.random()>0.4)p.theirDone=Math.min(p.freq,(p.theirDone||0)+1);_pactsSave();if(typeof renderWellness==='function')renderWellness();}
-function _pactRemove(i){if(!confirm('Drop this pact?'))return;_pactsLoad();_wlPacts.splice(i,1);_pactsSave();if(typeof renderWellness==='function')renderWellness();}
-// ══════════ 🙏 WELLNESS BUDDY ══════════
-var WL_ACTS=['🏋️ Gym','🏃 Running','📚 Study','🙏 Yoga','🚶 Walks','🚴 Cycling'];
-var _wlBuddy=null;
-function _buddyLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_buddy'));if(s)_wlBuddy=s;}catch(e){}}
-function _buddySave(){try{localStorage.setItem('ugz_buddy',JSON.stringify(_wlBuddy));}catch(e){}}
-function _wlBuddyHtml(){
-  _buddyLoad();
-  if(_wlBuddy){
-    return '<div style="padding:6px var(--s);"><div style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--rad-md);padding:13px;margin-bottom:8px;"><div style="font-size:var(--fs-xs);font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">🙏 Your wellness buddy</div><div style="display:flex;align-items:center;gap:11px;"><div style="width:44px;height:44px;border-radius:50%;background:'+_wlBuddy.color+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-lg);font-weight:900;color:#fff;">'+_wlBuddy.init+'</div><div style="flex:1;"><div class="t-body-strong">'+_wlBuddy.name+'</div><div class="t-meta">'+_wlBuddy.act+' buddy · keeps you accountable</div></div><button onclick="_buddyMessage()" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:8px 13px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">Message</button></div><div style="text-align:center;margin-top:12px;"><button onclick="_buddyEnd()" style="background:var(--p);border:none;color:#fff;font-size:var(--fs-sm);font-weight:600;cursor:pointer;padding:9px 20px;border-radius:var(--rad-xl);font-family:var(--font);">End partnership</button></div></div></div>';
-  }
-  return '<div style="padding:6px var(--s);"><div style="background:rgba(255,255,255,0.04);border:1px dashed var(--gbdl);border-radius:var(--rad-md);padding:14px;margin-bottom:8px;text-align:center;"><div style="font-size:var(--fs-xl);">🙏</div><div style="font-size:var(--fs-base);font-weight:600;color:#fff;margin:4px 0;">Find a wellness buddy</div><div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:10px;line-height:1.5;">Get matched with someone for the gym, runs, or study accountability. Not a date — just a teammate.</div><button class="gbtn" style="background:var(--p);width:auto;display:inline-block;padding:9px 18px;" onclick="openWellnessBuddy()">Find a buddy</button></div></div>';
-}
-function openWellnessBuddy(){
-  window._buddyAct=WL_ACTS[0];
-  _renderBuddyPick();
-}
-function _renderBuddyPick(){
-  var m=document.getElementById('buddy-modal');if(m)m.remove();
-  m=document.createElement('div');m.id='buddy-modal';m.className='mov open';m.style.zIndex='10001';
-  var chips=WL_ACTS.map(function(a){var on=window._buddyAct===a;return '<div onclick="window._buddyAct=\''+a.replace(/'/g,"\\'")+'\';_renderBuddyPick()" style="cursor:pointer;font-size:var(--fs-sm);font-weight:500;padding:8px 12px;border-radius:var(--rad-lg);border:1px solid '+(on?'#22c55e':'var(--gbdl)')+';background:'+(on?'rgba(34,197,94,0.14)':'rgba(255,255,255,0.04)')+';color:#fff;">'+a+'</div>';}).join('');
-  m.innerHTML='<div class="msheet" style="max-width:370px;"><div class="mhnd"></div><div style="text-align:center;margin-bottom:12px;"><div style="font-size:30px;">🙏</div><div class="t-title">Find a wellness buddy</div><div class="t-sub">What do you want a teammate for?</div></div>'+
-    '<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;">'+chips+'</div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_findBuddy()">Match me 🤝</button><button class="gbtn-ghost" onclick="document.getElementById(\'buddy-modal\').remove()">Cancel</button></div>';
-  document.body.appendChild(m);
-}
-function _findBuddy(){
-  var pool=(typeof crushDataAll!=='undefined'&&crushDataAll&&crushDataAll.length)?crushDataAll:(typeof _FRIEND_POOL!=='undefined'?_FRIEND_POOL.map(function(f){return {name:f.n,init:f.i,bg:f.c};}):[]);
-  if(!pool.length){alert('No buddies available right now.');return;}
-  var act=window._buddyAct;var pick=pool[_strHash(act+(pool.length))%pool.length];
-  _wlBuddy={name:pick.name,init:pick.init||(pick.name||'B').charAt(0),color:pick.bg||'#22c55e',act:act};
-  _buddySave();
-  var m=document.getElementById('buddy-modal');if(m)m.remove();
-  if(typeof renderWellness==='function')renderWellness();
-  alert('Matched! '+_wlBuddy.name+' is your '+act+' buddy.\n\nMessage them to set your first session.');
-}
-function _buddyMessage(){
-  if(!_wlBuddy)return;var id='buddy_'+_wlBuddy.name.replace(/\s/g,'');
-  if(typeof openChat==='function')openChat(id,_wlBuddy.name+' 🙏',_wlBuddy.color,_wlBuddy.init,false,['Hey! We got matched as '+_wlBuddy.act+' buddies 💪','When are you free to start?'],true);
-}
-function _buddyEnd(){if(!confirm('End your buddy partnership?'))return;_wlBuddy=null;try{localStorage.removeItem('ugz_buddy');}catch(e){}if(typeof renderWellness==='function')renderWellness();}
-function completeChallenge(id,xp){
-  if(wellnessState.done[id])return;
-  var today=new Date().toDateString();
-  if(wellnessState.dayKey!==today){wellnessState.done={};wellnessState.completedToday=0;wellnessState.dayKey=today;}
-  // Daily cap keeps it honest — you can't farm every challenge at once
-  if(wellnessState.completedToday>=WL_DAILY_CAP){alert('🌙 You\'ve logged '+WL_DAILY_CAP+' challenges today — come back tomorrow to keep your streak going. (This keeps it honest 💪)');return;}
-  // Honor-system confirmation
-  if(!confirm('Did you really do this?\n\n“'+_wlTitle(id)+'”\n\nBe honest — it only counts if you actually did it. 🌱'))return;
-  wellnessState.done[id]=true;wellnessState.xp+=xp;wellnessState.completedToday++;
-  if(typeof _bumpKindness==='function')_bumpKindness(1);// engagement: wellness
-  if(wellnessState.lastDay!==today){wellnessState.streak++;wellnessState.lastDay=today;if(wellnessState.streak%7===0&&typeof _celebrate==='function')_celebrate(['🔥','🌱','✨','🎉','💚']);}
-  var before=_wlLevel(wellnessState.xp-xp),after=_wlLevel(wellnessState.xp);
-  _wlSave();
-  renderWellness();
-  if(after>before){if(typeof _celebrate==='function')_celebrate(['🌟','✨','🎉','💫','🌱']);setTimeout(function(){alert('Level up! You reached Level '+after+'. Keep the streak going!');},150);}
-  else if(typeof pushNotification==='function'){pushNotification('🌱 +'+xp+' XP — nice! 🔥 '+wellnessState.streak+'-day streak','event');}
-}
-function motivateFriend(name,btn){
-  if(btn){btn.innerHTML=icon('check',12)+' Sent';btn.disabled=true;btn.style.background='#16a34a';}
-  setTimeout(function(){alert('💪 Sent '+name+' a motivation nudge before their streak ends!');},120);
-}
 
 // Populate the major / Greek filter chips from the shared lists so they stay in sync with registration
 try{_populateFilterChips();}catch(e){}
 try{_applyPlanLocks();}catch(e){}
-// Load persisted Wellness progress (xp / streak / today's completions) — survives reloads, resets daily
-try{_wlLoad();}catch(e){}
 try{_loadLikes();}catch(e){}
 try{_loadLogin();}catch(e){}
 try{_refLoad();}catch(e){}

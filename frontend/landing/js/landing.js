@@ -76,6 +76,11 @@
   var nav = document.getElementById("nav");
   var parallaxEls = Array.prototype.slice.call(document.querySelectorAll("[data-parallax]"));
   var ticking = false;
+  /* below this width .chapter stacks into a single column (see landing.css) —
+     the opposing photo/card parallax speeds are only meant for the
+     side-by-side desktop layout and drift the stacked card into the copy
+     above it on mobile, so parallax is disabled under this breakpoint */
+  var mqMobile = window.matchMedia("(max-width: 719px)");
 
   function onScroll() {
     if (ticking) return;
@@ -91,12 +96,16 @@
     nav.classList.toggle("scrolled", y > 30);
 
     if (!reduced) {
-      parallaxEls.forEach(function (el) {
-        var r = el.getBoundingClientRect();
-        var mid = r.top + r.height / 2 - vh / 2;
-        var speed = parseFloat(el.getAttribute("data-parallax")) || 0;
-        el.style.translate = "0 " + (mid * speed).toFixed(1) + "px";
-      });
+      if (mqMobile.matches) {
+        parallaxEls.forEach(function (el) { el.style.translate = ""; });
+      } else {
+        parallaxEls.forEach(function (el) {
+          var r = el.getBoundingClientRect();
+          var mid = r.top + r.height / 2 - vh / 2;
+          var speed = parseFloat(el.getAttribute("data-parallax")) || 0;
+          el.style.translate = "0 " + (mid * speed).toFixed(1) + "px";
+        });
+      }
     }
 
     /* manifesto — light words up as the block crosses the viewport */

@@ -97,6 +97,7 @@ model UserProfile {
   crossover          Boolean     @default(false)
   customization      Json?
   grad               String?
+  gradSemester       String?
   identityTags       Json?
   interests          Json?
   lifestyle          Json?

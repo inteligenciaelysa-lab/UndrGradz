@@ -8,7 +8,7 @@
 <title>Undrgradz</title>
 <link rel="icon" href="logo.ico" type="image/x-icon">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Caveat:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <!-- <link rel="stylesheet" href="responsivePC.css"> -->
 </head>
@@ -1060,6 +1060,7 @@
           <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Bio</label><textarea class="gi" id="pf-bio" rows="2" maxlength="160" placeholder="Tell people about yourself…" oninput="if(typeof userPro!=='undefined'){userPro.bio=this.value.slice(0,160);_pfLiveSave();}"></textarea></div>
           <div class="g2"><div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Major</label><select class="gi" id="pf-major" onchange="if(typeof userPro!=='undefined'){userPro.major=this.value;_pfLiveSave();}"><option value="">Select major…</option></select></div>
           <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Minor</label><select class="gi" id="pf-minor" onchange="if(typeof userPro!=='undefined'){userPro.minor=this.value;_pfLiveSave();}"><option value="">None</option></select></div></div>
+          <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Graduation semester</label><select class="gi" id="pf-gradsem" onchange="if(typeof userPro!=='undefined'){userPro.gradSemester=this.value;_pfLiveSave();}"><option value="">Select…</option><option value="SPRING">Spring</option><option value="SUMMER">Summer</option><option value="FALL">Fall</option></select></div>
           <div class="field"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">University name on card</label><div class="seg2"><button type="button" class="seg2-half" id="uns-full-pf" onclick="setUniNameStylePf('full')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Full name</button><button type="button" class="seg2-half" id="uns-acr-pf" onclick="setUniNameStylePf('acronym')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Acronym</button></div></div>
           <div class="field" style="margin-bottom:0;"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Year on card</label><div class="seg2"><button type="button" class="seg2-half" id="ys-full-pf" onclick="setYearStylePf('full')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Full (Senior)</button><button type="button" class="seg2-half" id="ys-acr-pf" onclick="setYearStylePf('acronym')" style="flex:1;padding:10px 6px;font-family:var(--font);font-size:var(--fs-sm);font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:var(--fg2);">Acronym (SR)</button></div></div>
           <div class="field" style="margin-top:14px;margin-bottom:0;"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">Prompts</label><button type="button" class="act-btn" data-hue="blue" onclick="openPromptsEditor()" style="width:100%;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;"><span class="act-ico">💬</span><span>Edit your prompts</span></button></div><div class="field" style="margin-bottom:0;"><label style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;letter-spacing:0.6px;text-transform:uppercase;">More</label><div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;"><button type="button" class="act-btn" data-hue="cyan" onclick="document.getElementById('edit-modal').classList.remove('open');editInterests()" style="width:100%;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;"><span class="act-ico">🎯</span><span>Edit interests</span></button></div></div>
@@ -1100,11 +1101,6 @@
       
       
       <div id="referral-card" style="margin:14px var(--s) 22px;"></div>
-    </div>
-
-    <!-- WELLNESS -->
-    <div class="section" id="sec-wellness">
-      <div id="wellness-content" style="padding-bottom:20px;"></div>
     </div>
 
     <!-- PREMIUM — Student plans -->
@@ -1379,6 +1375,9 @@
     <select class="gi" id="ed-major"><option value="">Select major…</option></select>
   </div>
   <div class="field"><label>Minor</label><select class="gi" id="ed-minor"><option value="">None</option></select></div>
+  <div class="field"><label>Graduation semester</label>
+    <select class="gi" id="ed-gradsem"><option value="">Select…</option><option value="SPRING">Spring</option><option value="SUMMER">Summer</option><option value="FALL">Fall</option></select>
+  </div>
   <div class="field"><label>Photos</label>
     <button type="button" onclick="document.getElementById('edit-modal').classList.remove('open');switchProfTab('crush');setTimeout(function(){var el=document.getElementById('crush-profile-preview');if(el)el.scrollIntoView({behavior:'smooth',block:'start'});},120);" style="width:100%;padding:11px;border-radius:var(--rs);border:1px solid var(--gbdl);background:rgba(255,255,255,0.08);color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;">📸 Manage Photos</button>
   </div>

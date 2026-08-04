@@ -18,7 +18,6 @@
     network: 'Red',
     alumnihub: 'Red',
     events: 'Eventos',
-    wellness: 'Bienestar',
     premium: '✨ Go Premium',
     'biz-profile': 'Perfil Business'
   };
