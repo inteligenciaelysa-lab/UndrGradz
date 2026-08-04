@@ -113,6 +113,17 @@ document.addEventListener('DOMContentLoaded', () => {
     notifTargetType: document.getElementById('notif-target-type'),
     notifUniGroup: document.getElementById('notif-uni-group'),
     notifUserGroup: document.getElementById('notif-user-group'),
+    notifTargetHint: document.getElementById('notif-target-hint'),
+    notifTypePicker: document.getElementById('notif-type-picker'),
+    notifType: document.getElementById('notif-type'),
+    notifTitleInput: document.getElementById('notif-title'),
+    notifMessageInput: document.getElementById('notif-message'),
+    notifTitleCount: document.getElementById('notif-title-count'),
+    notifMessageCount: document.getElementById('notif-message-count'),
+    notifPreviewCard: document.getElementById('notif-preview-card'),
+    notifPreviewIcon: document.getElementById('notif-preview-icon'),
+    notifPreviewTitle: document.getElementById('notif-preview-title'),
+    notifPreviewMsg: document.getElementById('notif-preview-msg'),
 
     // Settings View
     settingsContainer: document.getElementById('settings-container'),
@@ -2521,6 +2532,14 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==========================================================================
      8. NOTIFICATIONS CONTROLLER
      ========================================================================== */
+  const NOTIF_TARGET_HINTS = {
+    ALL: '⚠️ Se enviará a todos los usuarios activos de la plataforma. Úsalo con criterio.',
+    UNIVERSITY: 'Solo llega a estudiantes cuyo perfil tiene esa universidad guardada.',
+    USER: 'Necesitas el ID de Prisma (CUID) del usuario, no su @handle.',
+  };
+  function updateNotifTargetHint() {
+    elements.notifTargetHint.textContent = NOTIF_TARGET_HINTS[elements.notifTargetType.value] || '';
+  }
   elements.notifTargetType.addEventListener('change', (e) => {
     const val = e.target.value;
     if (val === 'UNIVERSITY') {
@@ -2533,6 +2552,35 @@ document.addEventListener('DOMContentLoaded', () => {
       elements.notifUniGroup.classList.add('hidden');
       elements.notifUserGroup.classList.add('hidden');
     }
+    updateNotifTargetHint();
+  });
+  updateNotifTargetHint();
+
+  // Type pills — decide the icon/color the student sees in their notification
+  // inbox (see _UGZ_NOTIF_TYPE_ICON/_COLOR on the student app side).
+  elements.notifTypePicker.querySelectorAll('.notif-type-pill').forEach((pill) => {
+    pill.addEventListener('click', () => {
+      elements.notifTypePicker.querySelectorAll('.notif-type-pill').forEach((p) => p.classList.remove('on'));
+      pill.classList.add('on');
+      elements.notifType.value = pill.dataset.type;
+      elements.notifPreviewIcon.textContent = pill.dataset.icon;
+      updateNotifPreview();
+    });
+  });
+
+  function updateNotifPreview() {
+    const title = elements.notifTitleInput.value.trim();
+    const message = elements.notifMessageInput.value.trim();
+    elements.notifPreviewTitle.textContent = title || 'Título del mensaje';
+    elements.notifPreviewMsg.textContent = message || 'Así se verá tu notificación en la app.';
+  }
+  elements.notifTitleInput.addEventListener('input', () => {
+    elements.notifTitleCount.textContent = elements.notifTitleInput.value.length;
+    updateNotifPreview();
+  });
+  elements.notifMessageInput.addEventListener('input', () => {
+    elements.notifMessageCount.textContent = elements.notifMessageInput.value.length;
+    updateNotifPreview();
   });
 
   elements.formSendNotification.addEventListener('submit', async (e) => {
@@ -2542,6 +2590,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const message = document.getElementById('notif-message').value.trim();
     const university = document.getElementById('notif-university').value.trim();
     const targetId = document.getElementById('notif-user-id').value.trim();
+    const type = elements.notifType.value;
 
     try {
       const res = await window.adminApi.sendNotification({
@@ -2550,11 +2599,21 @@ document.addEventListener('DOMContentLoaded', () => {
         university: targetType === 'UNIVERSITY' ? university : null,
         title,
         message,
-        type: 'SYSTEM',
+        type,
       });
       const count = res.data ? res.data.count : 0;
       showToast(`Notificación enviada con éxito a ${count} usuario(s).`);
       elements.formSendNotification.reset();
+      elements.notifUniGroup.classList.add('hidden');
+      elements.notifUserGroup.classList.add('hidden');
+      elements.notifTitleCount.textContent = '0';
+      elements.notifMessageCount.textContent = '0';
+      elements.notifTypePicker.querySelectorAll('.notif-type-pill').forEach((p) => p.classList.remove('on'));
+      elements.notifTypePicker.querySelector('.notif-type-pill[data-type="SYSTEM"]').classList.add('on');
+      elements.notifType.value = 'SYSTEM';
+      elements.notifPreviewIcon.textContent = '🔔';
+      updateNotifTargetHint();
+      updateNotifPreview();
     } catch (err) {
       showToast(err.message, 'error');
     }

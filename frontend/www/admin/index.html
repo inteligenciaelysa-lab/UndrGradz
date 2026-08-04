@@ -872,7 +872,7 @@
           </div>
 
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="glass-panel p-4 lg:col-span-2">
+            <div class="glass-panel p-4 lg:col-span-2 notif-compose-card">
               <div class="panel-header mb-4">
                 <div>
                   <h3 class="panel-title">Redactar comunicado</h3>
@@ -883,10 +883,11 @@
                 <div class="form-group">
                   <label for="notif-target-type">Destinatario</label>
                   <select id="notif-target-type" class="form-select" required>
-                    <option value="ALL">Todos los Usuarios Activos (Broadcast)</option>
-                    <option value="UNIVERSITY">Estudiantes de una Universidad Específica</option>
-                    <option value="USER">Usuario Específico (ID)</option>
+                    <option value="ALL">📢 Todos los Usuarios Activos (Broadcast)</option>
+                    <option value="UNIVERSITY">🏛️ Estudiantes de una Universidad Específica</option>
+                    <option value="USER">👤 Usuario Específico (ID)</option>
                   </select>
+                  <div id="notif-target-hint" class="notif-target-hint"></div>
                 </div>
 
                 <div id="notif-uni-group" class="form-group hidden">
@@ -900,13 +901,37 @@
                 </div>
 
                 <div class="form-group">
+                  <label>Tipo de Notificación</label>
+                  <div class="notif-type-picker" id="notif-type-picker">
+                    <button type="button" class="notif-type-pill on" data-type="SYSTEM" data-icon="🔔" data-color="info">🔔 Sistema</button>
+                    <button type="button" class="notif-type-pill" data-type="ANNOUNCEMENT" data-icon="📣" data-color="accent">📣 Anuncio</button>
+                    <button type="button" class="notif-type-pill" data-type="WARNING" data-icon="⚠️" data-color="warning">⚠️ Advertencia</button>
+                    <button type="button" class="notif-type-pill" data-type="MODERATION" data-icon="🛡️" data-color="danger">🛡️ Moderación</button>
+                  </div>
+                  <input type="hidden" id="notif-type" value="SYSTEM">
+                </div>
+
+                <div class="form-group">
                   <label for="notif-title">Título del Mensaje</label>
-                  <input type="text" id="notif-title" class="form-input" placeholder="Ej: Mantenimiento Programado / Actualización importante" required>
+                  <input type="text" id="notif-title" class="form-input" placeholder="Ej: Mantenimiento Programado / Actualización importante" maxlength="120" required>
+                  <div class="notif-charcount"><span id="notif-title-count">0</span>/120</div>
                 </div>
 
                 <div class="form-group">
                   <label for="notif-message">Contenido de la Notificación</label>
-                  <textarea id="notif-message" class="form-input" rows="5" placeholder="Escribe el cuerpo del mensaje..." required></textarea>
+                  <textarea id="notif-message" class="form-input" rows="5" placeholder="Escribe el cuerpo del mensaje..." maxlength="600" required></textarea>
+                  <div class="notif-charcount"><span id="notif-message-count">0</span>/600</div>
+                </div>
+
+                <div class="form-group">
+                  <label>Vista previa</label>
+                  <div class="notif-preview-card" id="notif-preview-card">
+                    <div class="notif-preview-icon" id="notif-preview-icon">🔔</div>
+                    <div class="notif-preview-body">
+                      <div class="notif-preview-title" id="notif-preview-title">Título del mensaje</div>
+                      <div class="notif-preview-msg" id="notif-preview-msg">Así se verá tu notificación en la app.</div>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="form-actions">
@@ -930,6 +955,7 @@
                 <li class="tip-item">Los títulos cortos (menos de 60 caracteres) se leen mejor en móvil.</li>
                 <li class="tip-item">Cada envío queda registrado en los Logs de Auditoría con tu cuenta.</li>
                 <li class="tip-item">Para un usuario puntual necesitas su ID de Prisma (CUID), no su @handle.</li>
+                <li class="tip-item">El tipo elegido define el color e ícono con el que se ve en la app del estudiante.</li>
               </ul>
             </aside>
           </div>

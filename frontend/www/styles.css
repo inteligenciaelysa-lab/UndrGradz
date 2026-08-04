@@ -9629,6 +9629,70 @@ body.is-ios .screen::before {
   box-shadow:var(--el-2);
 }
 
+/* ---------- Post-purchase celebration ("subscribed") ---------- */
+.ugz-modal-card.type-subscribed {
+  position: relative;
+  border-color: rgba(245, 158, 11, 0.55);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(245, 158, 11, 0.35);
+  overflow: hidden;
+}
+.ugz-modal-card.type-subscribed .ugz-modal-badge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(43, 95, 217, 0.4));
+  border: 1.5px solid rgba(245, 158, 11, 0.9);
+  color: #fbbf24;
+  position: relative;
+  animation: ugzBadgePop 0.55s var(--ease-spring, ease) both;
+}
+.ugz-modal-card.type-subscribed .ugz-modal-badge::before,
+.ugz-modal-card.type-subscribed .ugz-modal-badge::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(245, 158, 11, 0.55);
+  animation: ugzBadgeGlowPulse 1.8s ease-out infinite;
+}
+.ugz-modal-card.type-subscribed .ugz-modal-badge::after {
+  animation-delay: 0.6s;
+}
+.type-subscribed .ugz-btn-confirm {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b 45%, #791515);
+  box-shadow: 0 0 18px rgba(245, 158, 11, 0.45), var(--el-2);
+}
+
+@keyframes ugzBadgePop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes ugzBadgeGlowPulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+.ugz-confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.ugz-confetti-piece {
+  position: absolute;
+  top: -12px;
+  width: 7px;
+  height: 12px;
+  opacity: 0;
+  border-radius: 1px;
+  animation-name: ugzConfettiFall;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+@keyframes ugzConfettiFall {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(340px) translateX(var(--drift, 0px)) rotate(540deg); opacity: 0; }
+}
 
 
 

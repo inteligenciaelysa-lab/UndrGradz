@@ -1089,6 +1089,12 @@
         <div class="id-box" id="verify-box" onclick="doVerify()" style="margin-bottom:0;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Upload Student ID → <svg viewBox="0 0 24 24" width="16" height="16" style="background:#1d9bf0;border-radius:50%;padding:2px;vertical-align:middle;display:inline-block;" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Blue Badge
         </div>
+        <!-- Involvement badges (Athlete / Student Government / Content Creator) —
+             only shown when the user claimed one of these during sign up but
+             skipped the document upload there (or it's still pending/approved). -->
+        <div class="id-box" id="verify-athlete-box" onclick="_ugzOpenInvolvementVerify('ATHLETE')" style="margin-top:10px;margin-bottom:0;display:none;">🏅 Upload proof of your sports team → Verified Athlete Badge</div>
+        <div class="id-box" id="verify-govt-box" onclick="_ugzOpenInvolvementVerify('STUDENT_GOVT')" style="margin-top:10px;margin-bottom:0;display:none;">🏛️ Upload proof of Student Government → Verified Badge</div>
+        <div class="id-box" id="verify-creator-box" onclick="_ugzOpenInvolvementVerify('CREATOR_BADGE')" style="margin-top:10px;margin-bottom:0;display:none;">✨ Upload proof of your content creator status → Verified Badge</div>
       </div></div>
       </div>
       

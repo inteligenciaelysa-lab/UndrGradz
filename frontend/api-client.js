@@ -31,7 +31,7 @@ const IS_CAPACITOR = !!(
 );
 
 // Túnel público o URL remota de producción
-const REMOTE_URL = 'https://sign-perfectly-knife-amendments.trycloudflare.com';
+const REMOTE_URL = 'https://undrgradz-backend-844863735752.us-central1.run.app';
 
 // En App Android/iOS Capacitor se utiliza la URL pública remota (Cloudflare Tunnel).
 // En Web Local se utiliza el puerto 3000 local del host.
