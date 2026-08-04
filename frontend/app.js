@@ -11845,7 +11845,7 @@ function handleSwipeDecision(dir){
     }
     crushIdx+=2;
     renderCrush();
-    if(typeof maybeShowLikedYouPopup==='function')maybeShowLikedYouPopup(dir==='like');
+    _bumpSwipeCount();
     return;
   }
 
@@ -11897,7 +11897,7 @@ function handleSwipeDecision(dir){
 
   crushIdx++;
   renderCrush();
-  if(typeof maybeShowLikedYouPopup==='function')maybeShowLikedYouPopup(swipeType !== 'DISLIKE');
+  _bumpSwipeCount();
 }
 
 function renderCrushDoubleDate() {
@@ -12193,559 +12193,21 @@ function superLike(){
   // Trigger programmatic swipe
   SwipeEngineV2.swipe('maybe');
 }
-// ══════════ "LIKED YOU" — Tinder-style pop-up while swiping (pick 1 of 4) ══════════
-var _swipeCount = (function(){try{return parseInt(localStorage.getItem('ugz_swipes'))||0;}catch(e){return 0;}})(),
-    _likesGivenCount = (function(){try{return parseInt(localStorage.getItem('ugz_likes_given'))||0;}catch(e){return 0;}})(),
-    _swipesSinceBook = (function(){try{return parseInt(localStorage.getItem('ugz_swipes_book'))||0;}catch(e){return 0;}})(),
-    _likesSinceBook = (function(){try{return parseInt(localStorage.getItem('ugz_likes_book'))||0;}catch(e){return 0;}})(),
-    _likedYouPicks = [];
+// ══════════ Swipe counter (feeds the "Liked You" reveal rate-limit below) ══════════
+var _swipeCount = (function(){try{return parseInt(localStorage.getItem('ugz_swipes'))||0;}catch(e){return 0;}})();
 
-function maybeShowLikedYouPopup(isLikeAction) {
+function _bumpSwipeCount() {
   _swipeCount++;
-  _swipesSinceBook++;
-  if (isLikeAction) {
-    _likesGivenCount++;
-    _likesSinceBook++;
-  }
+  try { localStorage.setItem('ugz_swipes', String(_swipeCount)); } catch(e) {}
+}
+
+// One-time cleanup of localStorage keys left over from the removed "guess who liked you" mini-game
+(function _cleanupRemovedLikedYouGameKeys(){
   try {
-    localStorage.setItem('ugz_swipes', String(_swipeCount));
-    localStorage.setItem('ugz_likes_given', String(_likesGivenCount));
-    localStorage.setItem('ugz_swipes_book', String(_swipesSinceBook));
-    localStorage.setItem('ugz_likes_book', String(_likesSinceBook));
+    ['ugz_likes_given','ugz_swipes_book','ugz_likes_book'].forEach(function(k){ localStorage.removeItem(k); });
   } catch(e) {}
+})();
 
-  if (document.getElementById('likedyou-pop')) return;
-
-  // Restriction 1: Minimum 4 likes received by user
-  var userLikesReceived = 0;
-  if (typeof userPro !== 'undefined' && userPro) {
-    if (Array.isArray(userPro.likedBy)) {
-      userLikesReceived = userPro.likedBy.length;
-    } else if (typeof userPro.likesCount === 'number') {
-      userLikesReceived = userPro.likesCount;
-    } else if (typeof userPro.likesReceived === 'number') {
-      userLikesReceived = userPro.likesReceived;
-    }
-  }
-  if (!userLikesReceived && typeof crushDataAll !== 'undefined' && crushDataAll) {
-    userLikesReceived = (typeof _userLikesReceivedCount !== 'undefined') ? _userLikesReceivedCount : 4;
-  }
-
-  if (userLikesReceived < 4) return;
-
-  // Restriction 2: Must appear every 20 swipes AND every 8 likes given
-  // "que aparezca cada 20 swipes y cada 8 personas den like, pq es algo premium entonces no debe de salir tan seguido"
-  if (_swipesSinceBook >= 20 && _likesSinceBook >= 8) {
-    _swipesSinceBook = 0;
-    _likesSinceBook = 0;
-    try {
-      localStorage.setItem('ugz_swipes_book', '0');
-      localStorage.setItem('ugz_likes_book', '0');
-    } catch(e) {}
-    showLikedYouPopup();
-  }
-}
-
-function closeLikedYouPopup() {
-  var pop = document.getElementById('likedyou-pop');
-  if (pop) {
-    pop.style.opacity = '0';
-    setTimeout(function() {
-      if (pop && pop.parentNode) pop.parentNode.removeChild(pop);
-      var anim = document.getElementById('ly-arrow-anim');
-      if (anim && anim.parentNode) anim.parentNode.removeChild(anim);
-    }, 400);
-  }
-  _lyBookOpening = false;
-  _lyChosenIndex = -1;
-  _lyActivePage = 1;
-}
-
-var _lyBookOpening = false;
-var _lyChosenIndex = -1;
-var _lyActivePage = 1;
-
-function showLikedYouPopup(){
-  if(typeof crushDataAll==='undefined'||!crushDataAll||crushDataAll.length<4)return;
-  var pref=(typeof crushGenderPref!=='undefined')?crushGenderPref:'female';
-  var pool=crushDataAll.filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);});
-  if(pool.length<4)pool=crushDataAll.slice();
-  var seed=_swipeCount;
-  pool=pool.slice().sort(function(a,b){return ((_strHash(a.name)+seed)%97)-((_strHash(b.name)+seed)%97);});
-  _likedYouPicks=pool.slice(0,4);
-
-  // Generate cards
-  function makeCardHtml(p, idx) {
-    return '<div class="ly-reveal-card" onclick="pickLyCard('+idx+', this)" id="ly-card-'+idx+'">'+
-      '<img class="ly-card-photo" src="'+(p.photos && p.photos[0] ? p.photos[0] : '')+'" alt=""/>'+
-      '<div class="ly-card-overlay"></div>'+
-      '<div class="ly-card-qmark">?</div>'+
-      '<div class="ly-card-info">'+
-        '<div class="t-body-black">'+p.name+', '+p.age+'</div>'+
-        '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.7);margin-top:2px;font-weight:500;">'+p.major+'</div>'+
-      '</div>'+
-    '</div>';
-  }
-
-  var page1CardsHtml = makeCardHtml(_likedYouPicks[0], 0) + makeCardHtml(_likedYouPicks[1], 1);
-  var page2CardsHtml = makeCardHtml(_likedYouPicks[2], 2) + makeCardHtml(_likedYouPicks[3], 3);
-
-  // Get user avatar
-  var myPic=document.getElementById('prof-pic');
-  var myBg=myPic&&myPic.style.backgroundImage?myPic.style.backgroundImage:'';
-  var userAvatarHtml = myBg ? '<div class="ly-match-avatar" style="background-image:'+myBg+';background-size:cover;background-position:center;"></div>'
-                            : '<div class="ly-match-avatar" style="background:#3d7bff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:#fff;">'+((userPro&&userPro.name)?userPro.name.charAt(0).toUpperCase():'U')+'</div>';
-
-  var ov = document.createElement('div');
-  ov.id = 'likedyou-pop';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(10,5,20,0.92);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.6s ease;';
-  
-  ov.innerHTML = '<div class="ly-book-container">' +
-    '<div class="ly-book-wrapper" id="ly-book-wrapper">' +
-      '<div class="ly-book">' +
-        // Inside glow
-        '<div class="ly-book-glow"></div>' +
-        
-        // Book Cover
-        '<div class="ly-cover" id="ly-cover">' +
-          '<div class="ly-corner-brass ly-corner-tl"></div>' +
-          '<div class="ly-corner-brass ly-corner-tr"></div>' +
-          '<div class="ly-corner-brass ly-corner-bl"></div>' +
-          '<div class="ly-corner-brass ly-corner-br"></div>' +
-          '<div class="ly-book-latch" id="ly-book-latch"></div>' +
-          
-          '<div style="text-align:center;padding:0 15px;margin-bottom:20px;z-index:10;margin-top:-20px;">' +
-            '<div style="font-size:var(--fs-md);font-weight:700;color:#fff;text-shadow:0 0 8px rgba(255,255,255,0.25);margin-bottom:4px;">4 People liked you</div>' +
-            '<div style="font-size:var(--fs-2xs);color:#fbbf24;font-weight:600;letter-spacing:0.3px;line-height:1.2;">Pick one to match instantly — choose wisely.</div>' +
-          '</div>' +
-          
-          '<img src="/images/logo.png" style="width:75px;height:75px;object-fit:contain;margin-bottom:30px;);z-index:10;"/>' +
-          
-          '<div class="ly-instruction" id="ly-instruction" style="position:absolute;bottom:30px;margin-top:0;z-index:10;pointer-events:none;">' +
-            '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.5);">Turn the page</div>' +
-            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top:2px;animation:lySwipeArrow 1.2s infinite;color:rgba(255,255,255,0.6);"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>' +
-          '</div>' +
-        '</div>' +
-        
-        // Staggered Flip page stack (10 pages)
-        '<div class="ly-page-flip ly-page-flip-1" id="ly-page-flip-1"></div>' +
-        '<div class="ly-page-flip ly-page-flip-2" id="ly-page-flip-2"></div>' +
-        '<div class="ly-page-flip ly-page-flip-3" id="ly-page-flip-3"></div>' +
-        '<div class="ly-page-flip ly-page-flip-4" id="ly-page-flip-4"></div>' +
-        '<div class="ly-page-flip ly-page-flip-5" id="ly-page-flip-5"></div>' +
-        '<div class="ly-page-flip ly-page-flip-6" id="ly-page-flip-6"></div>' +
-        '<div class="ly-page-flip ly-page-flip-7" id="ly-page-flip-7"></div>' +
-        '<div class="ly-page-flip ly-page-flip-8" id="ly-page-flip-8"></div>' +
-        '<div class="ly-page-flip ly-page-flip-9" id="ly-page-flip-9"></div>' +
-        '<div class="ly-page-flip ly-page-flip-10" id="ly-page-flip-10"></div>' +
-        
-        // Open Spread
-        '<div class="ly-spread" id="ly-spread">' +
-          // Left page (base)
-          '<div class="ly-page-left"></div>' +
-          // Right page (base): Page 2 cards underneath
-          '<div class="ly-page-right" id="ly-spread-page-2">' +
-            page2CardsHtml +
-            '<div class="ly-page-nav-indicator ly-page-nav-prev" onclick="lyGoToPage(1)">← Previous page</div>' +
-          '</div>' +
-          // 3D Turning Page
-          '<div class="ly-page-turning" id="ly-page-turning">' +
-            // Front: Page 1 cards
-            '<div class="ly-page-turning-front" id="ly-spread-page-1">' +
-              page1CardsHtml +
-              '<div class="ly-page-nav-indicator ly-page-nav-next" onclick="lyGoToPage(2)">Next page →</div>' +
-            '</div>' +
-            // Back: Blank parchment
-            '<div class="ly-page-turning-back"></div>' +
-          '</div>' +
-          '<div class="ly-spine-shadow"></div>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-
-    '<div class="ly-choice-bar" id="ly-choice-bar">' +
-      '<button class="ly-btn ly-btn-no" onclick="rejectLyChoice()">❌ No</button>' +
-      '<button class="ly-btn ly-btn-yes" onclick="acceptLyChoice()">❤️ Sí</button>' +
-    '</div>' +
-    
-    '<button onclick="closeLikedYouPopup()" style="position:absolute;bottom:30px;background:transparent;border:none;color:var(--fg3);font-size:var(--fs-sm);font-weight:500;cursor:pointer;z-index:150;">Maybe later (you\'ll lose these)</button>' +
-  '</div>' +
-  
-  // Custom Match Celebration Screen
-  '<div class="ly-match-overlay" id="ly-match-overlay">' +
-    '<div class="ly-match-title">It\'s a Match!</div>' +
-    '<div class="ly-match-avatars">' +
-      userAvatarHtml +
-      '<div style="font-size:32px;animation:matchPulse 1s ease infinite;">💞</div>' +
-      '<div id="ly-match-candidate-avatar"></div>' +
-    '</div>' +
-    '<div style="font-size:var(--fs-base);color:rgba(255,255,255,0.8);font-weight:500;letter-spacing:0.5px;">Opening chat...</div>' +
-  '</div>';
-
-  document.body.appendChild(ov);
-  
-  // Keyframe arrow animation style block
-  var style = document.createElement('style');
-  style.id = 'ly-arrow-anim';
-  style.textContent = '@keyframes lySwipeArrow { 0% { transform: translateX(5px); opacity: 0.3; } 50% { opacity: 1; } 100% { transform: translateX(-15px); opacity: 0.2; } }';
-  document.head.appendChild(style);
-
-  // Spawn magic floating dust particles
-  for (var i = 0; i < 20; i++) {
-    var d = document.createElement('div');
-    d.className = 'ly-magic-dust';
-    d.style.setProperty('--sx', (Math.random() * 100) + 'vw');
-    d.style.setProperty('--sy', (80 + Math.random() * 20) + 'vh');
-    d.style.setProperty('--ex', (Math.random() * 100) + 'vw');
-    d.style.setProperty('--ey', (-20 - Math.random() * 20) + 'vh');
-    d.style.animationDelay = (Math.random() * 5) + 's';
-    d.style.animationDuration = (5 + Math.random() * 5) + 's';
-    ov.appendChild(d);
-  }
-
-  // Trigger entrance transition
-  setTimeout(function(){
-    ov.style.opacity = '1';
-    var wrap = document.getElementById('ly-book-wrapper');
-    if(wrap) wrap.classList.add('entrance-active');
-  }, 50);
-
-  // Setup gesture swipe & click events
-  var cover = document.getElementById('ly-cover');
-  if(cover) {
-    var startX = 0, started = false;
-    cover.addEventListener('pointerdown', function(e){ startX = e.clientX; started = true; });
-    cover.addEventListener('pointerup', function(e){
-      if(!started) return; started = false;
-      var diff = startX - e.clientX;
-      if(diff > 40) openLyBook();
-      else openLyBook(); // click fallback
-    });
-    cover.addEventListener('pointercancel', function(e){ started = false; });
-  }
-
-  // Setup spread swipe pagination
-  setTimeout(function(){
-    var spread = document.getElementById('ly-spread');
-    if (spread) {
-      var spreadStartX = 0, spreadStarted = false;
-      spread.addEventListener('pointerdown', function(e){ spreadStartX = e.clientX; spreadStarted = true; });
-      spread.addEventListener('pointerup', function(e){
-        if(!spreadStarted) return; spreadStarted = false;
-        var diff = spreadStartX - e.clientX;
-        if (diff > 45) lyGoToPage(2);
-        else if (diff < -45) lyGoToPage(1);
-      });
-      spread.addEventListener('pointercancel', function(e){ spreadStarted = false; });
-    }
-  }, 1000);
-}
-
-function openLyBook() {
-  if (_lyBookOpening) return;
-  _lyBookOpening = true;
-
-  // 1. Swing clasp latch open
-  var latch = document.getElementById('ly-book-latch');
-  if (latch) latch.classList.add('unlocked');
-
-  // Fade out instruction
-  var inst = document.getElementById('ly-instruction');
-  if (inst) {
-    inst.style.opacity = '0';
-    setTimeout(function(){ inst.remove(); }, 500);
-  }
-
-  // 2. Play automatic staggered flips (10 intermediate pages)
-  setTimeout(function(){
-    var wrap = document.getElementById('ly-book-wrapper');
-    if (wrap) wrap.classList.add('book-open-active');
-
-    for (var i = 1; i <= 10; i++) {
-      (function(idx) {
-        setTimeout(function(){
-          var pageEl = document.getElementById('ly-page-flip-' + idx);
-          if (pageEl) pageEl.classList.add('flip-active');
-        }, idx * 75);
-      })(i);
-    }
-
-    // Clean flips when spread opens fully
-    setTimeout(function(){
-      for (var i = 1; i <= 10; i++) {
-        var pageEl = document.getElementById('ly-page-flip-' + i);
-        if (pageEl) pageEl.remove();
-      }
-    }, 1600);
-  }, 450);
-}
-
-function lyGoToPage(pageNumber) {
-  if (!_lyBookOpening) return;
-  if (_lyChosenIndex !== -1) return; // ignore swipe if card is revealed/selected
-  if (_lyActivePage === pageNumber) return;
-  _lyActivePage = pageNumber;
-  
-  var pt = document.getElementById('ly-page-turning');
-  if (pt) {
-    if (pageNumber === 2) {
-      pt.classList.add('turned');
-    } else {
-      pt.classList.remove('turned');
-    }
-  }
-}
-
-function pickLyCard(idx, el) {
-  if (!_lyBookOpening) return;
-  if (_lyChosenIndex !== -1) return;
-  _lyChosenIndex = idx;
-
-  // Lift and unblur
-  el.classList.add('card-selected');
-  el.classList.add('card-revealed');
-
-  // Dim other cards
-  for (var i = 0; i < 4; i++) {
-    if (i !== idx) {
-      var other = document.getElementById('ly-card-' + i);
-      if (other) other.classList.add('card-dimmed');
-    }
-  }
-
-  // Slide up choices toolbar
-  var bar = document.getElementById('ly-choice-bar');
-  if (bar) bar.classList.add('active');
-}
-
-function rejectLyChoice() {
-  if (_lyChosenIndex === -1) return;
-  var chosenIdx = _lyChosenIndex;
-
-  // 1. Hide active profile details (blur it back, reset lift)
-  var el = document.getElementById('ly-card-' + chosenIdx);
-  if (el) {
-    el.classList.remove('card-selected');
-    el.classList.remove('card-revealed');
-  }
-  for (var i = 0; i < 4; i++) {
-    var other = document.getElementById('ly-card-' + i);
-    if (other) other.classList.remove('card-dimmed');
-  }
-
-  // Slide down choices bar
-  var bar = document.getElementById('ly-choice-bar');
-  if (bar) bar.classList.remove('active');
-
-  // Reset chosen index
-  _lyChosenIndex = -1;
-
-  // 2. Wait for card fold down, then turn page back to Spread 1, and flip back 3 pages rapidly
-  setTimeout(function(){
-    var wrap = document.getElementById('ly-book-wrapper');
-    
-    // Page turning back simulation
-    if (_lyActivePage === 2) {
-      lyGoToPage(1);
-      // Wait 800ms for page turn back to complete
-      setTimeout(rustlePagesBack, 800);
-    } else {
-      rustlePagesBack();
-    }
-
-    function rustlePagesBack() {
-      // Re-create the 3 intermediate flipping pages for reverse flip
-      var bookNode = wrap ? wrap.querySelector('.ly-book') : null;
-      if (bookNode) {
-        // Create 3 page nodes
-        for (var pIdx = 1; pIdx <= 3; pIdx++) {
-          var pNode = document.createElement('div');
-          pNode.className = 'ly-page-flip ly-page-flip-' + pIdx + ' flip-active';
-          pNode.id = 'ly-page-flip-back-' + pIdx;
-          bookNode.appendChild(pNode);
-        }
-        
-        // Staggered removal of flip-active to make them turn right back to cover
-        setTimeout(function(){
-          var pb1 = document.getElementById('ly-page-flip-back-1');
-          if (pb1) pb1.classList.remove('flip-active');
-        }, 100);
-        setTimeout(function(){
-          var pb2 = document.getElementById('ly-page-flip-back-2');
-          if (pb2) pb2.classList.remove('flip-active');
-        }, 250);
-        setTimeout(function(){
-          var pb3 = document.getElementById('ly-page-flip-back-3');
-          if (pb3) pb3.classList.remove('flip-active');
-        }, 400);
-
-        // Remove page nodes after turns finish
-        setTimeout(function(){
-          for (var pIdx = 1; pIdx <= 3; pIdx++) {
-            var pNode = document.getElementById('ly-page-flip-back-' + pIdx);
-            if (pNode) pNode.remove();
-          }
-        }, 1200);
-      }
-
-      // Start cover fold shut
-      setTimeout(closeBookCover, 400);
-    }
-
-    function closeBookCover() {
-      // 3. Fold cover back shut
-      if (wrap) {
-        wrap.classList.remove('book-open-active');
-      }
-
-      // Re-lock latch when cover closes
-      setTimeout(function(){
-        var latch = document.getElementById('ly-book-latch');
-        if (latch) latch.classList.remove('unlocked');
-      }, 1200);
-
-      // 4. Wait 1.6s (cover shuts completely), then pause 400ms to appreciate closed state
-      setTimeout(function(){
-        
-        // 5. Play anticipation bounce before flight
-        if (wrap) {
-          wrap.classList.add('exit-anticipate');
-        }
-
-        // Wait 400ms (anticipation finish) -> start ease-in flyout and magic dust path trail
-        setTimeout(function(){
-          if (wrap) {
-            wrap.classList.remove('exit-anticipate');
-            wrap.classList.add('exit-flyout');
-          }
-
-          // Spawn golden magic sparks along the fly-away trail path!
-          var pop = document.getElementById('likedyou-pop');
-          if (pop) {
-            for (var pIdx = 0; pIdx < 15; pIdx++) {
-              (function(sparkIdx){
-                setTimeout(function(){
-                  var spark = document.createElement('div');
-                  spark.className = 'ly-magic-dust';
-                  // Position near center towards bottom-left trail path
-                  var progress = sparkIdx / 15;
-                  var sx = (50 - progress * 40) + 'vw';
-                  var sy = (50 + progress * 35) + 'vh';
-                  spark.style.setProperty('--sx', sx);
-                  spark.style.setProperty('--sy', sy);
-                  spark.style.setProperty('--ex', (parseFloat(sx) + (Math.random() * 20 - 10)) + 'vw');
-                  spark.style.setProperty('--ey', (parseFloat(sy) + (Math.random() * 20 - 10)) + 'vh');
-                  spark.style.animationDuration = '1s';
-                  spark.style.width = '6px';
-                  spark.style.height = '6px';
-                  spark.style.background = '#fbbf24';
-                  spark.style.boxShadow = '0 0 10px #fcd34d';
-                  pop.appendChild(spark);
-                  
-                  // Clean spark
-                  setTimeout(function(){ spark.remove(); }, 1000);
-                }, sparkIdx * 60);
-              })(pIdx);
-            }
-          }
-
-          // 6. Wait 1.3s (fly-out completes), then disolve overlay and remove from DOM
-          setTimeout(function(){
-            if (pop) {
-              pop.style.opacity = '0';
-              setTimeout(function(){
-                pop.remove();
-                var anim = document.getElementById('ly-arrow-anim');
-                if (anim) anim.remove();
-              }, 600);
-            }
-
-            // Reset book opening state
-            _lyBookOpening = false;
-            _lyActivePage = 1;
-          }, 1300);
-
-        }, 400);
-
-      }, 1600);
-    }
-  }, 600);
-}
-
-function acceptLyChoice() {
-  if (_lyChosenIndex === -1) return;
-  var p = _likedYouPicks[_lyChosenIndex];
-  if (!p) return;
-
-  // Add the matchee avatar to match screen
-  var candAv = document.getElementById('ly-match-candidate-avatar');
-  if (candAv) {
-    candAv.innerHTML = '<div class="ly-match-avatar" style="background-image:url(\''+p.photos[0]+'\');background-size:cover;background-position:center;"></div>';
-  }
-
-  // Register match in local database/state (same as showMatch does)
-  var chatId = 'match_' + Date.now();
-  _matchProfiles[chatId] = p;
-  if(typeof _bumpKindness === 'function') _bumpKindness(1);
-  if(typeof blindDateMode !== 'undefined' && blindDateMode) _blindMatchChats[chatId] = 0;
-  
-  chatHistory[chatId] = chatHistory[chatId] || [];
-  chatHistory[chatId]._expires = Date.now() + 86400000;
-  chatHistory[chatId]._matched = p.name;
-  
-  _addMatchChatRow(chatId, p);
-  var badge = document.getElementById('uc-badge') || document.getElementById('nbadge-chats');
-  if(badge){ badge.style.display = 'flex'; badge.textContent = '1'; }
-
-  // Activate match screen overlay
-  var matchOv = document.getElementById('ly-match-overlay');
-  if (matchOv) matchOv.classList.add('active');
-
-  // Spawn flying neon heart particles
-  var pop = document.getElementById('likedyou-pop');
-  if (pop) {
-    for (var i = 0; i < 40; i++) {
-      var heart = document.createElement('span');
-      heart.className = 'ly-heart-particle';
-      heart.innerHTML = '❤️';
-      heart.style.left = '50%';
-      heart.style.top = '50%';
-      
-      // Random direction
-      var angle = Math.random() * Math.PI * 2;
-      var dist = 80 + Math.random() * 260;
-      var dx = Math.cos(angle) * dist;
-      var dy = Math.sin(angle) * dist;
-      
-      heart.style.setProperty('--dx', dx + 'px');
-      heart.style.setProperty('--dy', dy + 'px');
-      heart.style.setProperty('--s', 0.5 + Math.random() * 1.5);
-      heart.style.setProperty('--r', (Math.random() * 360) + 'deg');
-      
-      heart.style.animationDelay = (Math.random() * 0.4) + 's';
-      pop.appendChild(heart);
-    }
-  }
-
-  // Wait 1.8 seconds, then transition to chat
-  setTimeout(function(){
-    var mainPop = document.getElementById('likedyou-pop');
-    if (mainPop) mainPop.remove();
-    var anim = document.getElementById('ly-arrow-anim');
-    if(anim) anim.remove();
-
-    // Redirect to chats tab and open conversation
-    sw('chats', 'Chats');
-    setTimeout(function(){
-      openChat(chatId, p.name+' 💘', p.bg, p.init, false, ['Hey! We matched! 😊'], false);
-    }, 150);
-
-    // Reset state
-    _lyBookOpening = false;
-    _lyChosenIndex = -1;
-    _lyActivePage = 1;
-  }, 1800);
-}
 // ── "Who liked you" reveal — 1 free reveal every 5 days ──
 var LIKED_PER_SWIPES=40;// free users earn 1 reveal per this many swipes (never surfaced to the user)
 function _likedRevealed(){try{return parseInt(localStorage.getItem('ugz_liked_revealed'))||0;}catch(e){return 0;}}
@@ -13428,7 +12890,11 @@ function showMatch(p,isRose){
     firstName: p.name ? p.name.split(' ')[0] : (p.firstName || 'Partner'),
     name: p.name || p.firstName || 'Partner',
     handle: p.handle || '',
-    photo: (p.photos && p.photos[0]) ? (p.photos[0].url || p.photos[0]) : (p.photo || '')
+    photo: (p.photos && p.photos[0]) ? (p.photos[0].url || p.photos[0]) : (p.photo || ''),
+    prompts: p.prompts || [],
+    ints: p.ints || [],
+    major: p.major || '',
+    hometown: p.hometown || ''
   };
   _showMatchOverlay({ matchId: chatId, partner: partnerObj });
   // Pre-create chat
@@ -18707,6 +18173,102 @@ function _openChatAttachmentPicker() {
   fileInp.click();
 }
 
+// ── Shared match-celebration plumbing ──
+// Both the 1:1 match overlay and the Double Date match overlay are full-screen
+// modals that can appear asynchronously; they share the same backdrop-dismiss
+// safety and the same "shrink to a floating badge if ignored" retention hook,
+// so that plumbing lives here once instead of being duplicated per overlay.
+function _attachMatchBackdropDismiss(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+function _scheduleMatchRetentionBadge(overlay, opts) {
+  opts = opts || {};
+  var interacted = false;
+  overlay.addEventListener('click', function(){ interacted = true; }, { once: true });
+  setTimeout(function(){
+    if (interacted || !overlay.parentNode) return;
+    _shrinkMatchToBadge(overlay, opts);
+  }, opts.delay || 4500);
+}
+
+function _shrinkMatchToBadge(overlay, opts) {
+  overlay.style.transition = 'transform 0.4s ease, opacity 0.4s ease';
+  overlay.style.transform = 'scale(0.85)';
+  overlay.style.opacity = '0';
+  setTimeout(function() {
+    if (overlay.parentNode) overlay.remove();
+    var old = document.getElementById('match-retention-badge');
+    if (old) old.remove();
+    var badge = document.createElement('div');
+    badge.id = 'match-retention-badge';
+    badge.style.cssText = 'position:fixed;right:16px;bottom:88px;z-index:99998;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a0a38,#0d061f);border:1.5px solid rgba(240,62,90,0.5);border-radius:999px;padding:8px 14px 8px 8px;box-shadow:var(--el-3);cursor:pointer;animation:ugzBadgeIn 0.35s ease;';
+    var photoHtml = opts.photoUrl
+      ? '<img src="' + opts.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"/>'
+      : '<div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">' + (opts.name || '?').charAt(0) + '</div>';
+    var label = window.currentLang === 'es' ? 'Nuevo match 💘' : 'New match 💘';
+    badge.innerHTML = photoHtml + '<div style="font-size:var(--fs-sm);font-weight:600;color:#fff;">' + label + '</div><div data-badge-close="1" style="margin-left:2px;color:rgba(255,255,255,0.5);font-size:var(--fs-sm);padding:2px 4px;">✕</div>';
+    badge.addEventListener('click', function(e) {
+      if (e.target && e.target.getAttribute('data-badge-close')) { badge.remove(); return; }
+      badge.remove();
+      if (typeof opts.onReopen === 'function') opts.onReopen();
+    });
+    document.body.appendChild(badge);
+  }, 400);
+}
+
+// Reuses the existing icebreaker generator (_genIcebreakers, used in chat) so the
+// "break the ice" suggestion is driven by the same shared-interests/prompts logic
+// already in the app, normalizing whichever partner-object shape the caller has
+// (swipe-deck card vs. DB match partner with a nested `profile`).
+function _matchIcebreakerText(partner) {
+  try {
+    var norm = {
+      name: partner.firstName || partner.name || '',
+      prompts: partner.prompts || (partner.profile && partner.profile.prompts) || [],
+      ints: partner.ints || partner.interests || (partner.profile && partner.profile.interests) || [],
+      major: partner.major || (partner.profile && partner.profile.major) || '',
+      hometown: partner.hometown || (partner.profile && partner.profile.hometown) || ''
+    };
+    var ideas = _genIcebreakers(norm);
+    if (ideas && ideas.length) return ideas[0];
+  } catch(e) {}
+  return window.currentLang === 'es' ? '¡Dile hola y pregúntale qué la trae por el campus! 👋' : 'Say hi and ask what brought them to campus! 👋';
+}
+
+// Small horizontal strip of the user's real recent matches (read from the chat cache
+// that's already loaded at app boot) — real social proof instead of a fabricated counter.
+function _recentMatchesCarouselHtml(excludeMatchId) {
+  try {
+    var cache = window._chatPartnerCache || {};
+    var items = Object.keys(cache).map(function(id){ return { id: id, conv: cache[id] }; })
+      .filter(function(x){ return x.id !== excludeMatchId && x.conv && x.conv.partner; })
+      .sort(function(a, b){
+        var da = a.conv.matchedAt ? new Date(a.conv.matchedAt).getTime() : 0;
+        var db = b.conv.matchedAt ? new Date(b.conv.matchedAt).getTime() : 0;
+        return db - da;
+      })
+      .slice(0, 8);
+    if (!items.length) return '';
+    var thumbs = items.map(function(x) {
+      var p = x.conv.partner;
+      var photo = (p.photos && p.photos[0] && p.photos[0].url) || '';
+      var name = p.firstName || '?';
+      var style = photo
+        ? 'background-image:url(\'' + photo + '\');background-size:cover;background-position:center;'
+        : 'background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;';
+      return '<div style="width:44px;height:44px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,0.25);' + style + '">' + (photo ? '' : name.charAt(0).toUpperCase()) + '</div>';
+    }).join('');
+    var label = window.currentLang === 'es' ? 'Tus matches recientes' : 'Your recent matches';
+    return '<div style="margin-top:18px;">' +
+      '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">' + label + '</div>' +
+      '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;">' + thumbs + '</div>' +
+    '</div>';
+  } catch(e) { return ''; }
+}
+
 function _showMatchOverlay(data) {
   if (!data) return;
   console.log("🎉 Displaying real-time match modal:", data);
@@ -18715,6 +18277,9 @@ function _showMatchOverlay(data) {
   var partnerName = partner.firstName || partner.name || 'someone';
   var partnerPhoto = partner.photo || (partner.photos && partner.photos[0] && partner.photos[0].url) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500';
   var userPhoto = (typeof userPro !== 'undefined' && userPro.photos && userPro.photos[0] && userPro.photos[0].url) || (typeof userPro !== 'undefined' && userPro.p && userPro.p.pic) || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500';
+  var isEs = window.currentLang === 'es';
+  var icebreakerText = _matchIcebreakerText(partner);
+  var hookText = isEs ? 'Los primeros mensajes reciben 3x más respuestas' : 'The first message gets 3x more replies';
 
   if (typeof notifData !== 'undefined') {
     // Evita duplicar la notificación de match de la misma persona.
@@ -18734,35 +18299,38 @@ function _showMatchOverlay(data) {
 
   var oldM = document.getElementById('live-match-modal');
   if (oldM) oldM.remove();
+  var oldBadge = document.getElementById('match-retention-badge');
+  if (oldBadge) oldBadge.remove();
 
   var overlay = document.createElement('div');
   overlay.id = 'live-match-modal';
   overlay.className = 'ugz-modal-overlay ugz-open open';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(10,5,22,0.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);opacity:1 !important;visibility:visible !important;pointer-events:auto !important;';
+  // backdrop-filter blur is one of the priciest CSS effects to composite; 8px reads
+  // just as "glassy" as 16px here but is noticeably cheaper per frame.
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(10,5,22,0.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:1 !important;visibility:visible !important;pointer-events:auto !important;';
   overlay.innerHTML = `
-    <div class="ugz-modal-card type-confirm" style="max-width:380px;text-align:center;padding:30px 22px;background:linear-gradient(145deg, #0d061f, #1a0a38);border:1.5px solid rgba(240,62,90,0.45);box-shadow:var(--el-3);animation:ugzPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275);">
-      <div style="font-size:42px;margin-bottom:6px;);">🎉</div>
-      <div style="font-size:var(--fs-2xl);font-weight:900;background:#791515;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;font-family:var(--font-serif);letter-spacing:0.5px;">IT'S A MATCH!</div>
-      <div style="font-size:var(--fs-base);color:rgba(255,255,255,0.85);margin-bottom:22px;line-height:1.4;">You and <strong style="color:#fff;font-weight:600;">${partnerName}</strong> liked each other!</div>
-
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:26px;">
-        <div style="width:76px;height:76px;border-radius:50%;padding:3px;background:#791515;box-shadow:var(--el-2);">
+    <div class="ugz-modal-card type-confirm" style="max-width:380px;text-align:center;padding:30px 22px;background:linear-gradient(145deg, #0d061f, #1a0a38);border:1.5px solid rgba(240,62,90,0.45);box-shadow:var(--el-3);animation:ugzPopIn 0.25s ease;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px;height:88px;position:relative;">
+        <div id="match-impact-ring" style="position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(240,62,90,0.75);opacity:0;pointer-events:none;"></div>
+        <div id="match-photo-user" style="width:82px;height:82px;border-radius:50%;padding:3px;background:#791515;box-shadow:var(--el-2);transform:translateX(-60px);opacity:0;transition:transform 0.5s cubic-bezier(.2,.8,.2,1),opacity 0.4s ease;will-change:transform,opacity;">
           <img src="${userPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"/>
         </div>
-        <div style="font-size:var(--fs-xl);color:#dc2626;animation:pulse 1s infinite;">❤️</div>
-        <div style="width:76px;height:76px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));box-shadow:var(--el-2);">
+        <div id="match-photo-partner" style="width:82px;height:82px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));box-shadow:var(--el-2);transform:translateX(60px);opacity:0;transition:transform 0.5s cubic-bezier(.2,.8,.2,1),opacity 0.4s ease;will-change:transform,opacity;">
           <img src="${partnerPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"/>
         </div>
       </div>
+      <div style="font-size:var(--fs-2xl);font-weight:900;background:#791515;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;font-family:var(--font-serif);letter-spacing:0.5px;">${isEs ? '¡Match con ' + partnerName + '!' : 'Match with ' + partnerName + '!'}</div>
+      <div id="match-hook-text" style="font-size:var(--fs-sm);color:rgba(255,255,255,0.65);margin-bottom:22px;min-height:1.4em;font-weight:600;"></div>
 
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button id="live-match-btn-chat" class="ugz-modal-btn ugz-modal-btn-confirm" style="background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:#fff;border:none;font-weight:600;padding:13px;border-radius:var(--rad-md);cursor:pointer;font-size:var(--fs-base);box-shadow:var(--el-2);">
-          💬 Send Message
+          🧊 ${isEs ? 'Rompe el hielo' : 'Break the ice'}
         </button>
         <button id="live-match-btn-close" class="ugz-modal-btn ugz-modal-btn-cancel" style="background:rgba(255,255,255,0.08);color:var(--fg2);border:1px solid rgba(255,255,255,0.14);font-weight:500;padding:11px;border-radius:var(--rad-md);cursor:pointer;font-size:var(--fs-base);">
-          Keep Swiping
+          ${isEs ? 'Seguir explorando' : 'Keep exploring'}
         </button>
       </div>
+      ${_recentMatchesCarouselHtml(matchId)}
     </div>
   `;
 
@@ -18773,9 +18341,42 @@ function _showMatchOverlay(data) {
   // backdrop-close it swallows every tap that misses its two buttons,
   // producing "random dead taps, must tap several times". Allow a tap
   // on the backdrop to dismiss it.
-  overlay.addEventListener('click', function(e) {
-    if (e.target === overlay) overlay.remove();
+  _attachMatchBackdropDismiss(overlay);
+
+  // Staggered, not simultaneous: the previous version slid the photos in AND
+  // spawned an 18-node full-screen confetti burst (invisible behind this very
+  // overlay's z-index, pure wasted compositor work) AND started typing the hook
+  // text, all inside the same ~600ms window — on a mid-range machine that's
+  // enough concurrent transform/paint work to drop frames and read as "janky"
+  // instead of "impactful". Now only one animated thing runs at a time:
+  // 1) photos slide in (transform/opacity, 2 elements) →
+  // 2) a single impact ring pulses once the photos meet (transform/opacity, 1 element) →
+  // 3) hook text types out (text-only, no layout cost) once the ring is fading.
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      var up = document.getElementById('match-photo-user');
+      var pp = document.getElementById('match-photo-partner');
+      if (up) { up.style.transform = 'translateX(0)'; up.style.opacity = '1'; }
+      if (pp) { pp.style.transform = 'translateX(0)'; pp.style.opacity = '1'; }
+    });
   });
+  setTimeout(function(){
+    var ring = document.getElementById('match-impact-ring');
+    if (ring) {
+      ring.style.animation = 'matchImpactRing 0.5s ease-out forwards';
+    }
+  }, 480);
+  setTimeout(function(){
+    var hookEl = document.getElementById('match-hook-text');
+    if (hookEl) {
+      var i = 0;
+      var iv = setInterval(function(){
+        hookEl.textContent += hookText.charAt(i);
+        i++;
+        if (i >= hookText.length) clearInterval(iv);
+      }, 20);
+    }
+  }, 700);
 
   var chatBtn = document.getElementById('live-match-btn-chat');
   if (chatBtn) {
@@ -18783,7 +18384,11 @@ function _showMatchOverlay(data) {
       overlay.remove();
       if (typeof sw === 'function') sw('chats', 'Chats');
       if (matchId && typeof openChat === 'function') {
-        openChat(matchId, partnerName, '#dc2626', '❤️', false, ['Say hello to ' + partnerName + '! 🎉'], false);
+        openChat(matchId, partnerName, '#dc2626', '❤️', false, [], false);
+        setTimeout(function(){
+          var inp = document.getElementById('cinp');
+          if (inp) { inp.value = icebreakerText; inp.focus(); }
+        }, 200);
       }
     };
   }
@@ -18794,6 +18399,15 @@ function _showMatchOverlay(data) {
       overlay.remove();
     };
   }
+
+  _scheduleMatchRetentionBadge(overlay, {
+    photoUrl: partnerPhoto,
+    name: partnerName,
+    onReopen: function() {
+      if (typeof sw === 'function') sw('chats', 'Chats');
+      if (matchId && typeof openChat === 'function') openChat(matchId, partnerName, '#dc2626', '❤️', false, [], false);
+    }
+  });
 
   if (typeof fetchAndRenderChats === 'function') {
     fetchAndRenderChats();
@@ -23976,9 +23590,13 @@ function showDoubleDateMatch(pA,pB){
     '<button class="gbtn-ghost" style="width:100%;" onclick="document.getElementById(\'dd-match-overlay\').remove();">Maybe later</button>'+
     '</div>';
   document.body.appendChild(overlay);
-  // Backdrop-close safety: full-screen overlay must never trap taps if
-  // it appears at an unexpected moment (see live-match-modal note).
-  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
+  // Backdrop-close safety + reengagement badge: shared with the 1:1 match
+  // overlay (see _attachMatchBackdropDismiss / _scheduleMatchRetentionBadge).
+  _attachMatchBackdropDismiss(overlay);
+  _scheduleMatchRetentionBadge(overlay, {
+    name: 'Double Date',
+    onReopen: function(){ showDoubleDateMatch(pA, pB); }
+  });
   window._ddPair={a:pA,b:pB,swapped:false};
   _renderDdPairing();
 }

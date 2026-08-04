@@ -1,0 +1,220 @@
+/* ════════════════════════════════════════════════════════════════════════
+   UNDRGRADZ — /plans (A+ pricing page)
+   Reproduces the app's "PLANS" screen (see app.js showPlansForGender()).
+   Tokens are scoped to .ap-page so they don't collide with landing.css's
+   own --ease/--fg2/--fg3 root variables.
+   ════════════════════════════════════════════════════════════════════════ */
+
+.ap-page {
+  --fs-2xs: 10px;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 14px;
+  --fs-md: 16px;
+  --fs-xl: 22px;
+  --rad-sm: 10px;
+  --rad-md: 12px;
+  --rad-lg: 16px;
+  --rad-xl: 18px;
+  --accent: #f59e0b;
+  --accent-deep: #791515;
+  --el-3: 0 12px 32px rgba(0, 0, 0, 0.4);
+  --ap-dur: 0.2s;
+  --ap-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  padding: clamp(120px, 16vh, 180px) var(--gutter) 100px;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* ── Banner ────────────────────────────────────────────────────────────── */
+.ap-page .ap-banner {
+  width: 100%;
+  height: auto;
+  border-radius: var(--rad-xl);
+  display: block;
+  box-shadow: 0 10px 34px -10px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.ap-page .ap-heading {
+  text-align: center;
+  font-size: var(--fs-base);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #fbbf24, #f59e0b, #dc2626);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 28px 0 18px;
+}
+
+/* ── Privilege grid ────────────────────────────────────────────────────── */
+.ap-page .ap-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin-bottom: 24px;
+}
+.ap-page .ap-feat {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 11px;
+  border-radius: var(--rad-md);
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--hue) 9%, #0a0518), #0a0518) padding-box,
+    linear-gradient(135deg, var(--hue), color-mix(in srgb, var(--hue) 45%, #fff)) border-box;
+  box-shadow:
+    inset 0 0 12px color-mix(in srgb, var(--hue) 12%, transparent),
+    0 0 10px -4px color-mix(in srgb, var(--hue) 55%, transparent);
+}
+.ap-page .ap-feat-ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--hue) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hue) 35%, transparent);
+}
+.ap-page .ap-feat-body { min-width: 0; flex: 1; text-align: left; }
+.ap-page .ap-feat-title { font-size: var(--fs-sm); font-weight: 600; color: #fff; line-height: 1.3; word-break: break-word; }
+.ap-page .ap-feat-sub { font-size: var(--fs-2xs); color: var(--fg2); line-height: 1.3; margin-top: 2px; word-break: break-word; }
+
+@media (max-width: 480px) {
+  .ap-page .ap-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Price cards ───────────────────────────────────────────────────────── */
+.ap-page .ap-plans {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin: 8px 0 28px;
+}
+.ap-page .ap-plan {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--rad-lg);
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hue) 11%, #0a0518), #0a0518) padding-box,
+    linear-gradient(160deg, var(--hue), color-mix(in srgb, var(--hue) 46%, #fff)) border-box;
+  box-shadow:
+    inset 0 0 16px color-mix(in srgb, var(--hue) 20%, transparent),
+    0 9px 22px -12px color-mix(in srgb, var(--hue) 60%, transparent);
+  padding: 18px 4px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: box-shadow var(--ap-dur) var(--ap-ease), transform var(--ap-dur) var(--ap-ease), border-width var(--ap-dur) var(--ap-ease);
+}
+.ap-page .ap-plan.is-rec {
+  flex: 1.28;
+  padding: 22px 4px 16px;
+  border-width: 2px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hue) 15%, #0a0518), #0a0518) padding-box,
+    linear-gradient(160deg, var(--hue), color-mix(in srgb, var(--hue) 55%, #fff)) border-box;
+  box-shadow:
+    inset 0 0 16px color-mix(in srgb, var(--hue) 28%, transparent),
+    0 9px 22px -12px color-mix(in srgb, var(--hue) 80%, transparent);
+}
+.ap-page .ap-plan.selected {
+  border-width: 2px;
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--hue) 18%, #0a0518), #0a0518) padding-box,
+    linear-gradient(160deg, var(--hue), color-mix(in srgb, var(--hue) 68%, #fff)) border-box;
+  box-shadow:
+    inset 0 0 16px color-mix(in srgb, var(--hue) 34%, transparent),
+    0 9px 22px -12px color-mix(in srgb, var(--hue) 90%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--hue) 45%, transparent);
+}
+
+.ap-page .ap-plan-badge {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--hue), color-mix(in srgb, var(--hue) 50%, #fff));
+  color: #0a0518;
+  padding: 3px 9px;
+  border-radius: var(--rad-sm);
+  white-space: nowrap;
+  letter-spacing: 0.4px;
+  z-index: 2;
+  box-shadow: 0 3px 10px -3px color-mix(in srgb, var(--hue) 70%, transparent);
+}
+.ap-page .ap-plan-check {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: var(--hue);
+  color: #0a0518;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 0 9px var(--hue);
+  z-index: 3;
+}
+.ap-page .ap-plan.selected .ap-plan-check { display: flex; }
+
+.ap-page .ap-plan-title { font-size: var(--fs-xs); font-weight: 700; color: #fff; margin-bottom: 6px; }
+.ap-page .ap-plan-price { font-size: var(--fs-xl); font-weight: 900; color: #fff; }
+.ap-page .ap-plan-unit { font-size: var(--fs-2xs); color: rgba(255, 255, 255, 0.6); margin-top: 2px; }
+.ap-page .ap-plan-sub {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  color: var(--hue);
+  margin-top: 10px;
+}
+
+@media (max-width: 480px) {
+  .ap-page .ap-plans { flex-direction: column; }
+  .ap-page .ap-plan.is-rec { flex: 1; }
+}
+
+/* ── CTA ───────────────────────────────────────────────────────────────── */
+.ap-page .gbtn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--rad-md);
+  border: none;
+  font-family: var(--font);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  box-shadow: var(--el-3);
+  transition: transform var(--ap-dur);
+}
+.ap-page .gbtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ap-page .gbtn:active { transform: scale(0.97); }
+
+.ap-page .ap-cancel {
+  font-size: var(--fs-xs);
+  color: var(--fg3);
+  text-align: center;
+  margin: 10px 0 0;
+}

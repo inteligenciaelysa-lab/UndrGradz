@@ -21,6 +21,7 @@
     {
       "target": "landing",
       "public": "www-landing",
+      "cleanUrls": true,
       "ignore": [
         "firebase.json",
         "**/.*",
