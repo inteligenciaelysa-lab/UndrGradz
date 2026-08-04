@@ -20,6 +20,7 @@ const rateLimit = require('express-rate-limit');
 const AppError = require('./errors/appError');
 const { recordSystemError } = require('./services/systemHealth.service');
 const path = require('path');
+const { corsOriginCallback } = require('./config/cors');
 
 // 1. Global Rate Limiter (100 requests per 15 mins)
 const globalLimiter = rateLimit({
@@ -53,12 +54,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || origin === 'null') {
-      return callback(null, true);
-    }
-    return callback(null, origin);
-  },
+  origin: corsOriginCallback,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'x-refresh-token']

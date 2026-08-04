@@ -4,13 +4,14 @@ const { verifyAccessToken } = require('./utils/jwt');
 const prisma = require('./database/prisma');
 const { validateAudioFile } = require('./utils/audioValidator');
 const { pubClient, subClient, isRedisEnabled } = require('./config/redis');
+const { corsOriginCallback } = require('./config/cors');
 
 let ioInstance;
 
 const setupSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: (origin, callback) => callback(null, origin || true),
+      origin: corsOriginCallback,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
     },

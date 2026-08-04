@@ -113,6 +113,8 @@ Cloud Run tiene varias particularidades que afectan a conexiones persistentes co
 
 ## 6. Desplegar
 
+`ALLOWED_ORIGINS` (ver sección 10) contiene comas dentro del valor, lo cual choca con el delimitador `,` por defecto de `--set-env-vars`. Se usa el delimitador alternativo `^##^` para evitar el conflicto:
+
 ```bash
 gcloud run deploy undrgradz-backend \
   --image=REGION-docker.pkg.dev/PROJECT_ID/undrgradz-repo/backend:latest \
@@ -127,7 +129,7 @@ gcloud run deploy undrgradz-backend \
   --no-cpu-throttling \
   --concurrency=250 \
   --cpu=1 --memory=2Gi \
-  --set-env-vars=NODE_ENV=production,GCS_BUCKET_NAME=your-bucket,FIREBASE_PROJECT_ID=your-project,FIREBASE_CLIENT_EMAIL=your-sa@your-project.iam.gserviceaccount.com,STREAM_APP_KEY=your-stream-key,REDIS_URL=redis://REDIS_HOST:6379 \
+  --set-env-vars="^##^NODE_ENV=production##GCS_BUCKET_NAME=your-bucket##FIREBASE_PROJECT_ID=your-project##FIREBASE_CLIENT_EMAIL=your-sa@your-project.iam.gserviceaccount.com##STREAM_APP_KEY=your-stream-key##REDIS_URL=redis://REDIS_HOST:6379##ALLOWED_ORIGINS=https://undrgradz.com,https://app.undrgradz.com,https://admin.undrgradz.com,https://api.undrgradz.com" \
   --set-secrets=DATABASE_URL=DATABASE_URL:latest,JWT_ACCESS_SECRET=JWT_ACCESS_SECRET:latest,JWT_REFRESH_SECRET=JWT_REFRESH_SECRET:latest,STREAM_APP_SECRET=STREAM_APP_SECRET:latest,FIREBASE_PRIVATE_KEY=FIREBASE_PRIVATE_KEY:latest
 ```
 
@@ -161,14 +163,31 @@ curl -i "$SERVICE_URL/nonexistent"
 
 Para Socket.io, conectar un cliente con un JWT válido contra `$SERVICE_URL` y confirmar que el handshake tiene éxito y que se reciben eventos (`messageReceived`, `newMatch`, etc.). Si se corre con más de una instancia, forzar tráfico a dos instancias distintas (ej. con `--min-instances=2` temporalmente) y verificar que un mensaje enviado desde un socket conectado a una instancia llega a un receptor conectado a otra — eso confirma que el adaptador Redis está sincronizando correctamente.
 
-## 9. Rollback
+## 9. Dominio personalizado: api.undrgradz.com
+
+```bash
+gcloud beta run domain-mappings create \
+  --service=undrgradz-backend \
+  --domain=api.undrgradz.com \
+  --region=REGION
+```
+
+El comando queda pendiente de verificación de propiedad del dominio (si `undrgradz.com` no está ya verificado en la cuenta de Google/Search Console asociada al proyecto) y luego imprime los registros DNS exactos (típicamente `CNAME` hacia `ghs.googlehosted.com`) que hay que dar de alta en el proveedor DNS. Para volver a consultarlos en cualquier momento:
+
+```bash
+gcloud beta run domain-mappings describe --domain=api.undrgradz.com --region=REGION
+```
+
+No agregar el registro DNS en el proveedor hasta tener la salida exacta de este comando — los valores no son genéricos, dependen del proyecto y la verificación de dominio.
+
+## 10. Rollback
 
 ```bash
 gcloud run services update-traffic undrgradz-backend --region=REGION --to-revisions=PREVIOUS_REVISION=100
 ```
 
-## 10. Limitaciones conocidas / mejoras opcionales (no aplicadas en esta preparación)
+## 11. Limitaciones conocidas / mejoras opcionales (no aplicadas en esta preparación)
 
-- **CORS permisivo por diseño**: tanto Express (`src/app.js`) como Socket.io (`src/socket.js`) reflejan cualquier `Origin` entrante en vez de usar un allowlist fijo. Ya funciona con el dominio de producción sin cambios, pero es más permisivo que un allowlist explícito — considerar restringirlo a una variable `FRONTEND_URL`/`ALLOWED_ORIGINS` más adelante si se quiere endurecer.
+- **CORS con allowlist explícito** (`src/config/cors.js`, usado por `src/app.js` y `src/socket.js`): en producción (`NODE_ENV=production` o Cloud Run vía `K_SERVICE`) solo se aceptan los orígenes listados en `ALLOWED_ORIGINS` (por defecto `undrgradz.com`, `app.undrgradz.com`, `admin.undrgradz.com`, `api.undrgradz.com`). Fuera de producción se sigue reflejando cualquier `Origin`, para no tener que listar cada host de desarrollo/LAN.
 - **`morgan('dev')`** corre siempre, sin distinguir `NODE_ENV` — genera logs con colores ANSI en Cloud Logging (cosmético, no funcional).
 - **Tamaño de Redis/Cloud Run**: los valores de CPU/memoria/tamaño de Redis en esta guía son un punto de partida; ajustar según el volumen real de usuarios concurrentes y monitorear en Cloud Monitoring antes de fijar un tamaño definitivo.

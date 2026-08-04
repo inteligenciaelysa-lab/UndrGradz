@@ -10,6 +10,12 @@ firebase-debug.*.log*
 # Firebase cache
 .firebase/
 
+# Generated Hosting bundles (built by build.js, not source)
+www/
+www-app/
+www-admin/
+www-landing/
+
 # Firebase config
 
 # Uncomment this if you'd like others to create their own Firebase project.

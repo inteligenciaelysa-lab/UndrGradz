@@ -8,7 +8,7 @@ class AdminApiClient {
     const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || window.location.port === '8080';
     const host = (hostname === 'localhost' || hostname === '127.0.0.1') ? hostname : 'localhost';
     
-    const remoteUrl = 'https://undrgradz-backend-844863735752.us-central1.run.app';
+    const remoteUrl = 'https://api.undrgradz.com';
     this.baseUrl = isLocal
       ? `http://${host}:3000/api/v1/admin`
       : `${remoteUrl}/api/v1/admin`;

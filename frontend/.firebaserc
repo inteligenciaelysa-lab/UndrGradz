@@ -1,5 +1,21 @@
 {
   "projects": {
     "default": "undrgradz"
-  }
+  },
+  "targets": {
+    "undrgradz": {
+      "hosting": {
+        "app": [
+          "undrgradz-app"
+        ],
+        "admin": [
+          "undrgradz-admin"
+        ],
+        "landing": [
+          "undrgradz-landing"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
