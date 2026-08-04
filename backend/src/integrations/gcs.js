@@ -51,7 +51,10 @@ const generateUploadSignedUrl = async (userId, contentType = 'image/jpeg', req =
     contentType,
   });
 
-  const publicUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${fileName}`;
+  const protocol = (req && req.headers && req.headers['x-forwarded-proto']) || (req ? req.protocol : 'http');
+  const host = (req && req.headers && req.headers['x-forwarded-host']) || (req ? req.get('host') : 'localhost:3000');
+  const baseUrl = `${protocol}://${host}`;
+  const publicUrl = `${baseUrl}/api/v1/media?path=${encodeURIComponent(fileName)}`;
 
   return {
     uploadUrl: url,
@@ -103,7 +106,10 @@ const generateChatAudioSignedUrl = async (userId, matchId, contentType = 'audio/
     contentType,
   });
 
-  const publicUrl = `https://storage.googleapis.com/${process.env.GCS_BUCKET_NAME}/${fileName}`;
+  const protocol = (req && req.headers && req.headers['x-forwarded-proto']) || (req ? req.protocol : 'http');
+  const host = (req && req.headers && req.headers['x-forwarded-host']) || (req ? req.get('host') : 'localhost:3000');
+  const baseUrl = `${protocol}://${host}`;
+  const publicUrl = `${baseUrl}/api/v1/media?path=${encodeURIComponent(fileName)}`;
 
   return {
     uploadUrl: url,
@@ -112,9 +118,26 @@ const generateChatAudioSignedUrl = async (userId, matchId, contentType = 'audio/
   };
 };
 
+/**
+ * Generates a short-lived signed URL to read a private object from Google Cloud Storage.
+ * Only used in production GCP mode (the bucket is private by design).
+ * @param {string} fileName - The object path within the bucket
+ * @returns {Promise<string>} A v4 signed URL valid for 15 minutes
+ */
+const getSignedReadUrlByFileName = async (fileName) => {
+  const file = bucket.file(fileName);
+  const [url] = await file.getSignedUrl({
+    version: 'v4',
+    action: 'read',
+    expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+  });
+  return url;
+};
+
 module.exports = {
   generateUploadSignedUrl,
   generateChatAudioSignedUrl,
+  getSignedReadUrlByFileName,
   isProductionGCP,
 };
 
