@@ -187,7 +187,7 @@ class UserService {
     return profile;
   }
 
-  async addPhoto(userId, contentType) {
+  async addPhoto(userId, contentType, req) {
     // 1. Get current number of photos to determine sequential order
     const photoCount = await prisma.photo.count({
       where: { userId },
@@ -198,7 +198,7 @@ class UserService {
     }
 
     // 2. Generate signed upload URL and public CDN URL
-    const { uploadUrl, publicUrl } = await generateUploadSignedUrl(userId, contentType);
+    const { uploadUrl, publicUrl } = await generateUploadSignedUrl(userId, contentType, req);
 
     // 3. Register the photo in database
     const photo = await prisma.photo.create({

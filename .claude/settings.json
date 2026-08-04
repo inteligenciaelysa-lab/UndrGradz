@@ -73,7 +73,8 @@
       "Bash(wmic process *)",
       "Bash(taskkill //F //PID 3060 //PID 5560 //PID 14312)",
       "Bash(taskkill //F //PID 20120)",
-      "Bash(docker version *)"
+      "Bash(docker version *)",
+      "Bash(node -e \"require\\('./src/app.js'\\); console.log\\('app.js loaded OK'\\)\")"
     ]
   }
 }

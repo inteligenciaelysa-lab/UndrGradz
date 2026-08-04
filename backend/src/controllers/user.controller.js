@@ -80,7 +80,7 @@ class UserController {
         throw new AppError(messages, 400);
       }
 
-      const { uploadUrl, publicUrl, photo } = await userService.addPhoto(userId, parseResult.data.contentType);
+      const { uploadUrl, publicUrl, photo } = await userService.addPhoto(userId, parseResult.data.contentType, req);
 
       res.status(201).json({
         status: 'success',
