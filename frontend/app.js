@@ -18269,8 +18269,17 @@ function _recentMatchesCarouselHtml(excludeMatchId) {
   } catch(e) { return ''; }
 }
 
+var _matchOverlayTimers = [];
 function _showMatchOverlay(data) {
   if (!data) return;
+  // A single match reliably fires this 2-3 times (the 'newMatch' socket event,
+  // the 'newMatch_broadcast' fallback, and the swiper's own HTTP isMatch:true
+  // response all call this for the same match). Without cancelling the previous
+  // call's scheduled ring/typing timers, the orphaned interval keeps typing into
+  // the new overlay's #match-hook-text (same id) concurrently with the new one,
+  // interleaving characters into garbled/duplicated text.
+  _matchOverlayTimers.forEach(function(t){ clearTimeout(t); clearInterval(t); });
+  _matchOverlayTimers = [];
   console.log("🎉 Displaying real-time match modal:", data);
   var partner = data.partner || {};
   var matchId = data.matchId || '';
@@ -18360,13 +18369,13 @@ function _showMatchOverlay(data) {
       if (pp) { pp.style.transform = 'translateX(0)'; pp.style.opacity = '1'; }
     });
   });
-  setTimeout(function(){
+  _matchOverlayTimers.push(setTimeout(function(){
     var ring = document.getElementById('match-impact-ring');
     if (ring) {
       ring.style.animation = 'matchImpactRing 0.5s ease-out forwards';
     }
-  }, 480);
-  setTimeout(function(){
+  }, 480));
+  _matchOverlayTimers.push(setTimeout(function(){
     var hookEl = document.getElementById('match-hook-text');
     if (hookEl) {
       var i = 0;
@@ -18375,8 +18384,9 @@ function _showMatchOverlay(data) {
         i++;
         if (i >= hookText.length) clearInterval(iv);
       }, 20);
+      _matchOverlayTimers.push(iv);
     }
-  }, 700);
+  }, 700));
 
   var chatBtn = document.getElementById('live-match-btn-chat');
   if (chatBtn) {

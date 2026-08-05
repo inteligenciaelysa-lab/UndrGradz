@@ -456,37 +456,39 @@ class SwipeService {
           },
         });
 
-        // Trigger real-time WebSocket match notification for both users
+        // Trigger real-time WebSocket match notification for both users. Built
+        // outside the try so payloadForSender.partner is still available below
+        // for the HTTP response, even if the socket emit itself fails.
+        const partnerForSender = match.userOneId === senderId ? match.userTwo : match.userOne;
+        const partnerForReceiver = match.userOneId === receiverId ? match.userTwo : match.userOne;
+
+        const payloadForSender = {
+          matchId: match.id,
+          partner: {
+            id: partnerForSender.id,
+            name: `${partnerForSender.firstName} ${partnerForSender.lastName || ''}`.trim(),
+            firstName: partnerForSender.firstName,
+            handle: partnerForSender.profile?.handle || `@${partnerForSender.firstName.toLowerCase()}`,
+            university: partnerForSender.profile?.university || '',
+            major: partnerForSender.profile?.major || '',
+            photo: partnerForSender.photos?.[0]?.url || partnerForSender.profile?.avatarUrl || ''
+          }
+        };
+
+        const payloadForReceiver = {
+          matchId: match.id,
+          partner: {
+            id: partnerForReceiver.id,
+            name: `${partnerForReceiver.firstName} ${partnerForReceiver.lastName || ''}`.trim(),
+            firstName: partnerForReceiver.firstName,
+            handle: partnerForReceiver.profile?.handle || `@${partnerForReceiver.firstName.toLowerCase()}`,
+            university: partnerForReceiver.profile?.university || '',
+            major: partnerForReceiver.profile?.major || '',
+            photo: partnerForReceiver.photos?.[0]?.url || partnerForReceiver.profile?.avatarUrl || ''
+          }
+        };
+
         try {
-          const partnerForSender = match.userOneId === senderId ? match.userTwo : match.userOne;
-          const partnerForReceiver = match.userOneId === receiverId ? match.userTwo : match.userOne;
-
-          const payloadForSender = {
-            matchId: match.id,
-            partner: {
-              id: partnerForSender.id,
-              name: `${partnerForSender.firstName} ${partnerForSender.lastName || ''}`.trim(),
-              firstName: partnerForSender.firstName,
-              handle: partnerForSender.profile?.handle || `@${partnerForSender.firstName.toLowerCase()}`,
-              university: partnerForSender.profile?.university || '',
-              major: partnerForSender.profile?.major || '',
-              photo: partnerForSender.photos?.[0]?.url || partnerForSender.profile?.avatarUrl || ''
-            }
-          };
-
-          const payloadForReceiver = {
-            matchId: match.id,
-            partner: {
-              id: partnerForReceiver.id,
-              name: `${partnerForReceiver.firstName} ${partnerForReceiver.lastName || ''}`.trim(),
-              firstName: partnerForReceiver.firstName,
-              handle: partnerForReceiver.profile?.handle || `@${partnerForReceiver.firstName.toLowerCase()}`,
-              university: partnerForReceiver.profile?.university || '',
-              major: partnerForReceiver.profile?.major || '',
-              photo: partnerForReceiver.photos?.[0]?.url || partnerForReceiver.profile?.avatarUrl || ''
-            }
-          };
-
           const { notifyMatchCreated } = require('../socket');
           notifyMatchCreated(senderId, receiverId, payloadForSender, payloadForReceiver);
         } catch(e) {
@@ -517,6 +519,7 @@ class SwipeService {
         return {
           isMatch: true,
           match,
+          partner: payloadForSender.partner,
         };
       }
     }
