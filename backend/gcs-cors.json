@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://undrgradz.com",
+      "https://app.undrgradz.com",
+      "https://admin.undrgradz.com",
+      "https://api.undrgradz.com"
+    ],
+    "method": ["GET", "PUT", "HEAD"],
+    "responseHeader": ["Content-Type", "x-goog-resumable"],
+    "maxAgeSeconds": 3600
+  }
+]

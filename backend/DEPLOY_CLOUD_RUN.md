@@ -140,6 +140,22 @@ La cuenta de servicio que ejecuta la revisión de Cloud Run necesita:
 
 No se necesita `GOOGLE_APPLICATION_CREDENTIALS` — Cloud Run inyecta automáticamente `K_SERVICE`, que el backend usa como señal de "modo producción" junto con `NODE_ENV=production`, y la librería de GCS se autentica sola vía la cuenta de servicio adjunta (ADC).
 
+### CORS del bucket de subida de fotos/audios
+
+Las subidas de foto de perfil y audio de chat van directo del navegador al bucket vía signed URL (PUT), sin pasar por el backend — por eso el bucket necesita su **propio** CORS, independiente del `ALLOWED_ORIGINS` del backend (sección 10). Sin esto, el PUT falla en el navegador con `TypeError: Failed to fetch` / `net::ERR_FAILED` aunque el signed URL sea válido.
+
+Configurar con `backend/gcs-cors.json` (mismos 4 orígenes de producción):
+
+```bash
+gcloud storage buckets update gs://YOUR_BUCKET_NAME --cors-file=backend/gcs-cors.json
+```
+
+Verificar que quedó aplicado:
+
+```bash
+gcloud storage buckets describe gs://YOUR_BUCKET_NAME --format="default(cors_config)"
+```
+
 ## 7. Migraciones de Prisma
 
 Ejecutar contra Cloud SQL vía Auth Proxy desde una máquina de confianza o Cloud Shell (no desde dentro del contenedor de Cloud Run en cada arranque):
