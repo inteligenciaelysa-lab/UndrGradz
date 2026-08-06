@@ -8,6 +8,7 @@ const router = Router();
 router.use(protect);
 
 router.post('/purchase', billingController.purchasePremium);
+router.post('/cancel', billingController.cancelSubscription);
 router.post('/boost', billingController.activateBoost);
 
 module.exports = router;

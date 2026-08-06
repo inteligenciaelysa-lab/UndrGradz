@@ -8,6 +8,13 @@ const AppError = require('../errors/appError');
 const purchaseSchema = z.object({
   tier: z.enum(['GOLD', 'PLATINUM', 'FREE', 'APLUS']),
   period: z.enum(['mo', '6mo', 'yr']).optional(),
+  payment: z.object({
+    provider: z.string().optional(),
+    card: z.object({
+      last4: z.string().optional(),
+      expiry: z.string().optional(),
+    }).optional(),
+  }).optional(),
 });
 
 class BillingController {
@@ -22,8 +29,22 @@ class BillingController {
         throw new AppError(messages, 400);
       }
 
-      const { tier, period } = parseResult.data;
-      const result = await billingService.purchasePremium(userId, tier, period);
+      const { tier, period, payment } = parseResult.data;
+      const result = await billingService.purchasePremium(userId, tier, period, payment);
+
+      res.status(200).json({
+        status: 'success',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async cancelSubscription(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const result = await billingService.cancelSubscription(userId);
 
       res.status(200).json({
         status: 'success',

@@ -841,10 +841,15 @@ class AdminService {
    * Explicit status values: 'AVAILABLE', 'PENDING', 'INTEGRATED', 'SUSPENDED'
    * Lightweight paginated query omitting heavy coverPhotos array for list views.
    */
-  async getUniversities({ search, status, type, country, state, city, isOfficial, isDeleted, page = 1, limit = 20 }) {
+  async getUniversities({ search, status, type, country, state, city, isOfficial, isDeleted, page = 1, limit = 20, sortBy, sortOrder }) {
     const pageNum = Math.max(1, Number(page) || 1);
-    const limitNum = Math.min(100, Math.max(1, Number(limit) || 20));
+    const limitNum = Math.min(1000, Math.max(1, Number(limit) || 20));
     const skip = (pageNum - 1) * limitNum;
+
+    // Whitelist: studentCount is sorted in JS post-query since it's a derived aggregate.
+    const sortableFields = ['name', 'createdAt', 'status', 'studentCount'];
+    const sortField = sortableFields.includes(sortBy) ? sortBy : 'name';
+    const sortDir = sortOrder === 'desc' ? 'desc' : 'asc';
 
     const where = {};
     if (isDeleted === 'true') {
@@ -875,13 +880,16 @@ class AdminService {
       ];
     }
 
+    // studentCount is a derived aggregate, not a DB column, so it can't be
+    // sorted/paginated at the DB level without materializing every match.
+    // Sorting by it is applied in-memory on the current page below.
     const [total, universities] = await Promise.all([
       prisma.university.count({ where }),
       prisma.university.findMany({
         where,
         skip,
         take: limitNum,
-        orderBy: { name: 'asc' },
+        orderBy: sortField === 'studentCount' ? { name: 'asc' } : { [sortField]: sortDir },
         select: {
           id: true,
           domain: true,
@@ -900,29 +908,52 @@ class AdminService {
           isDeleted: true,
           createdAt: true,
           updatedAt: true,
-          userProfiles: { select: { id: true } },
         },
       }),
     ]);
 
-    const enrichedUniversities = await Promise.all(universities.map(async u => {
-      const studentCount = await prisma.user.count({
-        where: {
-          isDeleted: false,
-          OR: [
-            { email: { endsWith: `@${u.domain}`, mode: 'insensitive' } },
-            { profile: { universityId: u.id } },
-            { profile: { university: { contains: u.domain, mode: 'insensitive' } } },
-            { profile: { university: { contains: u.name, mode: 'insensitive' } } },
-          ]
-        }
-      });
-      return {
-        ...u,
-        studentCount,
-        userProfiles: undefined,
-      };
+    // Single round-trip aggregate for the whole page instead of one query per row.
+    // Mirrors the original per-university OR-match logic (email domain,
+    // direct universityId FK, or legacy free-text university field), but as one
+    // JOIN + GROUP BY over the page's universities instead of a correlated
+    // subquery re-scanning User/UserProfile once per row — at limit=1000 that
+    // per-row form would mean 1000 separate full scans per request.
+    // UserProfile.userId is @unique, so the LEFT JOIN below is at most 1:1 —
+    // no row multiplication, so COUNT(DISTINCT usr.id) stays correct without
+    // any de-dup risk from the join itself.
+    const ids = universities.map(u => u.id);
+    const counts = ids.length
+      ? await prisma.$queryRaw`
+          SELECT u.id as "universityId", COUNT(DISTINCT usr.id)::int as "studentCount"
+          FROM "University" u
+          JOIN "User" usr ON usr."isDeleted" = false
+          LEFT JOIN "UserProfile" p ON p."userId" = usr.id
+          WHERE u.id = ANY(${ids}::text[])
+            AND (
+              usr.email ILIKE '%@' || u.domain
+              OR p."universityId" = u.id
+              OR p.university ILIKE '%' || u.domain || '%'
+              OR p.university ILIKE '%' || u.name || '%'
+            )
+          GROUP BY u.id
+        `
+      : [];
+
+    const countMap = new Map();
+    if (Array.isArray(counts)) {
+      for (const row of counts) countMap.set(row.universityId, row.studentCount);
+    }
+
+    let enrichedUniversities = universities.map(u => ({
+      ...u,
+      studentCount: countMap.get(u.id) ?? 0,
     }));
+
+    if (sortField === 'studentCount') {
+      enrichedUniversities = enrichedUniversities.sort((a, b) =>
+        sortDir === 'desc' ? b.studentCount - a.studentCount : a.studentCount - b.studentCount
+      );
+    }
 
     return {
       universities: enrichedUniversities,
@@ -1117,66 +1148,88 @@ class AdminService {
   }
 
   /**
-   * Soft Delete University (Preserves business status independently)
+   * Hard Delete University (irreversible). Blocks with a 409 + exact count
+   * if any real UserProfile still references this university — directly via
+   * universityId, or indirectly via a Campus that belongs to it — since
+   * neither FK has onDelete: Cascade and Postgres would otherwise reject the
+   * delete with a raw FK-violation error. Campus/UniversityDomain rows are
+   * safe to cascade (schema-level onDelete: Cascade).
    */
-  async softDeleteUniversity(adminId, id, ipAddress) {
-    const university = await prisma.university.findUnique({
-      where: { id },
-      include: { userProfiles: { select: { id: true } } },
-    });
-
-    if (!university || university.isDeleted) throw new AppError('University not found or already deleted', 404);
-
-    if (university.userProfiles && university.userProfiles.length > 0) {
-      console.warn(`⚠️ Soft-deleting university ${university.name} with ${university.userProfiles.length} active students.`);
-    }
-
-    // Set isDeleted: true and deletedAt, keeping status (business integration state) intact
-    const updated = await prisma.university.update({
-      where: { id },
-      data: {
-        isDeleted: true,
-        deletedAt: new Date(),
-      },
-    });
-
-    await this.createAuditLog({
-      adminId,
-      action: 'UNIVERSITY_SOFT_DELETE',
-      targetType: 'UNIVERSITY',
-      targetId: id,
-      details: { name: university.name, domain: university.domain, status: university.status },
-      ipAddress,
-    });
-
-    return updated;
-  }
-
-  /**
-   * Restore Soft-Deleted University (Restores isDeleted: false, preserving original business status)
-   */
-  async restoreUniversity(adminId, id, ipAddress) {
+  async hardDeleteUniversity(adminId, id, ipAddress) {
     const university = await prisma.university.findUnique({ where: { id } });
     if (!university) throw new AppError('University not found', 404);
 
-    const updated = await prisma.university.update({
-      where: { id },
-      data: {
-        isDeleted: false,
-        deletedAt: null,
-      },
-    });
+    const [directCount, viaCampusCount] = await Promise.all([
+      prisma.userProfile.count({ where: { universityId: id } }),
+      prisma.userProfile.count({ where: { campusRef: { universityId: id } } }),
+    ]);
+    const linkedUsers = directCount + viaCampusCount;
+
+    if (linkedUsers > 0) {
+      throw new AppError(
+        `No se puede eliminar: ${linkedUsers} usuario(s) están asociados a esta universidad`,
+        409,
+        { linkedUsers }
+      );
+    }
+
+    await prisma.university.delete({ where: { id } });
 
     await this.createAuditLog({
       adminId,
-      action: 'UNIVERSITY_RESTORED',
+      action: 'UNIVERSITY_HARD_DELETE',
       targetType: 'UNIVERSITY',
       targetId: id,
       details: { name: university.name, domain: university.domain, status: university.status },
       ipAddress,
     });
 
-    return updated;
+    return { id };
+  }
+
+  /**
+   * Best-effort bulk hard delete: universities with no linked users are
+   * deleted and audit-logged individually (same rule as hardDeleteUniversity);
+   * blocked/missing ones are reported back instead of failing the whole batch,
+   * so the caller can show a summary like "8 deleted, 2 blocked".
+   */
+  async bulkHardDeleteUniversities(adminId, ids, ipAddress) {
+    const deleted = [];
+    const blocked = [];
+
+    for (const id of ids) {
+      const university = await prisma.university.findUnique({ where: { id } });
+      if (!university) {
+        blocked.push({ id, name: null, reason: 'not_found' });
+        continue;
+      }
+
+      const [directCount, viaCampusCount] = await Promise.all([
+        prisma.userProfile.count({ where: { universityId: id } }),
+        prisma.userProfile.count({ where: { campusRef: { universityId: id } } }),
+      ]);
+      const linkedUsers = directCount + viaCampusCount;
+
+      if (linkedUsers > 0) {
+        blocked.push({ id, name: university.name, linkedUsers });
+        continue;
+      }
+
+      await prisma.university.delete({ where: { id } });
+
+      await this.createAuditLog({
+        adminId,
+        action: 'UNIVERSITY_HARD_DELETE',
+        targetType: 'UNIVERSITY',
+        targetId: id,
+        details: { name: university.name, domain: university.domain, status: university.status, bulk: true },
+        ipAddress,
+      });
+
+      deleted.push({ id, name: university.name });
+    }
+
+    return { deleted, blocked };
   }
 
   /* ==========================================================================

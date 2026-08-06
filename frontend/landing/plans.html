@@ -17,6 +17,8 @@
 
   <link rel="stylesheet" href="css/landing.css" />
   <link rel="stylesheet" href="css/plans.css" />
+  <script src="js/config.js"></script>
+  <script>if(!window.PLANS_ENABLED){location.replace('/');}</script>
 </head>
 <body>
 
@@ -25,6 +27,16 @@
     <symbol id="i-ig" viewBox="0 0 24 24"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></symbol>
     <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
     <symbol id="i-mail" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24"><path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.12 2.12 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.12 2.12 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.12 2.12 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.12 2.12 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.12 2.12 0 0 0 1.597-1.16z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></symbol>
   </svg>
 
   <!-- ══ PRELOADER ══ -->
@@ -48,89 +60,88 @@
     <a class="btn btn-solid nav-cta" href="/#download"><span>Get the app</span></a>
   </header>
 
-  <main>
-    <div class="ap-page">
-      <img class="ap-banner" src="assets/banner_plans.png" alt="A+ — The complete college experience. Meet more students. Make more memories." />
+  <main id="top">
 
-      <div class="ap-heading">⚡ Unleash A+ Privileges ⚡</div>
+    <!-- ══ AP HERO ══ -->
+    <section class="ap-hero">
+      <p class="kicker k-gold reveal">UndrGradz A+</p>
+      <h1 class="ap-title reveal" data-delay="80">UNLEASH<br/>A+ PRIVILEGES</h1>
+      <p class="ap-sub reveal" data-delay="160">The complete college experience. Meet more students. Make more memories.</p>
+    </section>
 
+    <!-- ══ PRIVILEGES ══ -->
+    <section class="ap-feats" aria-label="A+ privileges">
       <div class="ap-grid">
-        <div class="ap-feat" style="--hue:#f43f6a;">
-          <div class="ap-feat-ic">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f43f6a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>
-          </div>
+        <div class="ap-feat reveal" data-delay="0" style="--hue:var(--n-pink)">
+          <div class="ap-feat-ic"><svg class="ic"><use href="#i-heart"/></svg></div>
           <div class="ap-feat-body">
             <div class="ap-feat-title">See who liked you</div>
             <div class="ap-feat-sub">View likes instantly</div>
           </div>
         </div>
-        <div class="ap-feat" style="--hue:#3d7bff;">
-          <div class="ap-feat-ic">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3d7bff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-          </div>
+        <div class="ap-feat reveal" data-delay="60" style="--hue:var(--n-blue)">
+          <div class="ap-feat-ic"><svg class="ic"><use href="#i-globe"/></svg></div>
           <div class="ap-feat-body">
             <div class="ap-feat-title">Match any university</div>
             <div class="ap-feat-sub">Connect beyond campus</div>
           </div>
         </div>
-        <div class="ap-feat" style="--hue:#22d3ee;">
-          <div class="ap-feat-ic">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-          </div>
+        <div class="ap-feat reveal" data-delay="120" style="--hue:var(--n-cyan)">
+          <div class="ap-feat-ic"><svg class="ic"><use href="#i-undo"/></svg></div>
           <div class="ap-feat-body">
             <div class="ap-feat-title">Unlimited go-backs</div>
             <div class="ap-feat-sub">Go back as much as you want</div>
           </div>
         </div>
-        <div class="ap-feat" style="--hue:#fbbf24;">
-          <div class="ap-feat-ic">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.354 3H3a1 1 0 0 0-.742 1.67l7.225 7.989A2 2 0 0 1 10 14v6a1 1 0 0 0 .553.895l2 1A1 1 0 0 0 14 21v-7a2 2 0 0 1 .517-1.341l1.218-1.348"/><path d="M16 6h6"/><path d="M19 3v6"/></svg>
-          </div>
+        <div class="ap-feat reveal" data-delay="0" style="--hue:var(--n-gold)">
+          <div class="ap-feat-ic"><svg class="ic"><use href="#i-filter"/></svg></div>
           <div class="ap-feat-body">
             <div class="ap-feat-title">Advanced filters</div>
             <div class="ap-feat-sub">Find your perfect match</div>
           </div>
         </div>
-        <div class="ap-feat" style="--hue:#22c55e;">
-          <div class="ap-feat-ic">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
-          </div>
+        <div class="ap-feat reveal" data-delay="60" style="--hue:var(--n-green)">
+          <div class="ap-feat-ic"><svg class="ic"><use href="#i-cal"/></svg></div>
           <div class="ap-feat-body">
             <div class="ap-feat-title">30+ event spots</div>
             <div class="ap-feat-sub">Access exclusive events</div>
           </div>
         </div>
-        <div class="ap-feat" style="--hue:#a855f7;">
-          <div class="ap-feat-ic">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"/><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"/></svg>
-          </div>
+        <div class="ap-feat reveal" data-delay="120" style="--hue:var(--n-purple)">
+          <div class="ap-feat-ic"><svg class="ic"><use href="#i-star"/></svg></div>
           <div class="ap-feat-body">
             <div class="ap-feat-title">Profile boost &amp; top slot</div>
             <div class="ap-feat-sub">Stand out on campus</div>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="ap-plans">
-        <div class="ap-plan" style="--hue:#3d7bff;" data-price="$19.99">
+    <!-- ══ PRICING ══ -->
+    <section class="ap-pricing" id="ap-pricing">
+      <p class="kicker reveal">Choose your plan</p>
+      <h2 class="ap-pricing-title reveal" data-delay="60">GET A+</h2>
+
+      <div class="ap-plans reveal" data-delay="120">
+        <div class="ap-plan" style="--hue:var(--n-blue)" data-plan="mo" data-price="19.99" data-price-label="$19.99">
           <div class="ap-plan-badge">STARTER</div>
-          <div class="ap-plan-check">✓</div>
+          <div class="ap-plan-check"><svg class="ic"><use href="#i-check"/></svg></div>
           <div class="ap-plan-title">1 Month</div>
           <div class="ap-plan-price">$19.99</div>
           <div class="ap-plan-unit">/mo</div>
           <div class="ap-plan-sub">Billed monthly</div>
         </div>
-        <div class="ap-plan is-rec selected" style="--hue:#fbbf24;" data-price="$99.99">
+        <div class="ap-plan is-rec selected" style="--hue:var(--n-gold)" data-plan="6mo" data-price="99.99" data-price-label="$99.99">
           <div class="ap-plan-badge">MOST POPULAR</div>
-          <div class="ap-plan-check">✓</div>
+          <div class="ap-plan-check"><svg class="ic"><use href="#i-check"/></svg></div>
           <div class="ap-plan-title">6 Months</div>
           <div class="ap-plan-price">$99.99</div>
           <div class="ap-plan-unit">/6 mo</div>
           <div class="ap-plan-sub">Save 17%</div>
         </div>
-        <div class="ap-plan" style="--hue:#a855f7;" data-price="$149.99">
+        <div class="ap-plan" style="--hue:var(--n-purple)" data-plan="yr" data-price="149.99" data-price-label="$149.99">
           <div class="ap-plan-badge">BEST VALUE</div>
-          <div class="ap-plan-check">✓</div>
+          <div class="ap-plan-check"><svg class="ic"><use href="#i-check"/></svg></div>
           <div class="ap-plan-title">12 Months</div>
           <div class="ap-plan-price">$149.99</div>
           <div class="ap-plan-unit">/yr</div>
@@ -138,9 +149,9 @@
         </div>
       </div>
 
-      <button class="gbtn" id="apCta">Get A+ · $99.99</button>
-      <div class="ap-cancel">Cancel anytime</div>
-    </div>
+      <button class="btn btn-solid ap-cta" id="apCta"><span>Get A+ · $99.99</span></button>
+      <p class="ap-cancel">Cancel anytime</p>
+    </section>
   </main>
 
   <!-- ══ FOOTER ══ -->
@@ -182,7 +193,93 @@
     </div>
   </footer>
 
+  <!-- ══ AP MODALS — login / fake card / success ══ -->
+  <div class="ap-modal-overlay" id="apLoginOverlay" hidden>
+    <div class="ap-modal" role="dialog" aria-modal="true" aria-labelledby="apLoginTitle">
+      <button type="button" class="ap-modal-close" id="apLoginClose" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+      <p class="kicker k-gold">Step 1 of 2</p>
+      <h3 id="apLoginTitle" class="ap-modal-title">Log in to continue</h3>
+      <p class="ap-modal-sub">Use your UndrGradz account to get A+.</p>
+      <form id="apLoginForm" class="ap-form" novalidate>
+        <label>Email
+          <input type="email" name="email" required autocomplete="email" />
+        </label>
+        <label>Password
+          <input type="password" name="password" required autocomplete="current-password" />
+        </label>
+        <p class="ap-form-error" id="apLoginError" hidden></p>
+        <button type="submit" class="btn btn-solid ap-form-submit"><span>Log in</span></button>
+      </form>
+    </div>
+  </div>
+
+  <div class="ap-modal-overlay" id="apCardOverlay" hidden>
+    <div class="ap-modal" role="dialog" aria-modal="true" aria-labelledby="apCardTitle">
+      <button type="button" class="ap-modal-close" id="apCardClose" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+      <p class="kicker k-gold">Step 2 of 2</p>
+      <h3 id="apCardTitle" class="ap-modal-title">Confirm your purchase</h3>
+
+      <div class="ap-summary-card" id="apCardSummary" style="--hue:var(--n-gold)">
+        <span class="ap-summary-badge" id="apSummaryBadge">MOST POPULAR</span>
+        <div class="ap-summary-title" id="apSummaryTitle">A+ Student · 6 Months</div>
+        <div class="ap-summary-price-row">
+          <span class="ap-summary-price" id="apSummaryPrice">$99.99</span>
+          <span class="ap-summary-save" id="apSummarySave">Save 17%</span>
+        </div>
+        <div class="ap-summary-permonth" id="apSummaryPerMonth">Only $16.67/month</div>
+      </div>
+
+      <ul class="ap-trust-row">
+        <li><svg class="ic"><use href="#i-undo"/></svg> Cancel anytime</li>
+        <li><svg class="ic"><use href="#i-lock"/></svg> Secure payment</li>
+        <li><svg class="ic"><use href="#i-zap"/></svg> Instant activation</li>
+      </ul>
+
+      <div class="ap-pay-with">
+        <p class="ap-pay-label">Pay with</p>
+        <div class="ap-pay-icons">
+          <span class="ap-pay-chip pc-visa">VISA</span>
+          <span class="ap-pay-chip pc-mc"><i></i><i></i></span>
+          <span class="ap-pay-chip pc-amex">AMEX</span>
+          <span class="ap-pay-chip pc-apple">Pay</span>
+          <span class="ap-pay-chip pc-google">G Pay</span>
+        </div>
+      </div>
+
+      <form id="apCardForm" class="ap-form" novalidate>
+        <label>Card number
+          <input type="text" name="cardNumber" inputmode="numeric" maxlength="19" placeholder="4242 4242 4242 4242" required />
+        </label>
+        <div class="ap-form-row">
+          <label>Expiry
+            <input type="text" name="expiry" placeholder="MM/YY" maxlength="5" required />
+          </label>
+          <label>CVV
+            <input type="text" name="cvv" inputmode="numeric" maxlength="4" placeholder="123" required />
+          </label>
+        </div>
+        <label>Cardholder name
+          <input type="text" name="cardholderName" autocomplete="cc-name" placeholder="Full name on card" required />
+        </label>
+        <p class="ap-form-error" id="apCardError" hidden></p>
+        <button type="submit" class="btn btn-solid ap-form-submit"><span>Confirm purchase</span></button>
+        <p class="ap-form-trust"><svg class="ic"><use href="#i-lock"/></svg> SSL encrypted · Demo checkout — card is not validated or charged</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="ap-modal-overlay" id="apSuccessOverlay" hidden>
+    <div class="ap-modal ap-modal-success" role="dialog" aria-modal="true" aria-labelledby="apSuccessTitle">
+      <button type="button" class="ap-modal-close" id="apSuccessClose" aria-label="Close"><svg class="ic"><use href="#i-x"/></svg></button>
+      <div class="ap-success-badge"><svg class="ic"><use href="#i-check"/></svg></div>
+      <h3 id="apSuccessTitle" class="ap-modal-title">You're A+ now</h3>
+      <p class="ap-modal-sub">Open the app to see your new privileges reflected on your profile.</p>
+      <a class="btn btn-solid ap-form-submit" href="/#download"><span>Open the app</span></a>
+    </div>
+  </div>
+
   <script src="js/landing.js" defer></script>
+  <script src="js/landing-auth.js" defer></script>
   <script src="js/plans.js" defer></script>
 </body>
 </html>

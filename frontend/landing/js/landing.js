@@ -8,6 +8,13 @@
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
+  /* ── Plans/A+ links: hidden while PLANS_ENABLED is false ─────────────── */
+  if (!window.PLANS_ENABLED) {
+    document.querySelectorAll('a[href="/plans"]').forEach(function (a) {
+      a.style.display = "none";
+    });
+  }
+
   /* ── Preloader ─────────────────────────────────────────────────────── */
   var loader = document.getElementById("loader");
   function dismissLoader() {

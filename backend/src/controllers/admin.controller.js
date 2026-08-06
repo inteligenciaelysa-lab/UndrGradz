@@ -249,8 +249,8 @@ class AdminController {
 
   async getUniversities(req, res, next) {
     try {
-      const { search, status, type, country, state, city, isOfficial, isDeleted, page, limit } = req.query;
-      const data = await adminService.getUniversities({ search, status, type, country, state, city, isOfficial, isDeleted, page, limit });
+      const { search, status, type, country, state, city, isOfficial, isDeleted, page, limit, sortBy, sortOrder } = req.query;
+      const data = await adminService.getUniversities({ search, status, type, country, state, city, isOfficial, isDeleted, page, limit, sortBy, sortOrder });
       res.status(200).json({
         status: 'success',
         data,
@@ -300,30 +300,33 @@ class AdminController {
     }
   }
 
-  async softDeleteUniversity(req, res, next) {
+  async hardDeleteUniversity(req, res, next) {
     try {
       const { id } = req.params;
       const ipAddress = req.ip || req.headers['x-forwarded-for'];
-      const university = await adminService.softDeleteUniversity(req.user.id, id, ipAddress);
+      const result = await adminService.hardDeleteUniversity(req.user.id, id, ipAddress);
       res.status(200).json({
         status: 'success',
-        message: 'University soft-deleted successfully',
-        data: { university },
+        message: 'University permanently deleted',
+        data: result,
       });
     } catch (error) {
       next(error);
     }
   }
 
-  async restoreUniversity(req, res, next) {
+  async bulkHardDeleteUniversities(req, res, next) {
     try {
-      const { id } = req.params;
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        throw new AppError('ids must be a non-empty array', 400);
+      }
       const ipAddress = req.ip || req.headers['x-forwarded-for'];
-      const university = await adminService.restoreUniversity(req.user.id, id, ipAddress);
+      const result = await adminService.bulkHardDeleteUniversities(req.user.id, ids, ipAddress);
       res.status(200).json({
         status: 'success',
-        message: 'University restored successfully',
-        data: { university },
+        message: `${result.deleted.length} universities permanently deleted, ${result.blocked.length} blocked`,
+        data: result,
       });
     } catch (error) {
       next(error);

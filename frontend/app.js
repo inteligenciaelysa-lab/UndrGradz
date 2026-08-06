@@ -1,4 +1,12 @@
-﻿window.currentLang = localStorage.getItem('ugz_lang') || 'en';
+﻿// Single switch to show/hide all Plans/A+ entry points in the app.
+// Flip to true to relaunch — no other file needs to change.
+window.PLANS_ENABLED = false;
+if(!window.PLANS_ENABLED){
+  document.addEventListener('DOMContentLoaded',function(){
+    document.querySelectorAll('.plans-gated').forEach(function(el){el.style.display='none';});
+  });
+}
+window.currentLang = localStorage.getItem('ugz_lang') || 'en';
 var I18N = {
   en: {
     "auth-tab-su-btn": "Sign Up",
@@ -375,16 +383,6 @@ function applyLanguageTranslations(){
     }
   }
   var setHeaders = document.querySelectorAll('#settings-modal .set-h');
-  // One entry per header, in DOM order. This list used to carry 8 while the DOM
-  // has 7 — the Appearance/Language section was deleted from the markup long ago
-  // but its key stayed here — so from the 5th header on every title was written
-  // one slot late: the Notifications card read "Privacy", Personalization read
-  // "Notifications", and "Support & About" never appeared at all.
-  // Slots 2 and 3 are also swapped on purpose: the card under the old
-  // "Preferences" holds activity stats, and the one under "Your Activity" holds
-  // settings toggles.
-  // ANY header added to or removed from the markup must be mirrored here, at the
-  // same position — this list is matched to the DOM by index, nothing else.
   var setHTitles = [
     dict['set-h-account'],
     dict['set-h-campus'],
@@ -910,10 +908,18 @@ window.ugzModal = (function() {
       cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Cancelar' : 'Cancel');
     } else if (type === 'premium') {
       icon = 'lock';
-      title = title || (window.currentLang === 'es' ? 'Plan A+ Student Requerido' : 'A+ Student Plan Required');
-      message = message || (window.currentLang === 'es' ? 'Esta función requiere el plan A+ Student ($19.99/año).\n\nActualiza tu plan para desbloquear esta función.' : 'This feature requires the A+ Student plan ($19.99/yr).\n\nUpgrade your plan to unlock this feature.');
-      confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Planes' : 'Go to Plans');
-      cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Ahora no' : 'Not Now');
+      if (!window.PLANS_ENABLED) {
+        // Plans/A+ hidden pre-launch: keep the gate, drop all A+ branding/CTA.
+        title = window.currentLang === 'es' ? 'Función no disponible' : 'Feature Not Available';
+        message = window.currentLang === 'es' ? 'Esta función no está disponible por el momento.' : "This feature isn't available right now.";
+        confirmText = window.currentLang === 'es' ? 'Entendido' : 'Got it';
+        cancelText = window.currentLang === 'es' ? 'Cerrar' : 'Close';
+      } else {
+        title = title || (window.currentLang === 'es' ? 'Plan A+ Student Requerido' : 'A+ Student Plan Required');
+        message = message || (window.currentLang === 'es' ? 'Esta función requiere el plan A+ Student ($19.99/año).\n\nActualiza tu plan para desbloquear esta función.' : 'This feature requires the A+ Student plan ($19.99/yr).\n\nUpgrade your plan to unlock this feature.');
+        confirmText = opts.confirmText || (window.currentLang === 'es' ? 'Ver Planes' : 'Go to Plans');
+        cancelText = opts.cancelText || (window.currentLang === 'es' ? 'Ahora no' : 'Not Now');
+      }
     } else if (type === 'cheat') {
       icon = 'lock';
       title = title || (window.currentLang === 'es' ? 'Cheats Requeridos' : 'Cheats Required');
@@ -1643,6 +1649,9 @@ function _populateFilterChips(){
   if(typeof WORKOUTS!=='undefined')set('crush-workout-chips',WORKOUTS.map(mkFree).join(''));
   if(typeof DIETS!=='undefined')set('crush-diet-chips',DIETS.map(mkFree).join(''));
   if(typeof LIVING!=='undefined')set('crush-living-chips',LIVING.map(mkFree).join(''));
+  // Alumni already graduated — "Living Situation" (dorm/off-campus/etc.) doesn't apply.
+  var _livingSection=document.getElementById('crush-living-section');
+  if(_livingSection)_livingSection.style.display=((obMode||userMode)==='alumni')?'none':'';
   if(typeof DRINK_OPTS!=='undefined')set('crush-drink-chips',DRINK_OPTS.map(mkFree).join(''));
   if(typeof SMOKE_OPTS!=='undefined')set('crush-smoke-chips',SMOKE_OPTS.map(mkFree).join(''));
   if(typeof POLITICS_OPTS!=='undefined')set('crush-politics-chips',POLITICS_OPTS.map(mkFree).join(''));
@@ -1665,10 +1674,10 @@ function _populateFilterChips(){
     return '<div class="yr-chip" style="font-size:var(--fs-2xs);display:inline-flex;align-items:center;" onclick="this.classList.toggle(\'on\')">' + flagIco + ' ' + item.name + '</div>';
   }).join(''));
 
-  var ethnicitiesP4 = ['White', 'Latino / Hispanic', 'Black / African American', 'Asian', 'Middle Eastern', 'Native American', 'Pacific Islander', 'Mixed / Biracial', 'Other', 'Prefer not to say'];
+  var ethnicitiesP4 = ['White', 'Latino / Hispanic', 'Black / African American', 'Asian', 'Middle Eastern', 'Native American', 'Pacific Islander', 'Mixed / Biracial', 'Other'];
   set('crush-ethnicity-chips', ethnicitiesP4.map(mkFree).join(''));
 
-  var religionsP4 = ['Atheist', 'Agnostic', 'Christian', 'Catholic', 'Jewish', 'Muslim', 'Hindu', 'Buddhist', 'Spiritual', 'Other', 'Prefer not to say'];
+  var religionsP4 = ['Atheist', 'Agnostic', 'Christian', 'Catholic', 'Jewish', 'Muslim', 'Hindu', 'Buddhist', 'Spiritual', 'Other'];
   set('crush-religion-chips', religionsP4.map(mkFree).join(''));
 
   var greekP4 = ['Fraternity', 'Sorority', 'Rushing', 'None'];
@@ -1676,6 +1685,11 @@ function _populateFilterChips(){
 
   if(typeof _renderGreekFilterSection==='function')_renderGreekFilterSection();
   if(typeof FAITH_LEVELS!=='undefined')set('crush-faith-chips',FAITH_LEVELS.map(mkFree).join(''));
+  // Marks the Filters panel as populated so boot-time filter restoration
+  // (which runs before the user ever opens the tab) knows not to collapse
+  // sections/place the "Filters applied" pill against an empty panel.
+  window._filtersPanelInitialized = true;
+  if(typeof _setFiltersDirty==='function')_setFiltersDirty(false);
 }
 function _updateHeightLbl(v){var lbl=document.getElementById('crush-height-lbl');if(lbl)lbl.textContent=(parseInt(v)<=58)?'Any':(_fmtHeight(parseInt(v))+'+');}
 
@@ -1708,6 +1722,7 @@ function _saveSessionState(){
     var snap={
       userPro:userPro,userMode:userMode,obMode:obMode,curPlan:curPlan,
       curPlanPeriod:curPlanPeriod,curPlanEnds:curPlanEnds?curPlanEnds.toISOString():null,
+      curPlanWillRenew:curPlanWillRenew,
       uni:uni,verified:verified,
       selectedHobbies:typeof selectedHobbies!=='undefined'?selectedHobbies:[],
       selectedFlags:typeof selectedFlags!=='undefined'?selectedFlags:[],
@@ -1739,7 +1754,7 @@ var verified = false, netConnectTarget = {}, popupCurrentUser = null;
 var usernameLastChanged = null, curPlan = 'free', curPayPlan = '';
 // Which A+ billing period is active and when it runs out. Together they decide
 // whether a plan card is the current one, an upgrade, or a locked downgrade.
-var curPlanPeriod = '', curPlanEnds = null;
+var curPlanPeriod = '', curPlanEnds = null, curPlanWillRenew = true;
 var notifications = [];
 var userPro = {name:'',handle:'@user',age:20,bio:'',major:'',minor:'',grad:"May '26",ig:'',org:'',langs:['English'],interests:[],lgbtq:false,isVerified:false,uniNameStyle:'full',uniNameColor:'uni',uniOutline:'secondary'};
 
@@ -1835,6 +1850,7 @@ function _restoreSession(){
     if(snap.curPlan)curPlan=snap.curPlan;
     if(snap.curPlanPeriod)curPlanPeriod=snap.curPlanPeriod;
     if(snap.curPlanEnds)curPlanEnds=new Date(snap.curPlanEnds);
+    if(typeof snap.curPlanWillRenew!=='undefined')curPlanWillRenew=snap.curPlanWillRenew;
     if(snap.uni)uni=snap.uni;
     if(typeof snap.verified!=='undefined')verified=snap.verified;
     if(snap.selectedHobbies)selectedHobbies=snap.selectedHobbies;
@@ -1867,6 +1883,11 @@ function _bootRestoredApp(){
   try{if(typeof applySeasonalSkin==='function')applySeasonalSkin();}catch(e){}
   try{updateProfileUI();}catch(e){}
   try{buildNav();}catch(e){}
+  // Restore saved discover/search filters (age range, chips, gender pref)
+  // after a page reload — the login path already does this, but a reload
+  // goes through _bootRestoredApp() instead and previously skipped it.
+  try{if(typeof _presetsLoad==='function')_presetsLoad();}catch(e){}
+  try{if(userPro&&userPro.customization&&userPro.customization.activeFilters&&typeof _applyFilterState==='function')_applyFilterState(userPro.customization.activeFilters);}catch(e){}
   try{if(typeof loadCrushFeed==='function'){loadCrushFeed();}else{renderCrush();}}catch(e){}
   try{renderHangouts();}catch(e){}
   try{if(typeof conectarChatEnVivo==='function')conectarChatEnVivo();}catch(e){}
@@ -1986,6 +2007,15 @@ window.addEventListener('load', function() {
           curPlan = profile.subscriptionTier ? profile.subscriptionTier.toLowerCase() : 'free';
           curPlanPeriod = profile.subscriptionPeriod || '';
           curPlanEnds = profile.subscriptionEnds ? new Date(profile.subscriptionEnds) : null;
+          curPlanWillRenew = profile.subscriptionWillRenew !== false;
+          // userMode/obMode (alumni vs student) were never restored on a plain
+          // reload at all — only doLoginAuth() set them, and only in-memory —
+          // so every F5 silently reverted an alumni account back to 'student'
+          // defaults (e.g. the Living Situation filter would reappear).
+          var _acctType=(profile.academic && profile.academic.accountType) || '';
+          userMode = (_acctType==='alumni' || (!_acctType && profile.grad && typeof _yearInSchoolFromGrad==='function' && _yearInSchoolFromGrad(profile.grad)==='Alumni')) ? 'alumni' : 'student';
+          obMode = userMode;
+          window._regAlumni = (userMode==='alumni');
           if (profile.gender) {
             userPro.gender = profile.gender === 'WOMAN' ? 'female' : profile.gender === 'MAN' ? 'male' : 'other';
             userGender = userPro.gender;
@@ -2461,11 +2491,16 @@ async function doLoginAuth(){
     if (typeof applyColors === 'function') try { applyColors(); } catch(e){}
 
     // Update global variables
-    userMode = profile.subscriptionTier === 'PLATINUM' ? 'alumni' : 'student';
+    // accountType is the persisted alumni/student flag (see saveProfile()'s
+    // academic.accountType). Older accounts saved before this field existed
+    // fall back to inferring alumni status from their graduation date.
+    var _acctType=(profile.academic && profile.academic.accountType) || userPro.accountType || '';
+    userMode = (_acctType==='alumni' || (!_acctType && profile.grad && typeof _yearInSchoolFromGrad==='function' && _yearInSchoolFromGrad(profile.grad)==='Alumni')) ? 'alumni' : 'student';
     obMode = userMode;
     curPlan = profile.subscriptionTier ? profile.subscriptionTier.toLowerCase() : 'free';
     curPlanPeriod = profile.subscriptionPeriod || '';
     curPlanEnds = profile.subscriptionEnds ? new Date(profile.subscriptionEnds) : null;
+    curPlanWillRenew = profile.subscriptionWillRenew !== false;
     verified = dbProfile.isEmailVerified;
 
     // Connect WebSockets
@@ -2603,11 +2638,13 @@ function buildAlumniOb(){
   '<div class="field"><label>How often do you smoke?</label><div style="display:flex;flex-wrap:wrap;gap:6px;"><div class="yr-chip on" onclick="selectSingleChip(this)">🚭 Never</div><div class="yr-chip" onclick="selectSingleChip(this)">🚬 Occasionally</div><div class="yr-chip" onclick="selectSingleChip(this)">💨 Often</div><div class="yr-chip" onclick="selectSingleChip(this)">💨 Vape</div></div></div>'+
   '<button class="gbtn" style="background:var(--p);" onclick="goOb(3)">Continue →</button></div></div>'+
   '<div id="obs3" style="display:none;">'+sdots(3,4)+'<div class="ob-panel glass"><div class="ob-title">Your Interests '+icon('target',16)+'</div><div class="ob-hint">Select your hobbies and lifestyle.</div><div class="b5-cnt">Selected: <span id="b5-count">0</span>/'+MAX_HOBBIES+'</div>'+big5Html+
+  (window.PLANS_ENABLED?(
   '<div style="border:1.5px solid rgba(251,191,36,0.3);border-radius:var(--r);padding:14px;margin-top:8px;background:rgba(251,191,36,0.05);"><div style="font-size:var(--fs-sm);font-weight:600;color:#fbbf24;margin-bottom:10px;">'+icon('lock',16)+' Premium Identity <span class="tag gold" style="font-size:var(--fs-2xs);">A+ Student</span></div>'+
-  '<div style="margin-bottom:10px;"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🗳️ Politics</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+['Liberal','Conservative','Moderate','Progressive','Libertarian','Apolitical'].map(function(p){return '<div class="b5c" onclick="premAlert()">'+p+'</div>';}).join('')+'</div></div>'+
+  '<div style="margin-bottom:10px;"><div style="font-size:var(--fs-2xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:6px;">🗳️ Politics</div><div style="display:flex;flex-wrap:wrap;gap:5px;">'+['Liberal','Conservative','Moderate','Progressive','Libertarian','Apolitical'].map(function(p){return '<div class="b5c" onclick="premAlert()">'+p+'</div>';}).join('')+'</div></div>'
+  ):'')+
   '</div>'+
   '<button class="gbtn" style="background:var(--p);margin-top:14px;" onclick="goOb(4)">Continue →</button></div></div>'+
-  '<div id="obs4" style="display:none;">'+sdots(4,4)+'<div class="ob-panel glass"><div class="ob-title">Career (optional) 👔</div><div class="ob-hint">Help students find you. Upgrade to add your company.</div>'+
+  '<div id="obs4" style="display:none;">'+sdots(4,4)+'<div class="ob-panel glass"><div class="ob-title">Career (optional) 👔</div><div class="ob-hint">Help students find you.'+(window.PLANS_ENABLED?' Upgrade to add your company.':'')+'</div>'+
   '<div class="field"><label>Company</label><input class="gi" type="text" id="al-co" placeholder="Current employer"/></div>'+
   '<button class="gbtn" style="background:var(--p);" onclick="launch()">Enter Undrgradz 🚀</button></div></div>';
 }
@@ -2854,7 +2891,7 @@ function _ob4Go(p, forceScrollTop){
   var sb=document.getElementById('ob4-sub');if(sb)sb.textContent=T[p-1][1];
   _ob4Steps();
   var c=document.getElementById('ob4-content');if(!c)return;
-  c.innerHTML=(p===1)?_ob4P1():(p===2)?_ob4P2():(p===3)?_ob4P3():(p===4)?_ob4P4():_ob4P5();
+  c.innerHTML=(p===1)?_ob4P1():(p===2)?(window._regAlumni?_ob4P2Alumni():_ob4P2()):(p===3)?_ob4P3():(p===4)?_ob4P4():_ob4P5();
   try { void c.offsetHeight; } catch(e){}
   _ob4PaintLabels();
   _ob4BackLabel();
@@ -3053,7 +3090,7 @@ function _ob4P2(){
     }
   }
   var activeMascot = (dbUni&&dbUni.mascot)?dbUni.mascot:((uni&&uni.mascot)?uni.mascot:null);
-  
+
   var logoStyle, logoContent;
   if(activeMascot){
     logoStyle = 'width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
@@ -3072,9 +3109,6 @@ function _ob4P2(){
   var lblShowOnCard = window.currentLang==='es'?'Mostrar en tu tarjeta:':'Show on your card:';
   var lblFullName = window.currentLang==='es'?'Nombre completo':'Full name';
   var lblAcronym = window.currentLang==='es'?'Siglas':'Acronym';
-  var lblClassOf = window.currentLang==='es'?'Generación del':'Class of';
-  var lblDegree = window.currentLang==='es'?'Grado académico':'Degree';
-  var lblField = window.currentLang==='es'?'¿Qué estudiaste?':'What did you study?';
   var lblMajor = window.currentLang==='es'?'Carrera principal':'Major';
   var lblMinor = window.currentLang==='es'?'Carrera secundaria (opcional)':'Minor (optional)';
   var lblGradYr = window.currentLang==='es'?'Año de graduación':'Graduation year';
@@ -3132,42 +3166,27 @@ function _ob4P2(){
   }
 
   var uniNameTog=(uni&&uni.acronym)?('<div class="ob4-uniname-tog" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:9px 0 2px;"><span class="t-meta">'+lblShowOnCard+'</span><div class="ob4-chip'+((st.uniNameStyle||'full')==='full'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'full\')">'+lblFullName+'</div><div class="ob4-chip'+(st.uniNameStyle==='acronym'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'acronym\')">'+lblAcronym+'</div></div>'):'';
-  var acad;
-  if(window._regAlumni){
-    var _majSelDef = window.currentLang==='es'?'Selecciona…':'Select…';
-    var _classDef = window.currentLang==='es'?'Selecciona…':'Select…';
-    var _classOpts='<option value="">\x27'+_classDef+'</option>';for(var _cy=26;_cy>=0;_cy--){var _yy=('0'+_cy).slice(-2);_classOpts+='<option value="'+_yy+'"'+(_yy===String(st.gradyr)?' selected':'')+'>\x27'+_yy+'</option>';}
-    var _fieldOpts='<option value="">'+_majSelDef+'</option>'+MAJORS.map(function(m){return '<option'+(m===st.field?' selected':'')+'>'+m+'</option>';}).join('');
-    // Sin dropdown de "Degree": los títulos son chips multi-select (conectan con
-    // los filtros de Alumni del perfil). Se guardan en _ob4State.advDegrees.
-    var _lblDeg = window.currentLang==='es'?'Título(s)':'Degree(s)';
-    var _degList=ALUMNI_DEGREES; // Bachelor's, Master's, PhD, MBA, JD, MD
-    var _degChips=_degList.map(function(d){var on=(_ob4State.advDegrees||[]).indexOf(d)>-1;return '<div class="ob4-chip'+(on?' on':'')+'" style="padding:8px 14px;" onclick="_ob4ToggleAdv(\''+d+'\',this)">'+(on?'✓ ':'')+d+'</div>';}).join('');
-    acad='<div class="ob4-flabel">'+lblClassOf+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+_classOpts+'</select>'+
-      '<div class="ob4-flabel">'+lblField+'</div><select class="gi" id="ob4-field" onchange="_ob4State.field=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+_fieldOpts+'</select>'+
-      '<div class="ob4-flabel">'+_lblDeg+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+_degChips+'</div>';
-  }else{
-    var majSelectDefault = window.currentLang==='es'?'Selecciona tu carrera…':'Select major…';
-    var minSelectDefault = window.currentLang==='es'?'Ninguno':'None';
-    var gradYrSelectDefault = window.currentLang==='es'?'Selecciona…':'Select…';
-    var majOpt='<option value="">'+majSelectDefault+'</option>'+MAJORS.map(function(m){return '<option'+(m===st.major?' selected':'')+'>'+m+'</option>';}).join('');
-    var minOpt='<option value="">'+minSelectDefault+'</option>'+MINORS.filter(function(m){return m!=='None';}).map(function(m){return '<option'+(m===st.minor?' selected':'')+'>'+m+'</option>';}).join('');
-    var yNow=new Date().getFullYear();var gyOpt='<option value="">'+gradYrSelectDefault+'</option>';for(var y=yNow;y<yNow+6;y++)gyOpt+='<option'+(String(y)===String(st.gradyr)?' selected':'')+'>'+y+'</option>';
-    var gradSemDefault = window.currentLang==='es'?'Selecciona…':'Select…';
-    var GRAD_SEM_OPTS=[['SPRING','Spring'],['SUMMER','Summer'],['FALL','Fall']];
-    var gradSemOpt='<option value="">'+gradSemDefault+'</option>'+GRAD_SEM_OPTS.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===st.gradSemester?' selected':'')+'>'+s[1]+'</option>';}).join('');
-    acad='<div class="ob4-flabel">'+lblMajor+'</div><select class="gi" id="ob4-major" onchange="_ob4State.major=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+majOpt+'</select>'+
-      '<div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select>'+
-      '<div class="ob4-flabel">'+lblGradSem+'</div><select class="gi" id="ob4-gradsem" onchange="_ob4State.gradSemester=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gradSemOpt+'</select>';
-  }
-  
+
+  var majSelectDefault = window.currentLang==='es'?'Selecciona tu carrera…':'Select major…';
+  var minSelectDefault = window.currentLang==='es'?'Ninguno':'None';
+  var gradYrSelectDefault = window.currentLang==='es'?'Selecciona…':'Select…';
+  var majOpt='<option value="">'+majSelectDefault+'</option>'+MAJORS.map(function(m){return '<option'+(m===st.major?' selected':'')+'>'+m+'</option>';}).join('');
+  var minOpt='<option value="">'+minSelectDefault+'</option>'+MINORS.filter(function(m){return m!=='None';}).map(function(m){return '<option'+(m===st.minor?' selected':'')+'>'+m+'</option>';}).join('');
+  var yNow=new Date().getFullYear();var gyOpt='<option value="">'+gradYrSelectDefault+'</option>';for(var y=yNow;y<yNow+6;y++)gyOpt+='<option'+(String(y)===String(st.gradyr)?' selected':'')+'>'+y+'</option>';
+  var gradSemDefault = window.currentLang==='es'?'Selecciona…':'Select…';
+  var GRAD_SEM_OPTS=[['SPRING','Spring'],['SUMMER','Summer'],['FALL','Fall']];
+  var gradSemOpt='<option value="">'+gradSemDefault+'</option>'+GRAD_SEM_OPTS.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===st.gradSemester?' selected':'')+'>'+s[1]+'</option>';}).join('');
+  var acad='<div class="ob4-flabel">'+lblMajor+'</div><select class="gi" id="ob4-major" onchange="_ob4State.major=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+majOpt+'</select>'+
+    '<div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select>'+
+    '<div class="ob4-flabel">'+lblGradSem+'</div><select class="gi" id="ob4-gradsem" onchange="_ob4State.gradSemester=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gradSemOpt+'</select>';
+
   var living = window.currentLang==='es'?
     [['Residencia','Residencia estudiantil'],['Fuera de campus','Fuera de campus'],['Casa Griega','Casa griega'],['Con mi familia','Con mi familia']]:
     [['Dorm','Dorm'],['Off Campus','Off-campus apartment'],['Greek House','Greek house'],['Family','With family']];
   var livHtml=living.map(function(l){return '<div class="ob4-chip'+(_ob4State.living===l[1]?' on':'')+'" onclick="_ob4SetLiving(this,\x27'+l[1]+'\x27)">'+l[0]+'</div>';}).join('');
   var _gsel=window._ob4Greek||'';var _ssel=(window._ob4Sports||[]);
   var isCreator=_ob4Involved.indexOf('Content Creator')>-1;
-  
+
   var dispGreek = _gsel ? _gsel : (window.currentLang==='es'?'Fraternidad / Sororidad':'Fraternity / Sorority');
   var dispSG = window._ob4SG ? ('GE · ' + window._ob4SG) : (window.currentLang==='es'?'Gobierno Estudiantil':'Student Government');
   var dispAthletics = _ssel.length ? ((window.currentLang==='es'?'Deportes (':'Athletics (') + _ssel.length + ')') : (window.currentLang==='es'?'Deportes':'Athletics');
@@ -3245,6 +3264,161 @@ function _ob4P2(){
     creatorVerifyHtml+
     sgVerifyHtml+
     athVerifyHtml+
+    '<button class="ob4-cta" id="ob4-continue-btn-p2" onclick="_ob4Next2()" disabled style="opacity:0.45;margin-top:18px;">'+btnContinue+'</button>';
+}
+// Alumni-only step 2 ("Academic"): no university-year/major dropdowns are shown
+// here as text fields alone — instead alumni pick Class of / Field of study +
+// multi-select Degree(s). No "I live…" question (doesn't apply post-grad) and
+// no "Graduation Semester" (alumni already graduated). "I am involved in…"
+// keeps Fraternity/Sorority, Content Creator and None, but drops Student
+// Government and Athletics since those describe *current* student activity.
+function _ob4P2Alumni(){
+  var st=_ob4State;var acr=(uni&&(uni.acronym||uni.name.slice(0,2)))||'🎓';var col=(uni&&uni.p)||'#2b5fd9';
+  var uniName=(uni&&uni.name)||'Detected from your email';var uniTitle=((st.uniNameStyle==='acronym')&&uni&&uni.acronym)?uni.acronym:uniName;
+  var dbUni = null;
+  if(uni){
+    for(var k in UNI){
+      if(UNI[k].name===uni.name||UNI[k].acronym===uni.acronym){
+        dbUni=UNI[k];
+        break;
+      }
+    }
+  }
+  var activeMascot = (dbUni&&dbUni.mascot)?dbUni.mascot:((uni&&uni.mascot)?uni.mascot:null);
+
+  var logoStyle, logoContent;
+  if(activeMascot){
+    logoStyle = 'width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex-shrink:0;';
+    logoContent = '<img src="'+activeMascot+'" style="width:100%;height:100%;object-fit:contain;mix-blend-mode:screen;drop-shadow(0 0 2px '+col+');" />';
+  } else {
+    logoStyle = 'width:52px;height:52px;border-radius:var(--rad-md);background:rgba(255,255,255,0.03);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1.5px solid '+col+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:800;font-family:\'Outfit\',\'Playfair Display\',\'Georgia\',serif;color:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.4),0 0 12px color-mix(in srgb, '+col+' 35%, transparent),inset 0 1px 1px rgba(255,255,255,0.15);flex-shrink:0;letter-spacing:0.5px;';
+    logoContent = (acr.length<=5?acr:'🎓');
+  }
+
+  var uniCard='<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-md);padding:13px;display:flex;align-items:center;gap:13px;margin-bottom:4px;">'+
+    '<div style="'+logoStyle+'">'+logoContent+'</div>'+
+    '<div style="flex:1;min-width:0;"><div style="font-size:var(--fs-md);font-weight:700;color:#fff;line-height:1.25;">'+uniTitle+'</div></div>'+
+    '</div>';
+
+  var lblYourUni = window.currentLang==='es'?'Tu universidad':'Your university';
+  var lblShowOnCard = window.currentLang==='es'?'Mostrar en tu tarjeta:':'Show on your card:';
+  var lblFullName = window.currentLang==='es'?'Nombre completo':'Full name';
+  var lblAcronym = window.currentLang==='es'?'Siglas':'Acronym';
+  var lblClassOf = window.currentLang==='es'?'Generación del':'Class of';
+  var lblField = window.currentLang==='es'?'¿Qué estudiaste?':'What did you study?';
+  var lblInvolvedLabel = window.currentLang==='es'?'Participo en…':'I am involved in…';
+  var btnContinue = window.currentLang==='es'?'Continuar':'Continue';
+  var creatorSocialTitle = window.currentLang==='es'?'✨ Redes Sociales de Creador':'✨ Creator Social Links';
+  var creatorInstaLabel = window.currentLang==='es'?'Usuario de Instagram':'Instagram Username';
+  var creatorTiktokLabel = window.currentLang==='es'?'Usuario de TikTok':'TikTok Username';
+  var creatorYoutubeLabel = window.currentLang==='es'?'Usuario de YouTube':'YouTube Handle';
+  var creatorInfoText = window.currentLang==='es'?
+    'ℹ️ Un administrador de nuestro equipo verificará tu cuenta. Si cumples con los requisitos, se te otorgará un badge de <b>Creador verificado</b>.':
+    'ℹ️ An administrator from our team will verify your account. If you meet the requirements, you will be granted a <b>Verified Creator</b> badge.';
+
+  // --- Verification document upload (Creator) ---
+  var isES = window.currentLang==='es';
+  var vfSgBtn        = isES?'Subir documento de verificación':'Upload Verification Document';
+  var vfCrTitle      = isES?'Verifica tu cuenta de creador':'Verify your content creator account';
+  var vfCrDesc       = isES?'Sube una prueba de que las cuentas que ingresaste te pertenecen.':'Upload proof that you own the account(s) you entered.';
+  var vfCrExamples   = isES?'Ejemplos válidos: captura de tu perfil, analytics, panel de creador, o cualquier documento que demuestre que la cuenta es tuya.':'Valid examples: a screenshot of your profile, analytics, creator dashboard, or any document proving the account is yours.';
+  var vfOptional     = isES?'Opcional — puedes subirlo después desde tu perfil.':'Optional — you can upload it later from your profile.';
+  var vfFormats      = isES?'PDF, JPG, JPEG o PNG · máx. 8 MB':'PDF, JPG, JPEG or PNG · max 8 MB';
+  var vfRemove       = isES?'Quitar':'Remove';
+
+  function vfBox(kind, sport, label){
+    var doc = _ob4GetVerifDoc(kind, sport);
+    if(doc){
+      return '<div class="id-box done" style="margin-bottom:0;" onclick="_ob4PickVerifDoc(\''+kind+'\',\''+(sport||'')+'\')">'+
+               '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">✅ '+_ob4Esc(doc.name)+'</span>'+
+             '</div>'+
+             '<div style="display:flex;justify-content:flex-end;margin-top:6px;">'+
+               '<span onclick="event.stopPropagation();_ob4ClearVerifDoc(\''+kind+'\',\''+(sport||'')+'\')" style="font-size:var(--fs-xs);color:#f87171;cursor:pointer;font-weight:600;">✕ '+vfRemove+'</span>'+
+             '</div>';
+    }
+    return '<div class="id-box" style="margin-bottom:0;" onclick="_ob4PickVerifDoc(\''+kind+'\',\''+(sport||'')+'\')">📄 '+label+'</div>'+
+           '<div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:6px;text-align:center;">'+vfFormats+'</div>';
+  }
+
+  function vfPanel(id, title, desc, extra, body){
+    return '<div id="'+id+'" class="ob4-verif-panel" style="margin-top:14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--rad-md);padding:16px;box-shadow:var(--el-3);text-align:left;">'+
+      '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:6px;">'+title+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.45;margin-bottom:'+(extra?'6px':'12px')+';">'+desc+'</div>'+
+      (extra?'<div style="font-size:var(--fs-xs);color:var(--fg3);line-height:1.45;margin-bottom:12px;">'+extra+'</div>':'')+
+      body+
+      '<div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:10px;">'+vfOptional+'</div>'+
+    '</div>';
+  }
+
+  var uniNameTog=(uni&&uni.acronym)?('<div class="ob4-uniname-tog" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:9px 0 2px;"><span class="t-meta">'+lblShowOnCard+'</span><div class="ob4-chip'+((st.uniNameStyle||'full')==='full'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'full\')">'+lblFullName+'</div><div class="ob4-chip'+(st.uniNameStyle==='acronym'?' on':'')+'" style="padding:6px 13px;font-size:var(--fs-sm);" onclick="_ob4UniName(\'acronym\')">'+lblAcronym+'</div></div>'):'';
+
+  var _majSelDef = window.currentLang==='es'?'Selecciona…':'Select…';
+  var _classDef = window.currentLang==='es'?'Selecciona…':'Select…';
+  var _classOpts='<option value="">\x27'+_classDef+'</option>';for(var _cy=26;_cy>=0;_cy--){var _yy=('0'+_cy).slice(-2);_classOpts+='<option value="'+_yy+'"'+(_yy===String(st.gradyr)?' selected':'')+'>\x27'+_yy+'</option>';}
+  var _fieldOpts='<option value="">'+_majSelDef+'</option>'+MAJORS.map(function(m){return '<option'+(m===st.field?' selected':'')+'>'+m+'</option>';}).join('');
+  // Sin dropdown de "Degree": los títulos son chips multi-select (conectan con
+  // los filtros de Alumni del perfil). Se guardan en _ob4State.advDegrees.
+  var _lblDeg = window.currentLang==='es'?'Título(s)':'Degree(s)';
+  var _degList=ALUMNI_DEGREES; // Bachelor's, Master's, PhD, MBA, JD, MD
+  var _degChips=_degList.map(function(d){var on=(_ob4State.advDegrees||[]).indexOf(d)>-1;return '<div class="ob4-chip'+(on?' on':'')+'" style="padding:8px 14px;" onclick="_ob4ToggleAdv(\''+d.replace(/'/g,"\\'")+'\',this)">'+(on?'✓ ':'')+d+'</div>';}).join('');
+  var acad='<div class="ob4-flabel">'+lblClassOf+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+_classOpts+'</select>'+
+    '<div class="ob4-flabel">'+lblField+'</div><select class="gi" id="ob4-field" onchange="_ob4State.field=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+_fieldOpts+'</select>'+
+    '<div class="ob4-flabel">'+_lblDeg+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+_degChips+'</div>';
+
+  var _gsel=window._ob4Greek||'';
+  var isCreator=_ob4Involved.indexOf('Content Creator')>-1;
+
+  var dispGreek = _gsel ? _gsel : (window.currentLang==='es'?'Fraternidad / Sororidad':'Fraternity / Sorority');
+  var dispCreator = window.currentLang==='es'?'Creador de Contenido':'Content Creator';
+  var dispNone = window.currentLang==='es'?'Ninguno':'None';
+
+  // Student Government and Athletics rows are intentionally omitted for
+  // alumni — those describe current, active student involvement.
+  var invRows=[
+    {on:!!_gsel,click:'_ob4GreekPick()',disp:dispGreek},
+    {on:isCreator,click:"_ob4ToggleInv(this,'Content Creator')",disp:dispCreator},
+    {on:_ob4Involved.indexOf('None')>-1,click:"_ob4ToggleInv(this,'None')",disp:dispNone}
+  ];
+  var invHtml=invRows.map(function(r){return '<div class="ob4-chip'+(r.on?' on':'')+'" onclick="'+r.click+'">'+r.disp+'</div>';}).join('');
+
+  var creatorHtml='';
+  if(isCreator){
+    if(!_ob4State.creatorInsta)_ob4State.creatorInsta='';
+    if(!_ob4State.creatorTiktok)_ob4State.creatorTiktok='';
+    if(!_ob4State.creatorYoutube)_ob4State.creatorYoutube='';
+    creatorHtml=''+
+      '<div id="creator-section" style="margin-top:14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--rad-md);padding:16px;box-shadow:var(--el-3);text-align:left;">'+
+        '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:6px;">'+creatorSocialTitle+'</div>'+
+        '<div class="field" style="margin-top:0;"><label>'+creatorInstaLabel+'</label>'+
+          '<div style="position:relative;"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);font-weight:500;">@</span>'+
+          '<input class="gi" id="ob-creator-insta" value="'+_ob4State.creatorInsta+'" placeholder="username" oninput="_ob4State.creatorInsta=this.value.trim().replace(/^@/,\'\');if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();" style="padding-left:28px;"/></div>'+
+        '</div>'+
+        '<div class="field"><label>'+creatorTiktokLabel+'</label>'+
+          '<div style="position:relative;"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);font-weight:500;">@</span>'+
+          '<input class="gi" id="ob-creator-tiktok" value="'+_ob4State.creatorTiktok+'" placeholder="username" oninput="_ob4State.creatorTiktok=this.value.trim().replace(/^@/,\'\');if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();" style="padding-left:28px;"/></div>'+
+        '</div>'+
+        '<div class="field"><label>'+creatorYoutubeLabel+'</label>'+
+          '<div style="position:relative;"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.4);font-weight:500;">@</span>'+
+          '<input class="gi" id="ob-creator-youtube" value="'+_ob4State.creatorYoutube+'" placeholder="channel" oninput="_ob4State.creatorYoutube=this.value.trim().replace(/^@/,\'\');if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();" style="padding-left:28px;"/></div>'+
+        '</div>'+
+        '<div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.25);border-radius:var(--rad-sm);padding:12px;margin-top:12px;font-size:var(--fs-xs);color:#93c5fd;line-height:1.45;">'+
+          creatorInfoText+
+        '</div>'+
+      '</div>';
+  }
+
+  // Content Creator proof — revealed once at least one handle has been typed.
+  var creatorVerifyHtml='';
+  if(isCreator){
+    var hasHandle=!!((_ob4State.creatorInsta||'').trim() || (_ob4State.creatorTiktok||'').trim() || (_ob4State.creatorYoutube||'').trim());
+    creatorVerifyHtml=vfPanel('creator-verify-section', '✨ '+vfCrTitle, vfCrDesc, vfCrExamples, vfBox('CREATOR_BADGE','',vfSgBtn));
+    if(!hasHandle) creatorVerifyHtml=creatorVerifyHtml.replace('id="creator-verify-section" class="ob4-verif-panel" style="', 'id="creator-verify-section" class="ob4-verif-panel" style="display:none;');
+  }
+
+  return '<div class="ob4-flabel ob4-flabel--uni">'+lblYourUni+'</div>'+uniCard+uniNameTog+acad+
+    '<div class="ob4-flabel">'+lblInvolvedLabel+'</div><div style="display:flex;gap:8px;flex-wrap:wrap;">'+invHtml+'</div>'+
+    creatorHtml+
+    creatorVerifyHtml+
     '<button class="ob4-cta" id="ob4-continue-btn-p2" onclick="_ob4Next2()" disabled style="opacity:0.45;margin-top:18px;">'+btnContinue+'</button>';
 }
 /**
@@ -3437,7 +3611,7 @@ function _ob4ValidateAll2(){
   var major=isAlumni?(st.field||'').trim():(st.major||'');
   var grad=(st.gradyr||'').trim();
   var gradSemester=isAlumni||!!(st.gradSemester||'').trim();
-  var living=(st.living||'');
+  var living=isAlumni||!!(st.living||'');
   var involvedValid=(_ob4Involved&&_ob4Involved.length>0);
 
   var creatorValid=true;
@@ -3454,7 +3628,7 @@ function _ob4ValidateAll2(){
     if(cvPanel) cvPanel.style.display=(insta||tiktok||youtube)?'':'none';
   }
 
-  var isValid=!!major&&!!grad&&gradSemester&&!!living&&involvedValid&&creatorValid;
+  var isValid=!!major&&!!grad&&gradSemester&&living&&involvedValid&&creatorValid;
   var btn=document.getElementById('ob4-continue-btn-p2');
   if(btn){
     if(isValid){
@@ -3472,7 +3646,7 @@ function _ob4Next2(){
   var major=isAlumni?(st.field||'').trim():(st.major||'');
   var grad=(st.gradyr||'').trim();
   var gradSemester=isAlumni||!!(st.gradSemester||'').trim();
-  var living=(st.living||'');
+  var living=isAlumni||!!(st.living||'');
   var involvedValid=(_ob4Involved&&_ob4Involved.length>0);
 
   var creatorValid=true;
@@ -3612,7 +3786,7 @@ function _ob4RenderPhotoGridP4(){
   for (var k = 7; k <= 9; k++) {
     slotsHtml += '<div style="width:100%;aspect-ratio:3/4;border-radius:var(--rad-md);position:relative;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.25);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0.6;cursor:not-allowed;">' +
       '<span style="font-size:var(--fs-md);margin-bottom:4px;">'+icon('lock',16)+'</span>' +
-      '<span style="font-size:var(--fs-2xs);font-weight:600;color:#fbbf24;text-align:center;line-height:1.2;">Photo ' + k + '<br/>A+ Student</span>' +
+      '<span style="font-size:var(--fs-2xs);font-weight:600;color:#fbbf24;text-align:center;line-height:1.2;">Photo ' + k + (window.PLANS_ENABLED?'<br/>A+ Student':'') + '</span>' +
     '</div>';
   }
 
@@ -4765,7 +4939,7 @@ async function launch(){
       university: uni ? uni.name : '',
       major: userPro.major || (_ob4State && _ob4State.major) || '',
       grad: userPro.grad || (_ob4State && _ob4State.gradyr ? String(_ob4State.gradyr) : '') || '',
-      gradSemester: userPro.gradSemester || (_ob4State && _ob4State.gradSemester) || '',
+      gradSemester: userPro.gradSemester || (_ob4State && _ob4State.gradSemester) || null,
       crossover: userPro.crossover || false,
       interests: userPro.interests || selectedHobbies || [],
       prompts: userPro.prompts || selectedPrompts || [],
@@ -4798,7 +4972,11 @@ async function launch(){
         greekType: userPro.greekType || '',
         org: userPro.org || window._ob4Greek || '',
         greekStatus: userPro.greekStatus || '',
-        company: userPro.company || ''
+        company: userPro.company || '',
+        // Persists whether this account registered as alumni vs. student —
+        // without this, userMode/obMode only ever lived in JS memory for the
+        // session and silently reset to 'student' on every page reload.
+        accountType: window._regAlumni ? 'alumni' : 'student'
       },
       background: {
         religion: userPro.religion || (_ob4State && _ob4State.religion) || '',
@@ -5557,6 +5735,7 @@ function _initCrushDeck(){
 }
 
 function sw(id,label,opts){
+  if(id==='premium'&&!window.PLANS_ENABLED)return;
   if(id==='unicrush'){
     id='discover'; label='Campus';
     try{
@@ -5923,8 +6102,8 @@ function openImagePositioner(url,type,onSave){
       _ipZoom=z;
       _ipDW=Math.ceil(_ipNatW*_ipBaseScale*_ipZoom);
       _ipDH=Math.ceil(_ipNatH*_ipBaseScale*_ipZoom);
-      if(oldDW>0){_ipX=cx-(_ipX-cx)*(_ipDW/oldDW)-(_ipDW-oldDW)/2;}
-      if(oldDH>0){_ipY=cy-(_ipY-cy)*(_ipDH/oldDH)-(_ipDH-oldDH)/2;}
+      if(oldDW>0){_ipX=cx-(cx-_ipX)*(_ipDW/oldDW);}
+      if(oldDH>0){_ipY=cy-(cy-_ipY)*(_ipDH/oldDH);}
       clamp();
       img.style.width=_ipDW+'px';img.style.height=_ipDH+'px';
       img.style.left=_ipX+'px';img.style.top=_ipY+'px';
@@ -6597,8 +6776,10 @@ function _clampEvCap(el){
   if(v>max){
     el.value=max;
     if(typeof curPlan==='undefined'||curPlan==='free'){
-      if(typeof _prettyAlert==='function')_prettyAlert('¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas 🚀');
-      else alert('¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas 🚀');
+      if(window.PLANS_ENABLED){
+        if(typeof _prettyAlert==='function')_prettyAlert('¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas 🚀');
+        else alert('¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas 🚀');
+      }
       if(typeof premAlert==='function')premAlert();
     }
   }
@@ -6628,8 +6809,10 @@ function _evCapStep(d){
   }
 
   if(d>0 && curr>=mx && isFree){
-    if(typeof _prettyAlert==='function')_prettyAlert('🚀 ¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas.');
-    else alert('🚀 ¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas.');
+    if(window.PLANS_ENABLED){
+      if(typeof _prettyAlert==='function')_prettyAlert('🚀 ¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas.');
+      else alert('🚀 ¿Quieres más espacio? Suscríbete al plan A+ Student para alojar hasta 150 personas.');
+    }
     if(typeof premAlert==='function')premAlert();
     return;
   }
@@ -6692,14 +6875,14 @@ function onEvSectionChange(sec){
 
   var freeCap=_EV_SECTION_CAP[sec]||10;var maxCap=_evMaxCap(sec);
   var capEl=document.getElementById('ev-cap');if(capEl){capEl.max=maxCap;if(parseInt(capEl.value)>maxCap){capEl.value=maxCap;var ec=document.getElementById('ev-cap-echo');if(ec)ec.textContent=maxCap;}}
-  var hint=document.getElementById('ev-cap-hint');if(hint)hint.textContent='Free: max '+freeCap+' · A+ Student: up to 150';
+  var hint=document.getElementById('ev-cap-hint');if(hint)hint.textContent=window.PLANS_ENABLED?('Free: max '+freeCap+' · A+ Student: up to 150'):('Max '+freeCap);
   var exExtras=document.getElementById('ev-exclusive-extras');
   if(exExtras)exExtras.style.display=(sec==='exclusive')?'block':'none';
   var lock=document.getElementById('ev-exclusive-lock');
   if(lock)lock.style.display=(sec==='exclusive'&&curPlan!=='aplus')?'block':'none';
   var pubBtn=document.getElementById('ev-publish-btn');
   if(pubBtn){
-    if(sec==='exclusive'&&curPlan!=='aplus'){pubBtn.textContent='🔒 Unlock A+ Student to create Exclusive';pubBtn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
+    if(sec==='exclusive'&&curPlan!=='aplus'){pubBtn.textContent=window.PLANS_ENABLED?'🔒 Unlock A+ Student to create Exclusive':'🔒 Locked';pubBtn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';}
     else{pubBtn.textContent='Publish Event 🎉';pubBtn.style.background='var(--p)';}
   }
 
@@ -8712,7 +8895,6 @@ function _formatRelativeEventTime(e) {
 
 function renderHangouts(){
   var list=document.getElementById('hangout-events-list');if(!list)return;
-  var _usc=document.getElementById('hangout-uniscope');if(_usc)_usc.innerHTML=(typeof _uniScopeBannerHtml==='function'?_uniScopeBannerHtml():'');
   var _nk=document.getElementById('evsec-networking');var _isAl=(obMode||userMode)==='alumni';if(_nk)_nk.style.display=_isAl?'':'none';if(!_isAl&&currentHangoutSection==='networking'){currentHangoutSection='nightlife';var _c=document.querySelector('.evsec-chip[data-sec="nightlife"]');document.querySelectorAll('.evsec-chip').forEach(function(x){x.classList.remove('on');});if(_c)_c.classList.add('on');}
   var _cp0=document.getElementById('campus-poll');if(_cp0)_cp0.innerHTML='';
   var ht=document.getElementById('happening-tonight');if(ht)ht.innerHTML=_happeningTonightHtml();
@@ -11452,14 +11634,17 @@ var SwipeEngineV2 = (function() {
       bottomCard.style.setProperty('background', targetBg, 'important');
     }
 
-    // Trigger overlay to be solid
+    // Trigger overlay to be solid. Button-triggered swipes land here without ever
+    // passing through the drag handler's dx-tracking (that's the only place that
+    // used to set the stamp's text), so the "A+"/"F" text has to be set here too —
+    // otherwise a programmatic swipe shows an empty glowing circle.
     var overlayLike = document.getElementById('swipe-overlay-like');
     var overlayReject = document.getElementById('swipe-overlay-reject');
     var overlayMaybe = document.getElementById('swipe-overlay-maybe');
-    
-    if (dir === 'like' && overlayLike) { overlayLike.style.opacity = '1'; overlayLike.style.setProperty('transform', 'scale(1.1) rotate(-15deg)', 'important'); }
-    if (dir === 'nope' && overlayReject) { overlayReject.style.opacity = '1'; overlayReject.style.setProperty('transform', 'scale(1.1) rotate(15deg)', 'important'); }
-    if (dir === 'maybe' && overlayMaybe) { overlayMaybe.style.opacity = '1'; overlayMaybe.style.setProperty('transform', 'translate(-50%, -50%) scale(1.1)', 'important'); }
+
+    if (dir === 'like' && overlayLike) { overlayLike.textContent = 'A+'; overlayLike.style.opacity = '1'; overlayLike.style.setProperty('transform', 'scale(1.1) rotate(-15deg)', 'important'); }
+    if (dir === 'nope' && overlayReject) { overlayReject.textContent = 'F'; overlayReject.style.opacity = '1'; overlayReject.style.setProperty('transform', 'scale(1.1) rotate(15deg)', 'important'); }
+    if (dir === 'maybe' && overlayMaybe) { if (!overlayMaybe.textContent) overlayMaybe.textContent = '🌟'; overlayMaybe.style.opacity = '1'; overlayMaybe.style.setProperty('transform', 'translate(-50%, -50%) scale(1.1)', 'important'); }
 
     setTimeout(function() {
       if (onSwipeCallback) onSwipeCallback(dir);
@@ -12217,7 +12402,7 @@ function revealLikedYou(){
   if(curPlan==='aplus'){_renderLikedYouReveal(true);return;}
   var pref=(typeof crushGenderPref!=='undefined')?crushGenderPref:'female';
   var pool=(crushDataAll||[]).filter(function(p){return pref==='any'?true:(!p.gender||p.gender===pref);}).slice(0,8);
-  if(_likedAvailable(pool.length)<=0){alert('Keep swiping — your next reveal is on the way!\n\nOr go A+ Student for unlimited reveals.');return;}
+  if(_likedAvailable(pool.length)<=0){alert(window.PLANS_ENABLED?'Keep swiping — your next reveal is on the way!\n\nOr go A+ Student for unlimited reveals.':'Keep swiping — your next reveal is on the way!');return;}
   _likedSetRevealed(Math.min(pool.length,_likedRevealed()+1));
   _renderLikedYouReveal(false);
 }
@@ -12465,22 +12650,62 @@ function _admirerSrcTag(src){
   return '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fb923c;">vio tu perfil</span>';
 }
 
-// The A+ gate for Admirers. Tapping a hidden admirer used to open a full-screen
-// sheet built from five hardcoded fake profiles; now it opens the standard
-// premium modal, whose confirm button lands on the Plans screen and from there
-// on the A+ checkout. With A+ there is nothing to gate, so it just repaints.
+// Admirers unlock by inviting real friends (server-verified referredCount —
+// see _refLoad() below), not by an A+ subscription. Front-loaded ladder: easy
+// at first, gradually more friends needed per extra admirer, then a flat +5
+// per unlock forever after so there's always a next goal.
+var _ADMIRER_UNLOCK_LADDER=[3,5,8,12,17];
+function _admirerInvitedCount(){
+  return (typeof _userReferralData!=='undefined'&&_userReferralData&&typeof _userReferralData.referredCount!=='undefined')?_userReferralData.referredCount:0;
+}
+function _admirerUnlockedCount(poolLen){
+  var invited=_admirerInvitedCount();
+  var n=0;
+  for(var i=0;i<_ADMIRER_UNLOCK_LADDER.length;i++){ if(invited>=_ADMIRER_UNLOCK_LADDER[i]) n=i+1; }
+  var last=_ADMIRER_UNLOCK_LADDER[_ADMIRER_UNLOCK_LADDER.length-1];
+  if(invited>last) n+=Math.floor((invited-last)/5);
+  return Math.min(n,poolLen);
+}
+function _admirerNextThreshold(){
+  var invited=_admirerInvitedCount();
+  for(var i=0;i<_ADMIRER_UNLOCK_LADDER.length;i++){ if(invited<_ADMIRER_UNLOCK_LADDER[i]) return _ADMIRER_UNLOCK_LADDER[i]; }
+  var last=_ADMIRER_UNLOCK_LADDER[_ADMIRER_UNLOCK_LADDER.length-1];
+  var over=invited-last;
+  return last+(Math.floor(over/5)+1)*5;
+}
+// Tapping a locked admirer opens the invite prompt below instead of a paywall.
 function _admirerPaywall(){
-  if(typeof curPlan!=='undefined'&&curPlan==='aplus'){
-    if(typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(true);
-    return;
-  }
-  return premAlert(window.currentLang==='es'
-    ? 'Para ver quién te dio like y quién vio tu perfil necesitas el plan A+ Student.\n\nDesbloquea a todos tus admiradores secretos.'
-    : 'See who liked you and who viewed your profile with A+ Student.\n\nUnlock all your secret admirers.');
+  if(typeof _refLoad==='function')try{_refLoad();}catch(e){}
+  _openAdmirerInviteModal();
+}
+function _openAdmirerInviteModal(){
+  var isEs=window.currentLang==='es';
+  var invited=_admirerInvitedCount();
+  var next=_admirerNextThreshold();
+  var toGo=Math.max(0,next-invited);
+  var pct=Math.min(100,Math.max(0,Math.round(invited/next*100)));
+  var m=document.getElementById('admirer-invite-modal');if(m)m.remove();
+  m=document.createElement('div');m.id='admirer-invite-modal';m.className='mov open';m.style.zIndex='9999';
+  m.innerHTML='<div class="msheet" style="max-width:370px;"><div class="mhnd"></div>'+
+    '<div style="text-align:center;margin-bottom:12px;">'+
+      '<div style="font-size:38px;">🔒</div>'+
+      '<div style="font-size:var(--fs-xl);font-weight:900;color:#fff;">'+(isEs?'Invita amigos para desbloquear':'Invite friends to unlock')+'</div>'+
+      '<div class="t-sub">'+(isEs?'Cada amigo real que se una con tu link desbloquea admiradores nuevos.':'Every real friend who joins with your link unlocks more admirers.')+'</div>'+
+    '</div>'+
+    '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:13px;margin-bottom:14px;">'+
+      '<div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);font-weight:600;color:var(--fg2);margin-bottom:5px;"><span>'+invited+'/'+next+' '+(isEs?'invitados':'invited')+'</span><span style="color:#4ade80;">'+(isEs?(toGo+' más para desbloquear'):(toGo+' more to unlock'))+'</span></div>'+
+      '<div class="bar-t"><div class="bar-f" style="background:var(--p);width:'+pct+'%"></div></div>'+
+    '</div>'+
+    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_inviteShare()">📲 '+(isEs?'Compartir mi link':'Share invite link')+'</button>'+
+    '<button class="gbtn-ghost" onclick="document.getElementById(\'admirer-invite-modal\').remove()">'+(isEs?'Cerrar':'Close')+'</button>'+
+  '</div>';
+  document.body.appendChild(m);
 }
 
-function _likedSawHtml(pool,unlimited){
+function _likedSawHtml(pool,unlockedN){
   var n = pool.length;
+  unlockedN = Math.max(0, Math.min(n, unlockedN||0));
+  var unlimited = unlockedN >= n && n > 0;
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
 
   // Split the count by where each person came from. _mergedAdmirersPool already
@@ -12522,9 +12747,9 @@ function _likedSawHtml(pool,unlimited){
       '</div>'+
     '</div>'+
     breakdown+
-    // A+ users already see every card unlocked below, so the CTA would lead
-    // nowhere — it only exists as the upsell.
-    (unlimited?'':'<button onclick="_admirerPaywall()" style="'+_cta+'width:100%;margin-top:14px;padding:12px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.2px;cursor:pointer;">'+(isEs?'Descubre quién te observa · A+':'See who it is · A+')+'</button>')+
+    // Once every card is unlocked (enough friends invited) there's nothing
+    // left to invite for here, so the CTA disappears.
+    (unlimited?'':'<button onclick="_admirerPaywall()" style="'+_cta+'width:100%;margin-top:14px;padding:12px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.2px;cursor:pointer;">'+(isEs?'Invita amigos para ver quién es':'Invite friends to see who it is')+'</button>')+
   '</div>';
 
   if(!pool.length){
@@ -12532,9 +12757,8 @@ function _likedSawHtml(pool,unlimited){
     return banner+_emptyMsg;
   }
 
-  // Every profile stays hidden without A+ — there is no free reveal any more,
-  // not even the first row. `unlimited` is the A+ flag the caller passes in.
-  var freeReveals = unlimited ? pool.length : 0;
+  // How many cards are unlocked, per the invite ladder computed by the caller.
+  var freeReveals = unlockedN;
   var uniObjs=Object.keys(UNI).map(function(d){return UNI[d];}).filter(function(u){return u&&u.name;});
 
   var cards=pool.map(function(p, idx){
@@ -12562,9 +12786,7 @@ function _likedSawHtml(pool,unlimited){
       '</div>';
     }
 
-    // The tap opens the A+ modal, so the card says so. It used to read
-    // "DESCUBRIR AHORA" under a pair of glasses, which promised a reveal that
-    // has not existed since free reveals were removed.
+    // The tap opens the invite-to-unlock modal, so the card says so.
     return '<div onclick="_admirerPaywall()" class="fomo-locked-card" style="cursor:pointer;border-radius:var(--rad-lg);overflow:hidden;border:1.5px solid color-mix(in srgb, var(--uni-accent,var(--p)) 65%, transparent);background:#0b0b0e;position:relative;height:216px;transition:transform var(--dur) ease, box-shadow var(--dur) ease;">'+
       '<div style="position:absolute;top:8px;right:8px;font-size:var(--fs-2xs);font-weight:700;color:color-mix(in srgb, var(--uni-accent,var(--p)) 45%, #fff);padding:3px 7px;border-radius:var(--rad-sm);background:rgba(0,0,0,0.85);border:1px solid color-mix(in srgb, var(--uni-accent,var(--p)) 55%, transparent);z-index:2;">'+timeText+'</div>'+
       // 14px, not 18px: at 18px the photo is a flat smear and the card stops
@@ -12574,7 +12796,7 @@ function _likedSawHtml(pool,unlimited){
         '<div style="width:48px;height:48px;border-radius:50%;background:var(--uni-accent,var(--p));display:flex;align-items:center;justify-content:center;color:#fff;border:2px solid #ffffff;box-shadow:0 0 18px color-mix(in srgb, var(--uni-accent,var(--p)) 60%, transparent);animation:fomoPulse 2s infinite ease-in-out;">'+icon('lock',22)+'</div>'+
       '</div>'+
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;background:linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);z-index:3;">'+
-        '<div style="background:linear-gradient(135deg,'+_uc+','+_uc2+');border:none;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:6px;border-radius:var(--rad-sm);letter-spacing:0.4px;">'+icon('lock',14)+' '+(isEs?'Desbloquear · A+':'Unlock · A+')+'</div>'+
+        '<div style="background:linear-gradient(135deg,'+_uc+','+_uc2+');border:none;color:#ffffff;font-size:var(--fs-2xs);font-weight:700;text-align:center;padding:6px;border-radius:var(--rad-sm);letter-spacing:0.4px;">'+icon('lock',14)+' '+(isEs?'Invitar para ver':'Invite to unlock')+'</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -12727,14 +12949,17 @@ function _renderLikedYouReveal(unlimited){
     window._lastAdmirersFetch = Date.now();
     loadAdmirers();
   }
-  panel.innerHTML = subRow + _likedSawHtml(_mergedAdmirersPool(), unlimited);
+  if(typeof _refLoad==='function')try{_refLoad();}catch(e){}
+  var _pool=_mergedAdmirersPool();
+  panel.innerHTML = subRow + _likedSawHtml(_pool, (typeof _admirerUnlockedCount==='function')?_admirerUnlockedCount(_pool.length):0);
 }
 function swipe(dir){
   var card=document.getElementById('crush-card');if(!card||card.style.display==='none')return;
   // Free users get a limited number of likes per day
   if((dir==='like'||dir==='maybe')&&typeof _consumeLike==='function'&&!_consumeLike()){
     var cap=(typeof _effLikeCap==='function')?_effLikeCap():MAX_FREE_LIKES;
-    if(confirm('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)')){if(typeof openReferral==='function')openReferral();}else{sw('premium','Plans');}
+    var likeCapMsg=window.PLANS_ENABLED?('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)'):('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each. Open invite menu?');
+    if(confirm(likeCapMsg)){if(typeof openReferral==='function')openReferral();}else{sw('premium','Plans');}
     return;
   }
   
@@ -12755,7 +12980,7 @@ function swipeBack(){
   if(_leftSwipeStack.length===0){return;}// nothing to go back to
   _checkGoBackReset();
   if(curPlan==='free'){
-    if(goBackUsedThisWeek>=2){alert('You\'ve used your 2 free go-backs this week.\n\nUpgrade to A+ Student for unlimited!');sw('premium','Plans');return;}
+    if(goBackUsedThisWeek>=2){alert(window.PLANS_ENABLED?'You\'ve used your 2 free go-backs this week.\n\nUpgrade to A+ Student for unlimited!':'You\'ve used your 2 free go-backs this week.');sw('premium','Plans');return;}
     goBackUsedThisWeek++;
   }
   crushIdx=_leftSwipeStack.pop();
@@ -12784,7 +13009,8 @@ function _addSentLikeCard(p){
 function quickLikeProfile(name,bg,cardEl){
   if(typeof _consumeLike==='function'&&!_consumeLike()){
     var cap=(typeof _effLikeCap==='function')?_effLikeCap():15;
-    if(confirm('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)')){if(typeof openReferral==='function')openReferral();}else if(typeof sw==='function'){sw('premium','Plans');}
+    var likeCapMsg2=window.PLANS_ENABLED?('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each, or upgrade to A+ Student for unlimited. Open invite menu?\n\n(Cancel = see Plans)'):('You\'ve used your '+cap+' likes for today!\n\nInvite friends for +3 likes/day each. Open invite menu?');
+    if(confirm(likeCapMsg2)){if(typeof openReferral==='function')openReferral();}else if(typeof sw==='function'){sw('premium','Plans');}
     return;
   }
   var p=_findProfileByName(name);
@@ -13872,7 +14098,7 @@ function renderMsgs(){
         if(m.isVideo){
           div.innerHTML='<video src="'+m.img+'" controls autoplay playsinline style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
         }else{
-          div.innerHTML='<img src="'+m.img+'" style="width:180px;border-radius:var(--rad-sm);display:block;object-fit:cover;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
+          div.innerHTML='<img src="'+m.img+'" onclick="openImageViewer(this.src)" style="width:180px;border-radius:var(--rad-sm);display:block;object-fit:cover;cursor:zoom-in;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed · expires soon</div>';
         }
         setTimeout(function(){m.expired=true;m.img=null;renderMsgs();},8000);
       };
@@ -13883,7 +14109,7 @@ function renderMsgs(){
     }else if(m.seeOnce&&m.opened&&m.img){
       div.style.padding='4px';div.style.background='transparent';
       if(m.isVideo){div.innerHTML='<video src="'+m.img+'" controls style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
-      else{div.innerHTML='<img src="'+m.img+'" style="width:180px;border-radius:var(--rad-sm);display:block;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
+      else{div.innerHTML='<img src="'+m.img+'" onclick="openImageViewer(this.src)" style="width:180px;border-radius:var(--rad-sm);display:block;cursor:zoom-in;"/><div style="font-size:var(--fs-2xs);color:var(--fg3);margin-top:4px;">👁 Viewed</div>';}
       box.appendChild(div);return;
     }
 
@@ -13989,7 +14215,7 @@ function renderMsgs(){
       if (m.isVideo) {
         div.innerHTML='<video src="'+imgUrl+'" controls style="width:180px;border-radius:var(--rad-sm);display:block;max-height:240px;"></video>';
       } else {
-        div.innerHTML='<img src="'+imgUrl+'" style="width:160px;max-height:160px;border-radius:var(--rad-sm);object-fit:cover;display:block;"/>';
+        div.innerHTML='<img src="'+imgUrl+'" onclick="openImageViewer(this.src)" style="width:160px;max-height:160px;border-radius:var(--rad-sm);object-fit:cover;display:block;cursor:zoom-in;"/>';
       }
       box.appendChild(div);return;
     }
@@ -14043,6 +14269,105 @@ function renderMsgs(){
   box.scrollTop=box.scrollHeight;
   console.log('[CHAT DEBUG] renderMsgs() finished, DOM children count in #cmsgs:', box.children.length);
 }
+
+// Fullscreen image viewer with zoom: wheel/pinch to zoom, drag/one-finger-pan
+// when zoomed, click backdrop / Escape / × to close. Single shared overlay,
+// reused across chat image taps and the shared-photos gallery.
+function openImageViewer(url){
+  if(!url) return;
+  var old=document.getElementById('img-viewer-ov');
+  if(old) old.remove();
+
+  var ov=document.createElement('div');
+  ov.id='img-viewer-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.92);overflow:hidden;touch-action:none;';
+  ov.innerHTML='<div id="iv-close" style="position:absolute;top:calc(env(safe-area-inset-top) + 14px);right:16px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:20px;z-index:2;">✕</div>'+
+    '<img id="iv-img" src="'+url+'" style="max-width:92vw;max-height:92vh;object-fit:contain;user-select:none;-webkit-user-drag:none;transform:translate(0px,0px) scale(1);transition:transform 0.15s ease-out;cursor:zoom-in;"/>';
+  document.body.appendChild(ov);
+
+  var img=document.getElementById('iv-img');
+  var scale=1, panX=0, panY=0;
+  var MIN=1, MAX=5;
+
+  function apply(withTransition){
+    img.style.transition=withTransition?'transform 0.15s ease-out':'none';
+    img.style.transform='translate('+panX+'px,'+panY+'px) scale('+scale+')';
+    img.style.cursor=scale>1?'grab':'zoom-in';
+  }
+
+  function close(){
+    window.removeEventListener('keydown', onKey);
+    ov.remove();
+  }
+  function onKey(e){ if(e.key==='Escape') close(); }
+  window.addEventListener('keydown', onKey);
+
+  document.getElementById('iv-close').onclick=close;
+  ov.onclick=function(e){ if(e.target===ov) close(); };
+
+  // Desktop: wheel to zoom around cursor, click-drag to pan once zoomed
+  ov.addEventListener('wheel', function(e){
+    e.preventDefault();
+    var next=scale + (e.deltaY<0?0.25:-0.25);
+    scale=Math.min(MAX, Math.max(MIN, next));
+    if(scale===MIN){panX=0;panY=0;}
+    apply(true);
+  }, { passive:false });
+
+  var dragging=false, dragStartX=0, dragStartY=0, panStartX=0, panStartY=0;
+  img.addEventListener('mousedown', function(e){
+    if(scale<=1) return;
+    dragging=true; dragStartX=e.clientX; dragStartY=e.clientY; panStartX=panX; panStartY=panY;
+    img.style.cursor='grabbing';
+  });
+  window.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    panX=panStartX+(e.clientX-dragStartX);
+    panY=panStartY+(e.clientY-dragStartY);
+    apply(false);
+  });
+  window.addEventListener('mouseup', function(){
+    if(dragging){ dragging=false; apply(true); }
+  });
+  img.addEventListener('dblclick', function(){
+    scale = scale>1 ? 1 : 2.5;
+    if(scale===1){panX=0;panY=0;}
+    apply(true);
+  });
+
+  // Mobile: pinch-to-zoom with two touches, one-finger pan when zoomed
+  var touchMode=null, startDist=0, startScale=1, touchPanStartX=0, touchPanStartY=0, touchStartX=0, touchStartY=0;
+  function touchDist(t){ return Math.hypot(t[0].clientX-t[1].clientX, t[0].clientY-t[1].clientY); }
+  ov.addEventListener('touchstart', function(e){
+    if(e.touches.length===2){
+      touchMode='pinch';
+      startDist=touchDist(e.touches);
+      startScale=scale;
+    } else if(e.touches.length===1 && scale>1){
+      touchMode='pan';
+      touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY;
+      touchPanStartX=panX; touchPanStartY=panY;
+    }
+  }, { passive:true });
+  ov.addEventListener('touchmove', function(e){
+    if(touchMode==='pinch' && e.touches.length===2){
+      e.preventDefault();
+      var ratio=touchDist(e.touches)/startDist;
+      scale=Math.min(MAX, Math.max(MIN, startScale*ratio));
+      if(scale===MIN){panX=0;panY=0;}
+      apply(false);
+    } else if(touchMode==='pan' && e.touches.length===1){
+      e.preventDefault();
+      panX=touchPanStartX+(e.touches[0].clientX-touchStartX);
+      panY=touchPanStartY+(e.touches[0].clientY-touchStartY);
+      apply(false);
+    }
+  }, { passive:false });
+  ov.addEventListener('touchend', function(e){
+    if(e.touches.length===0){ touchMode=null; apply(true); }
+  });
+}
+
 // Typing indicator: a dots bubble in-thread + restore the REAL subtitle (member
 // names for groups) instead of clobbering it with a hardcoded "Online".
 function _cwSetTyping(on){
@@ -16822,6 +17147,7 @@ function _simulateInvite(){
 }
 function renderReferralCard(){var el=document.getElementById('referral-card');if(el)el.innerHTML='';}
 function openPayment(plan,price,name){
+  if(plan==='aplus'&&!window.PLANS_ENABLED){if(typeof premAlert==='function')premAlert();return;}
   curPayPlan=plan;
   var isAplus=(plan==='aplus'),isCheat=(plan==='cheat');
   var hd=document.getElementById('pay-hd-title'),hs=document.getElementById('pay-hd-sub'),badge=document.getElementById('pay-badge'),cta=document.getElementById('pay-cta'),card=document.getElementById('pay-plan-card');
@@ -18204,10 +18530,10 @@ function _shrinkMatchToBadge(overlay, opts) {
     if (old) old.remove();
     var badge = document.createElement('div');
     badge.id = 'match-retention-badge';
-    badge.style.cssText = 'position:fixed;right:16px;bottom:88px;z-index:99998;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a0a38,#0d061f);border:1.5px solid rgba(240,62,90,0.5);border-radius:999px;padding:8px 14px 8px 8px;box-shadow:var(--el-3);cursor:pointer;animation:ugzBadgeIn 0.35s ease;';
+    badge.style.cssText = 'position:fixed;right:16px;bottom:88px;z-index:99998;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,#1a0a38,#0d061f);border:1.5px solid rgba(255,62,166,0.5);border-radius:999px;padding:8px 14px 8px 8px;box-shadow:0 0 12px rgba(62,166,255,0.35),var(--el-3);cursor:pointer;animation:ugzBadgeIn 0.35s ease;';
     var photoHtml = opts.photoUrl
-      ? '<img src="' + opts.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;"/>'
-      : '<div style="width:36px;height:36px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">' + (opts.name || '?').charAt(0) + '</div>';
+      ? '<img src="' + opts.photoUrl + '" style="width:36px;height:36px;border-radius:50%;object-fit:cover;box-shadow:0 0 8px rgba(255,62,166,0.6);"/>'
+      : '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3ea6ff,#ff3ea6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;">' + (opts.name || '?').charAt(0) + '</div>';
     var label = window.currentLang === 'es' ? 'Nuevo match 💘' : 'New match 💘';
     badge.innerHTML = photoHtml + '<div style="font-size:var(--fs-sm);font-weight:600;color:#fff;">' + label + '</div><div data-badge-close="1" style="margin-left:2px;color:rgba(255,255,255,0.5);font-size:var(--fs-sm);padding:2px 4px;">✕</div>';
     badge.addEventListener('click', function(e) {
@@ -18238,57 +18564,48 @@ function _matchIcebreakerText(partner) {
   return window.currentLang === 'es' ? '¡Dile hola y pregúntale qué la trae por el campus! 👋' : 'Say hi and ask what brought them to campus! 👋';
 }
 
-// Small horizontal strip of the user's real recent matches (read from the chat cache
-// that's already loaded at app boot) — real social proof instead of a fabricated counter.
-function _recentMatchesCarouselHtml(excludeMatchId) {
-  try {
-    var cache = window._chatPartnerCache || {};
-    var items = Object.keys(cache).map(function(id){ return { id: id, conv: cache[id] }; })
-      .filter(function(x){ return x.id !== excludeMatchId && x.conv && x.conv.partner; })
-      .sort(function(a, b){
-        var da = a.conv.matchedAt ? new Date(a.conv.matchedAt).getTime() : 0;
-        var db = b.conv.matchedAt ? new Date(b.conv.matchedAt).getTime() : 0;
-        return db - da;
-      })
-      .slice(0, 8);
-    if (!items.length) return '';
-    var thumbs = items.map(function(x) {
-      var p = x.conv.partner;
-      var photo = (p.photos && p.photos[0] && p.photos[0].url) || '';
-      var name = p.firstName || '?';
-      var style = photo
-        ? 'background-image:url(\'' + photo + '\');background-size:cover;background-position:center;'
-        : 'background:linear-gradient(135deg,var(--accent),var(--accent-deep));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;';
-      return '<div style="width:44px;height:44px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,0.25);' + style + '">' + (photo ? '' : name.charAt(0).toUpperCase()) + '</div>';
-    }).join('');
-    var label = window.currentLang === 'es' ? 'Tus matches recientes' : 'Your recent matches';
-    return '<div style="margin-top:18px;">' +
-      '<div style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;">' + label + '</div>' +
-      '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;">' + thumbs + '</div>' +
-    '</div>';
-  } catch(e) { return ''; }
+// Spawns a one-shot burst of small spark nodes from the center of `container`,
+// each animated purely by the CSS `matchSparkOut` keyframe (transform+opacity via
+// per-node --tx/--ty custom props) — no rAF-per-particle, this is the only thing
+// animating during the "explosion" phase (see the perf note above _showMatchOverlay).
+function _spawnMatchSparks(container) {
+  var COLORS = ['#3ea6ff', '#ff3ea6'];
+  for (var i = 0; i < 12; i++) {
+    var angle = (Math.PI * 2 * i / 12) + (Math.random() * 0.4 - 0.2);
+    var dist = 70 + Math.random() * 50;
+    var spark = document.createElement('div');
+    var size = 4 + Math.random() * 3;
+    spark.style.cssText = 'position:absolute;left:50%;top:50%;width:' + size + 'px;height:' + size + 'px;margin:-' + (size/2) + 'px 0 0 -' + (size/2) + 'px;border-radius:50%;background:' + COLORS[i % 2] + ';box-shadow:0 0 6px ' + COLORS[i % 2] + ';--tx:' + (Math.cos(angle) * dist).toFixed(1) + 'px;--ty:' + (Math.sin(angle) * dist).toFixed(1) + 'px;animation:matchSparkOut 0.6s ease-out forwards;pointer-events:none;';
+    container.appendChild(spark);
+  }
 }
 
 var _matchOverlayTimers = [];
+var _activeMatchOverlayKey = null;
 function _showMatchOverlay(data) {
   if (!data) return;
+  var partner = data.partner || {};
+  var matchId = data.matchId || '';
   // A single match reliably fires this 2-3 times (the 'newMatch' socket event,
   // the 'newMatch_broadcast' fallback, and the swiper's own HTTP isMatch:true
-  // response all call this for the same match). Without cancelling the previous
-  // call's scheduled ring/typing timers, the orphaned interval keeps typing into
-  // the new overlay's #match-hook-text (same id) concurrently with the new one,
-  // interleaving characters into garbled/duplicated text.
+  // response all call this for the same match). The "Neon Energy" sequence takes
+  // ~5s to play out, so a duplicate call arriving mid-animation used to wipe the
+  // in-progress overlay and restart the whole thing from step 1 — visible as the
+  // animation never finishing. Dedup by match identity instead: once an overlay
+  // for this match is already up, later calls for the SAME match are no-ops.
+  var overlayKey = matchId || partner.handle || partner.name || 'unknown';
+  if (_activeMatchOverlayKey === overlayKey && document.getElementById('live-match-modal')) {
+    return;
+  }
+  _activeMatchOverlayKey = overlayKey;
   _matchOverlayTimers.forEach(function(t){ clearTimeout(t); clearInterval(t); });
   _matchOverlayTimers = [];
   console.log("🎉 Displaying real-time match modal:", data);
-  var partner = data.partner || {};
-  var matchId = data.matchId || '';
   var partnerName = partner.firstName || partner.name || 'someone';
   var partnerPhoto = partner.photo || (partner.photos && partner.photos[0] && partner.photos[0].url) || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500';
   var userPhoto = (typeof userPro !== 'undefined' && userPro.photos && userPro.photos[0] && userPro.photos[0].url) || (typeof userPro !== 'undefined' && userPro.p && userPro.p.pic) || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500';
   var isEs = window.currentLang === 'es';
   var icebreakerText = _matchIcebreakerText(partner);
-  var hookText = isEs ? 'Los primeros mensajes reciben 3x más respuestas' : 'The first message gets 3x more replies';
 
   if (typeof notifData !== 'undefined') {
     // Evita duplicar la notificación de match de la misma persona.
@@ -18317,29 +18634,38 @@ function _showMatchOverlay(data) {
   // backdrop-filter blur is one of the priciest CSS effects to composite; 8px reads
   // just as "glassy" as 16px here but is noticeably cheaper per frame.
   overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;background:rgba(10,5,22,0.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:1 !important;visibility:visible !important;pointer-events:auto !important;';
+  // "Neon Energy" sequence (5 steps, ~5s total, one animated thing per phase —
+  // see the perf note this replaced above _spawnMatchSparks): photos slide in →
+  // two SVG neon strokes draw from each photo and cross at the center → they
+  // fade into a halo burst + spark particles → the match text/heart/CTA fade in.
   overlay.innerHTML = `
-    <div class="ugz-modal-card type-confirm" style="max-width:380px;text-align:center;padding:30px 22px;background:linear-gradient(145deg, #0d061f, #1a0a38);border:1.5px solid rgba(240,62,90,0.45);box-shadow:var(--el-3);animation:ugzPopIn 0.25s ease;">
-      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:18px;height:88px;position:relative;">
-        <div id="match-impact-ring" style="position:absolute;left:50%;top:50%;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(240,62,90,0.75);opacity:0;pointer-events:none;"></div>
-        <div id="match-photo-user" style="width:82px;height:82px;border-radius:50%;padding:3px;background:#791515;box-shadow:var(--el-2);transform:translateX(-60px);opacity:0;transition:transform 0.5s cubic-bezier(.2,.8,.2,1),opacity 0.4s ease;will-change:transform,opacity;">
+    <div class="ugz-modal-card type-confirm" style="max-width:380px;text-align:center;padding:30px 22px;background:linear-gradient(145deg, #0d061f, #1a0a38);border:1.5px solid rgba(120,90,255,0.35);box-shadow:var(--el-3);animation:ugzPopIn 0.25s ease;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px;height:88px;position:relative;">
+        <svg id="match-neon-svg" viewBox="0 0 336 88" style="position:absolute;left:50%;top:0;width:336px;height:88px;margin-left:-168px;overflow:visible;pointer-events:none;transition:opacity 0.25s ease;">
+          <path id="match-neon-line-blue" class="match-neon-line" d="M120,44 Q168,64 216,20" fill="none" stroke="#3ea6ff" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 0 4px #3ea6ff);"/>
+          <path id="match-neon-line-pink" class="match-neon-line" d="M216,44 Q168,24 120,20" fill="none" stroke="#ff3ea6" stroke-width="3" stroke-linecap="round" style="filter:drop-shadow(0 0 4px #ff3ea6);"/>
+        </svg>
+        <div id="match-halo" style="position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(62,166,255,0.55) 35%, rgba(255,62,166,0.35) 65%, rgba(255,62,166,0) 100%);opacity:0;pointer-events:none;"></div>
+        <div id="match-sparks" style="position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;"></div>
+        <div id="match-photo-user" style="width:82px;height:82px;border-radius:50%;padding:3px;background:#3ea6ff;box-shadow:0 0 14px rgba(62,166,255,0.7);transform:translateX(-60px);opacity:0;transition:transform 0.35s cubic-bezier(.2,.8,.2,1),opacity 0.3s ease;will-change:transform,opacity;">
           <img src="${userPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"/>
         </div>
-        <div id="match-photo-partner" style="width:82px;height:82px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));box-shadow:var(--el-2);transform:translateX(60px);opacity:0;transition:transform 0.5s cubic-bezier(.2,.8,.2,1),opacity 0.4s ease;will-change:transform,opacity;">
+        <div id="match-photo-partner" style="width:82px;height:82px;border-radius:50%;padding:3px;background:#ff3ea6;box-shadow:0 0 14px rgba(255,62,166,0.7);transform:translateX(60px);opacity:0;transition:transform 0.35s cubic-bezier(.2,.8,.2,1),opacity 0.3s ease;will-change:transform,opacity;">
           <img src="${partnerPhoto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;"/>
         </div>
+        <div id="match-mini-heart" style="position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;font-size:18px;line-height:26px;opacity:0;">❤️</div>
       </div>
-      <div style="font-size:var(--fs-2xl);font-weight:900;background:#791515;-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;font-family:var(--font-serif);letter-spacing:0.5px;">${isEs ? '¡Match con ' + partnerName + '!' : 'Match with ' + partnerName + '!'}</div>
-      <div id="match-hook-text" style="font-size:var(--fs-sm);color:rgba(255,255,255,0.65);margin-bottom:22px;min-height:1.4em;font-weight:600;"></div>
+      <div id="match-title" style="font-size:var(--fs-2xl);font-weight:900;background:linear-gradient(90deg,#3ea6ff,#ff3ea6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;font-family:var(--font-serif);letter-spacing:0.5px;opacity:0;">${isEs ? '¡ES UN MATCH!' : "IT'S A MATCH"}</div>
+      <div id="match-subtitle" style="font-size:var(--fs-sm);color:rgba(255,255,255,0.65);margin-bottom:22px;font-weight:600;opacity:0;">${isEs ? '¡Salúdala/o! 👋' : 'Now say hi 👋'}</div>
 
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <button id="live-match-btn-chat" class="ugz-modal-btn ugz-modal-btn-confirm" style="background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:#fff;border:none;font-weight:600;padding:13px;border-radius:var(--rad-md);cursor:pointer;font-size:var(--fs-base);box-shadow:var(--el-2);">
-          🧊 ${isEs ? 'Rompe el hielo' : 'Break the ice'}
+      <div id="match-actions" style="display:flex;flex-direction:column;gap:10px;opacity:0;">
+        <button id="live-match-btn-chat" class="ugz-modal-btn ugz-modal-btn-confirm" style="background:linear-gradient(135deg,#3ea6ff,#ff3ea6);color:#fff;border:none;font-weight:600;padding:13px;border-radius:var(--rad-md);cursor:pointer;font-size:var(--fs-base);box-shadow:var(--el-2);">
+          ${isEs ? 'Enviar mensaje' : 'Send Message'}
         </button>
         <button id="live-match-btn-close" class="ugz-modal-btn ugz-modal-btn-cancel" style="background:rgba(255,255,255,0.08);color:var(--fg2);border:1px solid rgba(255,255,255,0.14);font-weight:500;padding:11px;border-radius:var(--rad-md);cursor:pointer;font-size:var(--fs-base);">
-          ${isEs ? 'Seguir explorando' : 'Keep exploring'}
+          ${isEs ? 'Seguir viendo perfiles' : 'Keep Swiping'}
         </button>
       </div>
-      ${_recentMatchesCarouselHtml(matchId)}
     </div>
   `;
 
@@ -18352,15 +18678,7 @@ function _showMatchOverlay(data) {
   // on the backdrop to dismiss it.
   _attachMatchBackdropDismiss(overlay);
 
-  // Staggered, not simultaneous: the previous version slid the photos in AND
-  // spawned an 18-node full-screen confetti burst (invisible behind this very
-  // overlay's z-index, pure wasted compositor work) AND started typing the hook
-  // text, all inside the same ~600ms window — on a mid-range machine that's
-  // enough concurrent transform/paint work to drop frames and read as "janky"
-  // instead of "impactful". Now only one animated thing runs at a time:
-  // 1) photos slide in (transform/opacity, 2 elements) →
-  // 2) a single impact ring pulses once the photos meet (transform/opacity, 1 element) →
-  // 3) hook text types out (text-only, no layout cost) once the ring is fading.
+  // Step 1 (0-350ms): photos slide in from the sides.
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
       var up = document.getElementById('match-photo-user');
@@ -18369,24 +18687,51 @@ function _showMatchOverlay(data) {
       if (pp) { pp.style.transform = 'translateX(0)'; pp.style.opacity = '1'; }
     });
   });
+
+  // Steps 2+3 (450-1350ms): the two neon strokes draw from each photo and cross
+  // at the center, then fade out. getTotalLength() is measured once (not per
+  // frame) and the draw is a plain stroke-dashoffset transition, same technique
+  // as the existing .ring-fill progress rings elsewhere in the app.
   _matchOverlayTimers.push(setTimeout(function(){
-    var ring = document.getElementById('match-impact-ring');
-    if (ring) {
-      ring.style.animation = 'matchImpactRing 0.5s ease-out forwards';
-    }
-  }, 480));
+    ['match-neon-line-blue', 'match-neon-line-pink'].forEach(function(id){
+      var path = document.getElementById(id);
+      if (!path) return;
+      var len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          path.style.strokeDashoffset = '0';
+        });
+      });
+    });
+  }, 450));
+
+  // Step 4 (1350-1850ms): hide the lines, burst a halo + spark particles —
+  // the only animated group running in this window.
   _matchOverlayTimers.push(setTimeout(function(){
-    var hookEl = document.getElementById('match-hook-text');
-    if (hookEl) {
-      var i = 0;
-      var iv = setInterval(function(){
-        hookEl.textContent += hookText.charAt(i);
-        i++;
-        if (i >= hookText.length) clearInterval(iv);
-      }, 20);
-      _matchOverlayTimers.push(iv);
-    }
-  }, 700));
+    var svg = document.getElementById('match-neon-svg');
+    if (svg) svg.style.opacity = '0';
+    var halo = document.getElementById('match-halo');
+    if (halo) halo.style.animation = 'matchHaloBurst 0.5s ease-out forwards';
+    var sparks = document.getElementById('match-sparks');
+    if (sparks) _spawnMatchSparks(sparks);
+  }, 1350));
+
+  // Step 5 (2000-2450ms): title, heart, subtitle and buttons fade in, staggered
+  // so nothing else is animating alongside them. Title lands at ~2s total,
+  // comfortably inside the 2-2.5s budget for "IT'S A MATCH" to appear.
+  [
+    ['match-title', 2000],
+    ['match-mini-heart', 2150],
+    ['match-subtitle', 2300],
+    ['match-actions', 2450]
+  ].forEach(function(pair){
+    _matchOverlayTimers.push(setTimeout(function(){
+      var el = document.getElementById(pair[0]);
+      if (el) el.style.animation = 'matchStep5In 0.35s ease forwards';
+    }, pair[1]));
+  });
 
   var chatBtn = document.getElementById('live-match-btn-chat');
   if (chatBtn) {
@@ -18410,9 +18755,14 @@ function _showMatchOverlay(data) {
     };
   }
 
+  // The "Neon Energy" sequence's buttons finish fading in around 2.8s — the
+  // retention badge's default 4.5s delay is tuned for the old, even-shorter
+  // animation and would shrink the overlay too soon after the buttons appear.
+  // Give it a few seconds of visible, clickable time first.
   _scheduleMatchRetentionBadge(overlay, {
     photoUrl: partnerPhoto,
     name: partnerName,
+    delay: 6000,
     onReopen: function() {
       if (typeof sw === 'function') sw('chats', 'Chats');
       if (matchId && typeof openChat === 'function') openChat(matchId, partnerName, '#dc2626', '❤️', false, [], false);
@@ -18511,7 +18861,12 @@ function conectarChatEnVivo() {
       else if (msg.type === 'IMAGE') previewText = 'Foto';
       else if (msg.type === 'FILE') previewText = 'Archivo';
 
-      var _isUnreadNow = (curChatId !== targetId && !isOut);
+      // A chat can still be "open" as far as curChatId is concerned while the
+      // tab/window isn't actually the one the user is looking at (e.g. two
+      // accounts tested side by side in separate tabs) — document.hidden
+      // catches that case so the bell still fires instead of assuming the
+      // user has seen the message just because that chat's screen is loaded.
+      var _isUnreadNow = ((curChatId !== targetId || document.hidden) && !isOut);
       ['dm-match-' + targetId, 'uc-match-' + targetId].forEach(function(rid){
         var item = document.getElementById(rid);
         if (!item) return;
@@ -18529,7 +18884,7 @@ function conectarChatEnVivo() {
         if (par && par.firstElementChild !== item) par.insertBefore(item, par.firstElementChild);
       });
 
-      if (curChatId !== targetId && !isOut) {
+      if (_isUnreadNow) {
         window._unreadMessageCounts = window._unreadMessageCounts || {};
         window._unreadMessageCounts[targetId] = (window._unreadMessageCounts[targetId] || 0) + 1;
         _updateUnreadBadgeForChat(targetId);
@@ -18744,8 +19099,8 @@ function _logOut(force) {
   var logoutMessage = isSpanish 
     ? '¿Ya te vas a estudiar a la biblioteca? 📚 No olvides regresar pronto para ver tus nuevos matches y eventos del campus. ✨' 
     : 'Heading off to study at the library? 📚 Don\'t forget to check back soon for your new campus matches & events! ✨';
-  var confirmBtnText = isSpanish ? 'Cerrar Sesión 🚪' : 'Log Out 🚪';
-  var cancelBtnText = isSpanish ? 'Quedarme en la App 🎒' : 'Stay Logged In 🎒';
+  var confirmBtnText = isSpanish ? 'Cerrar Sesión' : 'Log Out';
+  var cancelBtnText = isSpanish ? 'Quedarme en la App' : 'Stay Logged In';
 
   if (typeof ugzConfirm === 'function') {
     ugzConfirm({
@@ -18916,8 +19271,46 @@ function openSettings(){
   var sx=document.getElementById('sw-crossover');if(sx)sx.classList.toggle('on',!!(userPro&&userPro.crossover));var _at=(userPro&&userPro.accentText)||'auto';var _atb=document.getElementById('accent-text-chips');if(_atb)_atb.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',c.textContent.trim().toLowerCase()===_at);});var _gr=document.getElementById('settings-grad-row');if(_gr)_gr.style.display=((obMode||userMode)==='alumni')?'none':'';
   var sl=document.getElementById('settings-lang');if(sl)sl.textContent=window.currentLang==='es'?'Español':'English';
   try{ _paintAppThemeBtns(); }catch(e){}
+  try{ _paintPremiumBanner(); }catch(e){}
   initSettingsAccordion();
   var m=document.getElementById('settings-modal');if(m)m.classList.add('open');
+}
+// Toggles the Settings premium block between "Go Premium" (no active plan)
+// and the active-subscription summary (plan, renewal/expiry date, cancel).
+function _paintPremiumBanner(){
+  var free=document.getElementById('set-premium-free');
+  var active=document.getElementById('set-premium-active');
+  if(!free||!active)return;
+  if(!window.PLANS_ENABLED){free.style.display='none';active.style.display='none';return;}
+  var hasPlan=(typeof curPlan!=='undefined'&&curPlan&&curPlan!=='free');
+  free.style.display=hasPlan?'none':'';
+  active.style.display=hasPlan?'':'none';
+  if(!hasPlan)return;
+  var titleEl=document.getElementById('set-premium-active-title');
+  var descEl=document.getElementById('set-premium-active-desc');
+  var cancelBtn=document.getElementById('set-premium-cancel-btn');
+  var planLabel=(curPlan==='aplus')?'UndrGradz A+':(curPlan.charAt(0).toUpperCase()+curPlan.slice(1));
+  if(titleEl)titleEl.textContent=planLabel;
+  var willRenew=(typeof curPlanWillRenew==='undefined')||curPlanWillRenew!==false;
+  var dateStr=(typeof curPlanEnds!=='undefined'&&curPlanEnds)?curPlanEnds.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}):'—';
+  if(descEl)descEl.textContent=(willRenew?'Renews on ':'Expires on ')+dateStr;
+  if(cancelBtn){
+    cancelBtn.textContent=willRenew?'Cancel plan':'Plan canceled — active until '+dateStr;
+    cancelBtn.disabled=!willRenew;
+    cancelBtn.style.opacity=willRenew?'':'0.55';
+  }
+}
+function cancelSubscription(){
+  if(typeof apiClient==='undefined'||!apiClient.cancelSubscription)return;
+  var btn=document.getElementById('set-premium-cancel-btn');
+  if(btn)btn.disabled=true;
+  apiClient.cancelSubscription().then(function(data){
+    if(data&&data.subscriptionWillRenew===false)curPlanWillRenew=false;
+    _paintPremiumBanner();
+  }).catch(function(e){
+    if(btn)btn.disabled=false;
+    if(typeof ugzAlert==='function')ugzAlert((e&&e.message)||'Could not cancel your plan. Please try again.');
+  });
 }
 // 🎓 TRANSFER — permanently change your home university (re-verification required)
 function _gradApproaching(grad){if(!grad)return false;var mo=/May/i.test(grad)?5:(/Dec/i.test(grad)?12:6);var ym=(''+grad).match(/(\d{2})\s*$/);if(!ym)return false;var yr=2000+parseInt(ym[1]);var now=new Date();var months=(yr-now.getFullYear())*12+((mo-1)-now.getMonth());return months>=0&&months<=4;}
@@ -19571,7 +19964,7 @@ function commitClubInput(){
   if(_addClubSafe(val))renderClubTags();
   inp.value='';
 }
-function toggleB5(el,act,color){var cnt=selectedHobbies.length;if(!el.classList.contains('on')&&cnt>=MAX_HOBBIES){alert('Free plan: '+MAX_HOBBIES+' hobbies max. Upgrade for unlimited!');return;}el.classList.toggle('on');if(el.classList.contains('on')){el.style.background=color+'22';el.style.borderColor=color;el.style.color='#fff';if(selectedHobbies.indexOf(act)===-1)selectedHobbies.push(act);}else{el.style.background='';el.style.borderColor='';el.style.color='';selectedHobbies=selectedHobbies.filter(function(h){return h!==act;});}var cnt2=document.getElementById('b5-count');if(cnt2)cnt2.textContent=selectedHobbies.length;}
+function toggleB5(el,act,color){var cnt=selectedHobbies.length;if(!el.classList.contains('on')&&cnt>=MAX_HOBBIES){alert(window.PLANS_ENABLED?('Free plan: '+MAX_HOBBIES+' hobbies max. Upgrade for unlimited!'):('Free plan: '+MAX_HOBBIES+' hobbies max.'));return;}el.classList.toggle('on');if(el.classList.contains('on')){el.style.background=color+'22';el.style.borderColor=color;el.style.color='#fff';if(selectedHobbies.indexOf(act)===-1)selectedHobbies.push(act);}else{el.style.background='';el.style.borderColor='';el.style.color='';selectedHobbies=selectedHobbies.filter(function(h){return h!==act;});}var cnt2=document.getElementById('b5-count');if(cnt2)cnt2.textContent=selectedHobbies.length;}
 // ── EDIT INTERESTS FROM PROFILE ──
 // The same UI as the sign-up interests step: category chips carrying their own
 // underline hue, a search box, and the three-up grid of .ob4-int cells. It calls
@@ -19696,7 +20089,7 @@ addLink=function(){var raw=prompt('Enter URL or @username (Instagram, YouTube, L
 
 // ── MAX SPOTS ENFORCEMENT ──
 var _origCreateEv=createEv;
-createEv=function(){var capEl=document.getElementById('ev-cap');if(capEl){var cap=parseInt(capEl.value);if(curPlan==='free'&&cap>10){if(typeof _ehOpenStep==='function')_ehOpenStep(4);alert('Free plan: max 10 spots. Upgrade for more!');capEl.value=10;return;}if(cap>100){if(typeof _ehOpenStep==='function')_ehOpenStep(4);alert('Max 100 spots.');capEl.value=100;return;}}return _origCreateEv();};
+createEv=function(){var capEl=document.getElementById('ev-cap');if(capEl){var cap=parseInt(capEl.value);if(curPlan==='free'&&cap>10){if(typeof _ehOpenStep==='function')_ehOpenStep(4);alert(window.PLANS_ENABLED?'Free plan: max 10 spots. Upgrade for more!':'Free plan: max 10 spots.');capEl.value=10;return;}if(cap>100){if(typeof _ehOpenStep==='function')_ehOpenStep(4);alert('Max 100 spots.');capEl.value=100;return;}}return _origCreateEv();};
 
 // ── NETWORK FEATURES (Alumni) ──
 function openNetCreate(){
@@ -19732,15 +20125,15 @@ function openNetCreate(){
   h+='</div></div></div></div>';
   h+='<div class="field"><label>Fraternity / Sorority Filter <span style="font-size:var(--fs-2xs);color:var(--fg3);">(optional)</span></label>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:5px;max-height:90px;overflow-y:auto;">'+orgList.map(function(o){return '<div class="yr-chip" style="font-size:var(--fs-2xs);" onclick="this.classList.toggle(\'on\')">'+o+'</div>';}).join('')+'</div></div>';
-  h+='<div class="field"><label>Filter by Major <span style="font-size:var(--fs-2xs);color:var(--fg3);">Up to '+majorMax+(curPlan!=='aplus'?' (upgrade for 8)':'')+'</span></label>';
+  h+='<div class="field"><label>Filter by Major <span style="font-size:var(--fs-2xs);color:var(--fg3);">Up to '+majorMax+(curPlan!=='aplus'&&window.PLANS_ENABLED?' (upgrade for 8)':'')+'</span></label>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:5px;" id="net-major-chips">'+majorList.map(function(m){return '<div class="yr-chip" style="font-size:var(--fs-2xs);" onclick="netToggleChip(this,\'net-major-chips\','+majorMax+')">'+m+'</div>';}).join('')+'</div></div>';
-  h+='<div class="field"><label>Filter by Religion <span style="font-size:var(--fs-2xs);color:var(--fg3);">Up to '+relMax+(curPlan!=='aplus'?' (upgrade for 8)':'')+'</span></label>';
+  h+='<div class="field"><label>Filter by Religion <span style="font-size:var(--fs-2xs);color:var(--fg3);">Up to '+relMax+(curPlan!=='aplus'&&window.PLANS_ENABLED?' (upgrade for 8)':'')+'</span></label>';
   h+='<div style="display:flex;flex-wrap:wrap;gap:5px;" id="net-religion-chips">'+religionList.map(function(r){return '<div class="yr-chip" style="font-size:var(--fs-2xs);" onclick="netToggleChip(this,\'net-religion-chips\','+relMax+')">'+r+'</div>';}).join('')+'</div></div>';
   h+='<div class="field"><div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;cursor:pointer;" onclick="var sw2=document.getElementById(\'net-21-sw\');if(sw2)sw2.classList.toggle(\'on\');"><div style="font-size:var(--fs-base);font-weight:500;color:#fff;">🔞 21+ Only</div><div class="sw" id="net-21-sw" style="pointer-events:none;"></div></div></div>';
   h+='<div class="field"><label>Location / Venue</label><input class="gi" type="text" id="net-ev-addr" placeholder="e.g. SMU Campus Center, Dallas TX"/></div>';
   h+='<div class="field"><label>Date &amp; Time</label><div style="display:flex;gap:8px;"><input class="gi" type="date" id="net-ev-date" style="flex:1;"/><input class="gi" type="time" id="net-ev-time" style="width:106px;"/></div></div>';
   h+='<div class="field"><label>Max Spots <span style="font-size:var(--fs-2xs);color:var(--fg3);">Free: 15 · A+ Alumni: 150</span></label>';
-  h+='<input class="gi" type="number" id="net-ev-cap" value="15" min="1" max="'+maxSpots+'" style="font-size:var(--fs-md);font-weight:600;text-align:center;width:80px;" oninput="(function(el){var v=parseInt(el.value);var lim='+maxSpots+';if(v>lim){el.value=lim;if(curPlan!==\'aplus\')alert(\'Free Alumni plan: max 15 spots. Upgrade for up to 150!\');}})(this)"/></div>';
+  h+='<input class="gi" type="number" id="net-ev-cap" value="15" min="1" max="'+maxSpots+'" style="font-size:var(--fs-md);font-weight:600;text-align:center;width:80px;" oninput="(function(el){var v=parseInt(el.value);var lim='+maxSpots+';if(v>lim){el.value=lim;if(curPlan!==\'aplus\')alert(window.PLANS_ENABLED?\'Free Alumni plan: max 15 spots. Upgrade for up to 150!\':\'Free Alumni plan: max 15 spots.\');}})(this)"/></div>';
   h+='<button class="gbtn" style="background:var(--p);" onclick="createNetEvent()">Create Event</button>';
   h+='<button class="gbtn-ghost" onclick="document.getElementById(\'net-create-modal\').remove()">Cancel</button></div>';
   modal.innerHTML=h;
@@ -19755,7 +20148,7 @@ function netAudienceChip(el){
 function netToggleChip(el,groupId,max){
   var group=document.getElementById(groupId);if(!group)return;
   var onCount=group.querySelectorAll('.yr-chip.on').length;
-  if(!el.classList.contains('on')&&onCount>=max){alert('You can select up to '+max+' on this plan. Upgrade A+ Alumni for more.');return;}
+  if(!el.classList.contains('on')&&onCount>=max){alert(window.PLANS_ENABLED?('You can select up to '+max+' on this plan. Upgrade A+ Alumni for more.'):('You can select up to '+max+' on this plan.'));return;}
   el.classList.toggle('on');
 }
 function createNetEvent(){var nm=document.getElementById('net-ev-nm');if(!nm||!nm.value.trim()){alert('Give your event a name');return;}var desc=document.getElementById('net-ev-desc');var cap=document.getElementById('net-ev-cap');var capVal=cap?cap.value:'10';var netSec=document.getElementById('sec-network');if(netSec){
@@ -19877,7 +20270,7 @@ switchProfTab=function(tab){_origSwitchProfTabForAge(tab);
   // has no left/right until updateAgeRange() writes them. Firing only on 'crush'
   // meant opening Filters showed a zero-width (invisible) fill until you dragged
   // a handle, which is the only other thing that calls it.
-  if(tab==='crush'||tab==='filters'){if(typeof _populateFilterChips==='function')_populateFilterChips();if(typeof _applyPlanLocks==='function')_applyPlanLocks();if(typeof renderFilterPresets==='function')renderFilterPresets();setTimeout(function(){if(typeof updateAgeRange==='function')updateAgeRange();},60);}};
+  if(tab==='crush'||tab==='filters'){if(typeof _populateFilterChips==='function')_populateFilterChips();if(typeof _restoreFilterChips==='function')_restoreFilterChips();if(typeof _applyPlanLocks==='function')_applyPlanLocks();if(typeof renderFilterPresets==='function')renderFilterPresets();setTimeout(function(){if(typeof updateAgeRange==='function')updateAgeRange();},60);}};
 
 function updateAgeRange(){
   var minEl=document.getElementById('crush-age-min'),maxEl=document.getElementById('crush-age-max');if(!minEl||!maxEl)return;
@@ -19895,6 +20288,74 @@ function updateAgeRange(){
   var maxLbl=document.getElementById('crush-age-max-lbl');if(maxLbl)maxLbl.textContent=maxV;
   var lbl=document.getElementById('crush-age-range-lbl');if(lbl)lbl.textContent=minV+' – '+maxV;
 }
+// ── AGE RANGE — custom pointer-driven drag ──
+// Two overlapping <input type="range"> stacked on the same track is the
+// classic broken pattern: native hit-testing always resolves a click/drag to
+// whichever input is on top in paint order (crush-age-max, being later in the
+// DOM), regardless of which thumb is visually closer to the pointer. Instead
+// of fighting that with z-index tricks (which only shift *which* input wins,
+// not *whether* the wrong one still can), we fully take over the drag: pick
+// whichever thumb is nearer to the pointer at mousedown/touchstart, then
+// drive its value ourselves for the rest of the gesture.
+function _ageSliderSetup(){
+  var minEl=document.getElementById('crush-age-min'),maxEl=document.getElementById('crush-age-max');
+  if(!minEl||!maxEl)return;
+  var wrap=minEl.closest('.age-slider-wrap');
+  if(!wrap||wrap._ageDragInit)return;
+  wrap._ageDragInit=true;
+  var MIN=18,MAX=40;
+
+  function usableRect(){var r=wrap.getBoundingClientRect();return {left:r.left+4,width:Math.max(1,r.width-8)};}
+  function valueToClientX(v){var u=usableRect();return u.left+((v-MIN)/(MAX-MIN))*u.width;}
+  function clientXToValue(x){var u=usableRect();var pct=(x-u.left)/u.width;pct=Math.max(0,Math.min(1,pct));return Math.round(MIN+pct*(MAX-MIN));}
+  function pointerX(e){
+    if(e.touches&&e.touches.length)return e.touches[0].clientX;
+    if(e.changedTouches&&e.changedTouches.length)return e.changedTouches[0].clientX;
+    return e.clientX;
+  }
+
+  var activeEl=null;
+
+  function moveTo(x){
+    if(!activeEl)return;
+    activeEl.value=clientXToValue(x);
+    updateAgeRange();
+  }
+  function onMove(e){
+    if(!activeEl)return;
+    e.preventDefault();
+    moveTo(pointerX(e));
+  }
+  function onUp(){
+    activeEl=null;
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('touchmove',onMove);
+    document.removeEventListener('mouseup',onUp);
+    document.removeEventListener('touchend',onUp);
+    document.removeEventListener('touchcancel',onUp);
+  }
+  function onDown(e){
+    var x=pointerX(e);
+    var dMin=Math.abs(x-valueToClientX(parseInt(minEl.value)));
+    var dMax=Math.abs(x-valueToClientX(parseInt(maxEl.value)));
+    // Nearer thumb wins the drag — this is the fix: proximity decides, not DOM/paint order.
+    activeEl=(dMin<=dMax)?minEl:maxEl;
+    // Also raise the active input above its sibling, in case the browser's own
+    // hit-testing gets a say (e.g. focus ring / keyboard interaction after).
+    activeEl.style.zIndex='5';
+    (activeEl===minEl?maxEl:minEl).style.zIndex='3';
+    e.preventDefault();
+    moveTo(x);
+    document.addEventListener('mousemove',onMove);
+    document.addEventListener('touchmove',onMove,{passive:false});
+    document.addEventListener('mouseup',onUp);
+    document.addEventListener('touchend',onUp);
+    document.addEventListener('touchcancel',onUp);
+  }
+  wrap.addEventListener('mousedown',onDown);
+  wrap.addEventListener('touchstart',onDown,{passive:false});
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',_ageSliderSetup);}else{_ageSliderSetup();}
 
 // ── ANONYMOUS REPLY (with delete button + data-mine) ──
 postComment=function(inp){
@@ -19959,7 +20420,7 @@ function saveProfile(){
       university: uni ? uni.name : '',
       major: userPro.major || '',
       grad: userPro.grad || '',
-      gradSemester: userPro.gradSemester || '',
+      gradSemester: userPro.gradSemester || null,
       crossover: userPro.crossover || false,
       interests: data.interests,
       prompts: userPro.prompts || [],
@@ -19983,7 +20444,8 @@ function saveProfile(){
         helpClasses: userPro.helpClasses || [],
         clubs: userPro.clubs || [],
         involved: userPro.involved || [],
-        company: userPro.company || ''
+        company: userPro.company || '',
+        accountType: (obMode || userMode) === 'alumni' ? 'alumni' : 'student'
       },
       background: {
         languages: userPro.languages || userPro.langs || userPro.flags || (userPro.background && userPro.background.languages) || ['English'],
@@ -20353,7 +20815,7 @@ var _origCreateEv2=createEv;
 createEv=function(){
   // Editing an existing event does NOT count toward the weekly limit
   if(_editingEvent){var re=_origCreateEv2();_editingEvent=false;return re;}
-  if(curPlan==='free'&&eventsCreatedThisWeek>=2){alert('Free plan: 2 events per week. Upgrade for unlimited!');sw('premium','Plans');return;}
+  if(curPlan==='free'&&eventsCreatedThisWeek>=2){alert(window.PLANS_ENABLED?'Free plan: 2 events per week. Upgrade for unlimited!':'Free plan: 2 events per week.');sw('premium','Plans');return;}
   var r=_origCreateEv2();eventsCreatedThisWeek++;return r;
 };
 
@@ -20532,6 +20994,47 @@ function _gsRefreshBanner(chatId) {
   if (t) t.textContent = meta.name;
 }
 
+// Shared-photos gallery: derives images from chatHistory (populated consistently
+// by both the HTTP history fetch and live socket messages, unlike the old
+// chatSharedPhotos global which only ever tracked one of several send paths).
+// Newest first, 6 shown initially, "Ver más" appends 3 more at a time.
+function _chatGetPhotos(chatId){
+  var hist = (typeof chatHistory !== 'undefined' && chatHistory[chatId]) || [];
+  var isImg = function(m){
+    if (m.isVideo) return false;
+    if (m.seeOnce) return false;
+    if (m.type === 'IMAGE') return true;
+    if (m.img) return true;
+    if (m.mediaUrl && /\.(jpg|jpeg|png|webp)(\?|$)/i.test(m.mediaUrl)) return true;
+    return false;
+  };
+  var photos = hist.filter(isImg).map(function(m){ return m.mediaUrl || m.img; }).filter(Boolean);
+  return photos.slice().reverse();
+}
+
+function _chatPhotoGallerySectionHtml(chatId){
+  var photos = _chatGetPhotos(chatId);
+  if(!photos.length) return '';
+  return '<div style="font-size:var(--fs-xs);font-weight:700;color:var(--fg3);letter-spacing:.8px;margin:18px 0 10px;">SHARED PHOTOS</div>'+
+    '<div id="cps-photo-grid" data-chat-id="'+_e(chatId)+'" data-shown="0" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;"></div>'+
+    '<button id="cps-photo-more" class="gbtn-ghost" style="margin-top:10px;width:100%;display:none;" onclick="_chatRenderPhotoGrid()">Ver más</button>';
+}
+
+function _chatRenderPhotoGrid(){
+  var grid = document.getElementById('cps-photo-grid');
+  if(!grid) return;
+  var chatId = grid.getAttribute('data-chat-id');
+  var photos = _chatGetPhotos(chatId);
+  var shown = parseInt(grid.getAttribute('data-shown'), 10) || 0;
+  var nextShown = Math.min(photos.length, shown === 0 ? 6 : shown + 3);
+  grid.innerHTML = photos.slice(0, nextShown).map(function(url){
+    return '<div style="aspect-ratio:1;border-radius:var(--rad-xs);overflow:hidden;cursor:zoom-in;" onclick="openImageViewer(this.querySelector(\'img\').src)"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover;display:block;"/></div>';
+  }).join('');
+  grid.setAttribute('data-shown', nextShown);
+  var moreBtn = document.getElementById('cps-photo-more');
+  if(moreBtn) moreBtn.style.display = (nextShown < photos.length) ? 'block' : 'none';
+}
+
 function _gsBuildGroupSheet(chatId) {
   var meta = _getGroupMeta(chatId);
   var myHandle = (userPro && userPro.handle ? userPro.handle.replace('@','') : 'me');
@@ -20614,6 +21117,8 @@ function _gsBuildGroupSheet(chatId) {
       '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>' +
     '</div>' +
 
+    _chatPhotoGallerySectionHtml(chatId) +
+
     // Destructive action alone at the bottom, behind a divider.
     '<div class="gsx-divider"></div>' +
     (isUserAdmin
@@ -20623,6 +21128,7 @@ function _gsBuildGroupSheet(chatId) {
 
   document.body.appendChild(modal);
   _gsRenderMembers(chatId);
+  _chatRenderPhotoGrid();
 }
 
 function openChatSettings(){
@@ -20724,8 +21230,10 @@ function openChatSettings(){
     row('rgba(245,158,11,0.14)',''+icon('alert',16)+'','<span style=\"color:#f59e0b;\">Report</span>','Report this user or conversation','<span style="color:#f59e0b;font-size:var(--fs-lg);">›</span>',"chatReport()")+
     row('rgba(220,38,38,0.14)',''+icon('trash',16)+'','<span style=\"color:#dc2626;\">Delete Chat</span>','Permanently delete this conversation','<span style="color:#dc2626;font-size:var(--fs-lg);">›</span>',"_chatDeleteConfirm()")+
     '<div onclick="if(typeof openSafetyCenter===\'function\')openSafetyCenter();" style="margin-top:14px;background:rgba(43,95,217,0.08);border:1px solid rgba(43,95,217,0.3);border-radius:var(--rad-md);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;"><div style="width:48px;height:48px;border-radius:var(--rad-md);background:rgba(43,95,217,0.2);display:flex;align-items:center;justify-content:center;font-size:var(--fs-xl);flex-shrink:0;">🛡️</div><div style="flex:1;"><div class="t-title-md">Your safety matters</div><div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.4;margin:2px 0 3px;">We care about keeping UndrGradz a safe and respectful space for everyone.</div><div style="font-size:var(--fs-sm);font-weight:500;color:#3d7bff;">Learn more about safety</div></div><span style="color:var(--fg3);font-size:var(--fs-lg);">›</span></div>'+
+    _chatPhotoGallerySectionHtml(curChatId)+
   '</div>';
   document.body.appendChild(modal);
+  _chatRenderPhotoGrid();
 }
 function _chatToggleNotif(){window.chatMuted=window.chatMuted||{};chatMuted[curChatId]=!chatMuted[curChatId];var el=document.getElementById('cps-notif');if(el)el.innerHTML=(chatMuted[curChatId]?'Off':'On')+' <span style="color:var(--fg3);">›</span>';}
 function _chatDeleteConfirm(){var name=document.getElementById('cwnm');var nm=name?name.textContent:'this chat';if(!confirm('Delete this conversation permanently? This cannot be undone.'))return;if(curChatId){_deleteChatRow(curChatId);if(typeof chatHistory!=='undefined')delete chatHistory[curChatId];}var m=document.getElementById('chat-settings-modal');if(m)m.remove();if(typeof closeChat==='function')closeChat();}
@@ -21151,7 +21659,7 @@ function renderDatingPhotoGrid(){
   var isAplus=(typeof curPlan!=='undefined'&&curPlan==='aplus');
   var cellsHtml='';
   for(var i=0;i<9;i++){
-    if(i>=6&&!isAplus){cellsHtml+='<div class="ph-rect" onclick="premAlert()" style="aspect-ratio:3/4;border-radius:var(--rad-sm);border:1.5px dashed rgba(255,255,255,0.15);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;position:relative;opacity:0.6;"><span class="no-deemoji" style="font-size:var(--fs-xl);">🔒</span><span style="font-size:8.5px;font-weight:600;color:#fbbf24;margin-top:4px;text-align:center;line-height:1.25;">'+labels[i]+'<br>A+ Student</span></div>';continue;}
+    if(i>=6&&!isAplus){cellsHtml+='<div class="ph-rect" onclick="premAlert()" style="aspect-ratio:3/4;border-radius:var(--rad-sm);border:1.5px dashed rgba(255,255,255,0.15);background:rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer;position:relative;opacity:0.6;"><span class="no-deemoji" style="font-size:var(--fs-xl);">🔒</span><span style="font-size:8.5px;font-weight:600;color:#fbbf24;margin-top:4px;text-align:center;line-height:1.25;">'+labels[i]+(window.PLANS_ENABLED?'<br>A+ Student':'')+'</span></div>';continue;}
     var u=userDatingPhotos[i];
     var isCover=(i===0);
     var border=isCover?'2px solid var(--p)':(u?'1.5px solid rgba(255,255,255,0.15)':'1.5px dashed rgba(255,255,255,0.2)');
@@ -22236,7 +22744,7 @@ function _helpClassesHtml(){return '';
   var chips=list.map(function(c,i){return '<span style="display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-sm);font-weight:600;color:#fff;background:rgba(245,158,11,0.14);border:1px solid rgba(245,158,11,0.4);padding:6px 11px;border-radius:var(--rad-lg);">🆘 '+c+'<span onclick="removeHelpClass('+i+')" style="cursor:pointer;opacity:0.6;">✕</span></span>';}).join('');
   return '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gbdl);">'+
     '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;margin-bottom:3px;">🆘 Classes I need help in</div>'+
-    '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:9px;line-height:1.45;">Add the courses you\'re struggling with so study partners can find you. '+list.length+'/'+_helpClassMax()+' used'+(curPlan!=='aplus'?' · A+ unlocks 6':'')+'.</div>'+
+    '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-bottom:9px;line-height:1.45;">Add the courses you\'re struggling with so study partners can find you. '+list.length+'/'+_helpClassMax()+' used'+(curPlan!=='aplus'&&window.PLANS_ENABLED?' · A+ unlocks 6':'')+'.</div>'+
     (chips?'<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px;">'+chips+'</div>':'')+
     '<button onclick="addHelpClass()" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);border-radius:var(--rad-sm);padding:9px 14px;color:#fbbf24;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">＋ Add a class</button>'+
   '</div>';
@@ -22244,7 +22752,7 @@ function _helpClassesHtml(){return '';
 function addHelpClass(){
   userPro.helpClasses=userPro.helpClasses||[];
   if(userPro.helpClasses.length>=_helpClassMax()){
-    if(curPlan!=='aplus'){if(confirm('🆘 Free plan lets you list 2 classes you need help in.\n\nUpgrade to A+ Student to list up to 6 — see plans?'))sw('premium','Plans');}
+    if(curPlan!=='aplus'){if(window.PLANS_ENABLED){if(confirm('🆘 Free plan lets you list 2 classes you need help in.\n\nUpgrade to A+ Student to list up to 6 — see plans?'))sw('premium','Plans');}else{alert('🆘 Free plan lets you list 2 classes you need help in.');}}
     else alert('You can list up to 6 classes.');
     return;
   }
@@ -22424,7 +22932,7 @@ function _renderClubs(){
     '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 8px;"><div class="t-title-md">⭐ Recommended for you</div><span style="font-size:var(--fs-xs);font-weight:500;color:#a9c4ff;cursor:pointer;">See all</span></div>'+
     '<div id="club-list">'+_clubListHtml()+'</div>'+
     // A+ banner
-    '<div onclick="document.getElementById(\'clubs-modal\').remove();sw(\'premium\',\'Plans\')" style="margin:14px 0 8px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));border-radius:var(--rad-lg);padding:16px;cursor:pointer;position:relative;overflow:hidden;"><div style="position:absolute;right:10px;bottom:6px;font-size:44px;opacity:0.25;">'+icon('lock',16)+'</div><div style="position:relative;"><div style="font-size:var(--fs-md);font-weight:700;color:#fff;margin-bottom:3px;">🔓 Unlock more connections</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.9);line-height:1.4;margin-bottom:12px;max-width:230px;">See who viewed your profile, get unlimited access to all communities and more.</div><button style="background:linear-gradient(90deg,#9e1b1b,#791515);border:none;border-radius:var(--rad-sm);padding:10px 22px;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;">Upgrade to A+</button></div></div>'+
+    (window.PLANS_ENABLED?('<div onclick="document.getElementById(\'clubs-modal\').remove();sw(\'premium\',\'Plans\')" style="margin:14px 0 8px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));border-radius:var(--rad-lg);padding:16px;cursor:pointer;position:relative;overflow:hidden;"><div style="position:absolute;right:10px;bottom:6px;font-size:44px;opacity:0.25;">'+icon('lock',16)+'</div><div style="position:relative;"><div style="font-size:var(--fs-md);font-weight:700;color:#fff;margin-bottom:3px;">🔓 Unlock more connections</div><div style="font-size:var(--fs-sm);color:rgba(255,255,255,0.9);line-height:1.4;margin-bottom:12px;max-width:230px;">See who viewed your profile, get unlimited access to all communities and more.</div><button style="background:linear-gradient(90deg,#9e1b1b,#791515);border:none;border-radius:var(--rad-sm);padding:10px 22px;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:700;cursor:pointer;">Upgrade to A+</button></div></div>'):'')+
     '<div style="text-align:center;font-size:var(--fs-2xs);color:var(--fg3);padding:6px 0 4px;">* Communities are moderated by students and university staff.</div>'+
   '</div>';
   m.innerHTML=sh;
@@ -23138,7 +23646,12 @@ updateProfileUI=function(){
 // ── UNICRUSH FILTER ENGINE ──
 function _profileDistance(p){if(!p)return 999;if(typeof p._dist==='number')return p._dist;var h=_strHash((p.name||'')+'dist');p._dist=p.uni?(6+h%45):(1+h%14);return p._dist;}
 function applyCrushFilters(){
-  var panel=document.getElementById('ptab-panel-crush');
+  // The filter sections (Drinking, etc.) live in #ptab-panel-filters, not
+  // #ptab-panel-crush — they were moved out in an earlier refactor (see the
+  // comment in switchProfTab / _initFilterAccordion) but this read was left
+  // pointing at the old panel, so it always found zero sections and the
+  // Drinking filter silently never applied.
+  var panel=document.getElementById('ptab-panel-filters')||document.getElementById('ptab-panel-crush');
 
   // Read "Interested In" (gender) — use global crushGenderPref set by chip selection
   var genderFilter=(crushGenderPref==='any')?null:crushGenderPref;
@@ -23185,7 +23698,8 @@ function applyCrushFilters(){
   // Min height + living situation
   var livingFilters=[];document.querySelectorAll('#crush-living-chips .yr-chip.on').forEach(function(c){livingFilters.push(c.textContent.trim());});
   var faithFilters=[];document.querySelectorAll('#crush-faith-chips .yr-chip.on').forEach(function(c){faithFilters.push(c.textContent.trim());});
-  var greekCircleOnly=!!document.querySelector('#crush-greek-chips .yr-chip.on');
+  // Container is #crush-frat-chips (see _populateFilterChips) — #crush-greek-chips doesn't exist, so this always read null before.
+  var greekCircleOnly=!!document.querySelector('#crush-frat-chips .yr-chip.on');
   var myGreekCircle=greekCircleOnly?_greekCircle(userPro&&userPro.org):[];
 
   // University scope (A+): mine=same school only · near=all schools · pick=my school + chosen unis
@@ -23244,6 +23758,7 @@ function applyCrushFilters(){
   },50);
   // Collapse the filters and show a compact "Applied" pill
   _collapseCrushFilters();
+  if(typeof _setFiltersDirty==='function')_setFiltersDirty(false);
 
   if (typeof userPro !== 'undefined' && userPro) {
     userPro.customization = userPro.customization || {};
@@ -23256,7 +23771,12 @@ function applyCrushFilters(){
   }
 }
 // ══════════ FILTER PRESETS — one-tap filter bundles ══════════
-var _PRESET_GROUPS=['crush-lookingfor-chips','crush-int-chips','crush-year-chips','crush-drink-chips','crush-smoke-chips','crush-ethnicity-chips','crush-politics-chips','crush-lang-chips'];
+// Every chip-based filter group that applyCrushFilters()/_populateFilterChips()
+// actually reads from. This list previously only covered 8 of the ~15 real
+// groups (Workout, Diet, Living, Religion, Faith, Green flags, Love language
+// and Greek life were all missing), so selecting those never got captured —
+// they silently reverted after any reload even though Apply Filters "worked".
+var _PRESET_GROUPS=['crush-lookingfor-chips','crush-int-chips','crush-year-chips','crush-drink-chips','crush-smoke-chips','crush-ethnicity-chips','crush-politics-chips','crush-lang-chips','crush-religion-chips','crush-faith-chips','crush-workout-chips','crush-diet-chips','crush-living-chips','crush-greenflag-chips','crush-lovelang-chips','crush-frat-chips'];
 var filterPresets=[];
 function _presetsLoad(){
   try {
@@ -23299,11 +23819,22 @@ function _captureFilterState(){
 }
 function _applyFilterState(st){
   if(!st)return;
-  Object.keys(st.chips||{}).forEach(function(id){var el=document.getElementById(id);if(!el)return;var want=st.chips[id]||[];el.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',want.indexOf(c.textContent.trim())>-1);});});
+  _restoreFilterChips(st);
   if(st.age){var amin=document.getElementById('crush-age-min'),amax=document.getElementById('crush-age-max');if(amin&&st.age.min!=null)amin.value=st.age.min;if(amax&&st.age.max!=null)amax.value=st.age.max;if(typeof updateAgeRange==='function')updateAgeRange();}
   if(st.miles!=null){var mi=document.getElementById('uc-mile-sl');if(mi){mi.value=st.miles;if(typeof onUcMilesChange==='function')onUcMilesChange(st.miles);}}
   if(st.gender!=null&&typeof crushGenderPref!=='undefined')crushGenderPref=st.gender;
   if(typeof applyCrushFilters==='function')applyCrushFilters();
+}
+// Chip-only restore, split out of _applyFilterState so switchProfTab can
+// re-toggle the saved chip selections every time _populateFilterChips()
+// rebuilds their innerHTML (which otherwise wipes the .on state), without
+// re-running applyCrushFilters()/saveProfile() on every tab open.
+function _restoreFilterChips(st){
+  try{
+    st=st||(typeof userPro!=='undefined'&&userPro&&userPro.customization&&userPro.customization.activeFilters);
+    if(!st)return;
+    Object.keys(st.chips||{}).forEach(function(id){var el=document.getElementById(id);if(!el)return;var want=st.chips[id]||[];el.querySelectorAll('.yr-chip').forEach(function(c){c.classList.toggle('on',want.indexOf(c.textContent.trim())>-1);});});
+  }catch(e){}
 }
 function renderFilterPresets(){
   var box=document.getElementById('crush-presets');if(!box)return;_presetsLoad();
@@ -23323,44 +23854,64 @@ function saveCurrentPreset(){
 }
 function deletePreset(i){if(!confirm('Delete this preset?'))return;_presetsLoad();filterPresets.splice(i,1);_presetsSave();renderFilterPresets();}
 function _collapseCrushFilters(){
-  var panel=document.getElementById('ptab-panel-crush');if(!panel)return;
+  var panel=document.getElementById('ptab-panel-filters')||document.getElementById('ptab-panel-crush');if(!panel)return;
+  // On boot, _applyFilterState() → applyCrushFilters() → here can run before the
+  // user ever opened the Filters tab, i.e. before _populateFilterChips() has
+  // built the chip lists (crush-living-chips etc). Collapsing/hiding sections
+  // and dropping the pill into an unpopulated panel is what caused Living
+  // Situation to render out of place on reload — skip the DOM work here and let
+  // switchProfTab('filters') render the (now-filtered) panel correctly instead.
+  if(!window._filtersPanelInitialized)return;
   var sections=panel.querySelectorAll('.love-filter-section');
   sections.forEach(function(s){s.style.display='none';});
-  var applyBtn=panel.querySelector('button[onclick*="applyCrushFilters"]');if(applyBtn)applyBtn.style.display='none';
   var matchTitle=Array.from(panel.querySelectorAll('div')).find(function(d){return d.textContent.trim()==='Match Filters'&&d.children.length===0;});
   if(matchTitle)matchTitle.style.display='none';
   // Build / refresh the applied pill
   var pill=document.getElementById('crush-filters-applied');
   if(!pill){
     pill=document.createElement('div');pill.id='crush-filters-applied';
-    pill.style.cssText='margin:8px var(--s) 14px;padding:11px 14px;border-radius:var(--rad-md);background:rgba(34,197,94,0.10);border:1px solid rgba(34,197,94,0.35);color:#4ade80;font-size:var(--fs-base);font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;';
+    pill.style.cssText='margin:8px 0 14px;padding:11px 14px;border-radius:var(--rad-md);background:rgba(34,197,94,0.10);border:1px solid rgba(34,197,94,0.35);color:#4ade80;font-size:var(--fs-base);font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;';
     pill.innerHTML='<span>✓ Filters applied · tap to edit</span><span style="font-size:var(--fs-xs);color:#86efac;opacity:0.8;">Edit ›</span>';
     pill.onclick=_expandCrushFilters;
-    // Insert just after the Preview card (or at top of panel as fallback)
-    var beforeNode=panel.querySelector('[id="crush-profile-preview"]');
-    var insertAfter=beforeNode?beforeNode.parentElement:null;
-    if(insertAfter&&insertAfter.parentElement)insertAfter.parentElement.insertBefore(pill,insertAfter.nextSibling);
+    // Insert at the top of the filters wrap, right under the Apply Filters
+    // button (#crush-profile-preview, the old anchor, only exists in My Card's
+    // panel, never in #ptab-panel-filters, so it never matched here).
+    var wrap=document.getElementById('match-filters-wrap');
+    var applyBtnTop=document.getElementById('crush-apply-filters-btn');
+    if(wrap&&applyBtnTop&&applyBtnTop.parentElement===wrap)wrap.insertBefore(pill,applyBtnTop.nextSibling);
+    else if(wrap)wrap.insertBefore(pill,wrap.firstChild);
     else panel.appendChild(pill);
   }else{pill.style.display='flex';}
 }
 function _expandCrushFilters(){
-  var panel=document.getElementById('ptab-panel-crush');if(!panel)return;
+  var panel=document.getElementById('ptab-panel-filters')||document.getElementById('ptab-panel-crush');if(!panel)return;
   var sections=panel.querySelectorAll('.love-filter-section');
   sections.forEach(function(s){s.style.display='';});
-  var applyBtn=panel.querySelector('button[onclick*="applyCrushFilters"]');if(applyBtn)applyBtn.style.display='';
   var matchTitle=Array.from(panel.querySelectorAll('div')).find(function(d){return d.textContent.trim()==='Match Filters'&&d.children.length===0;});
   if(matchTitle)matchTitle.style.display='';
   var pill=document.getElementById('crush-filters-applied');if(pill)pill.style.display='none';
 }
-// Re-expand when user interacts with any filter chip
-document.addEventListener('click',function(e){
-  var panel=document.getElementById('ptab-panel-crush');if(!panel)return;
+// ── Unsaved filter changes: dirty tracking for the top "Apply Filters" button ──
+var _filtersDirty=false;
+function _setFiltersDirty(v){
+  _filtersDirty=!!v;
+  var btn=document.getElementById('crush-apply-filters-btn');
+  if(btn){btn.disabled=!_filtersDirty;btn.style.opacity=_filtersDirty?'1':'0.45';btn.style.cursor=_filtersDirty?'pointer':'not-allowed';}
+}
+// Re-expand the collapsed sections and mark filters dirty when the user
+// interacts with any chip/slider. #match-filters-wrap lives inside
+// #ptab-panel-filters (not #ptab-panel-crush, where this used to look), which
+// is why it never fired while the Filters tab was open.
+function _onFilterInteraction(e){
+  var wrap=document.getElementById('match-filters-wrap');if(!wrap||!wrap.contains(e.target))return;
+  if(e.target.closest('#crush-apply-filters-btn,#crush-filters-applied,.love-filter-title'))return;
+  if(!(e.target.classList.contains('yr-chip')||e.target.closest('.yr-chip,input[type=range]')))return;
   var pill=document.getElementById('crush-filters-applied');
-  if(!pill||pill.style.display==='none')return;
-  if(panel.contains(e.target)&&(e.target.classList.contains('yr-chip')||e.target.closest('.yr-chip,input[type=range],.age-slider-wrap'))){
-    _expandCrushFilters();
-  }
-});
+  if(pill&&pill.style.display!=='none')_expandCrushFilters();
+  _setFiltersDirty(true);
+}
+document.addEventListener('click',_onFilterInteraction);
+document.addEventListener('input',_onFilterInteraction);
 
 // ── MATCH CHAT EXPIRY CHECKER ──
 function _checkMatchExpiry(){
@@ -23521,6 +24072,42 @@ var _origSwitchCrushTabPreview=switchCrushTab;
 switchCrushTab=function(tab){_origSwitchCrushTabPreview(tab);};
 var _origSwitchProfTabForPreview=switchProfTab;
 switchProfTab=function(tab){_origSwitchProfTabForPreview(tab);if(tab==='crush'){setTimeout(renderCrushPreview,80);setTimeout(function(){if(typeof onUcMilesChange==='function')onUcMilesChange(typeof _crushMiles!=='undefined'?_crushMiles:10);},100);}};
+// Prompt to save unapplied filter changes before leaving the Filters tab —
+// wraps the outermost switchProfTab so the confirm fires before any of the
+// tab-switch side effects above run.
+var _origSwitchProfTabForDirtyGuard=switchProfTab;
+switchProfTab=function(tab){
+  var onFilters=document.getElementById('ptab-filters')&&document.getElementById('ptab-filters').classList.contains('active');
+  if(onFilters&&tab!=='filters'&&typeof _filtersDirty!=='undefined'&&_filtersDirty){
+    // window.confirm is overridden (see ugzModal, ~line 1104) to show a custom
+    // modal and return a Promise, not a boolean — this must resolve before the
+    // tab switch proceeds, unlike a plain synchronous confirm().
+    Promise.resolve(confirm('¿Quieres guardar tus filtros?')).then(function(ok){
+      if(ok){if(typeof applyCrushFilters==='function')applyCrushFilters();}
+      else{_setFiltersDirty(false);}
+      _origSwitchProfTabForDirtyGuard(tab);
+    });
+    return;
+  }
+  _origSwitchProfTabForDirtyGuard(tab);
+};
+// Same prompt when leaving the Profile section entirely (bottom nav, hardware
+// back — NavigationManager.goBack() calls window.sw() too) while Filters has
+// unapplied changes. Wraps the outermost sw() so it runs before all the other
+// sw() side-effect wraps above.
+var _origSwForDirtyGuard=sw;
+sw=function(id,label,opts){
+  var onFilters=id!=='profile'&&document.getElementById('sec-profile')&&document.getElementById('sec-profile').classList.contains('active')&&document.getElementById('ptab-filters')&&document.getElementById('ptab-filters').classList.contains('active');
+  if(onFilters&&typeof _filtersDirty!=='undefined'&&_filtersDirty){
+    Promise.resolve(confirm('¿Quieres guardar tus filtros?')).then(function(ok){
+      if(ok){if(typeof applyCrushFilters==='function')applyCrushFilters();}
+      else{_setFiltersDirty(false);}
+      _origSwForDirtyGuard(id,label,opts);
+    });
+    return;
+  }
+  _origSwForDirtyGuard(id,label,opts);
+};
 var _origSwitchCrushTabPhotoGate=switchCrushTab;
 switchCrushTab=function(tab){
   if(tab==='swipe'){
@@ -23851,8 +24438,8 @@ function _renderSearchStudentCard(p) {
         _getVerifyBadgeHtml(cardIsVerified, 14) +
         (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;margin-left:2px;">' + p.age + '</span>' : '') +
       '</div>' +
-      '<div style="font-size:var(--fs-sm);color:color-mix(in srgb, var(--card-p2, var(--p2)) 78%, #ffffff);font-weight:600;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + '</div>' +
-      '<div style="font-size:var(--fs-xs);font-weight:700;color:color-mix(in srgb, var(--card-p2, var(--p2)) 78%, #ffffff);margin-top:3px;display:flex;align-items:center;gap:5px;">'+icon('landmark',12)+' ' + acronym + '</div>' +
+      '<div style="font-size:var(--fs-sm);font-weight:600;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + '</div>' +
+      '<div style="font-size:var(--fs-xs);font-weight:700;margin-top:3px;display:flex;align-items:center;gap:5px;">'+icon('landmark',12)+' ' + acronym + '</div>' +
     '</div>' +
     '<button style="background:'+verBtnBg+';border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
   '</div>';

@@ -568,6 +568,15 @@ class ApiClient {
     return result.data;
   }
 
+  // Marks the current subscription as non-renewing. The plan stays active
+  // until subscriptionEnds — no immediate downgrade, no refund logic.
+  async cancelSubscription() {
+    const result = await this.request('/billing/cancel', {
+      method: 'POST'
+    });
+    return result.data;
+  }
+
   // ==========================================
   // SOCKET.IO REALTIME SERVICE
   // ==========================================

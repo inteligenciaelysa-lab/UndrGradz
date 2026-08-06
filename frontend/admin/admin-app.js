@@ -1483,24 +1483,27 @@ document.addEventListener('DOMContentLoaded', () => {
     type: '',
     status: '',
     isOfficial: '',
-    location: '',
-    isDeleted: false,
+    sortBy: 'name',
+    sortOrder: 'asc',
   };
 
   let uniDebounceTimer = null;
-  let uniLocationDebounceTimer = null;
 
   const uniSearchInput = document.getElementById('uni-search-input');
   const uniTypeSelect = document.getElementById('uni-type-select');
   const uniStatusSelect = document.getElementById('uni-status-select');
   const uniOfficialSelect = document.getElementById('uni-official-select');
-  const uniLocationInput = document.getElementById('uni-location-input');
-  const uniDeletedCheckbox = document.getElementById('uni-deleted-checkbox');
-  const btnFilterUniversities = document.getElementById('btn-filter-universities');
+  const uniSortSelect = document.getElementById('uni-sort-select');
+  const uniPageSizeSelect = document.getElementById('uni-pagesize-select');
   const uniPrevPageBtn = document.getElementById('uni-prev-page');
   const uniNextPageBtn = document.getElementById('uni-next-page');
   const uniPaginationInfo = document.getElementById('uni-pagination-info');
   const uniCurrentPageBadge = document.getElementById('uni-current-page-badge');
+  const uniSelectAllCheckbox = document.getElementById('uni-select-all-checkbox');
+  const btnBulkDeleteUni = document.getElementById('btn-bulk-delete-uni');
+  const bulkDeleteUniCount = document.getElementById('bulk-delete-uni-count');
+  let selectedUniversityIds = new Set();
+  let lastLoadedUniversities = [];
 
   if (uniSearchInput) {
     uniSearchInput.addEventListener('input', (e) => {
@@ -1513,14 +1516,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (uniLocationInput) {
-    uniLocationInput.addEventListener('input', (e) => {
-      clearTimeout(uniLocationDebounceTimer);
-      uniLocationDebounceTimer = setTimeout(() => {
-        uniFilterState.location = e.target.value;
-        uniFilterState.page = 1;
-        loadUniversities();
-      }, 300);
+  if (uniSortSelect) {
+    uniSortSelect.addEventListener('change', (e) => {
+      const [sortBy, sortOrder] = e.target.value.split('-');
+      uniFilterState.sortBy = sortBy;
+      uniFilterState.sortOrder = sortOrder;
+      uniFilterState.page = 1;
+      loadUniversities();
+    });
+  }
+
+  if (uniPageSizeSelect) {
+    uniPageSizeSelect.addEventListener('change', (e) => {
+      uniFilterState.limit = Number(e.target.value);
+      uniFilterState.page = 1;
+      loadUniversities();
     });
   }
 
@@ -1548,21 +1558,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (uniDeletedCheckbox) {
-    uniDeletedCheckbox.addEventListener('change', (e) => {
-      uniFilterState.isDeleted = e.target.checked;
-      uniFilterState.page = 1;
-      loadUniversities();
-    });
-  }
-
-  if (btnFilterUniversities) {
-    btnFilterUniversities.addEventListener('click', () => {
-      uniFilterState.page = 1;
-      loadUniversities();
-    });
-  }
-
   if (uniPrevPageBtn) {
     uniPrevPageBtn.addEventListener('click', () => {
       if (uniFilterState.page > 1) {
@@ -1581,8 +1576,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadUniversities() {
     try {
-      elements.universitiesTbody.innerHTML = '<tr><td colspan="10" class="text-center py-4">Cargando universidades...</td></tr>';
-      
+      elements.universitiesTbody.innerHTML = '<tr><td colspan="11" class="text-center py-4">Cargando universidades...</td></tr>';
+
+      selectedUniversityIds.clear();
+      updateBulkDeleteUniUI();
+      if (uniSelectAllCheckbox) {
+        uniSelectAllCheckbox.checked = false;
+        uniSelectAllCheckbox.indeterminate = false;
+      }
+
       const params = {
         page: uniFilterState.page,
         limit: uniFilterState.limit,
@@ -1590,15 +1592,16 @@ document.addEventListener('DOMContentLoaded', () => {
         type: uniFilterState.type,
         status: uniFilterState.status,
         isOfficial: uniFilterState.isOfficial,
-        country: uniFilterState.location,
-        isDeleted: uniFilterState.isDeleted ? 'true' : 'false',
+        sortBy: uniFilterState.sortBy,
+        sortOrder: uniFilterState.sortOrder,
       };
 
       const res = await window.adminApi.getUniversities(params);
       const { universities, pagination } = res.data;
+      lastLoadedUniversities = universities || [];
 
       if (!universities || universities.length === 0) {
-        elements.universitiesTbody.innerHTML = '<tr><td colspan="10" class="text-center py-4 text-muted">No se encontraron universidades.</td></tr>';
+        elements.universitiesTbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-muted">No se encontraron universidades.</td></tr>';
         if (uniPaginationInfo) uniPaginationInfo.textContent = 'Mostrando 0 de 0 universidades';
         if (uniPrevPageBtn) uniPrevPageBtn.disabled = true;
         if (uniNextPageBtn) uniNextPageBtn.disabled = true;
@@ -1635,6 +1638,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += `
           <tr class="${u.isDeleted ? 'opacity-75' : ''}">
+            <td><input type="checkbox" class="uni-row-checkbox" data-id="${u.id}"></td>
             <td>
               <strong>${u.name}</strong><br>
               <small class="text-muted"><code>${u.domain}</code></small>
@@ -1656,10 +1660,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="display:flex; gap:6px; flex-wrap:wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="editUniversityModal('${u.id}')">✏️ Editar</button>
                 <button class="btn btn-secondary btn-sm" onclick="openCampusModal('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🏫 Campus</button>
-                ${u.isDeleted
-                  ? `<button class="btn btn-restore btn-sm" onclick="promptRestoreUni('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🔄 Restaurar</button>`
-                  : `<button class="btn btn-danger btn-sm" onclick="promptSoftDeleteUni('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>`
-                }
+                <button class="btn btn-danger btn-sm" onclick="promptHardDeleteUni('${u.id}', '${u.name.replace(/'/g, "\\'")}')">🗑️ Eliminar</button>
               </div>
             </td>
           </tr>
@@ -1667,6 +1668,18 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       elements.universitiesTbody.innerHTML = html;
+
+      elements.universitiesTbody.querySelectorAll('.uni-row-checkbox').forEach((cb) => {
+        cb.addEventListener('change', (e) => {
+          const id = e.target.getAttribute('data-id');
+          if (e.target.checked) {
+            selectedUniversityIds.add(id);
+          } else {
+            selectedUniversityIds.delete(id);
+          }
+          updateBulkDeleteUniUI();
+        });
+      });
 
       // Update Pagination UI
       if (uniPaginationInfo) {
@@ -1683,6 +1696,78 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       showToast('Error cargando universidades: ' + err.message, 'error');
     }
+  }
+
+  function updateBulkDeleteUniUI() {
+    if (bulkDeleteUniCount) bulkDeleteUniCount.textContent = selectedUniversityIds.size;
+    if (btnBulkDeleteUni) btnBulkDeleteUni.style.display = selectedUniversityIds.size > 0 ? '' : 'none';
+
+    if (uniSelectAllCheckbox) {
+      const pageIds = lastLoadedUniversities.map(u => u.id);
+      const selectedOnPage = pageIds.filter(id => selectedUniversityIds.has(id)).length;
+      uniSelectAllCheckbox.checked = pageIds.length > 0 && selectedOnPage === pageIds.length;
+      uniSelectAllCheckbox.indeterminate = selectedOnPage > 0 && selectedOnPage < pageIds.length;
+    }
+  }
+
+  if (uniSelectAllCheckbox) {
+    uniSelectAllCheckbox.addEventListener('change', (e) => {
+      const checked = e.target.checked;
+      lastLoadedUniversities.forEach(u => {
+        if (checked) {
+          selectedUniversityIds.add(u.id);
+        } else {
+          selectedUniversityIds.delete(u.id);
+        }
+      });
+      elements.universitiesTbody.querySelectorAll('.uni-row-checkbox').forEach((cb) => {
+        cb.checked = checked;
+      });
+      updateBulkDeleteUniUI();
+    });
+  }
+
+  if (btnBulkDeleteUni) {
+    btnBulkDeleteUni.addEventListener('click', () => {
+      const count = selectedUniversityIds.size;
+      if (count === 0) return;
+      showConfirmDialog(
+        'Eliminar Universidades Seleccionadas',
+        `¿Estás seguro de eliminar ${count} universidad(es) seleccionada(s)? Esta acción es DEFINITIVA. Las que tengan estudiantes asociados no se eliminarán.`,
+        async () => {
+          try {
+            const ids = [...selectedUniversityIds];
+            const res = await window.adminApi.bulkDeleteUniversities(ids);
+            const { deleted, blocked } = res.data;
+            selectedUniversityIds.clear();
+            await loadUniversities();
+            showBulkDeleteUniSummary(deleted, blocked);
+          } catch (err) {
+            showToast(err.message, 'error');
+          }
+        }
+      );
+    });
+  }
+
+  function showBulkDeleteUniSummary(deleted, blocked) {
+    if (!blocked || blocked.length === 0) {
+      showToast(`${deleted.length} universidad(es) eliminada(s) permanentemente`);
+      return;
+    }
+
+    const blockedList = blocked
+      .map(b => `<li>${b.name || b.id} ${b.linkedUsers != null ? `(${b.linkedUsers} usuario(s))` : '(no encontrada)'}</li>`)
+      .join('');
+
+    openModal(`
+      <h3>Resultado del borrado en lote</h3>
+      <p>${deleted.length} eliminada(s). ${blocked.length} no se pudieron eliminar (tienen usuarios asociados):</p>
+      <ul>${blockedList}</ul>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="closeModal()">Cerrar</button>
+      </div>
+    `);
   }
 
   /**
@@ -2114,25 +2199,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   elements.btnAddUniversity.addEventListener('click', () => editUniversityModal(null));
 
-  // Soft Delete Trigger
-  window.promptSoftDeleteUni = (id, name) => {
-    showConfirmDialog('Eliminación Lógica de Universidad', `¿Estás seguro de eliminar "${name}"? La institución se marcará como eliminada sin perder relaciones históricas ni audit logs.`, async () => {
+  // Hard Delete Trigger (irreversible — no restore path)
+  window.promptHardDeleteUni = (id, name) => {
+    showConfirmDialog('Eliminar Universidad Permanentemente', `¿Estás seguro de eliminar "${name}"? Esta acción borra el registro de forma DEFINITIVA (no se puede restaurar). Si hay estudiantes asociados, la eliminación se bloqueará.`, async () => {
       try {
-        await window.adminApi.softDeleteUniversity(id);
-        showToast(`Universidad "${name}" eliminada correctamente (Soft Delete)`);
-        loadUniversities();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
-    });
-  };
-
-  // Restore Trigger
-  window.promptRestoreUni = (id, name) => {
-    showConfirmDialog('Restaurar Universidad', `¿Deseas restaurar la universidad "${name}" al catálogo activo conservando su estado de negocio original?`, async () => {
-      try {
-        await window.adminApi.restoreUniversity(id);
-        showToast(`Universidad "${name}" restaurada correctamente`);
+        await window.adminApi.hardDeleteUniversity(id);
+        showToast(`Universidad "${name}" eliminada permanentemente`);
         loadUniversities();
       } catch (err) {
         showToast(err.message, 'error');

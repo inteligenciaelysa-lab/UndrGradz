@@ -694,26 +694,39 @@
               </select>
             </div>
             <div class="filter-group filter-group-sm">
-              <input type="text" id="uni-location-input" class="form-input" placeholder="Filtrar Ubicación / País...">
+              <select id="uni-sort-select" class="form-select">
+                <option value="name-asc">Nombre (A-Z)</option>
+                <option value="name-desc">Nombre (Z-A)</option>
+                <option value="createdAt-desc">Más recientes</option>
+                <option value="createdAt-asc">Más antiguas</option>
+                <option value="studentCount-desc">Más estudiantes</option>
+                <option value="studentCount-asc">Menos estudiantes</option>
+                <option value="status-asc">Estado</option>
+              </select>
             </div>
-            <div class="filter-group-check">
-              <input type="checkbox" id="uni-deleted-checkbox">
-              <label for="uni-deleted-checkbox">Eliminadas</label>
+            <div class="filter-group filter-group-sm">
+              <select id="uni-pagesize-select" class="form-select">
+                <option value="20">20 por página</option>
+                <option value="50">50 por página</option>
+                <option value="100">100 por página</option>
+                <option value="500">500 por página</option>
+                <option value="1000">1000 por página</option>
+              </select>
             </div>
-            <button id="btn-filter-universities" class="btn btn-secondary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-              Buscar
-            </button>
           </div>
 
           <div class="glass-panel table-card">
             <div class="table-card-header">
               <h3 class="panel-title">Catálogo de Instituciones</h3>
+              <button id="btn-bulk-delete-uni" class="btn btn-danger btn-sm role-restricted admin-only" style="display: none;">
+                🗑️ Eliminar seleccionadas (<span id="bulk-delete-uni-count">0</span>)
+              </button>
             </div>
             <div class="table-responsive">
               <table class="data-table">
                 <thead>
                   <tr>
+                    <th><input type="checkbox" id="uni-select-all-checkbox" title="Seleccionar todas en esta página"></th>
                     <th>Universidad &amp; Dominio</th>
                     <th>Acrónimo</th>
                     <th>Tipo</th>
@@ -727,7 +740,7 @@
                   </tr>
                 </thead>
                 <tbody id="universities-tbody">
-                  <tr><td colspan="10" class="text-center py-4 text-muted">Cargando catálogo de universidades...</td></tr>
+                  <tr><td colspan="11" class="text-center py-4 text-muted">Cargando catálogo de universidades...</td></tr>
                 </tbody>
               </table>
             </div>

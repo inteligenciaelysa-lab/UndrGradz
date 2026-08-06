@@ -188,6 +188,7 @@ class ChatService {
   async createMessage(userId, matchIdInput, content, type = 'TEXT', mediaUrl = null, duration = null) {
     const match = await this.resolveMatch(userId, matchIdInput);
     const realMatchId = match.id;
+    const receiverId = match.userOneId === userId ? match.userTwoId : match.userOneId;
 
     const durSecs = duration ? parseInt(duration, 10) : null;
     const msgType = (type || 'TEXT').toUpperCase();
@@ -213,7 +214,7 @@ class ChatService {
       },
     });
 
-    return message;
+    return { message, receiverId };
   }
 
   async getOrCreateConversation(userId, partnerInput) {

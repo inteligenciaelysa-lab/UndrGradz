@@ -72,6 +72,7 @@ model User {
   reviewedVerifications VerificationRequest[] @relation("ReviewedVerifications")
   verificationRequests  VerificationRequest[] @relation("UserVerificationRequests")
   joinedEvents          Event[]               @relation("EventAttendees")
+  subscriptions         Subscription[]
 }
 
 model UserProfile {
@@ -90,6 +91,8 @@ model UserProfile {
   boostEndsAt        DateTime?
   subscriptionEnds   DateTime?
   subscriptionTier   String      @default("FREE")
+  subscriptionStartedAt DateTime?
+  subscriptionWillRenew Boolean  @default(true)
   fcmToken           String?
   academic           Json?
   background         Json?
@@ -113,6 +116,30 @@ model UserProfile {
   campusRef          Campus?     @relation(fields: [campusId], references: [id])
   universityRef      University? @relation(fields: [universityId], references: [id])
   user               User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
+}
+
+// History/audit trail of A+ purchases. UserProfile.subscriptionTier/Period/Ends
+// stay as the denormalized "current state" that all gating logic already
+// reads — this table is the source of truth for start dates and cancellation
+// (willRenew) without having to touch that existing gating logic.
+model Subscription {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            String // "APLUS" — leaves room for future plans
+  period          String // "mo" | "6mo" | "yr"
+  startedAt       DateTime @default(now())
+  expiresAt       DateTime
+  willRenew       Boolean  @default(true)
+  status          String   @default("ACTIVE") // ACTIVE | CANCELED | EXPIRED
+  paymentProvider String   @default("FAKE") // "FAKE" today, "STRIPE" once wired
+  providerRef     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Photo {
@@ -239,6 +266,7 @@ model University {
   @@index([acronym])
   @@index([type])
   @@index([status])
+  @@index([createdAt])
 }
 
 model UniversityDomain {

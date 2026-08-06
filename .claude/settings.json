@@ -89,7 +89,34 @@
       "Bash(cat \"$HOME/gcloud-sdk/gcloud-cli.zip\")",
       "Bash(node build.js)",
       "Bash(curl -s \"https://undrgradz-app.web.app/index.html\" -o /tmp/live_index.html -w \"HTTP %{http_code}\\\\n\")",
-      "Bash(curl -s -o /dev/null -w \"app.js HTTP %{http_code}\\\\n\" \"https://undrgradz-app.web.app/app.js\")"
+      "Bash(curl -s -o /dev/null -w \"app.js HTTP %{http_code}\\\\n\" \"https://undrgradz-app.web.app/app.js\")",
+      "Read(//c/Users/IA ELYSA/Desktop/UndrGradz-Demo/frontend/**)",
+      "Bash(curl -sS -o /dev/null -w \"HTTP:%{http_code} SIZE:%{size_download}\\\\n\" --max-time 15 \"https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=400&auto=format&fit=crop\")",
+      "Read(//c/Users/IA ELYSA/Desktop/UndrGradz-Demo/frontend/images/mock/**)",
+      "Bash(xargs -I{} grep -Hm1 '^description:' {})",
+      "Read(//dev/**)",
+      "Bash(node -e \"console.log\\('node ok'\\)\")",
+      "Bash(node \"C:/Users/IAELYS~1/AppData/Local/Temp/claude/c--Users-IA-ELYSA-Desktop-UndrGradz/09674a1b-26a6-4fd8-aa38-257bf2547c14/scratchpad/strip_test.js\")",
+      "Bash(node generate_indautor_pdf.js)",
+      "Bash(node --check backend/src/controllers/chat.controller.js)",
+      "Bash(node --check backend/src/services/chat.service.js)",
+      "Bash(node --check frontend/app.js)",
+      "Bash(gcloud config *)",
+      "Bash(gcloud run *)",
+      "Bash(cp frontend/app.js frontend/www-app/app.js)",
+      "Bash(find '/c/Users/IA ELYSA/Desktop/UndrGradz/.claude/skills' -maxdepth 2 -iname SKILL.md)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8080/ --max-time 3)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/ --max-time 3)",
+      "Bash(nc -z 127.0.0.1 5433)",
+      "Bash(timeout 3 bash -c 'cat < /dev/null > /dev/tcp/127.0.0.1/5433')",
+      "Bash(echo TAG=__CMDSUB_OUTPUT__)",
+      "Bash(find \"/c/Users/IA ELYSA\" -iname \"*cloud-sql-proxy*\" -o -iname \"*cloud_sql_proxy*\" 2>/dev/null | grep -v node_modules | head -20)",
+      "Bash(node verify_neon_match_setup.js)",
+      "Bash(grep -n \"swipe-overlay-reject\\\\\">\\\\|swipe-overlay-like\\\\\">\\\\|swipe-overlay-maybe\\\\\">\" /tmp/old_app.js)",
+      "Bash(node verify_filters.js)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\IA ELYSA\\Desktop\\UndrGradz-Demo\\frontend"
     ]
   }
 }

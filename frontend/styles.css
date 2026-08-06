@@ -365,6 +365,11 @@ textarea.gi {
 .gbtn:active {
   transform: scale(0.97);
 }
+.gbtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 .gbtn-ghost {
   display: block;
   width: 100%;
@@ -4108,6 +4113,7 @@ html.acc-white .nav-pill {
   background: transparent;
   pointer-events: none;
   margin: 0;
+  z-index: 3;
 }
 .age-slider-wrap input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -8628,7 +8634,7 @@ body.is-ios .screen::before {
 
 /* Auth Header - Authentic 3D Extrusion Logo (White UNDR + Crimson Red GRADZ with 3D Royal Blue Extruded Shadow) */
 .auth-logo-text {
-  font-family: 'Outfit', 'Graduate', 'Inter', sans-serif;
+  font-family: 'Boldonse';
   font-size: 48px;
   font-weight: 1000;
   letter-spacing: -0.5px;
@@ -8836,9 +8842,10 @@ body.is-ios .screen::before {
   }
 }
 
-/* Match-celebration modal: cheap fade-in for the card, one-shot impact ring
-   instead of a multi-particle confetti burst (GPU-cheap: transform+opacity only,
-   single element, staggered after the photo-join instead of running alongside it). */
+/* Match-celebration modal ("Neon Energy"): cheap fade-in for the card. Each phase
+   below (line-draw, halo burst, spark burst, step-5 text) is the ONLY animated thing
+   running during its window — staggered by JS via animation-delay, never concurrent —
+   same discipline as before: transform/opacity/stroke-dashoffset only, no layout cost. */
 @keyframes ugzPopIn {
   0% { opacity: 0; }
   100% { opacity: 1; }
@@ -8847,9 +8854,20 @@ body.is-ios .screen::before {
   0% { opacity: 0; transform: translateY(12px) scale(0.9); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
-@keyframes matchImpactRing {
-  0% { opacity: 0.55; transform: scale(0.4); }
-  100% { opacity: 0; transform: scale(2.1); }
+.match-neon-line {
+  transition: stroke-dashoffset 0.9s linear, opacity 0.25s ease 0.65s;
+}
+@keyframes matchHaloBurst {
+  0% { opacity: 0.85; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(2.4); }
+}
+@keyframes matchSparkOut {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx, 0), var(--ty, 0)) scale(0.3); }
+}
+@keyframes matchStep5In {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* ===== UNDRGRADZ GLOBAL CUSTOM MODAL SYSTEM ===== */

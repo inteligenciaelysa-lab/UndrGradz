@@ -58,8 +58,8 @@ router.get('/universities', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_
 router.get('/universities/:id', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getUniversityById);
 router.post('/universities', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.createUniversity);
 router.patch('/universities/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.updateUniversity);
-router.delete('/universities/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.softDeleteUniversity);
-router.post('/universities/:id/restore', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.restoreUniversity);
+router.delete('/universities/:id', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.hardDeleteUniversity);
+router.post('/universities/bulk-delete', requireRole('ADMIN', 'SUPER_ADMIN'), adminController.bulkHardDeleteUniversities);
 
 // Campus Management (locations under a University)
 router.get('/universities/:universityId/campuses', requireRole('SUPPORT', 'MODERATOR', 'ADMIN', 'SUPER_ADMIN'), adminController.getCampuses);

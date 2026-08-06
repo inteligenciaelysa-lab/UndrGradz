@@ -185,15 +185,16 @@ class AdminApiClient {
     });
   }
 
-  async softDeleteUniversity(id) {
+  async hardDeleteUniversity(id) {
     return this.request(`/universities/${id}`, {
       method: 'DELETE',
     });
   }
 
-  async restoreUniversity(id) {
-    return this.request(`/universities/${id}/restore`, {
+  async bulkDeleteUniversities(ids) {
+    return this.request('/universities/bulk-delete', {
       method: 'POST',
+      body: JSON.stringify({ ids }),
     });
   }
 

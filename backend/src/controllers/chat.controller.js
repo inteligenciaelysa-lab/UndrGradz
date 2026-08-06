@@ -1,6 +1,8 @@
 const chatService = require('../services/chat.service');
 const AppError = require('../errors/appError');
 const { validateImageDataUri } = require('../utils/dataUriImage');
+const { getIO } = require('../socket');
+const { sendPushToUser } = require('../integrations/firebase');
 
 class ChatController {
   async getToken(req, res, next) {
@@ -76,7 +78,7 @@ class ChatController {
 
       console.log(`[CHAT DEBUG BACKEND] POST /chats/${matchId}/messages received | userId: ${userId} | content: "${content}"`);
 
-      const message = await chatService.createMessage(
+      const { message, receiverId } = await chatService.createMessage(
         userId,
         matchId,
         content,
@@ -89,11 +91,32 @@ class ChatController {
 
       // Broadcast via socket if available
       try {
-        const io = req.app.get('io');
+        const io = getIO();
         if (io) {
           io.to(`room_${message.matchId}`).emit('messageReceived', message);
+
+          // If the receiver isn't in the room, still notify them directly so their badge/list updates live
+          const socketsInRoom = await io.in(`room_${message.matchId}`).fetchSockets();
+          const receiverInRoom = socketsInRoom.some((s) => s.data.userId === receiverId);
+          if (!receiverInRoom) {
+            io.to(`user_${receiverId}`).emit('messageReceived', message);
+          }
+
+          // If the receiver has no active socket at all, fall back to a push notification
+          const receiverSockets = await io.in(`user_${receiverId}`).fetchSockets();
+          if (receiverSockets.length === 0) {
+            await sendPushToUser(receiverId, {
+              title: `Mensaje nuevo de ${message.sender.firstName} ✉️`,
+              body: content && content.length > 50 ? `${content.substring(0, 50)}...` : content,
+              data: { matchId: message.matchId, type: 'CHAT_MESSAGE' },
+            });
+          }
+        } else {
+          console.warn('[CHAT] Socket.IO instance not available; message was saved but not broadcast live');
         }
-      } catch(e) {}
+      } catch (e) {
+        console.error('[CHAT] Failed to broadcast message via socket:', e.message);
+      }
 
       res.status(201).json({
         status: 'success',
