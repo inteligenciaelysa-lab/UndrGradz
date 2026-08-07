@@ -542,6 +542,7 @@ var ICONS={
   share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/>',
   filter:'<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
   eye:'<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff:'<path d="M9.9 4.24A9.1 9.1 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61A18.4 18.4 0 0 0 2 11s3.5 7 10 7a9 9 0 0 0 5.39-1.61"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/>',
   send:'<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',
   image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
   mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10a7 7 0 0 1-14 0M12 19v3"/>',
@@ -2233,7 +2234,11 @@ function checkPassMatch(){
 
 function togglePwVis(inputId,eyeId){
   var inp=document.getElementById(inputId),eye=document.getElementById(eyeId);
-  if(!inp)return;var h=inp.type==='password';inp.type=h?'text':'password';if(eye)eye.textContent=h?'🙈':'👁';
+  if(!inp)return;var h=inp.type==='password';inp.type=h?'text':'password';
+  // innerHTML con un SVG, no textContent con un emoji: el ojo del login
+  // (index.html) ya venía siendo un SVG y el emoji se lo comía al primer toque,
+  // dejando la pantalla de login con un icono distinto al resto de la app.
+  if(eye)eye.innerHTML=(typeof icon==='function')?icon(h?'eyeOff':'eye',18):(h?'🙈':'👁');
 }
 
 function doSignupAuth(){
@@ -3008,18 +3013,64 @@ function _ob4P1(){
   var lblRefCode = window.currentLang==='es'?'Código de invitación (opcional)':'Referral code (optional)';
   var placeholderRefCode = window.currentLang==='es'?'ej. A1B2C3D4':'e.g. A1B2C3D4';
   
-  return ''+
-   '<div class="ob4-subcard"><div class="ob4-subcard-h">'+(window.currentLang==='es'?'Quién eres':'Who you are')+'</div>'+
-   '<div class="g2"><div class="field"><label>'+lblFname+'</label><input class="gi" id="ob4-fn" value="'+((suData&&suData.fname)||'')+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.fname=this.value;_ob4Strength();_ob4ValidateAll();"/></div>'+
-   '<div class="field"><label>'+lblLname+'</label><input class="gi" id="ob4-ln" value="'+((suData&&suData.lname)||'')+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.lname=this.value;_ob4Strength();_ob4ValidateAll();"/></div></div>'+
-   '<div class="field"><label>'+lblUname+'</label><div style="position:relative;"><input class="gi" id="ob-handle" value="'+st.handle+'" oninput="checkHandle(this);_ob4State.handle=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-right:96px;"/><span id="handle-msg" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);font-weight:600;color:#4ade80;"></span></div></div>'+
-   '<div class="ob4-flabel">'+lblDob+'</div><div style="display:flex;gap:8px;"><select class="gi" id="ob4-dm" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:2;">'+monOpt+'</select><select class="gi" id="ob4-dd" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+dayOpt+'</select><select class="gi" id="ob4-dy" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+yrOpt+'</select></div></div>'+
-   '<div class="ob4-subcard"><div class="ob4-subcard-h">'+(window.currentLang==='es'?'Tu cuenta':'Your account')+'</div>'+
-   '<div class="field" style="margin-top:2px;"><label>'+lblEmail+'</label>'+
+  var lblYourName = window.currentLang==='es'?'Tu nombre':'Your name';
+  var phFname = window.currentLang==='es'?'Nombre':'First name';
+  var phLname = window.currentLang==='es'?'Apellido':'Last name';
+  var phUname = window.currentLang==='es'?'Elige un usuario único':'Choose a unique username';
+  var lblEmailSchool = window.currentLang==='es'?'Tu correo escolar':'Your school email';
+  var emailHelp = window.currentLang==='es'?
+    'Usa tu correo escolar para verificar tu cuenta.':
+    'Use your school email to verify your account.';
+  var lblPhoneOpt = window.currentLang==='es'?'(opcional)':'(optional)';
+  var refToggleText = window.currentLang==='es'?'¿Tienes un código de invitación?':'Have a referral code?';
+  // Icono dentro del input: mismo patrón que los socials del paso 2 — wrapper
+  // relativo, glifo absoluto a la izquierda y padding-left en el .gi.
+  // pointer-events:none o el icono se come el toque que iba al campo.
+  var ICO_L = 'position:absolute;left:11px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,0.38);pointer-events:none;display:flex;';
+
+  // Se devuelve como lista de secciones con nombre: la versión anterior era una
+  // concatenación donde los </div> de las dos .ob4-subcard iban fusionados al
+  // final de líneas ajenas ('</div></div></div>'), y tocar una sección obligaba
+  // a contar cierres a mano.
+  var parts = [];
+
+  // ── Tu nombre: una sola etiqueta sobre los dos campos ──
+  parts.push(
+   '<div class="ob4-flabel" data-hue="#dc2626" style="margin-top:0;">'+lblYourName+'</div>'+
+   '<div class="g2">'+
+     '<div style="position:relative;"><span style="'+ICO_L+'">'+icon('user',15)+'</span>'+
+       '<input class="gi" id="ob4-fn" value="'+((suData&&suData.fname)||'')+'" placeholder="'+phFname+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.fname=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-left:34px;"/></div>'+
+     '<div style="position:relative;"><span style="'+ICO_L+'">'+icon('user',15)+'</span>'+
+       '<input class="gi" id="ob4-ln" value="'+((suData&&suData.lname)||'')+'" placeholder="'+phLname+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.lname=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-left:34px;"/></div>'+
+   '</div>');
+
+  // ── Usuario. El padding-right:96px se conserva: ahí vive #handle-msg. ──
+  parts.push(
+   '<div class="ob4-flabel" data-hue="#3d7bff">'+lblUname+'</div>'+
+   '<div style="position:relative;margin-bottom:11px;">'+
+     '<span style="'+ICO_L+'font-weight:700;font-size:var(--fs-base);">@</span>'+
+     '<input class="gi" id="ob-handle" value="'+st.handle+'" placeholder="'+phUname+'" oninput="checkHandle(this);_ob4State.handle=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-left:32px;padding-right:96px;"/>'+
+     '<span id="handle-msg" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);font-weight:600;color:#4ade80;"></span>'+
+   '</div>');
+
+  // ── Fecha de nacimiento. El calendario solo va en el select de mes. ──
+  parts.push(
+   '<div class="ob4-flabel" data-hue="#22c55e">'+lblDob+'</div>'+
+   '<div style="display:flex;gap:8px;margin-bottom:11px;">'+
+     '<div style="position:relative;flex:2;"><span style="'+ICO_L+'">'+icon('calendar',15)+'</span>'+
+       '<select class="gi" id="ob4-dm" onchange="_ob4Dob();_ob4ValidateAll();" style="padding-left:34px;">'+monOpt+'</select></div>'+
+     '<select class="gi" id="ob4-dd" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+dayOpt+'</select>'+
+     '<select class="gi" id="ob4-dy" onchange="_ob4Dob();_ob4ValidateAll();" style="flex:1;">'+yrOpt+'</select>'+
+   '</div>');
+
+  // ── Correo escolar + Verify ──
+  parts.push(
+   '<div class="ob4-flabel" data-hue="#c084fc">'+lblEmailSchool+'</div>'+
    '<div style="display:flex;gap:8px;">'+
      '<input class="gi" id="ob-email" type="email" value="'+st.email+'" placeholder="you@school.edu" oninput="_ob4State.email=this.value;if(typeof detectUni===\'function\')detectUni(this.value);_ob4Strength();_ob4ValidateAll();" style="flex:1;"/>'+
      '<button type="button" id="ob-email-verify-btn" onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">'+btnVerify+'</button>'+
    '</div>'+
+   '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-top:7px;">'+emailHelp+'</div>'+
    '<div id="email-code-container" style="display:none;margin-top:10px;">'+
      '<label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">'+codeLabel+'</label>'+
      '<div style="position:relative;">'+
@@ -3029,21 +3080,29 @@ function _ob4P1(){
    '</div>'+
    '<div id="udet" style="display:none;align-items:center;gap:9px;margin-top:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:var(--rad-sm);padding:10px 12px;"><span style="color:#4ade80;font-size:var(--fs-md);">✓</span><div style="flex:1;min-width:0;"><div id="un-lbl" class="t-sub-strong"></div><div id="uc-lbl" style="font-size:var(--fs-sm);font-weight:500;color:#4ade80;"></div></div><span id="ud" style="display:none;"></span></div>'+
     '<div id="tec-campus-row" style="display:none;margin-top:10px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!=\'undefined\'){userPro.campus=this.value;}if(typeof suData!=\'undefined\'){suData.campus=this.value;}"></select></div>'+
-   '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg2);margin-top:8px;line-height:1.5;">'+notFoundText+'</div></div>'+
-   '<div class="field" style="margin-top:14px;"><label>'+lblPassword+'</label>'+
+   '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg2);margin-top:8px;line-height:1.5;">'+notFoundText+'</div>');
+
+  // ── Contraseña. El ojo pierde su caja de 46px con borde y queda suelto. ──
+  parts.push(
+   '<div class="ob4-flabel" data-hue="#fbbf24">'+lblPassword+'</div>'+
    '<div style="position:relative;">'+
-     '<input class="gi" id="ob-pass" type="password" value="'+((suData&&suData.pass)||'')+'" placeholder="'+placeholderPass+'" oninput="if(suData)suData.pass=this.value;checkPasswordStrength(this.value);" style="padding-right:50px;"/>'+
-     '<div onclick="togglePwVis(\'ob-pass\',\'ob-pass-eye\')" id="ob-pass-eye" style="position:absolute;right:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:var(--fs-md);color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.04);border-radius:0 var(--rx) var(--rx) 0;border-left:1px solid rgba(255,255,255,0.1);">👁</div>'+
+     '<input class="gi" id="ob-pass" type="password" value="'+((suData&&suData.pass)||'')+'" placeholder="'+placeholderPass+'" oninput="if(suData)suData.pass=this.value;checkPasswordStrength(this.value);" style="padding-right:44px;"/>'+
+     '<div onclick="togglePwVis(\'ob-pass\',\'ob-pass-eye\')" id="ob-pass-eye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.45);">'+icon('eye',18)+'</div>'+
    '</div>'+
    '<div id="pass-msg" style="display:none;font-size:var(--fs-xs);color:#dc2626;margin-top:6px;font-weight:500;"></div>'+
    '<div id="pass-meter" style="display:none;margin-top:8px;">'+
      '<div style="display:flex;gap:5px;margin-bottom:7px;"><div class="pw-bar"></div><div class="pw-bar"></div><div class="pw-bar"></div><div class="pw-bar"></div></div>'+
      '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:var(--fs-2xs);color:var(--fg3);font-weight:500;"><span data-rule="len">8+ chars</span><span data-rule="case">aA</span><span data-rule="num">123</span><span data-rule="spec">#!?</span></div>'+
-   '</div></div>'+
-   '<div class="field"><label>'+lblPhone+'</label>'+
+   '</div>');
+
+  // ── Teléfono, ahora opcional. El prefijo se muestra junto a la bandera y ya
+  //    no vive dentro del value (ver formatPhoneNumber / selectPhoneCountry). ──
+  parts.push(
+   '<div class="ob4-flabel" data-hue="#22d3ee">'+lblPhone+' <span style="opacity:0.55;font-weight:600;">'+lblPhoneOpt+'</span></div>'+
    '<div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1.5px solid var(--gbdl);border-radius:var(--rx);height:44px;position:relative;" id="ob-phone-container">'+
-     '<div onclick="togglePhoneCodeDropdown(event)" id="ob-phone-flag-trigger" style="display:flex;align-items:center;gap:6px;padding:0 12px;cursor:pointer;border-right:1px solid rgba(255,255,255,0.12);height:100%;user-select:none;">'+
+     '<div onclick="togglePhoneCodeDropdown(event)" id="ob-phone-flag-trigger" style="display:flex;align-items:center;gap:6px;padding:0 10px;cursor:pointer;border-right:1px solid rgba(255,255,255,0.12);height:100%;user-select:none;">'+
        '<img id="selected-flag-img" src="https://flagcdn.com/w40/'+(_ob4State.phoneCode==='+52'?'mx':_ob4State.phoneCode==='+1'&&_ob4State.country==='ca'?'ca':'us')+'.png" style="width:22px;height:15px;object-fit:cover;border-radius:2px;"/>'+
+       '<span id="ob-phone-prefix" style="font-size:var(--fs-sm);font-weight:600;color:rgba(255,255,255,0.75);">'+(_ob4State.phoneCode||'+1')+'</span>'+
        '<span style="font-size:var(--fs-2xs);color:rgba(255,255,255,0.5);">▼</span>'+
      '</div>'+
      '<div id="ob-phone-flag-dropdown" style="display:none;position:absolute;top:100%;left:0;z-index:9999;background:#0d0d11;border:1px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);width:180px;box-shadow:var(--el-3);margin-top:6px;max-height:200px;overflow-y:auto;">'+
@@ -3060,13 +3119,27 @@ function _ob4P1(){
          '<span>'+titleCa+'</span>'+
        '</div>'+
      '</div>'+
-     '<input class="gi" id="ob-phone" type="tel" value="'+st.phone+'" placeholder="+1 (512) 123-4567" oninput="formatPhoneNumber(this)" style="flex:1;border:none;background:transparent;height:100%;box-shadow:none;padding:10px 12px;font-weight:600;letter-spacing:0.5px;"/>'+
-   '</div></div></div>'+
-    '<div class="field" style="margin-top:14px;"><label>'+lblRefCode+'</label>'+
-    '<input class="gi" id="ob-refcode" value="'+(st.referralCode||'')+'" placeholder="'+placeholderRefCode+'" oninput="_ob4State.referralCode=this.value.trim().toUpperCase();" style="text-transform:uppercase;letter-spacing:1px;font-weight:600;"/></div>'+
-   '<div id="ob4-err1" style="display:none;color:#dc2626;font-size:var(--fs-sm);font-weight:600;text-align:center;margin-bottom:10px;"></div>'+
+     '<input class="gi" id="ob-phone" type="tel" value="'+st.phone+'" placeholder="(512) 123-4567" oninput="formatPhoneNumber(this)" style="flex:1;border:none;background:transparent;height:100%;box-shadow:none;padding:10px 12px;font-weight:600;letter-spacing:0.5px;"/>'+
+   '</div>');
+
+  // ── Referido: se conserva (lo leen _ob4Next1 y _ob4ValidateAll) pero
+  //    colapsado tras un enlace, para no cargar el paso con un campo que casi
+  //    nadie usa. Borrarlo dejaría los tres lectores leyendo '' en silencio. ──
+  parts.push(
+   '<div style="margin-top:16px;">'+
+     '<div id="ob-ref-toggle" onclick="var r=document.getElementById(\'ob-ref-row\');if(!r)return;var open=r.style.display===\'none\';r.style.display=open?\'block\':\'none\';this.style.display=open?\'none\':\'block\';if(open){var i=document.getElementById(\'ob-refcode\');if(i)i.focus();}" style="font-size:var(--fs-sm);font-weight:600;color:var(--uni-accent,var(--p));cursor:pointer;">'+refToggleText+' ›</div>'+
+     '<div id="ob-ref-row" style="display:'+(st.referralCode?'block':'none')+';">'+
+       '<div class="ob4-flabel" data-hue="#ec4899">'+lblRefCode+'</div>'+
+       '<input class="gi" id="ob-refcode" value="'+(st.referralCode||'')+'" placeholder="'+placeholderRefCode+'" oninput="_ob4State.referralCode=this.value.trim().toUpperCase();" style="text-transform:uppercase;letter-spacing:1px;font-weight:600;"/>'+
+     '</div>'+
+   '</div>');
+
+  parts.push(
+   '<div id="ob4-err1" style="display:none;color:#dc2626;font-size:var(--fs-sm);font-weight:600;text-align:center;margin:14px 0 10px;"></div>'+
    '<button class="ob4-cta" id="ob4-continue-btn" onclick="_ob4Next1()" disabled style="opacity:0.45;">'+btnContinue+'</button>'+
-   '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:22px;">'+privacyNote+'</div>';
+   '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:22px;">'+privacyNote+'</div>');
+
+  return parts.join('');
 }
 function _ob4Dob(){var m=parseInt((document.getElementById('ob4-dm')||{}).value)||0,d=parseInt((document.getElementById('ob4-dd')||{}).value)||0,y=parseInt((document.getElementById('ob4-dy')||{}).value)||0;if(!m||!d||!y)return;var now=new Date();var age=now.getFullYear()-y-((now.getMonth()+1>m||(now.getMonth()+1===m&&now.getDate()>=d))?0:1);suData.age=age;suData.bMonth=m;suData.bDay=d;if(typeof _zodiacFromMD==='function'){var z=_zodiacFromMD(m,d);if(z){suData.zodiac=z.s;suData.zodiacEmoji=z.e;}}_ob4Strength();}
 // Inline errors instead of native alerts: red-outline the offending field, show
@@ -3111,9 +3184,10 @@ function _ob4Next1(){
   var phone = ((document.getElementById('ob-phone') || {}).value || '').trim();
   var refCodeVal = ((document.getElementById('ob-refcode') || {}).value || '').trim();
   _ob4State.referralCode = refCodeVal.toUpperCase();
-  var prefix = _ob4State.phoneCode || '+1';
-  var digitsAfterPrefix = phone.slice(prefix.length).replace(/[^\d]/g, '');
-  if(digitsAfterPrefix.length !== 10) return _ob4Err1('ob-phone','Enter a valid 10-digit phone number.');
+  // Opcional: vacío pasa, a medio llenar no. El prefijo ya no vive en el value,
+  // así que basta con contar dígitos.
+  var phoneDigits = phone.replace(/[^\d]/g, '');
+  if(phoneDigits.length && phoneDigits.length !== 10) return _ob4Err1('ob-phone', window.currentLang==='es'?'Escribe un teléfono de 10 dígitos o déjalo vacío.':'Enter a valid 10-digit phone number, or leave it empty.');
 
   if(typeof detectUni==='function')detectUni(_ob4State.email);
   _ob4Go(2);
@@ -25305,25 +25379,21 @@ function selectPhoneCountry(code, prefix) {
   }
   var phoneInput = document.getElementById('ob-phone');
   _ob4State.phoneCode = prefix;
-  if (phoneInput) {
-    var currentVal = phoneInput.value;
-    currentVal = currentVal.replace(/^\+\d+\s*/, '');
-    phoneInput.value = prefix + ' ' + currentVal;
-    formatPhoneNumber(phoneInput);
-  }
+  // El prefijo se pinta junto a la bandera, ya no dentro del value.
+  var prefEl = document.getElementById('ob-phone-prefix');
+  if (prefEl) prefEl.textContent = prefix;
+  if (phoneInput) formatPhoneNumber(phoneInput);
   var dropdown = document.getElementById('ob-phone-flag-dropdown');
   if (dropdown) dropdown.style.display = 'none';
 }
 
+// El value ya no lleva el prefijo: era la razón por la que el placeholder de la
+// maqueta ("(512) 123-4567") duraba una sola pulsación, y obligaba a los dos
+// validadores a hacer phone.slice(prefix.length) para recuperar los dígitos.
 function formatPhoneNumber(inp) {
-  var prefix = _ob4State.phoneCode || '+1';
-  var v = inp.value;
-  if (!v.startsWith(prefix)) {
-    v = prefix + ' ' + v.replace(/[^\d]/g, '');
-  }
-  var digits = v.slice(prefix.length).replace(/[^\d]/g, '');
+  var digits = String(inp.value || '').replace(/[^\d]/g, '');
   if (digits.length > 10) digits = digits.slice(0, 10);
-  
+
   var formatted = '';
   if (digits.length > 0) {
     formatted += '(' + digits.slice(0, 3);
@@ -25334,8 +25404,8 @@ function formatPhoneNumber(inp) {
       }
     }
   }
-  inp.value = prefix + ' ' + formatted;
-  _ob4State.phone = inp.value;
+  inp.value = formatted;
+  _ob4State.phone = formatted;
   _ob4Strength();
   _ob4ValidateAll();
 }
@@ -25379,10 +25449,10 @@ function _ob4ValidateAll() {
   var passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
   var passOk = passRegex.test(pass);
   
-  var prefix = _ob4State.phoneCode || '+1';
-  var digitsAfterPrefix = phone.slice(prefix.length).replace(/[^\d]/g, '');
-  var phoneOk = digitsAfterPrefix.length === 10;
-  
+  // El teléfono es opcional: vacío no bloquea, a medio llenar sí.
+  var phoneDigits = phone.replace(/[^\d]/g, '');
+  var phoneOk = phoneDigits.length === 0 || phoneDigits.length === 10;
+
   var allOk = fnOk && lnOk && usernameOk && ageOk && emailOk && uniOk && emailVerifiedOk && passOk && phoneOk;
   btn.disabled = !allOk;
   btn.style.opacity = allOk ? '1' : '0.45';
