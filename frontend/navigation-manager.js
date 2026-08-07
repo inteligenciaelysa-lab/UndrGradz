@@ -10,6 +10,7 @@
 
   const SECTION_LABELS = {
     hangouts: 'Planes',
+    search: 'Buscar',
     discover: 'Campus',
     unicrush: 'Campus',
     chats: 'Chats',
@@ -153,6 +154,7 @@
     getSectionLabel(sectionId) {
       if (window.currentLang === 'es') {
         if (sectionId === 'hangouts') return 'Planes';
+        if (sectionId === 'search') return 'Buscar';
         if (sectionId === 'discover' || sectionId === 'unicrush') return 'Campus';
         if (sectionId === 'chats' || sectionId === 'uchats') return 'Chats';
         if (sectionId === 'profile') return 'Mi Perfil';

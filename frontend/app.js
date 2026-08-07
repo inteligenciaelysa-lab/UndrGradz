@@ -1846,8 +1846,10 @@ var crushPhotoIdx = 0;
 var GREEK_ORGS=["Sigma Chi", "Sigma Alpha Epsilon", "Pi Kappa Alpha", "Kappa Sigma", "Sigma Nu", "Phi Delta Theta", "Lambda Chi Alpha", "Tau Kappa Epsilon", "Beta Theta Pi", "Phi Gamma Delta (FIJI)", "Delta Tau Delta", "Alpha Tau Omega", "Sigma Phi Epsilon", "Theta Chi", "Phi Kappa Psi", "Delta Sigma Phi", "Pi Kappa Phi", "Chi Phi", "Alpha Epsilon Pi", "Kappa Alpha Order", "Delta Chi", "Sigma Pi", "Phi Kappa Tau", "Alpha Sigma Phi", "Kappa Alpha Psi", "Alpha Phi Alpha", "Omega Psi Phi", "Phi Beta Sigma", "Iota Phi Theta", "Lambda Theta Phi", "Sigma Lambda Beta", "Chi Omega", "Delta Delta Delta", "Kappa Kappa Gamma", "Kappa Alpha Theta", "Pi Beta Phi", "Alpha Chi Omega", "Delta Gamma", "Alpha Phi", "Gamma Phi Beta", "Alpha Delta Pi", "Zeta Tau Alpha", "Delta Zeta", "Kappa Delta", "Sigma Kappa", "Alpha Omicron Pi", "Phi Mu", "Alpha Gamma Delta", "Sigma Sigma Sigma", "Alpha Kappa Alpha", "Delta Sigma Theta", "Zeta Phi Beta", "Sigma Gamma Rho", "Lambda Theta Alpha", "Kappa Delta Chi", "Other"];
 function _greekDatalist(){return '<datalist id="greek-orgs-dl">'+GREEK_ORGS.map(function(o){return '<option value="'+o+'"></option>';}).join('')+'</datalist>';}
 // Crush is a tab inside Campus now, so it no longer gets its own nav slot.
-var NAV_STUDENT  = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
-var NAV_ALUMNI   = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'alumnihub',icon:icon('grad',24),lbl:'Network'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
+// Search went the other way: it used to be a Campus tab and is now its own
+// destination, because finding people is an app-level action, not a Campus mode.
+var NAV_STUDENT  = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'search',icon:icon('search',24),lbl:'Search'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
+var NAV_ALUMNI   = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'search',icon:icon('search',24),lbl:'Search'},{id:'alumnihub',icon:icon('grad',24),lbl:'Network'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
 var NAV_INST     = [];
 var NAV_BUSINESS = [];
 
@@ -5678,6 +5680,7 @@ function buildNav(){
     if (window.currentLang === 'es') {
       if (item.id === 'hangouts') lblText = 'Planes';
       else if (item.id === 'unicrush') lblText = 'Crush';
+      else if (item.id === 'search') lblText = 'Buscar';
       else if (item.id === 'discover') lblText = 'Campus';
       else if (item.id === 'alumnihub') lblText = 'Red';
       else if (item.id === 'chats') lblText = 'Chats';
@@ -5696,6 +5699,7 @@ function buildNav(){
   if (window.currentLang === 'es' && targetItem) {
     if (targetItem.id === 'hangouts') targetLbl = 'Planes';
     else if (targetItem.id === 'unicrush') targetLbl = 'Crush';
+    else if (targetItem.id === 'search') targetLbl = 'Buscar';
     else if (targetItem.id === 'discover') targetLbl = 'Campus';
     else if (targetItem.id === 'alumnihub') targetLbl = 'Red';
     else if (targetItem.id === 'chats') targetLbl = 'Chats';
@@ -10904,11 +10908,14 @@ function switchCrushTab(tab){
   // sw('unicrush'…) entry points, and any internal caller left over.
   if(tab==='foryou'){tab='liked';window._likedSubTab='foryou';
     try{localStorage.setItem('ugz_last_liked_subtab','foryou');sessionStorage.setItem('ugz_last_liked_subtab','foryou');}catch(e){}}
+  // Search left Campus for the bottom nav. renderDiscover already drops a stale
+  // ugz_last_crush_tab==='search' on the floor; this covers any direct caller.
+  if(tab==='search')tab='liked';
   try {
     localStorage.setItem('ugz_last_crush_tab', tab);
     sessionStorage.setItem('ugz_last_crush_tab', tab);
   } catch(e) {}
-  ['swipe','liked','search','sent','uni','uchats'].forEach(function(t){var btn=document.getElementById('ctab-'+t);var panel=document.getElementById('cpanel-'+t);if(btn){btn.classList.toggle('active',t===tab);btn.style.background=t===tab?'var(--p)':'transparent';btn.style.color=t===tab?'#fff':'rgba(255,255,255,0.5)';}if(panel)panel.classList.toggle('active',t===tab);});if(tab==='uchats'){var b=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(b)b.style.display='none';if(typeof fetchAndRenderChats==='function')fetchAndRenderChats();}if(tab==='liked'&&typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');if(tab==='sent'&&typeof _renderSentTab==='function')_renderSentTab();if(tab==='uni'&&typeof _renderUniTab==='function')_renderUniTab();if(tab==='search'&&typeof handleCrushSearch==='function')handleCrushSearch('');if(tab==='swipe'&&typeof _initCrushDeck==='function')_initCrushDeck();
+  ['swipe','liked','sent','uni','uchats'].forEach(function(t){var btn=document.getElementById('ctab-'+t);var panel=document.getElementById('cpanel-'+t);if(btn){btn.classList.toggle('active',t===tab);btn.style.background=t===tab?'var(--p)':'transparent';btn.style.color=t===tab?'#fff':'rgba(255,255,255,0.5)';}if(panel)panel.classList.toggle('active',t===tab);});if(tab==='uchats'){var b=document.getElementById('uc-badge')||document.getElementById('nbadge-chats');if(b)b.style.display='none';if(typeof fetchAndRenderChats==='function')fetchAndRenderChats();}if(tab==='liked'&&typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');if(tab==='sent'&&typeof _renderSentTab==='function')_renderSentTab();if(tab==='uni'&&typeof _renderUniTab==='function')_renderUniTab();if(tab==='swipe'&&typeof _initCrushDeck==='function')_initCrushDeck();
 }
 function selectSingleChip(el){var parent=el.parentElement;if(!parent)return;parent.querySelectorAll('.yr-chip').forEach(function(c){c.classList.remove('on');});el.classList.add('on');}
 
@@ -12598,12 +12605,38 @@ function _setSentFilter(filter) {
 }
 
 function _setLikedSub(v){
+  // El re-render de abajo destruye el popover, así que el listener de
+  // click-fuera se queda sin nodo: se suelta aquí, incondicionalmente.
+  document.removeEventListener('click',_closeLikedSubMenu);
   window._likedSubTab=v;
   try {
     localStorage.setItem('ugz_last_liked_subtab',v);
     sessionStorage.setItem('ugz_last_liked_subtab',v);
   } catch(e) {}
   if(typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');
+}
+function _toggleLikedSubMenu(e){
+  if(e&&e.stopPropagation)e.stopPropagation();
+  var p=document.getElementById('liked-sub-popover');if(!p)return;
+  var open=!p.classList.contains('open');
+  p.classList.toggle('open',open);
+  var trg=p.parentElement&&p.parentElement.querySelector('.dsub-trigger');
+  if(trg)trg.setAttribute('aria-expanded',open?'true':'false');
+  document.removeEventListener('click',_closeLikedSubMenu);
+  // El setTimeout es obligatorio: sin él, este mismo click burbujea hasta
+  // document y cierra el menú en el acto. Mismo guard que toggleEventDropdown.
+  if(open)setTimeout(function(){document.addEventListener('click',_closeLikedSubMenu);},0);
+}
+function _closeLikedSubMenu(){
+  // Null-safe a propósito: al elegir un item, _renderLikedYouReveal ya borró el
+  // popover antes de que el click llegue hasta document.
+  var p=document.getElementById('liked-sub-popover');
+  if(p){
+    p.classList.remove('open');
+    var trg=p.parentElement&&p.parentElement.querySelector('.dsub-trigger');
+    if(trg)trg.setAttribute('aria-expanded','false');
+  }
+  document.removeEventListener('click',_closeLikedSubMenu);
 }
 function _likedSubRow(){
   var t=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'foryou';
@@ -12613,19 +12646,34 @@ function _likedSubRow(){
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
   var sendSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-icon lucide-send" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>';
 
-  function b(id, lbl, svgIcon){
-    var on = (t === id);
-    return '<div class="adm-sub-btn' + (on ? ' on' : '') + '" data-sub="'+id+'" onclick="_setLikedSub(\''+id+'\')">' + svgIcon + '<span>' + lbl + '</span></div>';
-  }
-
   // Discover's three sub-tabs. 'foryou' is the old top-level For you tab folded
   // in here; it reuses the flame that tab carried.
   var flameSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>';
-  return '<div style="display:flex;gap:6px;padding:10px var(--s) 12px;margin-bottom:4px;">' +
-    b('likes', 'Likes Sent', sendSvg) +
-    b('foryou', 'For you', flameSvg) +
-    b('saw', 'Admirers', hatGlassesSvg) +
-    '</div>';
+  var chevSvg = '<svg class="dsub-chev" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+
+  // Una sola fuente de verdad: el trigger saca su icono y su etiqueta de aquí,
+  // así que añadir un cuarto sub-tab es una línea y no duplica ningún SVG.
+  var SUBS = [
+    {id:'likes',  lbl:'Likes Sent', svg:sendSvg},
+    {id:'foryou', lbl:'For you',    svg:flameSvg},
+    {id:'saw',    lbl:'Admirers',   svg:hatGlassesSvg}
+  ];
+  var cur = SUBS.filter(function(s){return s.id===t;})[0] || SUBS[1];
+
+  // Menú desplegable en vez de tres pestañas: Campus ya tiene su propia barra
+  // arriba y dos filas de pestañas apiladas empujaban el contenido hacia abajo.
+  // El tono (naranja/lima/violeta) viaja en data-sub, así que el subrayado del
+  // trigger cambia de color solo, sin JS (ver .dsub-* en styles.css).
+  return '<div class="dsub-wrap">' +
+    '<button class="dsub-trigger" data-sub="'+cur.id+'" onclick="_toggleLikedSubMenu(event)" aria-haspopup="true" aria-expanded="false">' +
+      cur.svg + '<span>' + cur.lbl + '</span>' + chevSvg +
+    '</button>' +
+    '<div class="dsub-popover" id="liked-sub-popover" role="menu">' +
+      SUBS.map(function(s){
+        return '<div class="dsub-item' + (s.id===t?' on':'') + '" data-sub="'+s.id+'" role="menuitem" onclick="_setLikedSub(\''+s.id+'\')">' + s.svg + '<span>' + s.lbl + '</span></div>';
+      }).join('') +
+    '</div>' +
+  '</div>';
 }
 
 async function loadProfileViews() {
@@ -22550,7 +22598,7 @@ function _plansBack(){
 var _origSw2=sw;
 sw=function(id,label){
   _origSw2(id,label);
-  var _im={hangouts:'group3',unicrush:'heart',discover:'grad',chats:'chat',profile:'user',premium:'sparkles',alumnihub:'grad'}[id];
+  var _im={hangouts:'group3',unicrush:'heart',search:'search',discover:'grad',chats:'chat',profile:'user',premium:'sparkles',alumnihub:'grad'}[id];
   if(id==='premium'){
     _plansTab='plans'; // always land on A+, never on whichever tab was left open
     _tbBackIcon(_plansBack,'Volver');
@@ -22569,9 +22617,18 @@ sw=function(id,label){
   if(id==='premium')showPlansForGender();
 
   if(id==='discover'&&typeof renderDiscover==='function')renderDiscover('foryou');
+  // Search is its own section now. Re-run the query it already has rather than
+  // clearing it, so leaving for Chats and coming back doesn't wipe what was typed.
+  if(id==='search'&&typeof handleCrushSearch==='function'){
+    var _si=document.getElementById('crush-search-input');
+    handleCrushSearch(_si?_si.value:'');
+  }
 };
-function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['swipe','foryou','liked','search','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});var aw=document.getElementById('unicrush-age-wall');if(aw&&aw.parentElement!==pn.parentElement)pn.parentElement.appendChild(aw);}
-function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var _saved='';try{_saved=sessionStorage.getItem('ugz_last_crush_tab')||localStorage.getItem('ugz_last_crush_tab')||'';}catch(e){}var _valid={swipe:1,foryou:1,liked:1,search:1};var defaultTab=_valid[_saved]?_saved:'liked';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
+// 'search' is deliberately absent: #cpanel-search no longer exists — its markup
+// lives in #sec-search. Re-adding it here would yank the input out of that
+// section the first time Campus opens, leaving Search permanently blank.
+function _moveDiscover(){var tb=document.getElementById('discover-tabs'),pn=document.getElementById('discover-panels');if(!tb||!pn)return;['swipe','foryou','liked','sent','uni'].forEach(function(t){var p=document.getElementById('cpanel-'+t);if(p&&p.parentElement!==pn)pn.appendChild(p);});var aw=document.getElementById('unicrush-age-wall');if(aw&&aw.parentElement!==pn.parentElement)pn.parentElement.appendChild(aw);}
+function renderDiscover(subTab){_moveDiscover();var _ul=document.getElementById('ctab-uni-label');if(_ul){var _ac=(typeof uni!=='undefined'&&uni&&uni.acronym)?uni.acronym:'Campus';_ul.textContent=_ac;}if(typeof _renderUniTab==='function')_renderUniTab();var _saved='';try{_saved=sessionStorage.getItem('ugz_last_crush_tab')||localStorage.getItem('ugz_last_crush_tab')||'';}catch(e){}var _valid={swipe:1,foryou:1,liked:1};var defaultTab=_valid[_saved]?_saved:'liked';if(typeof switchCrushTab==='function')switchCrushTab(defaultTab);try{if(typeof renderSpotlight==='function')renderSpotlight();}catch(e){}var _cw=document.getElementById('campus-wrapped');if(_cw)_cw.innerHTML='';var _ss=document.getElementById('senior-sendoff');if(_ss)_ss.innerHTML='';}
 document.addEventListener('DOMContentLoaded',function(){setTimeout(_moveDiscover,60);setTimeout(function(){var uc=document.getElementById('cpanel-uchats'),sc=document.getElementById('sec-chats');if(uc&&sc&&uc.parentElement!==sc){uc.classList.remove('crush-tab-panel');uc.style.display='none';sc.appendChild(uc);}},90);setTimeout(function(){var mf=document.getElementById('match-filters-wrap'),fp=document.getElementById('ptab-panel-filters');if(mf&&fp&&mf.parentElement!==fp)fp.appendChild(mf);},80);});
 
 // Show plans when navigating to premium (Interested In filter now lives statically in the Match Filters markup)
