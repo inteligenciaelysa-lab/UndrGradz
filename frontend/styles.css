@@ -11980,3 +11980,77 @@ input#su-tos-check:checked:focus {
   background: var(--uni-accent, var(--p)); vertical-align: middle; margin-left: 6px;
   box-shadow: 0 0 8px -1px var(--uni-accent, var(--p));
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SIGN UP: identidad de marca fija — GRADZ y CONTINUE en rojo, siempre
+   ══════════════════════════════════════════════════════════════════════════
+   El registro dejaba de ser UndrGradz en cuanto detectUni() reconocía el
+   dominio del email: el logo y los CTA se repintaban con el color de la
+   escuela. Ahora la marca manda y la universidad solo tiñe lo accesorio
+   (puntos del stepper, líneas, anillo de progreso — eso NO se toca).
+
+   Va al final del archivo a propósito. Las reglas que hay que vencer son
+   !important con la misma especificidad o mayor, y los empates entre
+   !important los rompe el orden en el documento:
+     · .ob4-brand .logo-gradz                    (0-2-0)  ~8204
+     · html.uni-set .logo-gradz            ×4    (0-2-1)  ~6319/6332/6342/6373
+     · html.uni-dark .ob4-brand .logo-gradz      (0-3-1)  ~11321   ← ganaba
+     · .ob4-cta:not(:disabled) {--cta-grad}      (0-2-0)! ~11359
+     · html.uni-dark .ob4-cta:not(:disabled)     (0-3-0)! ~11329   ← ganaba
+
+   NUNCA escribir aquí un `.logo-gradz` pelado: esa clase la comparten el logo
+   del login (.auth-logo-text) y el del topbar (.tb-logo-*). El ancestro
+   .ob4-brand es lo único que los separa. Mismo motivo para no tocar los
+   selectores agrupados donde .ob4-cta convive con .gbtn (~6205, 6240, 6394,
+   6408, 6431, 6451, 6485, 6554, 7151, 9661): editarlos repintaría toda la app. */
+
+html .ob4-brand .logo-gradz,
+html.uni-set .ob4-brand .logo-gradz,
+html.uni-dark .ob4-brand .logo-gradz,
+html.brand-default .ob4-brand .logo-gradz {
+  background: none !important;
+  background-image: none !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  color: #dc2626 !important;
+  -webkit-text-fill-color: #dc2626 !important;
+  -webkit-text-stroke: 0 !important;
+  filter: none !important;
+  /* Explícito, no heredado: hoy la sombra que se ve no viene de la regla de
+     .ob4-brand (pierde) ni del JS (inline sin !important), sino del text-shadow
+     suave de html.uni-set. Al bloquear el color hay que fijar también esto o
+     nos quedamos con la sombra de otro. Offsets escalados al nuevo tamaño. */
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85), 3px 4px 6px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* El wordmark del registro medía 34px → 351px de ancho sobre 375 de viewport,
+   pegado a los dos bordes. 26px (×0.765) lo baja a ~230px y deja aire. El
+   letter-spacing escala con él o el tracking se lee más apretado al achicar.
+   Scope .ob4-brand: el logo del login (.auth-logo-text) no se toca. */
+.ob4-brand .logo-undr,
+.ob4-brand .logo-gradz {
+  font-size: 26px !important;
+  letter-spacing: -1.1px !important;
+}
+.ob4-brand .logo-undr {
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85), 3px 4px 6px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* CONTINUE. El guard :not(:disabled) es lo que preserva el gris del estado
+   deshabilitado (~7408), que se queda como está. */
+html .ob4-cta:not(:disabled),
+html.uni-set .ob4-cta:not(:disabled),
+html.uni-dark .ob4-cta:not(:disabled),
+html.brand-default .ob4-cta:not(:disabled) {
+  background: #dc2626 !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+html .ob4-cta:hover:not(:disabled),
+html.uni-set .ob4-cta:hover:not(:disabled),
+html.uni-dark .ob4-cta:hover:not(:disabled),
+html.brand-default .ob4-cta:hover:not(:disabled) {
+  box-shadow: none !important;
+  filter: brightness(1.08);
+}

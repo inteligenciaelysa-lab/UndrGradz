@@ -2861,11 +2861,19 @@ function _ob4PaintLabels(){
     for(var i=0;i<labels.length;i++){
       var el=labels[i];
       var txt=(el.textContent||'');
+      // Tono declarado en el markup: gana sobre la lista fija y sobre la rotación.
+      // Es el escape definitivo al problema que documenta el comentario de arriba —
+      // añadir o quitar una sección corría el color de todas las siguientes. Ojo:
+      // `i` sigue avanzando igual, para que los pasos sin anotar (2 y 5) conserven
+      // exactamente la rotación que tenían.
+      var decl=el.getAttribute('data-hue');
       var fija=null;
-      for(var k=0;k<_OB4_LABEL_FIXED.length;k++){
-        if(_OB4_LABEL_FIXED[k].re.test(txt)){fija=_OB4_LABEL_FIXED[k].hue;break;}
+      if(!decl){
+        for(var k=0;k<_OB4_LABEL_FIXED.length;k++){
+          if(_OB4_LABEL_FIXED[k].re.test(txt)){fija=_OB4_LABEL_FIXED[k].hue;break;}
+        }
       }
-      var hue=_p3Boost(fija||_OB4_LABEL_HUES[i%_OB4_LABEL_HUES.length]);
+      var hue=_p3Boost(decl||fija||_OB4_LABEL_HUES[i%_OB4_LABEL_HUES.length]);
       el.style.setProperty('--ob-hue',hue);
       // Y las opciones de la sección con él. Los chips son HERMANOS de la
       // etiqueta, no hijos, así que no heredaban nada y se quedaban con el
@@ -19977,14 +19985,11 @@ function _ob4UpdateUniTheme(){
   document.documentElement.style.setProperty('--cta-grad',
     _ctaGradient(raw, raw2, col, col2) || 'none');
   
-  // Sign-up (ob4) GRADZ only: solid university colour + black 3D shadow (not a glow).
-  var BLACK_3D = '3px 3px 0 rgba(0,0,0,0.85), 4px 5px 8px rgba(0,0,0,0.5)';
-  var gradzLogos = document.querySelectorAll('.ob4-brand .logo-gradz');
-  gradzLogos.forEach(function(gEl){
-    gEl.style.color = col;
-    gEl.style.webkitTextFillColor = col;
-    gEl.style.textShadow = BLACK_3D;
-  });
+  // El GRADZ del registro ya NO se repinta aquí: es rojo de marca, fijo, en CSS
+  // (bloque "SIGN UP: identidad de marca fija" al final de styles.css). Estas
+  // escrituras inline perdían contra el !important de allí, pero dejarlas era
+  // una bomba: cualquier reordenamiento de la cascada resucitaba el color de la
+  // escuela. Lo de abajo (puntos, líneas, anillo) sí sigue el color de la uni.
 
   // Step circles ride the primary→secondary gradient: dot 1 = primary, dot 5 =
   // secondary, dot 3 = a 50/50 blend — so the whole stepper reads as one gradient
@@ -20023,11 +20028,7 @@ function _ob4UpdateUniTheme(){
     ringPctText.style.textShadow = '0 0 10px ' + col;
   }
 
-  document.querySelectorAll('.ob4-cta:not([disabled])').forEach(function(btn){
-    btn.style.background = 'linear-gradient(135deg, ' + col + ', ' + col2 + ')';
-    btn.style.border = '1.5px solid ' + col;
-    btn.style.boxShadow = '0 0 24px ' + col;
-  });
+  // El CONTINUE tampoco: rojo de marca fijo, ver el mismo bloque en styles.css.
 }
 var _selectedUniDomain='';
 var _uniSearchCountry='';
