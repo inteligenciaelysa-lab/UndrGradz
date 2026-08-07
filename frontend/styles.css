@@ -12054,3 +12054,123 @@ html.brand-default .ob4-cta:hover:not(:disabled) {
   box-shadow: none !important;
   filter: brightness(1.08);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SIGN UP · PASO 3: las opciones vuelven a ser cuadrados
+   ══════════════════════════════════════════════════════════════════════════
+   El bloque "TODO A SUBRAYADO NEÓN" (~10676) dejó a .ob4-chip y .ob4-int sin
+   caja: fondo transparente, sin borde, y un ::after de 3px como única señal.
+   Aquí se restaura la receta que ya vivía en la capa base de .ob4-int (~5903):
+   borde, relleno tenue, y el badge redondo que pasa de + a ✓.
+
+   El scope .ob4-p3boxed es obligatorio y no decorativo:
+     · .ob4-chip lo usan también todos los grupos del paso 4
+     · .ob4-int lo reusa la hoja Edit Interests del perfil (editInterests),
+       que cuelga de document.body y por eso queda fuera por construcción
+   Y como las reglas de la capa neón son !important, estas tienen que serlo
+   también Y ser más específicas: .ob4-p3boxed .ob4-chip (0-2-0) > .ob4-chip
+   (0-1-0). El color de selección se queda en var(--p) — solo el logo y el
+   CONTINUE son rojo de marca. */
+
+.ob4-p3boxed .ob4-chiprow {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+  margin-bottom: 4px !important;
+}
+
+/* Género / me interesan */
+.ob4-p3boxed .ob4-chip {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  padding: 13px 8px !important;
+  border: 1px solid var(--gbdl) !important;
+  border-radius: var(--rad-md) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: var(--fs-sm) !important;
+  font-weight: 600 !important;
+}
+.ob4-p3boxed .ob4-chip.on {
+  color: #fff !important;
+  font-weight: 700 !important;
+  border-color: var(--p) !important;
+  background: color-mix(in srgb, var(--p) 16%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--p) 55%, transparent) !important;
+}
+
+/* Intereses: la celda pasa a horizontal (emoji · etiqueta · badge a la derecha)
+   y el badge deja de estar absoluto en la esquina. */
+.ob4-p3boxed .ob4-int {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  text-align: left !important;
+  /* Obligatorio: como item de grid su min-width es `auto`, así que no puede
+     encogerse por debajo de su min-content y las tres columnas de 1fr se
+     desbordaban por la derecha. */
+  min-width: 0 !important;
+  padding: 9px 6px !important;
+  border: 1px solid var(--gbdl) !important;
+  border-radius: var(--rad-md) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  box-shadow: none !important;
+}
+.ob4-p3boxed .ob4-int.on {
+  border-color: var(--p) !important;
+  background: color-mix(in srgb, var(--p) 16%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--p) 55%, transparent) !important;
+}
+/* El markup emite .iadd PRIMERO (badge, emoji, etiqueta) porque en el diseño
+   viejo iba absoluto en la esquina. `order` lo manda al final sin tocar el JS,
+   que lo comparte con la hoja Edit Interests del perfil. */
+.ob4-p3boxed .ob4-int .ie {
+  order: 1 !important;
+  font-size: 14px !important;
+  flex-shrink: 0 !important;
+}
+/* La etiqueta envuelve en vez de cortarse. Medido sobre las 179 opciones de las
+   6 categorías: en una sola línea a 12px se cortaban 114, y aun bajando a 10px
+   seguían cortándose 32 — la lista tiene nombres como "Bars/Nightclubs" o
+   "Rooftop Lounges" que no caben en los ~58px que deja la celda de 1/3.
+   Con dos líneas a 10px no se corta ninguna, y `break-word` (no `anywhere`)
+   solo parte una palabra cuando de verdad no cabe entera. */
+.ob4-p3boxed .ob4-int .inm {
+  order: 2 !important;
+  margin-top: 0 !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  min-width: 0 !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  overflow-wrap: break-word !important;
+}
+.ob4-p3boxed .ob4-int .iadd {
+  order: 3 !important;
+  position: static !important;
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+  width: 15px !important;
+  height: 15px !important;
+  border-radius: 50% !important;
+  border: 1px solid var(--gbdl) !important;
+  background: transparent !important;
+  color: var(--fg2) !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  font-weight: 600 !important;
+}
+.ob4-p3boxed .ob4-int.on .iadd {
+  background: var(--p) !important;
+  border-color: var(--p) !important;
+  color: #fff !important;
+}
+
+/* Fuera el subrayado de la capa neón: aquí la señal es la caja. */
+.ob4-p3boxed .ob4-chip::after,
+.ob4-p3boxed .ob4-int::after {
+  display: none !important;
+}

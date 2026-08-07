@@ -3733,22 +3733,29 @@ function _ob4P3(){
   var gChips=genderList.map(function(x){return '<div class="ob4-chip'+(g===x[0]?' on':'')+'" onclick="_ob4Gender(this,\''+x[0]+'\')">'+x[1]+'</div>';}).join('');
   var pChips=prefList.map(function(x){return '<div class="ob4-chip'+(pr===x[0]?' on':'')+'" onclick="_ob4Pref(this,\''+x[0]+'\')">'+x[1]+'</div>';}).join('');
   var cats=INTERESTS4_CATS.map(function(c){return '<div class="ob4-catchip'+(_ob4Cat===c?' on':'')+'" data-cat="'+c+'" onclick="_ob4CatSel(this,\''+c+'\')">'+c+'</div>';}).join('');
-  var lblYouAre = window.currentLang==='es'?'Soy':'You are';
-  var lblInterestedIn = window.currentLang==='es'?'Me interesa':'Interested in';
+  var lblYouAre = window.currentLang==='es'?'Soy…':'I am…';
+  var lblInterestedIn = window.currentLang==='es'?'Me interesan…':'I’m interested in…';
   var lblYourInterests = window.currentLang==='es'?'Tus intereses':'Your interests';
-  var lblSelected = window.currentLang==='es'?'Seleccionados':'Selected';
   var placeholderSearch = window.currentLang==='es'?'Buscar intereses…':'Search interests…';
   var btnContinue = window.currentLang==='es'?'Continuar ›':'Continue ›';
   var changeAnytimeText = window.currentLang==='es'?'🔒 Puedes cambiar esto cuando quieras':'🔒 You can change these anytime';
 
-  return '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:4px;">'+
-     '<div><div class="ob4-flabel" style="margin-top:0;">'+lblYouAre+'</div><div style="display:flex;gap:7px;">'+gChips+'</div></div>'+
-     '<div><div class="ob4-flabel" style="margin-top:0;">'+lblInterestedIn+'</div><div style="display:flex;gap:7px;">'+pChips+'</div></div></div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;"><div class="t-title-md">'+lblYourInterests+'</div><div style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);">'+lblSelected+': <span id="ob4-intcount" style="color:#fff;">'+selectedHobbies.length+'</span>/10</div></div>'+
+  // .ob4-p3boxed acota los cuadrados a ESTE paso. Los mismos .ob4-chip los usa
+  // el paso 4, y los mismos .ob4-int los reusa la hoja Edit Interests del perfil
+  // (que cuelga de document.body, así que queda fuera por construcción).
+  // Los data-hue congelan el color del subrayado de cada etiqueta: sin ellos,
+  // _ob4PaintLabels los reparte por índice y añadir una sección los corre todos.
+  return '<div class="ob4-p3boxed">'+
+     '<div class="ob4-flabel" data-hue="#dc2626" style="margin-top:0;">'+lblYouAre+'</div>'+
+     '<div class="ob4-chiprow">'+gChips+'</div>'+
+     '<div class="ob4-flabel" data-hue="#3d7bff">'+lblInterestedIn+'</div>'+
+     '<div class="ob4-chiprow">'+pChips+'</div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 8px;"><div class="t-title-md">'+lblYourInterests+'</div><div style="font-size:var(--fs-sm);font-weight:700;color:var(--fg2);">(<span id="ob4-intcount" style="color:#fff;">'+selectedHobbies.length+'</span>/10)</div></div>'+
     '<div style="display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:8px;">'+cats+'</div>'+
     '<input id="ob4-intq" oninput="_ob4Query=this.value;_ob4RenderInt()" placeholder="'+placeholderSearch+'" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.05);border:1px solid var(--gbdl);border-radius:var(--rad-xl);color:#fff;font-size:var(--fs-base);padding:10px 15px;margin:6px 0 4px;"/>'+
     '<div id="ob4-intgrid"></div>'+
     '<div style="height: 110px;"></div>'+
+    '</div>'+ // /.ob4-p3boxed — la barra fija de abajo queda fuera a propósito
     '<div style="position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 380px; max-width: 100%; box-sizing: border-box; padding: 24px 16px calc(16px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.98) 35%, #000000 100%); z-index: 10000; pointer-events: auto;">'+
       '<button class="ob4-cta" id="ob4-continue-btn-p3" onclick="_ob4Next3()" disabled style="opacity:0.45; margin: 0; width: 100%;">'+btnContinue+'</button>'+
       '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg3);margin-top:8px;">'+changeAnytimeText+'</div>'+
