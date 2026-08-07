@@ -1849,7 +1849,9 @@ function _greekDatalist(){return '<datalist id="greek-orgs-dl">'+GREEK_ORGS.map(
 // Search went the other way: it used to be a Campus tab and is now its own
 // destination, because finding people is an app-level action, not a Campus mode.
 var NAV_STUDENT  = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'search',icon:icon('search',24),lbl:'Search'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
-var NAV_ALUMNI   = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'search',icon:icon('search',24),lbl:'Search'},{id:'alumnihub',icon:icon('grad',24),lbl:'Network'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
+// Network se quitó de la barra: llevaba el mismo birrete que Campus, así que en
+// alumni salían dos iconos idénticos seguidos. Alumni y student comparten barra.
+var NAV_ALUMNI   = [{id:'hangouts',icon:icon('group3',24),lbl:'Hangouts'},{id:'search',icon:icon('search',24),lbl:'Search'},{id:'discover',icon:icon('grad',24),lbl:'Campus'},{id:'chats',icon:icon('chat',24),lbl:'Chats',b:''},{id:'profile',icon:icon('user',24),lbl:'Profile'}];
 var NAV_INST     = [];
 var NAV_BUSINESS = [];
 
