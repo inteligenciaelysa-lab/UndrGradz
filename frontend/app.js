@@ -2717,6 +2717,9 @@ function buildInstOb(){
 
 // ============ 4-PHASE ONBOARDING ============
 var _ob4Phase=1,_ob4State={},_ob4Involved=[],_ob4PhotoIdx=0,_ob4Cat='Social',_ob4Query='';
+// Desplegable abierto del paso 4. Vive aquí y no en el DOM porque cada elección
+// re-renderiza el paso entero (_ob4AUPick → _ob4Go(4) → innerHTML).
+var _ob4Acc='origin';
 var INTERESTS4=[
  ['Travel','✈️','Lifestyle'],['Coffee','☕','Lifestyle'],['Nature','🍃','Lifestyle'],['Culture','🌍','Lifestyle'],['Cooking','🍳','Lifestyle'],['Fashion','👗','Lifestyle'],['Wellness','🙏','Lifestyle'],['Foodie','🍜','Lifestyle'],['Volunteering','🤝','Lifestyle'],['Pets','🐶','Lifestyle'],['Cars','🚗','Lifestyle'],['Thrifting','🛍️','Lifestyle'],
  ['Photography','📷','Hobbies'],['Writing','✍️','Hobbies'],['Reading','📖','Hobbies'],['Blogging','💻','Hobbies'],['Puzzles','🎯','Hobbies'],['Podcasts','🎙️','Hobbies'],['Gaming','🎮','Hobbies'],['Board Games','🎲','Hobbies'],['Chess','♟️','Hobbies'],['Gardening','🌱','Hobbies'],['DIY','🔧','Hobbies'],['Collecting','🏷️','Hobbies'],['Baking','🧁','Hobbies'],['Knitting','🧶','Hobbies'],['Journaling','📓','Hobbies'],['Anime','🎌','Hobbies'],['Comics','💥','Hobbies'],['Cosplay','🎭','Hobbies'],['Fishing','🎣','Hobbies'],['Camping','🏕️','Hobbies'],['Hiking','🥾','Hobbies'],['Astrology','🔮','Hobbies'],['Magic','🃏','Hobbies'],['Woodworking','🪵','Hobbies'],['Pottery','🏺','Hobbies'],['Origami','🦢','Hobbies'],['Streaming','📺','Hobbies'],['Sudoku','🔢','Hobbies'],['Model Building','🚂','Hobbies'],['Birdwatching','🦉','Hobbies'],['Calligraphy','🖌️','Hobbies'],['Sewing','🧵','Hobbies'],
@@ -2939,7 +2942,7 @@ function _ob4Go(p, forceScrollTop){
     setTimeout(function(){if(typeof _ob4ValidateAll3==='function')_ob4ValidateAll3();},50);
   }
   if(p===4){
-    setTimeout(function(){if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();if(typeof _ob4P4Pips==='function')_ob4P4Pips();},50);
+    setTimeout(function(){if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();if(typeof _ob4P4AccCounts==='function')_ob4P4AccCounts();},50);
     if(typeof _searchableSelectify==='function'){
       // Country always has real options; State/City only once they've loaded real
       // options for the chosen country/state — otherwise leave the native <select>
@@ -4094,9 +4097,9 @@ function _ob4P4(){
     ['he/him','she/her','they/them','he/they','she/they','any/all','Other'];
 
   // Sexual Orientation
-  var ORIENTATIONS=isEs?
-    ['Heterosexual','Gay','Lesbiana','Bisexual','Pansexual','Asexual','Queer','Fluido','Otro']:
-    ['Straight','Gay','Lesbian','Bisexual','Pansexual','Asexual','Queer','Fluid','Other'];
+  // La orientación sexual dejó de pedirse en el registro. Quien ya la tenga
+  // guardada la conserva: la fila de la tarjeta Crush, _vibeLoad/_vibeSave y el
+  // payload de registro la siguen leyendo igual — aquí solo se deja de recoger.
 
   // Lifestyle - Workout & Diet
   var WORKOUT=isEs?
@@ -4167,11 +4170,21 @@ function _ob4P4(){
   var cmVal = _ob4State.heightCm || (ftVal ? Math.round((ftVal * 12 + inVal) * 2.54) : null);
   if (cmVal) _ob4State.heightCm = cmVal;
 
-  function section(icon, title, content, key, opt){
-    var pip = key ? '<span data-pipkey="'+key+'"'+(opt?' data-pipopt="1"':'')+' style="margin-left:auto;display:inline-flex;align-items:center;"></span>' : '';
-    return '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;margin-top:16px;">'+
-      '<div class="ob4-flabel" style="margin:0 0 10px;display:flex;align-items:center;gap:7px;"><span style="font-size:var(--fs-md);">'+icon+'</span><span>'+title+'</span>'+pip+'</div>'+
-      content+
+  // Tres desplegables en vez de ocho secciones planas. El abierto se lee de
+  // _ob4Acc, NO del DOM: cada pick (_ob4AUPick, _ob4AUCountry, _ob4AUState)
+  // termina en _ob4Go(4), que rehace el innerHTML entero — una clase .collapsed
+  // escrita sobre el nodo se perdería en cada toque.
+  function acc(key, icoName, tint, title, subtitle, content){
+    var open = (_ob4Acc === key);
+    var d = _ob4AccCount(key);
+    return '<div class="ob4-acc'+(open?'':' collapsed')+'" data-acc="'+key+'" style="--acc-hue:'+tint+';">'+
+      '<div class="ob4-acch" onclick="_ob4AccToggle(\''+key+'\')">'+
+        '<span class="ob4-accic">'+icon(icoName,17)+'</span>'+
+        '<span class="ob4-acctxt"><span class="ob4-acctitle">'+title+'</span>'+
+          '<span class="ob4-accsub">'+subtitle+'</span></span>'+
+        '<span class="ob4-acccount" data-acckey="'+key+'">'+d.done+'/'+d.total+'</span>'+
+      '</div>'+
+      '<div class="ob4-accbody">'+content+'</div>'+
     '</div>';
   }
 
@@ -4184,25 +4197,35 @@ function _ob4P4(){
   var zodiacIcon = zodiacParts[0] || '⭐';
   var zodiacName = zodiacParts.slice(1).join(' ') || (zodiacStr && zodiacStr !== zodiacIcon ? zodiacStr : (isEs?'Tu signo':'Your sign'));
 
+  var subHint = function(txt){ return '<div class="ob4-accfield">'+txt+'</div>'; };
+
   return '<div>'+
-    // 1. Add Your Photos Card
+    // 1. Add Your Photos Card — queda FUERA de los desplegables
     _ob4RenderPhotoGridP4()+
-    // Origin
-    section('📍', isEs?'Lugar de origen':'Origin',
+    // ── ORIGEN: de dónde eres, idiomas y etnicidad ──
+    acc('origin', 'globe', '#3d7bff',
+      isEs?'Origen':'Origin',
+      isEs?'Tu lugar, idiomas y etnicidad':'Where you\'re from, languages & ethnicity',
       '<div style="display:flex;flex-direction:column;gap:10px;">'+
         '<select class="gi" id="ob4-from-country" onchange="_ob4AUCountry(this.value)">'+countryOpts+'</select>'+
         '<select class="gi" id="ob4-from-state" onchange="_ob4AUState(this.value)">'+stateOpts+'</select>'+
         '<select class="gi" id="ob4-from-city" onchange="_ob4AUCity(this.value)">'+cityOpts+'</select>'+
-      '</div>'
-    , 'from')+
-    // 2. Languages You Speak
-    _ob4RenderLangsP4()+
-    // 3. Ethnicity
-    section('🌍', isEs?'Etnicidad (máx 2)':'Ethnicity (max 2)',
+      '</div>'+
+      _ob4RenderLangsP4()+
+      subHint(isEs?'Etnicidad (máx 2)':'Ethnicity (max 2)')+
       '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ETHNICITIES,'ethnicity',true,2)+'</div>'
-    , 'ethnicity')+
-    // Height (optional)
-    section('📏', isEs?'Altura (opcional)':'Height (optional)',
+    )+
+    // ── PERSONAL: religión, política y altura ──
+    acc('personal', 'user', '#a855f7',
+      isEs?'Personal':'Personal',
+      isEs?'Religión, política, altura y más':'Religion, height, politics & more',
+      subHint(isEs?'Religión':'Religion')+
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(RELIGIONS,'religion',false)+'</div>'+
+      _obPrivacyToggle('religion',isEs)+
+      subHint(isEs?'Política':'Politics')+
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(POLITICS,'politics',false)+'</div>'+
+      _obPrivacyToggle('politics',isEs)+
+      subHint((isEs?'Altura':'Height')+' <span style="opacity:0.55;">('+(isEs?'opcional':'optional')+')</span>')+
       '<div style="display:flex;gap:10px;align-items:center;">'+
         '<select class="gi" id="ob4-height-ft" onchange="_ob4AUHeight()" style="flex:1;">'+
           '<option value="">'+(isEs?'Pies':'Feet')+'</option>'+
@@ -4214,24 +4237,11 @@ function _ob4P4(){
         '</select>'+
         '<span style="font-size:var(--fs-base);font-weight:600;color:#a9c4ff;min-width:60px;text-align:center;" id="ob4-height-cm">'+(cmVal?cmVal+' cm':'— cm')+'</span>'+
       '</div>'
-    , 'height', true)+
-    // Religion + hide-from-profile toggle
-    section('✝️', isEs?'Religión':'Religion',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(RELIGIONS,'religion',false)+'</div>'+
-      _obPrivacyToggle('religion',isEs)
-    , 'religion')+
-    // Politics + hide-from-profile toggle
-    section('🗳️', isEs?'Política':'Politics',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(POLITICS,'politics',false)+'</div>'+
-      _obPrivacyToggle('politics',isEs)
-    , 'politics')+
-    // Sexual Orientation (optional) + hide-from-profile toggle
-    section('🏳️‍🌈', isEs?'Orientación sexual (opcional)':'Sexual Orientation (optional)',
-      '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(ORIENTATIONS,'orientation',false)+'</div>'+
-      _obPrivacyToggle('orientation',isEs)
-    , 'orientation', true)+
-    // Lifestyle
-    section('🌿', isEs?'Estilo de vida':'Lifestyle',
+    )+
+    // ── ESTILO DE VIDA ──
+    acc('lifestyle', 'leaf', '#22c55e',
+      isEs?'Estilo de vida':'Lifestyle',
+      isEs?'Ejercicio, dieta, alcohol y tabaco':'Workout, diet, drinking & more',
       '<div style="display:flex;flex-direction:column;gap:14px;">'+
         '<div>'+
           '<div style="font-size:var(--fs-xs);font-weight:800;color:#22c55e;text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;">💪 '+(isEs?'Entrenamiento':'Workout')+'</div>'+
@@ -4250,7 +4260,7 @@ function _ob4P4(){
           '<div style="display:flex;flex-wrap:wrap;gap:8px;">'+chips(SMOKING,'smoking',false,null,'#fb923c')+'</div>'+
         '</div>'+
       '</div>'
-    , 'lifestyle')+
+    )+
     '<div style="height:110px;"></div>'+
     '</div>'+
     '<div style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:380px;max-width:100%;box-sizing:border-box;padding:24px 16px calc(16px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.98) 35%,#000000 100%);z-index:10000;pointer-events:auto;">'+
@@ -4305,26 +4315,50 @@ function _ob4Step4Valid(){
     && !!_ob4State.politics
     && !!_ob4State.workout && !!_ob4State.diet && !!_ob4State.drinking && !!_ob4State.smoking;
 }
-// Step 4 status pips: green ✓ when a required section is filled, a hollow ring
-// when it's still pending, and an "optional" tag on the optional ones — so the
-// page reads as a checklist you're winning instead of an arbitrary disabled CTA.
-function _ob4P4Pips(){
-  var reqs={
-    // Origin only counts as done once country, state AND city are all chosen.
-    from:!!(_ob4State.fromCountry && _ob4State.fromState && _ob4State.fromCity),
-    ethnicity:!!(_ob4State.ethnicity && _ob4State.ethnicity.length),
-    religion:!!_ob4State.religion,
-    politics:!!_ob4State.politics,
-    lifestyle:!!(_ob4State.workout && _ob4State.diet && _ob4State.drinking && _ob4State.smoking)
-  };
-  document.querySelectorAll('#ob4-content [data-pipkey]').forEach(function(el){
-    if(el.getAttribute('data-pipopt')==='1'){
-      el.innerHTML='<span style="font-size:var(--fs-2xs);color:var(--fg3);font-weight:600;">optional</span>';return;
-    }
-    var done=!!reqs[el.getAttribute('data-pipkey')];
-    el.innerHTML=done
-      ?'<span style="width:18px;height:18px;border-radius:50%;background:#22c55e;color:#04150c;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;">✓</span>'
-      :'<span style="width:17px;height:17px;border-radius:50%;border:1.5px solid #dc2626;color:#dc2626;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;line-height:1;">×</span>';
+// Contador x/y de cada desplegable. Los denominadores salen de los campos que
+// hay de verdad en cada grupo (5 / 3 / 4), no de la maqueta. La altura cuenta
+// aquí pero queda fuera de _ob4Step4Valid, así que nunca bloquea Continue.
+var _OB4_ACC_FIELDS={
+  origin:[
+    function(){return !!_ob4State.fromCountry;},
+    function(){return !!_ob4State.fromState;},
+    function(){return !!_ob4State.fromCity;},
+    function(){return !!(_ob4State.languages && _ob4State.languages.length);},
+    function(){return !!(_ob4State.ethnicity && _ob4State.ethnicity.length);}
+  ],
+  personal:[
+    function(){return !!_ob4State.religion;},
+    function(){return !!_ob4State.politics;},
+    function(){return !!_ob4State.heightCm;}
+  ],
+  lifestyle:[
+    function(){return !!_ob4State.workout;},
+    function(){return !!_ob4State.diet;},
+    function(){return !!_ob4State.drinking;},
+    function(){return !!_ob4State.smoking;}
+  ]
+};
+function _ob4AccCount(key){
+  var fns=_OB4_ACC_FIELDS[key]||[];
+  var done=0;
+  for(var i=0;i<fns.length;i++){try{if(fns[i]())done++;}catch(e){}}
+  return {done:done,total:fns.length};
+}
+// Parchea los contadores in situ. Hace falta para las rutas que NO re-renderizan
+// el paso: _ob4AUCity, _ob4ToggleLang y _ob4AUHeight.
+function _ob4P4AccCounts(){
+  document.querySelectorAll('#ob4-content .ob4-acccount[data-acckey]').forEach(function(el){
+    var d=_ob4AccCount(el.getAttribute('data-acckey'));
+    el.textContent=d.done+'/'+d.total;
+    el.classList.toggle('full', d.done===d.total);
+  });
+}
+// Abrir/cerrar sin re-render: se cambia _ob4Acc y se voltean las clases a mano,
+// así no se pierde el scroll al tocar una cabecera. Uno abierto a la vez.
+function _ob4AccToggle(key){
+  _ob4Acc=(_ob4Acc===key)?'':key;
+  document.querySelectorAll('#ob4-content .ob4-acc').forEach(function(el){
+    el.classList.toggle('collapsed', el.getAttribute('data-acc')!==_ob4Acc);
   });
 }
 function _ob4AUPick(key, val, multi, maxCount){
@@ -4365,9 +4399,9 @@ function _ob4AUState(val){
 
 function _ob4AUCity(val){
   _ob4State.fromCity = val;
-  // Country/State re-render (which refreshes the pips); City didn't, so the Origin
-  // pip never flipped to done. Update the pip + validation here.
-  if(typeof _ob4P4Pips==='function')_ob4P4Pips();
+  // País/Estado re-renderizan el paso; Ciudad no, así que el contador de Origen
+  // se quedaba atrás. Se parchea aquí, junto con la validación.
+  if(typeof _ob4P4AccCounts==='function')_ob4P4AccCounts();
   if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();
 }
 function _ob4ValidateAll4(){
@@ -4395,12 +4429,13 @@ function _ob4Next4(){
   if(_ob4State.religion)userPro.religion=_ob4State.religion;
   if(_ob4State.politics)userPro.politics=_ob4State.politics;
   if(_ob4State.pronouns)userPro.pronouns=_ob4State.pronouns;
-  if(_ob4State.orientation)userPro.orientation=_ob4State.orientation;
   // "Don't show on my profile": hide on the Crush card but keep the value for
   // matching filters. Uses the same *HideOnUnicrush flags the card already checks.
   userPro.religionHideOnUnicrush=!!_ob4State.religionPrivate;
   userPro.politicsHideOnUnicrush=!!_ob4State.politicsPrivate;
-  userPro.orientationHideOnUnicrush=!!_ob4State.orientationPrivate;
+  // orientationHideOnUnicrush ya no se escribe aquí: sin la sección,
+  // _ob4State.orientationPrivate nunca se asigna, y la línea pisaría con `false`
+  // un `true` que el usuario hubiera puesto desde Ajustes.
   if(_ob4State.height)userPro.height=_ob4State.height;
   if(_ob4State.heightCm)userPro.heightCm=_ob4State.heightCm;
   if(_ob4State.fromCountry)userPro.fromCountry=_ob4State.fromCountry;

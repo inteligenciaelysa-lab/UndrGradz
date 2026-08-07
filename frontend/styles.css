@@ -12174,3 +12174,107 @@ html.brand-default .ob4-cta:hover:not(:disabled) {
 .ob4-p3boxed .ob4-int::after {
   display: none !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SIGN UP · PASO 4: tres desplegables
+   ══════════════════════════════════════════════════════════════════════════
+   Antes eran ocho secciones planas separadas por una línea. Familia de clases
+   nueva y no .ehcard: todas las reglas de esa viven bajo #evp-create, así que
+   una .ehcard aquí saldría sin estilo. Se copia la receta (tile de icono,
+   colapso por clase, chevron que rota), no la clase. */
+.ob4-acc {
+  --acc-hue: var(--p);
+  border: 1px solid var(--gbdl);
+  border-radius: var(--rad-md);
+  background: rgba(255, 255, 255, 0.02);
+  margin-top: 12px;
+  overflow: hidden;
+}
+.ob4-acch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.ob4-accic {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--rad-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--acc-hue);
+  background: color-mix(in srgb, var(--acc-hue) 14%, #000);
+  border: 1px solid color-mix(in srgb, var(--acc-hue) 55%, transparent);
+}
+.ob4-acctxt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ob4-acctitle {
+  font-size: var(--fs-base);
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.2px;
+}
+.ob4-accsub {
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--fg2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ob4-acccount {
+  flex-shrink: 0;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  color: var(--acc-hue);
+  margin-right: 2px;
+}
+.ob4-acccount.full {
+  color: #22c55e;
+}
+/* Chevron: mismo glifo y giro que las tarjetas de Crear Evento. */
+.ob4-acch::after {
+  content: "\25B8";
+  flex-shrink: 0;
+  color: var(--fg2);
+  font-size: var(--fs-base);
+  transition: transform var(--dur) var(--ease);
+}
+.ob4-acc:not(.collapsed) > .ob4-acch::after {
+  transform: rotate(90deg);
+}
+.ob4-acc:not(.collapsed) {
+  border-color: color-mix(in srgb, var(--acc-hue) 45%, transparent);
+}
+.ob4-accbody {
+  padding: 2px 14px 16px;
+  animation: ob4AccIn 0.22s var(--ease);
+}
+.ob4-acc.collapsed > .ob4-accbody {
+  display: none;
+}
+@keyframes ob4AccIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+/* Encabezado de cada campo dentro del desplegable. */
+.ob4-accfield {
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  color: var(--fg2);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin: 16px 0 8px;
+}
+.ob4-accbody > .ob4-accfield:first-child {
+  margin-top: 6px;
+}
