@@ -12512,6 +12512,30 @@ function _sentLikeKind(type){
   return {ico:'💘',lbl:'LIKE',hue:'#22c55e'};
 }
 
+// ── Banners cerrables de Discover ──
+// La X es "ahora no", no "nunca más": se guarda en sessionStorage, así que el
+// banner vuelve la próxima vez que se abre la app. (El banner de Matches usa
+// localStorage + conteo, ver _matchBannerDismissedAt — ahí sí es "nunca más".)
+function _bannerDismissed(key){
+  try { return sessionStorage.getItem(key) === '1'; } catch(_) { return false; }
+}
+function _dismissDiscoverBanner(key){
+  try { sessionStorage.setItem(key, '1'); } catch(_) {}
+  // Quitar el nodo aquí no serviría: el panel se reconstruye entero cada vez que
+  // resuelven loadAdmirers/loadSentLikes (throttle de 5s). La guarda vive en los
+  // constructores de HTML; esto solo fuerza el repintado.
+  if (typeof _renderLikedYouReveal === 'function') _renderLikedYouReveal(false);
+}
+// Chrome neutro a propósito: el banner ya carga su tono (--uni-accent / naranja)
+// y una X del mismo color competiría con él. Va DENTRO de la tarjeta porque su
+// contenedor es overflow:hidden y un offset negativo quedaría recortado.
+function _bannerDismissBtn(key){
+  return '<button onclick="_dismissDiscoverBanner(\''+key+'\')" aria-label="Ocultar" title="Ocultar" '+
+    'style="position:absolute;top:8px;right:8px;width:30px;height:30px;padding:0;border-radius:50%;'+
+    'background:rgba(0,0,0,0.62);border:1px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.78);'+
+    'display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:4;">'+icon('x',14)+'</button>';
+}
+
 function _getSentLikesHtml(pool){
   if (!pool) {
     pool = window._sentLikesData;
@@ -12540,6 +12564,7 @@ function _getSentLikesHtml(pool){
   // Section header on the same recipe as the Admirers banner: black card, the
   // count as the loud element, the hue carried by a lit 2px underline.
   var header='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid rgba(245,158,11,0.32);border-radius:var(--rad-xl);padding:15px 18px 17px;margin:0 var(--s) 14px;">'+
+    _bannerDismissBtn('ugz_sentlikesbanner_dismissed')+
     '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_orange+',#7c4a06);box-shadow:0 0 10px rgba(245,158,11,0.75);"></div>'+
     '<div style="display:flex;align-items:baseline;gap:7px;">'+
       '<span style="font-size:var(--fs-2xl);font-weight:900;color:'+_orange+';line-height:1;letter-spacing:-1.2px;">'+pool.length+'</span>'+
@@ -12547,6 +12572,9 @@ function _getSentLikesHtml(pool){
     '</div>'+
     '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:5px;font-weight:500;line-height:1.4;">Esperando su respuesta. Toca un perfil para verlo o retirar tu like.</div>'+
   '</div>';
+  // Se lee en cada llamada, no una sola vez: el panel se re-renderiza solo. Va
+  // después de window._sentLikesPool (arriba), que _openSentLikeProfile necesita.
+  if (_bannerDismissed('ugz_sentlikesbanner_dismissed')) header = '';
 
   var cards = pool.map(function(p, i) {
     var h=_strHash((p.name||'')+'sent');
@@ -12836,6 +12864,7 @@ function _likedSawHtml(pool,unlockedN){
     : (isEs?'Descubre quién te está observando en secreto.':'See who\'s secretly checking you out.');
   var breakdown = '';
   var banner='<div style="position:relative;overflow:hidden;background:#000;border:1.5px solid color-mix(in srgb, var(--uni-accent,var(--p)) 40%, transparent);border-radius:var(--rad-xl);padding:16px 18px 18px;margin:0 var(--s) 14px;">'+
+    _bannerDismissBtn('ugz_admirersbanner_dismissed')+
     // The lit 2px line every other section in the app uses to carry its hue
     '<div style="position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,'+_uc+','+_uc2+');box-shadow:0 0 10px color-mix(in srgb, var(--uni-accent,var(--p)) 80%, transparent);"></div>'+
     '<div style="display:flex;align-items:center;gap:13px;">'+
@@ -12853,6 +12882,10 @@ function _likedSawHtml(pool,unlockedN){
     // left to invite for here, so the CTA disappears.
     (unlimited?'':'<button onclick="_admirerPaywall()" style="'+_cta+'width:100%;margin-top:14px;padding:12px 14px;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;letter-spacing:0.2px;cursor:pointer;">'+(isEs?'Invita amigos para ver quién es':'Invite friends to see who it is')+'</button>')+
   '</div>';
+  // Anular la variable cubre los dos return de abajo (pool vacío y rejilla) de
+  // una vez. No se hace early-return: _uc/_uc2, calculados arriba, los vuelven a
+  // usar las tarjetas bloqueadas.
+  if (_bannerDismissed('ugz_admirersbanner_dismissed')) banner = '';
 
   if(!pool.length){
     var _emptyMsg='<div style="text-align:center;padding:14px var(--s) 6px;color:var(--fg2);font-size:var(--fs-sm);font-weight:500;">'+(isEs?'Aún nadie… por ahora':'No one yet… for now')+'<br><span style="font-size:var(--fs-xs);color:color-mix(in srgb, var(--uni-accent,var(--p)) 45%, #fff);">'+(isEs?'Mantén tu perfil activo para atraer miradas':'Keep your profile fresh to draw more eyes')+'</span></div>';

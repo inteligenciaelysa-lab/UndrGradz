@@ -6695,7 +6695,13 @@ html.light-secondary #ev-publish-btn {
 .dsub-trigger {
   --sub-hue: var(--c-blue);
   position: relative;
-  display: inline-flex;
+  /* Ocupa la fila entera para que el subrayado sea largo: el ::after es
+     left:0/right:0 sobre el botón, así que se ensancha con él. Las barras
+     vecinas (.crush-tab, .adm-sub-btn) se ven largas porque su padre flex las
+     estira; este trigger no tiene quien lo estire, de ahí el width explícito
+     (button conserva sizing shrink-to-fit a nivel UA aunque sea block). */
+  display: flex;
+  width: 100%;
   align-items: center;
   gap: 8px;
   /* hueco abajo para la línea, igual que .adm-sub-btn */
@@ -6721,6 +6727,10 @@ html.light-secondary #ev-publish-btn {
   pointer-events: none;
 }
 .dsub-chev {
+  /* Al borde derecho. auto-margin y no justify-content:space-between en el
+     trigger: son tres hijos (icono, etiqueta, chevron) y space-between también
+     separaría el icono de la etiqueta, rompiendo el gap de 8px del par. */
+  margin-left: auto;
   transition: transform var(--dur) var(--ease);
 }
 .dsub-trigger[aria-expanded="true"] .dsub-chev {
@@ -10114,7 +10124,11 @@ select:-webkit-autofill {
   border: none !important;
   border-radius: 0 !important;
   border-bottom: 3px solid var(--ctl-hue, #fff) !important;
-  box-shadow: 0 5px 16px -3px color-mix(in srgb, var(--ctl-hue, #fff) 80%, transparent) !important;
+  /* `none` explícito, no borrado: si se quita la declaración, la cascada pasa a
+     `.gi:focus` (~7202), cuyo box-shadow azul NO lleva !important y hoy pierde
+     solo porque algo importante le gana. El select lleva class="gi" y toma foco
+     al tocarlo, así que reaparecería un halo azul justo al usarlo. */
+  box-shadow: none !important;
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
   font-family: var(--font) !important;
@@ -10126,14 +10140,19 @@ select:-webkit-autofill {
   background-repeat: no-repeat !important;
   background-position: right 5px center !important;
   background-size: 12px !important;
-  text-shadow: 0 0 10px color-mix(in srgb, var(--ctl-hue, #fff) 45%, transparent) !important;
+  /* Sin halo sobre el texto tampoco: la línea de abajo ya carga el tono. */
+  text-shadow: none !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 #ev-filter-sel { --ctl-hue: var(--sort-hue, var(--p)) !important; }
+/* `none` explícito y no borrar la regla: había OTROS dos :hover/:focus con glow
+   más arriba (~7384 y ~10106) que solo estaban muertos porque esta regla, más
+   tardía, los tapaba. Al eliminarla revivían y el halo volvía al pasar el dedo.
+   El `transform: none !important` de ~10105 sigue matando el translateY viejo. */
 #ev-uniscope-sel:hover, #ev-uniscope-sel:focus,
 #ev-filter-sel:hover, #ev-filter-sel:focus {
-  box-shadow: 0 7px 22px -3px color-mix(in srgb, var(--ctl-hue, #fff) 92%, transparent) !important;
+  box-shadow: none !important;
 }
 
 /* ══ FILTER CHIPS AS UNDERLINE TABS ══
