@@ -1651,7 +1651,21 @@ function _populateFilterChips(){
   if(typeof LIVING!=='undefined')set('crush-living-chips',LIVING.map(mkFree).join(''));
   // Alumni already graduated — "Living Situation" (dorm/off-campus/etc.) doesn't apply.
   var _livingSection=document.getElementById('crush-living-section');
-  if(_livingSection)_livingSection.style.display=((obMode||userMode)==='alumni')?'none':'';
+  if(_livingSection){
+    if((obMode||userMode)==='alumni'){
+      _livingSection.style.display='none';
+    }else{
+      // Don't unconditionally reveal it — _populateFilterChips() can run (e.g. from
+      // the async uni-fetch callback) after _collapseCrushFilters() has already
+      // hidden every .love-filter-section and shown the "Filters applied" pill.
+      // Blindly resetting display here popped Living Situation back into view
+      // while every other section stayed collapsed, making it look rendered
+      // outside its card. Only reveal it if the panel isn't currently collapsed.
+      var _pill=document.getElementById('crush-filters-applied');
+      var _isCollapsed=_pill&&_pill.style.display!=='none';
+      _livingSection.style.display=_isCollapsed?'none':'';
+    }
+  }
   if(typeof DRINK_OPTS!=='undefined')set('crush-drink-chips',DRINK_OPTS.map(mkFree).join(''));
   if(typeof SMOKE_OPTS!=='undefined')set('crush-smoke-chips',SMOKE_OPTS.map(mkFree).join(''));
   if(typeof POLITICS_OPTS!=='undefined')set('crush-politics-chips',POLITICS_OPTS.map(mkFree).join(''));
@@ -2610,7 +2624,7 @@ function buildStudentOb(){
   '<div id="obs6" style="display:none;">'+sdots(6,7)+'<div class="ob-panel glass"><div class="ob-title">Your Interests '+icon('target',16)+'</div><div class="ob-hint">Pick up to 10 — we use these to find people you click with.</div><div class="b5-cnt">Selected: <span id="b5-count">0</span>/'+MAX_HOBBIES+'</div>'+big5Html+
   '<button class="gbtn" style="background:var(--p);margin-top:14px;" onclick="goOb(7);buildDatingStep();">Continue →</button></div></div>'+
   '<div id="obs7" style="display:none;">'+sdots(7,7)+'<div class="ob-panel glass" id="dating-step-panel"><!-- filled by buildDatingStep --></div></div>';
-  setTimeout(function(){if(typeof filterUniList==='function')filterUniList('');},0);
+  setTimeout(function(){if(typeof filterUniList==='function')filterUniList('');if(typeof _searchableSelectify==='function')_searchableSelectify('ob-major');},0);
 }
 
 function _alAdvToggle(){var m=document.getElementById('al-has-masters'),mf=document.getElementById('al-masters-fields');if(mf)mf.style.display=(m&&m.checked)?'':'none';var p=document.getElementById('al-has-phd'),pf=document.getElementById('al-phd-fields');if(pf)pf.style.display=(p&&p.checked)?'':'none';}
@@ -2706,6 +2720,12 @@ var INTERESTS4_REC=[['Travel','✈️'],['Coffee','☕'],['Music','🎵'],['Gym'
 var INTERESTS4_CATS=['Social','Lifestyle','Hobbies','Arts','Sports','Academic'];
 (function(){try{var have={};INTERESTS4.forEach(function(it){have[it[0].toLowerCase()]=1;});var map={'Openness':'Arts','Conscientiousness':'Academic','Extraversion':'Sports','Agreeableness':'Lifestyle','Nightlife':'Social'};BIG5.forEach(function(sec){var cat=map[sec.name]||'Hobbies';sec.acts.forEach(function(a){var m=a.match(/^(\S+)\s+([\s\S]+)$/);var em=m?m[1]:'';var nm=(m?m[2]:a).trim();if(nm&&!have[nm.toLowerCase()]){INTERESTS4.push([nm,em,cat]);have[nm.toLowerCase()]=1;}});});}catch(e){}})();
 
+function _suToggleTos(checked){
+  document.querySelectorAll('#auth-signup-panel .auth-option-card').forEach(function(c){
+    c.style.opacity = checked ? '1' : '0.45';
+    c.style.pointerEvents = checked ? 'auto' : 'none';
+  });
+}
 function _ob4Begin(mode){
   signupMode=mode;userMode=mode;obMode=mode;window._regAlumni=(mode==='alumni');
   suData={fname:'',lname:'',mname:'',age:0,bMonth:0,bDay:0,zodiacShow:true,pass:''};
@@ -2903,6 +2923,16 @@ function _ob4Go(p, forceScrollTop){
   }
   if(p===4){
     setTimeout(function(){if(typeof _ob4ValidateAll4==='function')_ob4ValidateAll4();if(typeof _ob4P4Pips==='function')_ob4P4Pips();},50);
+    if(typeof _searchableSelectify==='function'){
+      // Country always has real options; State/City only once they've loaded real
+      // options for the chosen country/state — otherwise leave the native <select>
+      // (placeholder-only, or the "type your city" fallback option) untouched.
+      _searchableSelectify('ob4-from-country');
+      var stSel=document.getElementById('ob4-from-state');
+      if(stSel&&stSel.options.length>1)_searchableSelectify('ob4-from-state');
+      var ctSel=document.getElementById('ob4-from-city');
+      if(ctSel&&ctSel.options.length>2)_searchableSelectify('ob4-from-city');
+    }
   }
   if(p===5&&typeof _ob4RenderPrompts==='function'){
     _ob4RenderPrompts();
@@ -4661,6 +4691,7 @@ function _evHandleCustomCover(input){
     var dataUrl = e.target.result;
     window._evCustomCoverDataUrl = dataUrl;
     window._evThumb = dataUrl;
+    window._evCoverPicked = true;
     window._evEmoji = '📸';
     
     var prev = document.getElementById('ev-prev-thumb');
@@ -4680,6 +4711,7 @@ function _evHandleCustomCover(input){
 function _evSelectCustomCoverPhoto() {
   if (!window._evCustomCoverDataUrl) return;
   window._evThumb = window._evCustomCoverDataUrl;
+  window._evCoverPicked = true;
   window._evEmoji = '📸';
   var prev = document.getElementById('ev-prev-thumb');
   if (prev) {
@@ -4750,6 +4782,7 @@ function renderEventStockPickerGrid(sec) {
 function _evSelectStockGridPhoto(url, emoji, sec) {
   window._evCustomCoverDataUrl = null;
   window._evThumb = url;
+  window._evCoverPicked = true;
   window._evEmoji = emoji;
   
   var prev = document.getElementById('ev-prev-thumb');
@@ -6004,7 +6037,7 @@ function _initFilterAccordion(){
     tag.addEventListener('click',function(e){e.stopPropagation();if(typeof premAlert==='function')premAlert();});
   });
 }
-function openEdit(){var m=document.getElementById('edit-modal');if(m)m.classList.add('open');setTimeout(function(){var em=document.getElementById('ed-major');if(em&&em.tagName==='SELECT'&&typeof MAJORS!=='undefined'&&em.children.length<=1){em.innerHTML='<option value="">Select major…</option>'+MAJORS.map(function(x){return '<option>'+x+'</option>';}).join('');em.value=(userPro&&userPro.major)||'';}var en=document.getElementById('ed-minor');if(en&&en.tagName==='SELECT'&&typeof MINORS!=='undefined'&&en.children.length<=1){en.innerHTML='<option value="">None</option>'+MINORS.filter(function(x){return x!=='None';}).map(function(x){return '<option>'+x+'</option>';}).join('');en.value=(userPro&&userPro.minor)||'';}},20);var mode=obMode||userMode||'student';var sheet=m.querySelector('.msheet');if(mode==='business'){sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Edit Business Profile</div>'+
+function openEdit(){var m=document.getElementById('edit-modal');if(m)m.classList.add('open');setTimeout(function(){var em=document.getElementById('ed-major');if(em&&em.tagName==='SELECT'&&typeof MAJORS!=='undefined'&&em.children.length<=1){em.innerHTML='<option value="">Select major…</option>'+MAJORS.map(function(x){return '<option>'+x+'</option>';}).join('');em.value=(userPro&&userPro.major)||'';}if(typeof _searchableSelectify==='function')_searchableSelectify('ed-major');var en=document.getElementById('ed-minor');if(en&&en.tagName==='SELECT'&&typeof MINORS!=='undefined'&&en.children.length<=1){en.innerHTML='<option value="">None</option>'+MINORS.filter(function(x){return x!=='None';}).map(function(x){return '<option>'+x+'</option>';}).join('');en.value=(userPro&&userPro.minor)||'';}},20);var mode=obMode||userMode||'student';var sheet=m.querySelector('.msheet');if(mode==='business'){sheet.innerHTML='<div class="mhnd"></div><div class="mtitle">Edit Business Profile</div>'+
   '<div class="field"><label>Bio / Description</label><textarea class="gi" id="ed-bio" rows="2" placeholder="Tell students about your business…">'+((userPro.bio||''))+'</textarea></div>'+
   '<div class="field"><label>Business Category</label><select class="gi" id="ed-biz-cat"><option value="">Select…</option><option>Bar & Nightclub</option><option>Restaurant</option><option>Fast Food</option><option>Coffee Shop</option><option>Fitness & Gym</option><option>Beauty & Salon</option><option>Retail & Fashion</option><option>Tech & Gaming</option><option>Tutoring & Education</option><option>Health & Wellness</option><option>Entertainment</option><option>Services & Other</option></select></div>'+
   '<div class="field"><label>Instagram @</label><input class="gi" type="text" id="ed-ig" placeholder="mybusiness" value="'+((userPro.ig||''))+'"/></div>'+
@@ -6036,6 +6069,7 @@ function _initProfileEditor(){
   if(mj&&document.activeElement!==mj)mj.value=userPro.major||'';
   var mn=document.getElementById('pf-minor');if(mn&&document.activeElement!==mn)mn.value=userPro.minor||'';
   var gs=document.getElementById('pf-gradsem');if(gs&&document.activeElement!==gs)gs.value=userPro.gradSemester||'';
+  if(typeof _searchableSelectify==='function'&&document.activeElement!==document.getElementById('pf-major-ss-input'))_searchableSelectify('pf-major');
   _pfStyleBtns('uns',userPro.uniNameStyle||'full');
   _pfStyleBtns('ys',userPro.yearStyle||'full');
 }
@@ -6982,7 +7016,7 @@ function _addMatchChatRow(chatId, p) {
   item.setAttribute('data-csec', 'matches');
   item.onclick = function() { openChat(chatId, p.name + ' 💘', p.bg, p.init, false, [], false); };
   item.innerHTML =
-    '<div class="cav" style="background:'+p.bg+';"><span>'+p.init+'</span><div class="online-d"></div></div>' +
+    '<div class="cav" style="background:'+p.bg+';"><span>'+p.init+'</span></div>' +
     '<div class="cmeta"><div class="cnm">'+p.name+' 💘</div><div class="cpre" style="color:#fbbf24;">'+icon('hourglass',16)+' Expires in 24h — say hi!</div></div>' +
     '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ctm">Now</div><div class="cunrd" style="background:#e91e63;">1</div></div>';
   container.insertBefore(item, container.firstChild);
@@ -7147,7 +7181,7 @@ function filterChatBySection() {
       show = (rawSec === sec.toLowerCase());
     }
 
-    if (show && sub === 'unread') show = !!it.querySelector('.cunrd');
+    if (show && sub === 'unread') show = !!it.querySelector('.cdot') || !!it.querySelector('.cunrd');
     if (show && sub === 'fav') show = it.getAttribute('data-fav') === '1';
 
     it.style.display = show ? '' : 'none';
@@ -9310,12 +9344,29 @@ function _ehCardToggle(h){
   }
   _ehUpdateProgress();
 }
-// Step 1 needs a name; the rest are optional or pre-filled, so visiting them counts.
 function _ehStepValid(c){
   var step=c.getAttribute('data-step');
   if(step==='1'){var n=document.getElementById('ev-nm');return !!(n&&n.value.trim());}
+  if(step==='2'){
+    var mo=document.getElementById('ev-month'),dy=document.getElementById('ev-day'),yr=document.getElementById('ev-year');
+    var hh=document.getElementById('ev-hour'),mm=document.getElementById('ev-min');
+    return !!(mo&&mo.value&&dy&&dy.value&&yr&&yr.value&&hh&&hh.value.trim()&&mm&&mm.value.trim());
+  }
+  if(step==='3'){var a=document.getElementById('ev-addr');return !!(a&&a.value.trim());}
+  // Step 4 (Max Spots/Age Restriction/Join Mode) always carries valid hardcoded
+  // defaults the instant the DOM renders — nothing a user can leave unset.
+  if(step==='4'){return true;}
+  // Step 5 (Who Can Join?): toggleGenderAllow() already refuses to let the last
+  // remaining gender be deselected, so "at least one gender" is unreachable-false.
+  if(step==='5'){return true;}
+  // Step 6 (Additional Filters) is genuinely all-optional refinement filters.
+  if(step==='6'){return true;}
+  // Step 7 requires an actual pick (stock tile, custom upload, or re-selecting the
+  // custom photo) — not just the silent auto-default renderEventStockPickerGrid()
+  // falls back to before the user has ever touched the grid.
+  if(step==='7'){return !!window._evCoverPicked;}
   if(step==='8'){return false;} // el paso 8 solo se completa al picar Publish
-  return true; // other steps are optional or pre-filled — visiting them counts
+  return true;
 }
 function _ehUpdateProgress(){
   var cards=document.querySelectorAll('#evp-create .ehcard');
@@ -9745,6 +9796,7 @@ async function createEv(){
   
   // Reset cover photo state
   window._evThumb = '';
+  window._evCoverPicked = false;
   window._evEmoji = '🎉';
   var prevThumb = document.getElementById('ev-prev-thumb');
   if (prevThumb) {
@@ -13428,6 +13480,8 @@ function normalizeChatMessage(m) {
     duration: m.duration || null,
     out: isOut,
     senderId: senderId,
+    isRead: !!m.isRead,
+    readAt: m.readAt || null,
     from: (m.sender && m.sender.firstName) ? m.sender.firstName : (m.from || ''),
     seeOnce: !!m.seeOnce,
     opened: !!m.opened,
@@ -13441,32 +13495,20 @@ window.normalizeChatMessage = normalizeChatMessage;
 function _updateUnreadBadgeForChat(matchId) {
   window._unreadMessageCounts = window._unreadMessageCounts || {};
   var count = window._unreadMessageCounts[matchId] || 0;
-  
+
+  // Per-row unread state is shown by .cdot alone (see fetchAndRenderChats /
+  // onMessageReceived / openChat) — this function only owns the aggregate
+  // nav/tab badges below. It used to also inject a numeric .cunrd badge into
+  // the same row, which duplicated .cdot and collided with .cright's other
+  // elements (status text, presence dot).
   var targets = ['dm-match-' + matchId, 'uc-match-' + matchId];
-  targets.forEach(function(rowId) {
-    var item = document.getElementById(rowId);
-    if (!item) return;
-    
-    var existingBadge = item.querySelector('.cunrd');
-    if (count > 0) {
-      var displayCount = count > 9 ? '+9' : count;
-      if (existingBadge) {
-        existingBadge.textContent = displayCount;
-        existingBadge.style.display = 'flex';
-      } else {
-        var metaRight = item.querySelector('div[style*="flex-direction:column"]') || item.children[2];
-        if (metaRight) {
-          var bDiv = document.createElement('div');
-          bDiv.className = 'cunrd';
-          bDiv.style.cssText = 'background:var(--p); display:flex; align-items:center; justify-content:center;';
-          bDiv.textContent = displayCount;
-          metaRight.appendChild(bDiv);
-        }
-      }
-    } else {
+  if (count === 0) {
+    targets.forEach(function(rowId) {
+      var item = document.getElementById(rowId);
+      var existingBadge = item && item.querySelector('.cunrd');
       if (existingBadge) existingBadge.remove();
-    }
-  });
+    });
+  }
 
   var totalUnread = 0;
   for (var mId in window._unreadMessageCounts) {
@@ -13492,6 +13534,25 @@ function _updateUnreadBadgeForChat(matchId) {
   }
 }
 window._updateUnreadBadgeForChat = _updateUnreadBadgeForChat;
+
+// On-demand presence lookup (no proactive broadcast) — queried once per chat open.
+// Bails out quietly if the chat was closed/switched by the time the response arrives.
+function _applyPresenceToHeader(matchId, csubEl) {
+  if (typeof apiClient === 'undefined' || !apiClient.getAccessToken()) return;
+  apiClient.getUserPresence(matchId).then(function(presence) {
+    if (curChatId !== matchId || !csubEl) return;
+    if (presence && presence.online) {
+      csubEl.textContent = 'Online';
+    } else if (presence && presence.lastActive) {
+      var ago = (typeof _timeAgo === 'function') ? _timeAgo(presence.lastActive) : 'recently';
+      csubEl.textContent = 'Last seen ' + (ago === 'now' ? 'just now' : ago);
+    } else {
+      csubEl.textContent = 'Last seen recently';
+    }
+  }).catch(function(err) {
+    console.warn('[CHAT] Failed to load presence for', matchId, err);
+  });
+}
 
 function openChat(id,nm,color,av,isGrp,msgs,online){
   if(window.NavigationManager) window.NavigationManager.setActiveChat(id);
@@ -13523,6 +13584,23 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
     window._unreadMessageCounts[id] = 0;
   }
   _updateUnreadBadgeForChat(id);
+  // Clear the row's own unread dot right away instead of waiting on the next
+  // full fetchAndRenderChats() — that wait is what let a stale re-render (or
+  // a poll landing before the backend's read-mark resolved) bring the dot
+  // back after the user had already read the message.
+  ['dm-match-' + id, 'uc-match-' + id].forEach(function(rid) {
+    var item = document.getElementById(rid);
+    if (!item) return;
+    var pre = item.querySelector('.cpre');
+    if (pre) pre.classList.remove('cpre-unrd');
+    var dotEl = item.querySelector('.cright .cdot');
+    if (dotEl) dotEl.remove();
+    var badgeEl = item.querySelector('.cunrd');
+    if (badgeEl) badgeEl.remove();
+  });
+  if (isDbMatch && typeof apiClient !== 'undefined' && typeof apiClient.markChatRead === 'function') {
+    apiClient.markChatRead(id);
+  }
 
   var conv = (typeof _chatPartnerCache !== 'undefined') ? _chatPartnerCache[id] : null;
   var partner = conv ? conv.partner : null;
@@ -13615,6 +13693,7 @@ function openChat(id,nm,color,av,isGrp,msgs,online){
       renderMsgs();
       debugChatState('openChat AFTER renderMsgs FOR GET', id);
       if (csub && !isGrp) csub.textContent = online ? 'Online' : 'Last seen recently';
+      if (!isGrp) _applyPresenceToHeader(id, csub);
     }).catch(function(err) {
       console.error("[CHAT DEBUG ERROR] Failed to load chat history:", err);
       if (csub && !isGrp) csub.textContent = 'Error loading history';
@@ -14253,16 +14332,21 @@ function renderMsgs(){
     div.textContent=m.txt||'';
     box.appendChild(div);
   });
-  // Instagram-style "seen": the recipient's mini avatar under YOUR last message,
-  // shown only while your message is the newest thing in the thread.
+  // Read receipt: "Sent" / "Seen · HH:MM" under YOUR last message, driven by the
+  // real isRead/readAt from the backend — only shown while your message is the
+  // newest thing in the thread.
   if(!isGrp && hist.length && hist[hist.length-1] && hist[hist.length-1].out){
+    var _lastOut=hist[hist.length-1];
     var _outs=box.querySelectorAll('.msg.out');
     if(_outs.length){
-      var _scl=(_curChatUser&&_curChatUser.color)||'var(--p)';
-      var _sic=(_curChatUser&&_curChatUser.init)||'•';
       var _sn=document.createElement('div');
       _sn.className='msg-seen';
-      _sn.innerHTML='<div title="Seen" style="width:16px;height:16px;border-radius:50%;background:'+_scl+';display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;">'+_e(_sic)+'</div>';
+      if(_lastOut.isRead){
+        var _seenTime=_lastOut.readAt?(new Date(_lastOut.readAt)).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
+        _sn.innerHTML='<div style="font-size:var(--fs-2xs);color:var(--fg3);">Seen'+(_seenTime?(' · '+_seenTime):'')+'</div>';
+      }else{
+        _sn.innerHTML='<div style="font-size:var(--fs-2xs);color:var(--fg3);">Sent</div>';
+      }
       box.appendChild(_sn);
     }
   }
@@ -18838,6 +18922,8 @@ function conectarChatEnVivo() {
           optMsg.type = msg.type || optMsg.type || 'TEXT';
           optMsg.mediaUrl = msg.mediaUrl || optMsg.mediaUrl || null;
           optMsg.duration = msg.duration || optMsg.duration || null;
+          optMsg.isRead = !!msg.isRead;
+          optMsg.readAt = msg.readAt || null;
         } else {
           chatHistory[targetId].push({
             id: msg.id,
@@ -18846,6 +18932,9 @@ function conectarChatEnVivo() {
             mediaUrl: msg.mediaUrl || null,
             duration: msg.duration || null,
             out: isOut,
+            senderId: msg.senderId,
+            isRead: !!msg.isRead,
+            readAt: msg.readAt || null,
             from: msg.sender ? msg.sender.firstName : ''
           });
         }
@@ -18876,9 +18965,30 @@ function conectarChatEnVivo() {
           pre.classList.toggle('cpre-unrd', _isUnreadNow);
           pre.innerHTML = (typeof _e==='function'?_e(previewText):previewText) + ' <span class="cago">· now</span>';
         }
-        // Punto de no-leído a la derecha.
+        // Estado (Sent/Seen) y punto de no-leído, sin pisar el .online-d que ya
+        // pueda estar puesto ahí por la presencia batch.
         var right = item.querySelector('.cright');
-        if (right) right.innerHTML = _isUnreadNow ? '<div class="cdot"></div>' : '';
+        if (right) {
+          var statusEl = right.querySelector('.cstatus');
+          if (isOut) {
+            if (!statusEl) {
+              statusEl = document.createElement('div');
+              statusEl.className = 'cstatus';
+              right.insertBefore(statusEl, right.firstChild);
+            }
+            statusEl.textContent = msg.isRead ? 'Seen' : 'Sent';
+          } else if (statusEl) {
+            statusEl.remove();
+          }
+          var dotEl = right.querySelector('.cdot');
+          if (_isUnreadNow && !dotEl) {
+            dotEl = document.createElement('div');
+            dotEl.className = 'cdot';
+            right.appendChild(dotEl);
+          } else if (!_isUnreadNow && dotEl) {
+            dotEl.remove();
+          }
+        }
         // Un mensaje nuevo sube la conversación al TOPE de su lista.
         var par = item.parentElement;
         if (par && par.firstElementChild !== item) par.insertBefore(item, par.firstElementChild);
@@ -18943,37 +19053,65 @@ function conectarChatEnVivo() {
           if (typeof notifRead !== 'undefined') delete notifRead[notifId];
           if (typeof _updateNotifBadge === 'function') _updateNotifBadge();
         }
-
-        var unrdList = document.querySelectorAll('#dm-match-' + msg.matchId + ' .cunrd, #uc-match-' + msg.matchId + ' .cunrd');
-        if (unrdList.length > 0) {
-          unrdList.forEach(function(badge) {
-            badge.style.display = 'flex';
-            badge.textContent = count > 9 ? '+9' : count;
-          });
-        } else {
-          ['dm-match-' + msg.matchId, 'uc-match-' + msg.matchId].forEach(function(id) {
-            var item = document.getElementById(id);
-            if (item) {
-              var rightSide = item.querySelector('div[style*="align-items:flex-end"]') || item.lastElementChild;
-              if (rightSide) {
-                var unrd = document.createElement('div');
-                unrd.className = 'cunrd';
-                unrd.style.background = 'var(--p)';
-                unrd.textContent = count > 9 ? '+9' : count;
-                rightSide.appendChild(unrd);
-              }
-            }
-          });
-        }
+        // Per-row unread state (.cdot) was already set in the forEach above —
+        // no separate .cunrd badge here, that duplicated it and collided with
+        // .cright's other elements (status text, presence dot).
       }
     },
     onTypingStatus: function(data) {
       if (curChatId === data.matchId && data.userId !== userPro.id) {
         if (typeof _cwSetTyping === 'function') _cwSetTyping(!!data.isTyping);
       }
+    },
+    onMessageRead: function(data) {
+      if (!data || !data.matchId) return;
+      var hist = chatHistory[data.matchId];
+      if (hist) {
+        hist.forEach(function(m) {
+          if (m.out) { m.isRead = true; m.readAt = data.readAt; }
+        });
+      }
+      if (curChatId === data.matchId && typeof renderMsgs === 'function') renderMsgs();
+      // Reflect "Seen" in the chat-list row too, if my last message there is what got read.
+      ['dm-match-' + data.matchId, 'uc-match-' + data.matchId].forEach(function(rid) {
+        var item = document.getElementById(rid);
+        if (!item) return;
+        var statusEl = item.querySelector('.cright .cstatus');
+        if (statusEl) statusEl.textContent = 'Seen';
+      });
     }
   });
 }
+
+// On-demand presence for every chat row visible in the list, batched into a
+// single request instead of one per row. Applied after the list itself
+// renders so a slow/offline presence check never blocks the chat list.
+function _applyListPresence(matchIds) {
+  if (typeof apiClient === 'undefined' || !apiClient.getAccessToken() || !matchIds.length) return;
+  apiClient.getPresenceBatch(matchIds).then(function(map) {
+    matchIds.forEach(function(mid) {
+      var item = document.getElementById('dm-match-' + mid);
+      if (!item) return;
+      var dot = item.querySelector('.cav .online-d');
+      if (!dot) return;
+      var isOnline = !!(map[mid] && map[mid].online);
+      dot.classList.toggle('offline', !isOnline);
+    });
+  }).catch(function(e) { console.warn('[CHAT] Presence batch fetch failed:', e); });
+}
+
+// Presence is only checked on-demand (no proactive server broadcast), so the
+// dot on an already-rendered row would otherwise go stale until the next full
+// fetchAndRenderChats() — re-check periodically for whatever rows are
+// currently in the DOM so online/offline flips live without a reload.
+setInterval(function() {
+  if (!_isAppActive() || document.hidden) return;
+  var dmContainer = document.getElementById('chat-dm-container');
+  if (!dmContainer) return;
+  var matchIds = Array.prototype.slice.call(dmContainer.querySelectorAll('.citem[id^="dm-match-"]'))
+    .map(function(el) { return el.id.replace('dm-match-', ''); });
+  if (matchIds.length) _applyListPresence(matchIds);
+}, 15000);
 
 async function fetchAndRenderChats() {
   if (typeof apiClient === 'undefined' || !apiClient.getAccessToken()) return;
@@ -19016,14 +19154,19 @@ async function fetchAndRenderChats() {
       // preview del mensaje. El "cuándo" vive al final de la línea del mensaje.
       var lastMsgTxt = '⏳ Expires in 24h — say hi!';
       var lastMsgAgo = '';
+      var statusHtml = '';
       if (conv.lastMessage) {
         lastMsgTxt = conv.lastMessage.content;
         lastMsgAgo = (typeof _timeAgo === 'function') ? _timeAgo(conv.lastMessage.createdAt) : '';
+        var _isMine = conv.lastMessage.senderId === _getCurrentUserId();
+        if (_isMine) {
+          statusHtml = '<div class="cstatus">' + (conv.lastMessage.isRead ? 'Seen' : 'Sent') + '</div>';
+        }
       }
 
-      var avatarHtml = photoUrl 
-        ? '<div class="cav" style="background:'+bg+';"><img src="'+photoUrl+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/><div class="online-d"></div></div>'
-        : '<div class="cav" style="background:'+bg+';"><span>'+init+'</span><div class="online-d"></div></div>';
+      var avatarHtml = photoUrl
+        ? '<div class="cav" style="background:'+bg+';"><img src="'+photoUrl+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/><div class="online-d offline"></div></div>'
+        : '<div class="cav" style="background:'+bg+';"><span>'+init+'</span><div class="online-d offline"></div></div>';
 
       var isCrushMatch = !!conv.streamChannelId;
       var suffix = isCrushMatch ? ' 💘' : '';
@@ -19057,11 +19200,13 @@ async function fetchAndRenderChats() {
         };
         item.innerHTML = avatarHtml +
           '<div class="cmeta"><div class="cnm">'+nameToShow+'</div>'+preHtml+'</div>' +
-          '<div class="cright">' + dotHtml + '</div>';
+          '<div class="cright">' + statusHtml + dotHtml + '</div>';
         dmContainer.appendChild(item);
       }
 
     });
+
+    _applyListPresence(list.map(function(c) { return c.matchId; }));
 
     // One list, one render — the Matches chip filters #chat-list by data-csec.
     if (typeof filterChatBySection === 'function') filterChatBySection();
@@ -19097,8 +19242,8 @@ function _logOut(force) {
 
   var logoutTitle = isSpanish ? '¿Seguro que quieres cerrar sesión? 🎓' : 'Log out of UndrGradz? 🎓';
   var logoutMessage = isSpanish 
-    ? '¿Ya te vas a estudiar a la biblioteca? 📚 No olvides regresar pronto para ver tus nuevos matches y eventos del campus. ✨' 
-    : 'Heading off to study at the library? 📚 Don\'t forget to check back soon for your new campus matches & events! ✨';
+    ? 'No olvides regresar pronto para ver tus nuevos matches y eventos del campus.' 
+    : 'Don\'t forget to check back soon for your new campus matches & events!';
   var confirmBtnText = isSpanish ? 'Cerrar Sesión' : 'Log Out';
   var cancelBtnText = isSpanish ? 'Quedarme en la App' : 'Stay Logged In';
 
@@ -19151,6 +19296,41 @@ function _performLogoutExecution() {
   } catch(e) {
     try { location.reload(); } catch(e2) {}
   }
+}
+function _openDeactivateAccountModal(){
+  var m=document.getElementById('deactivate-account-modal');if(m)m.classList.add('open');
+}
+function _confirmDeactivateAccount(){
+  apiClient.deactivateAccount().then(function(){
+    document.getElementById('deactivate-account-modal').classList.remove('open');
+    _performLogoutExecution();
+  }).catch(function(e){alert(e.message||'Something went wrong');});
+}
+function _openDeleteAccountModal(){
+  var inp=document.getElementById('delete-account-confirm-input');if(inp)inp.value='';
+  _deleteAccountConfirmInputChanged(inp);
+  var m=document.getElementById('delete-account-modal');if(m)m.classList.add('open');
+}
+function _deleteAccountConfirmInputChanged(inp){
+  var btn=document.getElementById('delete-account-confirm-btn');if(!btn)return;
+  var ok=inp&&inp.value.trim()==='ELIMINAR';
+  // Opacity alone read too similar disabled vs. enabled at this red's low
+  // saturation — swap to a flat gray outline while disabled so the two
+  // states are unmistakable, not just a subtle transparency shift.
+  btn.style.opacity='1';
+  btn.style.pointerEvents=ok?'auto':'none';
+  // #delete-account-confirm-btn.gbtn's border/color are !important, so a plain
+  // inline style wouldn't win — set these with 'important' priority too.
+  btn.style.setProperty('border-color',ok?'rgba(239,68,68,0.55)':'rgba(255,255,255,0.16)','important');
+  btn.style.setProperty('color',ok?'#f87171':'rgba(255,255,255,0.35)','important');
+}
+function _confirmDeleteAccount(){
+  var inp=document.getElementById('delete-account-confirm-input');
+  if(!inp||inp.value.trim()!=='ELIMINAR')return;
+  apiClient.deleteAccount().then(function(){
+    document.getElementById('delete-account-modal').classList.remove('open');
+    _performLogoutExecution();
+  }).catch(function(e){alert(e.message||'Something went wrong');});
 }
 function initSettingsAccordion() {
   document.querySelectorAll('#settings-modal .set-h').forEach(function(h) {
@@ -19250,8 +19430,9 @@ function _paintSettingsNeon() {
   var cards = document.querySelectorAll('#settings-modal .set-card');
   var i = 0;
   for (var k = 0; k < cards.length; k++) {
-    // The Log Out card keeps the wine treatment set in styles.css.
-    if (cards[k].querySelector('#set-logout-title')) continue;
+    // Log Out / Deactivate / Delete keep their fixed color-hierarchy treatment
+    // set in styles.css instead of the rotating per-section hue.
+    if (cards[k].querySelector('#set-logout-title, #set-deactivate-title, #set-delete-title')) continue;
     var hue = _SETTINGS_NEON[i % _SETTINGS_NEON.length];
     cards[k].style.setProperty('--sec-neon', _p3Boost(hue));
     // The Change / Verify / Switch buttons fill with this same hue, so they need
@@ -19789,6 +19970,84 @@ function selectUni(domain,label){
   if(ep){ep.placeholder='you@'+domain;ep.value='';ep.focus();}
   detectUni('x@'+domain);
   var drop=document.getElementById('ob-uni-dropdown');if(drop){drop.innerHTML='';drop.style.display='none';}// collapse after pick
+}
+// ── Generic searchable-select: turns a populated <select> into a filter-as-you-type
+// combobox (same input+dropdown pattern as ob-uni-search above) that can only ever
+// hold a value that's actually one of the select's options — typing something that
+// doesn't match anything clears the field on blur instead of saving free text.
+// The original <select> stays in the DOM (hidden) as the source of truth, so every
+// existing onchange handler / .value read on it keeps working untouched.
+function _searchableSelectify(selectId){
+  var sel=document.getElementById(selectId);
+  if(!sel||sel.tagName!=='SELECT')return;
+  var opts=Array.prototype.slice.call(sel.options).filter(function(o){return o.value!=='';}).map(function(o){return {value:o.value,label:o.textContent};});
+  var placeholder=(sel.options[0]&&sel.options[0].value==='')?sel.options[0].textContent:'';
+  var inputId=selectId+'-ss-input', dropId=selectId+'-ss-drop';
+  var input=document.getElementById(inputId);
+  if(!input){
+    sel.style.display='none';
+    input=document.createElement('input');
+    input.type='text';
+    input.id=inputId;
+    input.className=sel.className;
+    input.autocomplete='off';
+    var drop=document.createElement('div');
+    drop.id=dropId;
+    drop.style.cssText='display:none;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);border-radius:var(--rad-sm);max-height:200px;overflow-y:auto;';
+    sel.parentNode.insertBefore(input, sel.nextSibling);
+    input.parentNode.insertBefore(drop, input.nextSibling);
+    input.addEventListener('input', function(){_ssFilter(selectId);});
+    input.addEventListener('focus', function(){_ssFilter(selectId);});
+    input.addEventListener('blur', function(){setTimeout(function(){_ssCommit(selectId);},150);});
+  }
+  input.placeholder=placeholder;
+  input.__ssOptions=opts;
+  var match=opts.filter(function(o){return o.value===sel.value;})[0];
+  input.value=match?match.label:'';
+  var drop2=document.getElementById(dropId);
+  if(drop2){drop2.style.display='none';drop2.innerHTML='';}
+}
+function _ssFilter(selectId){
+  var input=document.getElementById(selectId+'-ss-input');
+  var drop=document.getElementById(selectId+'-ss-drop');
+  if(!input||!drop)return;
+  var opts=input.__ssOptions||[];
+  var q=(input.value||'').toLowerCase().trim();
+  var src=(q?opts.filter(function(o){return o.label.toLowerCase().indexOf(q)>-1;}):opts).slice(0,8);
+  if(!src.length){drop.style.display='block';drop.innerHTML='<div style="padding:12px;font-size:var(--fs-sm);color:var(--fg2);text-align:center;">No matches.</div>';return;}
+  drop.style.display='block';
+  drop.innerHTML=src.map(function(o){
+    return '<div onmousedown="event.preventDefault();_ssPick(\''+selectId+'\',\''+o.value.replace(/'/g,"\\'")+'\')" style="padding:10px 12px;font-size:var(--fs-base);font-weight:600;color:#fff;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.07);" onmouseenter="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseleave="this.style.background=\'\'">'+o.label+'</div>';
+  }).join('');
+}
+function _ssPick(selectId,value){
+  var sel=document.getElementById(selectId);
+  var input=document.getElementById(selectId+'-ss-input');
+  var drop=document.getElementById(selectId+'-ss-drop');
+  if(!sel)return;
+  var opts=(input&&input.__ssOptions)||[];
+  var match=opts.filter(function(o){return o.value===value;})[0];
+  sel.value=value;
+  if(input)input.value=match?match.label:'';
+  if(drop){drop.style.display='none';drop.innerHTML='';}
+  try{sel.dispatchEvent(new Event('change'));}catch(e){}
+}
+function _ssCommit(selectId){
+  var input=document.getElementById(selectId+'-ss-input');
+  var sel=document.getElementById(selectId);
+  var drop=document.getElementById(selectId+'-ss-drop');
+  if(!input||!sel)return;
+  var opts=input.__ssOptions||[];
+  var q=(input.value||'').trim().toLowerCase();
+  var match=opts.filter(function(o){return o.label.toLowerCase()===q;})[0];
+  if(match){
+    if(sel.value!==match.value){sel.value=match.value;try{sel.dispatchEvent(new Event('change'));}catch(e){}}
+    input.value=match.label;
+  } else if(q!==''||sel.value!==''){
+    if(sel.value!==''){sel.value='';try{sel.dispatchEvent(new Event('change'));}catch(e){}}
+    input.value='';
+  }
+  if(drop){drop.style.display='none';drop.innerHTML='';}
 }
 function _maybeEnableContinue(){
   var btn=document.getElementById('step1-continue');if(!btn)return;
@@ -23012,42 +23271,105 @@ function _createClub(){
 }
 
 // ══════════ SAFETY TOOLKIT ══════════
-var safetyContacts=[];var _locShareActive=null;
-function _safetyLoad(){try{var s=JSON.parse(localStorage.getItem('ugz_safety'));if(s&&Array.isArray(s.contacts))safetyContacts=s.contacts;}catch(e){}}
-function _safetySave(){try{localStorage.setItem('ugz_safety',JSON.stringify({contacts:safetyContacts}));}catch(e){}}
-// 🛡️ Safety tab in Profile: pick up to 3 friends for live location + up to 2 emergency contacts
-var emergencyContacts=[],_emergLoaded=false;
-function _emergLoad(){if(_emergLoaded)return;_emergLoaded=true;try{var s=JSON.parse(localStorage.getItem('ugz_emergency'));if(Array.isArray(s))emergencyContacts=s;}catch(e){}}
-function _emergSave(){try{localStorage.setItem('ugz_emergency',JSON.stringify(emergencyContacts));}catch(e){}}
-function _safetyPanelToggleFriend(name){_safetyLoad();var i=safetyContacts.indexOf(name);if(i>-1)safetyContacts.splice(i,1);else{if(safetyContacts.length>=3){alert('You can pick up to 3 friends for live location.');return;}safetyContacts.push(name);}_safetySave();renderSafetyPanel();}
+// Backed by real data (GET/PUT /safety, GET /network) — one loader shared by
+// both the Profile > Safety tab (renderSafetyPanel) and the standalone
+// openSafety() modal, so they can't drift into separate mock states again.
+var safetyContacts=[]; // trusted friends' userIds
+var _locShareActive=null; // display label of who live location is shared with, or null if off
+var emergencyContacts=[]; // [{id,name,phone,relationship}] from backend
+var _safetyFriends=[]; // real friends: [{id,firstName,lastName,photo}]
+var _safetyLoadedOnce=false;
+var _SAFETY_AVATAR_COLORS=['#e91e63','#3b82f6','#3d7bff','#f59e0b','#dc2626','#0ea5e9','#16a34a'];
+function _safetyAvatarColor(id){return _SAFETY_AVATAR_COLORS[_strHash(id)%_SAFETY_AVATAR_COLORS.length];}
+function _safetyFriendLabel(f){return f.firstName+(f.lastName?' '+f.lastName.charAt(0)+'.':'');}
+async function _safetyLoad(force){
+  if(_safetyLoadedOnce&&!force)return;
+  // Only mark as loaded once both calls actually succeed — if this runs too
+  // early (e.g. a restored last-open-tab boot path firing before the access
+  // token is persisted) a permanent flag would silently block every retry.
+  var ok=true;
+  try{
+    var overview=await apiClient.getSafetyOverview();
+    safetyContacts=(overview.trustedContacts||[]).map(function(tc){return tc.friendUserId;});
+    emergencyContacts=overview.emergencyContacts||[];
+    _locShareActive=overview.liveLocationEnabled
+      ?(overview.trustedContacts||[]).map(function(tc){return tc.firstName;}).join(', ')||'your trusted friends'
+      :null;
+  }catch(e){ok=false;console.error('Failed to load safety overview:',e);}
+  try{
+    var friends=await apiClient.getFriendsList();
+    _safetyFriends=(friends||[]).map(function(f){
+      return {id:f.friend.id,firstName:f.friend.firstName,lastName:f.friend.lastName,photo:(f.friend.photos&&f.friend.photos[0]&&f.friend.photos[0].url)||null};
+    });
+  }catch(e){ok=false;console.error('Failed to load friends for safety panel:',e);}
+  if(ok)_safetyLoadedOnce=true;
+}
+async function _safetyPanelToggleFriend(friendUserId){
+  await _safetyLoad();
+  var i=safetyContacts.indexOf(friendUserId);
+  if(i>-1)safetyContacts.splice(i,1);
+  else{
+    if(safetyContacts.length>=3){alert('You can pick up to 3 friends for live location.');return;}
+    safetyContacts.push(friendUserId);
+  }
+  try{await apiClient.setTrustedContacts(safetyContacts);}catch(e){alert(e.message||'Could not save trusted friends.');}
+  if(typeof renderSafetyPanel==='function')renderSafetyPanel();
+}
 var _emergFormOpen=false;
 // Inline form instead of native prompt() (which feels broken in a WKWebView).
-function addEmergencyContact(){_emergLoad();if(emergencyContacts.length>=2){return;}_emergFormOpen=true;renderSafetyPanel();setTimeout(function(){var el=document.getElementById('emerg-phone');if(el&&el.focus)el.focus();},60);}
+function addEmergencyContact(){if(emergencyContacts.length>=2){return;}_emergFormOpen=true;renderSafetyPanel();setTimeout(function(){var el=document.getElementById('emerg-phone');if(el&&el.focus)el.focus();},60);}
 function _emergCancelForm(){_emergFormOpen=false;renderSafetyPanel();}
-function _emergSaveForm(){_emergLoad();var nm=((document.getElementById('emerg-name')||{}).value||'').trim();var ph=((document.getElementById('emerg-phone')||{}).value||'').trim();if(!ph){var pe=document.getElementById('emerg-phone');if(pe)pe.style.borderColor='#dc2626';return;}emergencyContacts.push({name:nm,phone:ph});_emergFormOpen=false;_emergSave();renderSafetyPanel();}
-function removeEmergencyContact(i){_emergLoad();emergencyContacts.splice(i,1);_emergSave();renderSafetyPanel();}
-function _safetyPanelShareLoc(){_safetyLoad();if(!safetyContacts.length){alert('Pick at least one friend above to share your live location with.');return;}_locShareActive=safetyContacts.join(', ');renderSafetyPanel();}
-function _safetyPanelStopLoc(){_locShareActive=null;renderSafetyPanel();}
+async function _emergSaveForm(){
+  var nm=((document.getElementById('emerg-name')||{}).value||'').trim();
+  var ph=((document.getElementById('emerg-phone')||{}).value||'').trim();
+  if(!ph){var pe=document.getElementById('emerg-phone');if(pe)pe.style.borderColor='#dc2626';return;}
+  try{
+    var contact=await apiClient.addEmergencyContact({name:nm,phone:ph});
+    emergencyContacts.push(contact);
+  }catch(e){alert(e.message||'Could not save contact.');return;}
+  _emergFormOpen=false;
+  renderSafetyPanel();
+}
+function removeEmergencyContact(id){
+  apiClient.removeEmergencyContact(id).then(function(){
+    emergencyContacts=emergencyContacts.filter(function(c){return c.id!==id;});
+    renderSafetyPanel();
+  }).catch(function(e){alert(e.message||'Could not remove contact.');});
+}
+async function _safetyPanelShareLoc(){
+  await _safetyLoad();
+  if(!safetyContacts.length){alert('Pick at least one friend above to share your live location with.');return;}
+  try{await apiClient.setLiveLocation(true);}catch(e){alert(e.message||'Could not enable live location.');return;}
+  _locShareActive=_safetyFriends.filter(function(f){return safetyContacts.indexOf(f.id)>-1;}).map(_safetyFriendLabel).join(', ')||'your trusted friends';
+  renderSafetyPanel();
+}
+function _safetyPanelStopLoc(){
+  apiClient.setLiveLocation(false).then(function(){_locShareActive=null;renderSafetyPanel();}).catch(function(e){alert(e.message||'Could not disable live location.');});
+}
 function renderSafetyPanel(){
   var box=document.getElementById('ptab-panel-safety');if(!box)return;
-  _safetyLoad();_emergLoad();
-  var friends=(typeof _FRIEND_POOL!=='undefined')?_FRIEND_POOL:[];
+  _safetyLoad().then(function(){_renderSafetyPanelNow(box);});
+  if(_safetyLoadedOnce)_renderSafetyPanelNow(box);
+}
+function _renderSafetyPanelNow(box){
+  var friends=_safetyFriends;
 
-  var friendChips=friends.map(function(f){
-    var on=safetyContacts.indexOf(f.n)>-1;
+  var friendChips=friends.length?friends.map(function(f){
+    var on=safetyContacts.indexOf(f.id)>-1;
     var borderStyle=on?'1.5px solid #22c55e':'1px solid color-mix(in srgb, var(--p) 30%, transparent)';
     var bgStyle=on?'linear-gradient(135deg,rgba(34,197,94,0.2),rgba(16,185,129,0.1))':'rgba(13,13,17,0.6)';
-    return '<div onclick="_safetyPanelToggleFriend(\''+f.n.replace(/'/g,"\\'")+'\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rad-md);border:'+borderStyle+';background:'+bgStyle+';margin-bottom:8px;transition:all 0.2s ease;">'+
-      '<div style="width:34px;height:34px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:700;color:#fff;flex-shrink:0;">'+f.i+'</div>'+
-      '<div style="flex:1;font-size:var(--fs-base);font-weight:700;color:#fff;">'+f.n+'</div>'+
+    var label=_safetyFriendLabel(f);
+    return '<div onclick="_safetyPanelToggleFriend(\''+f.id+'\')" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:var(--rad-md);border:'+borderStyle+';background:'+bgStyle+';margin-bottom:8px;transition:all 0.2s ease;">'+
+      '<div style="width:34px;height:34px;border-radius:50%;background:'+_safetyAvatarColor(f.id)+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;">'+(f.photo?'<img src="'+f.photo+'" style="width:100%;height:100%;object-fit:cover;"/>':(f.firstName||'?').charAt(0).toUpperCase())+'</div>'+
+      '<div style="flex:1;font-size:var(--fs-base);font-weight:700;color:#fff;">'+label+'</div>'+
       (on?'<span style="color:#4ade80;font-weight:700;font-size:var(--fs-md);">✓</span>':'<span style="color:var(--p);font-size:var(--fs-lg);font-weight:900;">+</span>')+
     '</div>';
-  }).join('');
+  }).join(''):'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:6px 0;font-weight:500;">Add friends to pick trusted contacts.</div>';
 
   // Resting state is neutral glass — red is reserved for the remove action only,
   // so the card doesn't read as a permanent alarm.
-  var emerg=emergencyContacts.map(function(c,i){
-    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(13,13,17,0.7);border:1px solid var(--gbdl, rgba(255,255,255,0.12));border-radius:var(--rad-md);margin-bottom:8px;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);flex-shrink:0;">👤</div><div style="flex:1;min-width:0;"><div class="t-body-black">'+(c.name||c.phone)+'</div>'+(c.name?'<div style="font-size:var(--fs-xs);color:var(--fg2);font-weight:500;">'+c.phone+'</div>':'')+'</div><span onclick="removeEmergencyContact('+i+')" style="cursor:pointer;color:#dc2626;font-weight:700;flex-shrink:0;padding:6px 10px;">✕</span></div>';
+  var emerg=emergencyContacts.map(function(c){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(13,13,17,0.7);border:1px solid var(--gbdl, rgba(255,255,255,0.12));border-radius:var(--rad-md);margin-bottom:8px;"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:var(--fs-base);flex-shrink:0;">👤</div><div style="flex:1;min-width:0;"><div class="t-body-black">'+(c.name||c.phone)+'</div>'+(c.name?'<div style="font-size:var(--fs-xs);color:var(--fg2);font-weight:500;">'+c.phone+'</div>':'')+'</div><span onclick="removeEmergencyContact(\''+c.id+'\')" style="cursor:pointer;color:#dc2626;font-weight:700;flex-shrink:0;padding:6px 10px;">✕</span></div>';
   }).join('')||(_emergFormOpen?'':'<div style="font-size:var(--fs-sm);color:var(--fg3);padding:6px 0;font-weight:500;">No emergency contacts yet.</div>');
 
   var emergForm=_emergFormOpen?
@@ -23091,19 +23413,20 @@ function renderSafetyPanel(){
       ((emergencyContacts.length<2&&!_emergFormOpen)?'<button onclick="addEmergencyContact()" style="width:100%;margin-top:8px;padding:11px;border-radius:var(--rad-md);border:1px dashed var(--gbdl, rgba(255,255,255,0.2));background:rgba(255,255,255,0.03);color:var(--fg2);font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;">＋ Add emergency contact</button>':'')+
     '</div>';
 }
-function toggleSafetyContact(name){
-  _safetyLoad();
-  var i=safetyContacts.indexOf(name);
-  if(i>-1)safetyContacts.splice(i,1);else{if(safetyContacts.length>=3){alert('You can keep up to 3 safety contacts.');return;}safetyContacts.push(name);}
-  _safetySave();openSafety();
+async function toggleSafetyContact(friendUserId){
+  await _safetyLoad();
+  var i=safetyContacts.indexOf(friendUserId);
+  if(i>-1)safetyContacts.splice(i,1);else{if(safetyContacts.length>=3){alert('You can keep up to 3 safety contacts.');return;}safetyContacts.push(friendUserId);}
+  try{await apiClient.setTrustedContacts(safetyContacts);}catch(e){alert(e.message||'Could not save trusted friends.');}
+  openSafety();
 }
-function openSafety(){
-  _safetyLoad();
+async function openSafety(){
+  await _safetyLoad();
   var m=document.getElementById('safety-modal');if(m)m.remove();
   m=document.createElement('div');m.id='safety-modal';m.className='mov open';m.style.zIndex='9999';
-  var contactChips=_FRIEND_POOL.map(function(f){var on=safetyContacts.indexOf(f.n)>-1;
-    return '<div onclick="toggleSafetyContact(\''+f.n+'\')" style="display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:var(--rad-lg);cursor:pointer;border:1px solid '+(on?'#22c55e':'var(--gbdl)')+';background:'+(on?'rgba(34,197,94,0.14)':'rgba(255,255,255,0.04)')+';"><div style="width:22px;height:22px;border-radius:50%;background:'+f.c+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;">'+f.i+'</div><span style="font-size:var(--fs-sm);font-weight:500;color:#fff;">'+f.n+'</span>'+(on?'<span style="color:#4ade80;font-size:var(--fs-sm);">✓</span>':'')+'</div>';
-  }).join('');
+  var contactChips=_safetyFriends.map(function(f){var on=safetyContacts.indexOf(f.id)>-1;var label=_safetyFriendLabel(f);
+    return '<div onclick="toggleSafetyContact(\''+f.id+'\')" style="display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:var(--rad-lg);cursor:pointer;border:1px solid '+(on?'#22c55e':'var(--gbdl)')+';background:'+(on?'rgba(34,197,94,0.14)':'rgba(255,255,255,0.04)')+';"><div style="width:22px;height:22px;border-radius:50%;background:'+_safetyAvatarColor(f.id)+';display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:600;color:#fff;overflow:hidden;">'+(f.photo?'<img src="'+f.photo+'" style="width:100%;height:100%;object-fit:cover;"/>':(f.firstName||'?').charAt(0).toUpperCase())+'</div><span style="font-size:var(--fs-sm);font-weight:500;color:#fff;">'+label+'</span>'+(on?'<span style="color:#4ade80;font-size:var(--fs-sm);">✓</span>':'')+'</div>';
+  }).join('')||'<div style="font-size:var(--fs-sm);color:var(--fg3);">Add friends to pick safety contacts.</div>';
   var active=_locShareActive?'<div style="display:flex;align-items:center;gap:9px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);border-radius:var(--rad-sm);padding:11px;margin-bottom:11px;"><div style="font-size:var(--fs-xl);">'+icon('mapPin',16)+'</div><div style="flex:1;"><div style="font-size:var(--fs-sm);font-weight:600;color:#4ade80;">Live location ON</div><div class="t-meta">Sharing with '+_locShareActive+'</div></div><button onclick="stopLocationShare()" style="background:rgba(255,255,255,0.1);border:none;border-radius:var(--rad-xs);padding:6px 11px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">Stop</button></div>':'';
   m.innerHTML='<div class="msheet" style="max-width:380px;"><div class="mhnd"></div>'+
     '<div style="text-align:center;margin-bottom:12px;"><div style="font-size:34px;">🛡️</div><div class="t-title">Safety toolkit</div><div class="t-sub">Tools to stay safe at hangouts & meetups.</div></div>'+
@@ -23117,19 +23440,22 @@ function openSafety(){
   '</div>';
   document.body.appendChild(m);
 }
-function shareLocationStart(){
-  _safetyLoad();
+async function shareLocationStart(){
+  await _safetyLoad();
   if(!safetyContacts.length){alert('Add at least one safety contact first (tap a friend above).');return;}
-  _locShareActive=safetyContacts.join(', ');
+  try{await apiClient.setLiveLocation(true);}catch(e){alert(e.message||'Could not enable live location.');return;}
+  _locShareActive=_safetyFriends.filter(function(f){return safetyContacts.indexOf(f.id)>-1;}).map(_safetyFriendLabel).join(', ')||'your trusted friends';
   alert('Live location sharing started.\n\n'+_locShareActive+' can now see where you are in real time. We\'ll keep them updated until you tap Stop.');
   openSafety();
 }
-function stopLocationShare(){_locShareActive=null;alert('Location sharing stopped.');openSafety();}
-function panicAlert(){
-  _safetyLoad();
+function stopLocationShare(){apiClient.setLiveLocation(false).then(function(){_locShareActive=null;alert('Location sharing stopped.');openSafety();}).catch(function(e){alert(e.message||'Could not disable live location.');});}
+async function panicAlert(){
+  await _safetyLoad();
   if(!safetyContacts.length){alert('Add at least one safety contact first so we know who to alert.');return;}
-  if(!confirm('🚨 Send an emergency alert to '+safetyContacts.join(', ')+' with your live location?'))return;
-  _locShareActive=safetyContacts.join(', ');
+  var names=_safetyFriends.filter(function(f){return safetyContacts.indexOf(f.id)>-1;}).map(_safetyFriendLabel).join(', ');
+  if(!confirm('🚨 Send an emergency alert to '+names+' with your live location?'))return;
+  try{await apiClient.setLiveLocation(true);}catch(e){}
+  _locShareActive=names;
   var sm=document.getElementById('safety-modal');if(sm)sm.remove();
   alert('🚨 Alert sent!\n\n'+safetyContacts.join(', ')+' got your live location and a "Check on me now" message.\n\nIn an emergency, call 911.');
 }
@@ -24416,21 +24742,11 @@ function _renderSearchStudentCard(p) {
 
   var safeName = fullName.replace(/'/g, "\\'");
   var cardIsVerified = p.isVerified || p.verified || ((userPro.isVerified || verified) && (fullName === userPro.name || handle === userPro.handle || '@' + handle === userPro.handle));
-  // Per-student colours: a student from another school shows THEIR school's
-  // colours in search; same-school (or unknown) falls back to the viewer's.
-  var cp = (p.uni && p.uni.p) ? p.uni.p : 'var(--p)';
-  var cp2 = (p.uni && p.uni.p2) ? p.uni.p2 : 'var(--p2)';
-  // Si el secundario de la uni es blanco, el degradado primario→blanco se ve
-  // lavado. En ese caso el botón "Ver Perfil" usa el primario sólido.
-  var _isWhite = function(c){ return typeof c === 'string' && /^#?(fff(fff)?|ffffff)$/i.test(c.replace('#','')); };
-  var verBtnBg = _isWhite(p.uni && p.uni.p2)
-    ? 'var(--card-p,var(--p))'
-    : 'linear-gradient(135deg,var(--card-p,var(--p)),var(--card-p2,var(--p2)))';
 
-  return '<div class="search-student-card" style="--card-p:'+cp+';--card-p2:'+cp2+';" onclick="openProfileCardByName(\'' + safeName + '\')">' +
-    '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;padding:2px;background:linear-gradient(135deg,var(--card-p,var(--p)),var(--card-p2,var(--p2)));">' +
+  return '<div class="search-student-card" onclick="openProfileCardByName(\'' + safeName + '\')">' +
+    '<div style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;">' +
       '<div style="width:100%;height:100%;border-radius:50%;overflow:hidden;">' + avatarHtml + '</div>' +
-      '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #000000;"></div>' +
+      '<div style="position:absolute;bottom:-1px;right:-1px;width:13px;height:13px;border-radius:50%;background:#4ade80;border:2px solid #0d0d12;"></div>' +
     '</div>' +
     '<div style="flex:1;min-width:0;">' +
       '<div style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:4px;">' +
@@ -24438,10 +24754,11 @@ function _renderSearchStudentCard(p) {
         _getVerifyBadgeHtml(cardIsVerified, 14) +
         (p.age ? '<span style="font-size:var(--fs-sm);color:#d6e4ff;font-weight:500;margin-left:2px;">' + p.age + '</span>' : '') +
       '</div>' +
-      '<div style="font-size:var(--fs-sm);font-weight:600;margin-top:2px;">@' + String(handle).replace(/^@+/, '') + '</div>' +
-      '<div style="font-size:var(--fs-xs);font-weight:700;margin-top:3px;display:flex;align-items:center;gap:5px;">'+icon('landmark',12)+' ' + acronym + '</div>' +
+      '<div style="font-size:var(--fs-sm);color:#9aa3af;font-weight:500;margin-top:2px;display:flex;align-items:center;gap:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+        '@' + String(handle).replace(/^@+/, '') + ' <span style="opacity:.6;">·</span> ' + icon('landmark',12) + ' ' + acronym +
+      '</div>' +
     '</div>' +
-    '<button style="background:'+verBtnBg+';border:none;border-radius:var(--rad-md);padding:8px 14px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
+    '<button style="background:transparent;border:1.5px solid #22c55e;border-radius:999px;padding:7px 16px;color:#22c55e;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
   '</div>';
 }
 
@@ -24565,6 +24882,8 @@ async function handleCrushSearch(query) {
             name: u.firstName + ' ' + (u.lastName || ''),
             handle: u.handle,
             major: (u.profile && u.profile.major) || _uniAcronymOf(u),
+            age: u.age,
+            isVerified: !!u.isVerified,
             photo: (u.photos && u.photos[0] && u.photos[0].url) || null,
             photos: (u.photos && u.photos.map(function(p){ return p.url; })) || [],
             uni: { name: (u.profile && u.profile.university) || myUniName, acronym: myUniAcronym }

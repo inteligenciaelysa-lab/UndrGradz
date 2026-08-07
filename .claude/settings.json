@@ -113,7 +113,9 @@
       "Bash(find \"/c/Users/IA ELYSA\" -iname \"*cloud-sql-proxy*\" -o -iname \"*cloud_sql_proxy*\" 2>/dev/null | grep -v node_modules | head -20)",
       "Bash(node verify_neon_match_setup.js)",
       "Bash(grep -n \"swipe-overlay-reject\\\\\">\\\\|swipe-overlay-like\\\\\">\\\\|swipe-overlay-maybe\\\\\">\" /tmp/old_app.js)",
-      "Bash(node verify_filters.js)"
+      "Bash(node verify_filters.js)",
+      "Bash(node --check frontend/api-client.js)",
+      "Bash(node --check backend/src/socket.js)"
     ],
     "additionalDirectories": [
       "c:\\Users\\IA ELYSA\\Desktop\\UndrGradz-Demo\\frontend"

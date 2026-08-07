@@ -288,6 +288,57 @@ class ApiClient {
     return result.data.profile;
   }
 
+  async deleteAccount() {
+    const result = await this.request('/users/me/delete-account', { method: 'POST' });
+    return result;
+  }
+
+  async deactivateAccount() {
+    const result = await this.request('/users/me/deactivate-account', { method: 'POST' });
+    return result;
+  }
+
+  // ==========================================
+  // SAFETY ROUTES
+  // ==========================================
+  async getSafetyOverview() {
+    const result = await this.request('/safety');
+    return result.data;
+  }
+
+  async setTrustedContacts(friendUserIds) {
+    const result = await this.request('/safety/trusted-contacts', {
+      method: 'PUT',
+      body: JSON.stringify({ friendUserIds })
+    });
+    return result.data;
+  }
+
+  async setLiveLocation(enabled) {
+    const result = await this.request('/safety/live-location', {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled })
+    });
+    return result.data;
+  }
+
+  async addEmergencyContact(contact) {
+    const result = await this.request('/safety/emergency-contacts', {
+      method: 'POST',
+      body: JSON.stringify(contact)
+    });
+    return result.data.contact;
+  }
+
+  async removeEmergencyContact(id) {
+    return this.request('/safety/emergency-contacts/' + id, { method: 'DELETE' });
+  }
+
+  async getFriendsList() {
+    const result = await this.request('/network');
+    return result.data.friends;
+  }
+
   /**
    * Uploads a file directly using the signed URL utility
    */
@@ -653,6 +704,10 @@ class ApiClient {
       if (this.socketCallbacks.onTypingStatus) this.socketCallbacks.onTypingStatus(status);
     });
 
+    this.socket.on('messageRead', (data) => {
+      if (this.socketCallbacks.onMessageRead) this.socketCallbacks.onMessageRead(data);
+    });
+
     // Live Match event
     this.socket.on('newMatch', (matchData) => {
       console.log('🎉 Live match event received via WebSocket:', matchData);
@@ -812,6 +867,12 @@ class ApiClient {
     }
   }
 
+  markChatRead(matchId) {
+    if (this.socket) {
+      this.socket.emit('chat:markRead', { matchId });
+    }
+  }
+
   async sendChatMessage(matchId, content, type = 'TEXT', mediaUrl = null, duration = null) {
     const timestamp = new Date().toISOString();
     console.log(`[CHAT DUPLICATE DEBUG] POST /messages START | timestamp: ${timestamp} | matchId: ${matchId} | content: "${content}"`);
@@ -827,6 +888,17 @@ class ApiClient {
       console.warn('⚠️ HTTP message send warning:', err);
       throw err;
     }
+  }
+
+  async getPresenceBatch(matchIds) {
+    if (!matchIds || matchIds.length === 0) return {};
+    const result = await this.request(`/chats/presence?matchIds=${matchIds.join(',')}`);
+    return result.data;
+  }
+
+  async getUserPresence(matchId) {
+    const result = await this.getPresenceBatch([matchId]);
+    return result[matchId] || null;
   }
 
   async getChatAudioUploadUrl(matchId, contentType = 'audio/webm') {

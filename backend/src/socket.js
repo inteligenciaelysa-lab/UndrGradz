@@ -66,6 +66,32 @@ const setupSocket = (server) => {
       console.log(`👥 User ${userId} left room_${matchId}`);
     });
 
+    // Explicit read receipt: fired when the client opens a chat, instead of
+    // relying on GET /messages as a side effect (that path has no event, so
+    // the sender's checkmark and the reader's own unread dot never update
+    // deterministically — see chat.service.js#getMessages for the fallback).
+    socket.on('chat:markRead', async ({ matchId }) => {
+      try {
+        const match = await prisma.match.findUnique({ where: { id: matchId } });
+        if (!match || (match.userOneId !== userId && match.userTwoId !== userId)) {
+          return socket.emit('error', { message: 'Unauthorized match room' });
+        }
+
+        const partnerId = match.userOneId === userId ? match.userTwoId : match.userOneId;
+        const readAt = new Date();
+        const { count } = await prisma.message.updateMany({
+          where: { matchId, senderId: partnerId, isRead: false },
+          data: { isRead: true, readAt },
+        });
+
+        if (count > 0) {
+          io.to(`user_${partnerId}`).emit('messageRead', { matchId, readAt });
+        }
+      } catch (error) {
+        console.error('❌ Failed to mark chat as read via socket:', error);
+      }
+    });
+
     // Listen for incoming message sends
     socket.on('sendMessage', async ({ matchId, content, type = 'TEXT', mediaUrl, duration }) => {
       try {

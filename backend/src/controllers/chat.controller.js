@@ -36,6 +36,26 @@ class ChatController {
     }
   }
 
+  async getPresence(req, res, next) {
+    try {
+      const userId = req.user.userId;
+      const matchIds = (req.query.matchIds || '').split(',').map((s) => s.trim()).filter(Boolean);
+
+      if (matchIds.length === 0) {
+        return res.status(200).json({ status: 'success', data: {} });
+      }
+
+      const presence = await chatService.getPresence(userId, matchIds);
+
+      res.status(200).json({
+        status: 'success',
+        data: presence,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getMessages(req, res, next) {
     try {
       const userId = req.user.userId;

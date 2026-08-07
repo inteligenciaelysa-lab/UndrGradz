@@ -96,6 +96,35 @@ class ChatService {
     }));
   }
 
+  // Batch on-demand presence for the given matches, keyed by matchId. No
+  // proactive broadcast/heartbeat — this is only ever checked when a client
+  // asks (chat list render, chat header open), same pattern already used for
+  // the receiver-online check in socket.js's sendMessage handler.
+  async getPresence(userId, matchIds) {
+    const { getIO } = require('../socket');
+    const io = getIO();
+
+    const matches = await prisma.match.findMany({
+      where: {
+        id: { in: matchIds },
+        OR: [{ userOneId: userId }, { userTwoId: userId }],
+      },
+    });
+
+    const result = {};
+    await Promise.all(matches.map(async (m) => {
+      const partnerId = m.userOneId === userId ? m.userTwoId : m.userOneId;
+      let online = false;
+      if (io) {
+        const sockets = await io.in(`user_${partnerId}`).fetchSockets();
+        online = sockets.length > 0;
+      }
+      result[m.id] = { online };
+    }));
+
+    return result;
+  }
+
   async resolveMatch(userId, matchIdOrHandle) {
     if (!matchIdOrHandle) {
       throw new AppError('Match ID, user ID or handle is required', 400);
@@ -164,6 +193,7 @@ class ChatService {
       },
       data: {
         isRead: true,
+        readAt: new Date(),
       },
     });
 

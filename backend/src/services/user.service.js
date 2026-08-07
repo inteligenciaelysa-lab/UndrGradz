@@ -280,6 +280,8 @@ class UserService {
         handle: true,
         firstName: true,
         lastName: true,
+        birthDate: true,
+        isVerified: true,
         profile: {
           select: {
             major: true,
@@ -293,7 +295,17 @@ class UserService {
         }
       },
       take: 20
-    });
+    }).then((users) => users.map((u) => {
+      const { birthDate, ...rest } = u;
+      const today = new Date();
+      const birth = new Date(birthDate);
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      return { ...rest, age };
+    }));
   }
 
   /**
@@ -454,6 +466,26 @@ class UserService {
         },
       },
     };
+  }
+
+  // Soft self-delete. isDeleted/deletedAt are the same fields admin.service.js
+  // uses for University/Campus soft-delete — restoreAccountOnLogin() in
+  // moderationStatus.js reverses this if the user logs back in within 90 days.
+  async deleteAccount(userId) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+  }
+
+  // Soft self-deactivate, distinct from delete. restoreAccountOnLogin() flips
+  // status back to ACTIVE on any successful login; the sweep job hard-deletes
+  // accounts still DEACTIVATED after 180 days of no login (UserProfile.lastActive).
+  async deactivateAccount(userId) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { status: 'DEACTIVATED', deactivatedAt: new Date() },
+    });
   }
 }
 
