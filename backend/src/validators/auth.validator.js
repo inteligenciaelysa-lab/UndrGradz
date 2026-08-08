@@ -3,7 +3,11 @@ const { z } = require('zod');
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   phone: z.string().optional().nullable(),
-  handle: z.string().regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_)(?![._])){2,13}[a-zA-Z0-9]$/, 'Invalid username format').optional().nullable(),
+  // 4-15 chars. Separators are `.` `_` `-`: never doubled, never first or last.
+  // Must stay in step with the three copies in frontend/app.js (checkHandle,
+  // _ob4Next1, _ob4ValidateAll) — a mismatch means the form accepts a handle
+  // that /auth/register then rejects with a 400.
+  handle: z.string().regex(/^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_|-)(?![._-])){2,13}[a-zA-Z0-9]$/, 'Invalid username format').optional().nullable(),
   password: z.string().regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/, 'Password must contain at least 8 characters, one uppercase, one lowercase, one number, and one special character'),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
