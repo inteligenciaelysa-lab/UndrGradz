@@ -1613,7 +1613,11 @@ function _langLabel(l) {
   if (!l) return '';
   var s = String(l);
   s = s.replace(/^[a-z]{2,4}·/i, '');       // drop "xx·" UID prefix
-  s = s.replace(/\s*\([^)]*\)\s*$/, '');          // drop trailing "(US)" etc.
+  // Solo se quita el calificador de país que traían los nombres viejos
+  // ("English (US)"). Antes esto borraba CUALQUIER paréntesis final, así que
+  // "French (Québécois)" salía como "French" y "ASL (Sign Language)" como "ASL"
+  // en la tarjeta de perfil y en la Crush — justo la distinción que hay que ver.
+  s = s.replace(/\s*\((?:US|UK|GB|CA|AU|MX|ES|AR|CO|BR|PT|United States|Canada|Australia|Spain|Mexico|Brazil|Portugal|Argentina|Colombia)\)\s*$/i, '');
   return s.trim();
 }
 var LANGUAGES =['English','Spanish','French','Portuguese','German','Italian','Dutch','Swedish','Norwegian','Danish','Polish','Greek','Russian','Ukrainian','Turkish','Japanese','Korean','Mandarin','Cantonese','Vietnamese','Thai','Indonesian','Tagalog','Hindi','Urdu','Bengali','Arabic','Hebrew','Persian','ASL'];
@@ -2962,8 +2966,11 @@ function _ob4Go(p, forceScrollTop){
       if(ctSel&&ctSel.options.length>2)_searchableSelectify('ob4-from-city');
     }
   }
-  if(p===5&&typeof _ob4RenderPrompts==='function'){
-    _ob4RenderPrompts();
+  // El `typeof _ob4RenderPrompts` envolvía TODO este bloque, así que al borrar
+  // esa función (los prompts se fueron del paso 5) también dejaba de correr
+  // _ob4ValidateAll5 — y sin eso el botón de finalizar se queda deshabilitado
+  // para siempre. Cada llamada lleva ahora su propia guarda.
+  if(p===5){
     if(typeof _ob4RenderLangs==='function')_ob4RenderLangs();
     setTimeout(function(){if(typeof _ob4ValidateAll5==='function')_ob4ValidateAll5();},50);
   }
@@ -3010,8 +3017,6 @@ function _ob4P1(){
   var btnVerify = window.currentLang==='es'?'Verificar':'Verify';
   var btnContinue = window.currentLang==='es'?'Continuar':'Continue';
   var placeholderPass = window.currentLang==='es'?'Mín. 8 caracteres':'Min. 8 characters';
-  var codeLabel = window.currentLang==='es'?'Código de Verificación':'Verification Code';
-  var codePlaceholder = window.currentLang==='es'?'Ingresa el código de 6 dígitos':'Enter 6-digit code';
   var notFoundText = window.currentLang==='es'?
     '¿No encuentras tu universidad? <span style="color:var(--p);font-weight:600;cursor:pointer;" onclick="window.open(\'https://www.instagram.com/undrgradz/\',\'_blank\')">Escríbenos por Instagram</span> o <a href="mailto:support@undrgradz.com" style="color:var(--p);font-weight:600;text-decoration:none;">envíanos un correo</a>.':
     'Didn\'t find your university? <span style="color:var(--uni-accent,var(--p));font-weight:700;cursor:pointer;" onclick="window.open(\'https://www.instagram.com/undrgradz/\',\'_blank\')">message us</span> or <a href="mailto:support@undrgradz.com" style="color:var(--uni-accent,var(--p));font-weight:700;text-decoration:none;">email us</a>.';
@@ -3083,13 +3088,10 @@ function _ob4P1(){
      '<button type="button" id="ob-email-verify-btn" onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">'+btnVerify+'</button>'+
    '</div>'+
    '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-top:7px;">'+emailHelp+'</div>'+
-   '<div id="email-code-container" style="display:none;margin-top:10px;">'+
-     '<label style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">'+codeLabel+'</label>'+
-     '<div style="position:relative;">'+
-       '<input class="gi" id="ob-email-code" type="text" placeholder="'+codePlaceholder+'" maxlength="6" oninput="verifyCodeInput(this)" style="padding-right:40px;letter-spacing:1px;font-weight:600;text-align:center;"/>'+
-       '<span id="code-success-check" style="display:none;position:absolute;right:14px;top:50%;transform:translateY(-50%);color:#4ade80;font-size:var(--fs-md);font-weight:700;">✓</span>'+
-     '</div>'+
-   '</div>'+
+   // La caja del código vivía aquí, escondida hasta pulsar Verify. Ahora el
+   // código se pide en un modal (_ob4OpenVerifyModal), que es lo que hace que
+   // no se pueda saltar el paso.
+
    '<div id="udet" style="display:none;align-items:center;gap:9px;margin-top:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:var(--rad-sm);padding:10px 12px;"><span style="color:#4ade80;font-size:var(--fs-md);">✓</span><div style="flex:1;min-width:0;"><div id="un-lbl" class="t-sub-strong"></div><div id="uc-lbl" style="font-size:var(--fs-sm);font-weight:500;color:#4ade80;"></div></div><span id="ud" style="display:none;"></span></div>'+
     '<div id="tec-campus-row" style="display:none;margin-top:10px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!=\'undefined\'){userPro.campus=this.value;}if(typeof suData!=\'undefined\'){suData.campus=this.value;}"></select></div>'+
    '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg2);margin-top:8px;line-height:1.5;">'+notFoundText+'</div>');
@@ -3981,21 +3983,21 @@ function _langNames(sel){
   });
 }
 
+// Un idioma, una entrada. Antes había cuatro Englishes (US/UK/CA/AU), cuatro
+// Spanishes y dos Portugueses, cada uno con su bandera — elegir "cuál inglés"
+// no aporta nada a un perfil y llenaba la rejilla de repetidos. La única
+// variante que sobrevive es el francés quebequense, que sí es una identidad
+// aparte. Los `code` se conservan porque _langUid los usa y hay uids ya
+// guardados; _langNormalize casa primero por nombre, así que un perfil viejo
+// con ['English'] sigue resolviendo.
 var OB4_LANGS = [
-    { code: 'us', en: 'English', es: 'Inglés', family: 'en' },
-    { code: 'gb', en: 'English', es: 'Inglés', family: 'en' },
-    { code: 'ca', en: 'English', es: 'Inglés', family: 'en' },
-    { code: 'au', en: 'English', es: 'Inglés', family: 'en' },
-    { code: 'mx', en: 'Spanish', es: 'Español', family: 'es' },
-    { code: 'es', en: 'Spanish', es: 'Español', family: 'es' },
-    { code: 'ar', en: 'Spanish', es: 'Español', family: 'es' },
-    { code: 'co', en: 'Spanish', es: 'Español', family: 'es' },
-    { code: 'fr', en: 'French', es: 'Francés', family: 'fr' },
-    { code: 'ca', en: 'French (Québécois)', es: 'Francés (Québécois)', family: 'fr' },
+    { code: 'us', en: 'English', es: 'Inglés' },
+    { code: 'mx', en: 'Spanish', es: 'Español' },
+    { code: 'fr', en: 'French', es: 'Francés' },
+    { code: 'ca', en: 'French (Québécois)', es: 'Francés (Québécois)' },
     { code: 'de', en: 'German', es: 'Alemán' },
     { code: 'it', en: 'Italian', es: 'Italiano' },
-    { code: 'br', en: 'Portuguese', es: 'Português', family: 'pt' },
-    { code: 'pt', en: 'Portuguese', es: 'Português', family: 'pt' },
+    { code: 'br', en: 'Portuguese', es: 'Português' },
     { code: 'cn', en: 'Mandarin', es: 'Mandarín' },
     { code: 'hk', en: 'Cantonese', es: 'Cantonés' },
     { code: 'jp', en: 'Japanese', es: 'Japonés' },
@@ -4031,43 +4033,28 @@ function _ob4RenderLangsP4(){
   var title = isEs ? 'IDIOMAS QUE HABLAS' : 'LANGUAGES YOU SPEAK';
   var selectedLbl = isEs ? 'SELECCIONADOS' : 'SELECTED';
 
-  var langList = OB4_LANGS;
-
-  // Language family mutual exclusion
-  var selectedFamilies = {};
-  langList.forEach(function(item){
-    if (item.family) {
-      var isSel = sel.indexOf(_langUid(item)) > -1;
-      if (isSel) {
-        selectedFamilies[item.family] = item.en;
-      }
-    }
-  });
-
-  var visibleLangs = langList.filter(function(item){
-    if (item.family && selectedFamilies[item.family]) {
-      var isSel = sel.indexOf(_langUid(item)) > -1;
-      return isSel;
-    }
-    return true;
-  });
-
-  var chipsHtml = visibleLangs.map(function(item){
+  // Ya no hay exclusión por familia: existía para que elegir "English (US)" no
+  // dejara los otros tres ingleses colgando. Sin duplicados el único par que
+  // quedaba era French + Québécois, y esos se quieren los dos a la vez, así que
+  // el filtro no sobraba: escondería el quebequense en cuanto marcaras French.
+  var chipsHtml = OB4_LANGS.map(function(item){
     var label = isEs ? item.es : item.en;
     var canonical = _langUid(item);
     var on = sel.indexOf(canonical) > -1;
-    var flagImg = item.flag ? ('<span style="font-size:14px;margin-right:6px;">' + item.flag + '</span>') : '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:6px;box-shadow:var(--el-1);"/>';
-    // --ob-line carries the flag as a gradient, --ob-hue its most saturated stop
-    // for the glow. Both are read by the .ob4-chip::after underline.
-    return '<div class="ob4-chip' + (on ? ' on' : '') + '" onclick="_ob4ToggleLang(\'' + canonical.replace(/'/g, "\\'") + '\')" style="--ob-line:' + _obFlagLine(item.code) + ';--ob-hue:' + _obFlagGlow(item.code) + ';padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;">' + (on ? '✓ ' : '') + flagImg + label + '</div>';
+    return '<div class="ob4-chip' + (on ? ' on' : '') + '" onclick="_ob4ToggleLang(\'' + canonical.replace(/'/g, "\\'") + '\')" style="padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;">' + (on ? '✓ ' : '') + label + '</div>';
   }).join('');
 
   return '<div style="border-top:1px solid rgba(255,255,255,0.07);padding-top:16px;margin-top:16px;">' +
     '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-      '<div class="ob4-flabel" style="margin:0;flex:1;">🗣️ ' + title + '</div>' +
+      '<div class="ob4-flabel" data-hue="#3d7bff" style="margin:0;flex:1;">🗣️ ' + title + '</div>' +
       '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">' + selectedLbl + ': <span id="ob4-langcount" style="color:#fff;">' + sel.length + '</span></div>' +
     '</div>' +
-    '<div style="display:flex;flex-wrap:wrap;gap:8px;" id="ob4-languages-box">' + chipsHtml + '</div>' +
+    // El tono va en el contenedor, no en cada chip: sin banderas ya no hay
+    // degradado por idioma, y _ob4PaintLabels no llega hasta aquí (pinta el
+    // hermano siguiente de la etiqueta, que es el contador). El renderizador en
+    // vivo solo reemplaza el innerHTML de esta caja, así que la variable
+    // sobrevive a cada toggle.
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;--ob-hue:#3d7bff;--ob-line:#3d7bff;" id="ob4-languages-box">' + chipsHtml + '</div>' +
   '</div>';
 }
 
@@ -4212,10 +4199,21 @@ function _ob4P4(){
   var zodiacName = zodiacParts.slice(1).join(' ') || (zodiacStr && zodiacStr !== zodiacIcon ? zodiacStr : (isEs?'Tu signo':'Your sign'));
 
   var subHint = function(txt){ return '<div class="ob4-accfield">'+txt+'</div>'; };
+  var lblAboutMe = isEs?'Añade una bio':'Add a bio';
+  var placeholderBio = isEs?'Cuéntanos un poco sobre ti…':'Share a little about yourself…';
 
   return '<div>'+
     // 1. Add Your Photos Card — queda FUERA de los desplegables
     _ob4RenderPhotoGridP4()+
+    // 2. La bio, también fuera: no es parte de "de dónde eres", y dentro de un
+    //    desplegable quedaría escondida hasta que alguien lo abriera.
+    //    data-hue obligatorio: es la primera .ob4-flabel del paso y sin anotar
+    //    correría el color de la de idiomas, que va después.
+    //    Escribir aquí NO re-renderiza (_ob4Bio solo guarda), pero si un pick de
+    //    los desplegables re-renderiza con el foco dentro, se pierde el caret —
+    //    el texto no, se relee de _ob4State.bio.
+    '<div class="ob4-flabel" data-hue="#f59e0b" style="margin-top:16px;">'+lblAboutMe+'</div>'+
+    '<textarea id="ob4-bio" oninput="_ob4Bio(this.value)" placeholder="'+placeholderBio+'" style="width:100%;box-sizing:border-box;height:78px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-family:var(--font);font-size:var(--fs-base);padding:10px 12px;resize:none;">'+(_ob4State.bio||'')+'</textarea>'+
     // ── ORIGEN: de dónde eres, idiomas y etnicidad ──
     acc('origin', 'globe', '#3d7bff',
       isEs?'Origen':'Origin',
@@ -4515,9 +4513,6 @@ function _ob4P5(){
     return parts.length > 1 ? parts.slice(1).join('·') : parts[0];
   });
 
-  var lblAboutMe = window.currentLang==='es'?'Sobre mí':'About me';
-  var placeholderBio = window.currentLang==='es'?'Cuéntanos un poco sobre ti…':'Share a little about yourself…';
-  var lblPrompts = window.currentLang==='es'?'Preguntas para conocerte':'Prompts';
   var btnFinish = window.currentLang==='es'?'¡Empecemos!':'Let\'s go!';
   var btnBack = window.currentLang==='es'?'← Volver a editar':'← Back to edit';
 
@@ -4537,12 +4532,10 @@ function _ob4P5(){
     verified: true
   });
 
+  // El paso 5 es solo la vista previa. La tarjeta "Toques finales" se fue: la
+  // bio se pide ahora en el paso 4, y los prompts se ponen desde el perfil (My
+  // Vibe tiene su propio editor), que es donde la gente los edita de verdad.
   return cardHtml+
-  '<div style="background:rgba(255,255,255,0.03);border:1px solid var(--gbdl);border-radius:var(--rad-xl);padding:16px;margin-top:14px;box-sizing:border-box;">'+
-    '<div class="ob4-flabel" style="margin:0 0 12px;">'+(window.currentLang==='es'?'✨ Toques finales':'✨ Finishing touches')+'</div>'+
-    '<div style="margin-bottom:14px;"><div class="ob4-flabel" style="margin:0 0 6px;">'+lblAboutMe+'</div><textarea oninput="_ob4Bio(this.value)" placeholder="'+placeholderBio+'" style="width:100%;box-sizing:border-box;height:75px;background:rgba(255,255,255,0.04);border:1px solid var(--gbdl);border-radius:var(--rad-md);color:#fff;font-size:var(--fs-base);padding:10px 12px;resize:none;">'+(_ob4State.bio||'')+'</textarea></div>'+
-    '<div style="border-top:1px solid var(--gbdl);padding-top:14px;margin-bottom:14px;"><div class="ob4-flabel" style="margin:0 0 8px;">'+lblPrompts+'</div><div id="ob4-prompts"></div></div>'+
-  '</div>'+
   '<button class="ob4-cta" id="ob4-finish-btn" onclick="_ob4Finish()" style="margin-top:16px;">'+btnFinish+'</button>'+
   '<div style="text-align:center;font-size:var(--fs-sm);font-weight:600;color:var(--fg2);margin-top:12px;cursor:pointer;" onclick="_ob4Go(4)">'+btnBack+'</div>';
 }
@@ -4562,37 +4555,17 @@ function _ob4ToggleLang(lang){
 }
 function _ob4RenderLangs(){
   var box=document.getElementById('ob4-languages-box');if(!box)return;
-  var langList = OB4_LANGS;
   var isEs = window.currentLang==='es';
   var sel = _langNormalize(_ob4State.languages||[]);
 
-  var selectedFamilies = {};
-  langList.forEach(function(item){
-    if (item.family) {
-      var isSel = sel.indexOf(_langUid(item)) > -1;
-      if (isSel) {
-        selectedFamilies[item.family] = item.en;
-      }
-    }
-  });
-
-  var visibleLangs = langList.filter(function(item){
-    if (item.family && selectedFamilies[item.family]) {
-      var isSel = sel.indexOf(_langUid(item)) > -1;
-      return isSel;
-    }
-    return true;
-  });
-
-  box.innerHTML=visibleLangs.map(function(item){
+  // Este es el renderizador EN VIVO: reemplaza solo el innerHTML de la caja, así
+  // que el --ob-hue del contenedor (puesto en _ob4RenderLangsP4) sobrevive y los
+  // chips nuevos lo heredan sin tener que repetirlo aquí.
+  box.innerHTML=OB4_LANGS.map(function(item){
     var label = isEs ? item.es : item.en;
     var canonical = _langUid(item);
     var on = sel.indexOf(canonical) > -1;
-    var flagImg = '<img src="https://flagcdn.com/w40/' + item.code + '.png" style="width:18px;height:12px;object-fit:cover;border-radius:2px;vertical-align:middle;margin-right:6px;box-shadow:var(--el-1);"/>';
-    // This is the LIVE renderer — it rebuilds the whole box on every toggle, so
-    // the flag variables have to be written here too, not only in the initial
-    // HTML builder further up.
-    return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4ToggleLang(\''+canonical.replace(/'/g,"\\'")+'\')" style="--ob-line:'+_obFlagLine(item.code)+';--ob-hue:'+_obFlagGlow(item.code)+';padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;">'+(on?'✓ ':'')+flagImg+label+'</div>';
+    return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4ToggleLang(\''+canonical.replace(/'/g,"\\'")+'\')" style="padding:7px 12px;font-size:var(--fs-sm);font-weight:600;margin:0;cursor:pointer;display:inline-flex;align-items:center;white-space:nowrap;">'+(on?'✓ ':'')+label+'</div>';
   }).join('');
   var cnt=document.getElementById('ob4-langcount');if(cnt)cnt.textContent=sel.length;
 }
@@ -4702,7 +4675,10 @@ function _ob4Finish(){
     userPro.gradSemester=st.gradSemester||'';
   }
   if(st.living)userPro.living=st.living;userPro.uniNameStyle=_ob4State.uniNameStyle||'full';
-  userPro.languages=st.languages||[];
+  // _langNames, no el array crudo: _ob4Next4 ya había normalizado esto a nombres
+  // legibles y esta línea lo pisaba con los uids internos ("us·English"), así que
+  // el perfil acababa guardando una cosa u otra según por dónde se hubiera salido.
+  userPro.languages=_langNames(st.languages||[]);
   window._obAthlete=!!(window._ob4Sports&&window._ob4Sports.length);
   if(typeof _obSportsSel!=='undefined')_obSportsSel=(window._ob4Sports||[]).slice();
   if(window._ob4Greek){window._obGreekType=(userGender==='female')?'sorority':'fraternity';var _og=document.getElementById('ob-org');if(!_og){_og=document.createElement('input');_og.type='hidden';_og.id='ob-org';document.body.appendChild(_og);}_og.value=window._ob4Greek;}
@@ -4738,25 +4714,11 @@ function _ob4SportPick(){
 }
 function _ob4SportList(){var el=document.getElementById('ob4-sport-res');if(!el)return;var SP=(typeof SPORTS!=='undefined'?SPORTS:[]);el.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:8px;">'+SP.filter(function(s){return s!=='Other';}).map(function(s){var on=(window._ob4Sports||[]).indexOf(s)>-1;return '<div class="ob4-chip'+(on?' on':'')+'" onclick="_ob4SportToggle(\''+s.replace(/'/g,"")+'\')">'+s+'</div>';}).join('')+'</div>';}
 function _ob4SportToggle(s){window._ob4Sports=window._ob4Sports||[];var i=window._ob4Sports.indexOf(s);if(i>-1)window._ob4Sports.splice(i,1);else{if(window._ob4Sports.length>=2){alert('Pick up to 2 sports.');return;}window._ob4Sports.push(s);}if(_ob4Involved.indexOf('Athletics')===-1)_ob4Involved.push('Athletics');_ob4Involved=_ob4Involved.filter(function(x){return x!=='None';});_ob4SportList();}
-function _ob4RenderPrompts(){
-  var box=document.getElementById('ob4-prompts');if(!box)return;
-  if(typeof selectedPrompts==='undefined')window.selectedPrompts=[];
-  var h=selectedPrompts.map(function(pr,i){
-    var sel='<select class="gi" onchange="_ob4SetPromptQ('+i+',this.value)" style="margin-bottom:6px;">'+PROMPTS.map(function(q){
-      var disp = typeof getPromptText === 'function' ? getPromptText(q) : q;
-      return '<option value="'+q+'"'+(q===pr.q?' selected':'')+'>'+disp+'</option>';
-    }).join('')+'</select>';
-    var placeholderAns = window.currentLang==='es'?'Tu respuesta…':'Your answer…';
-    return '<div style="border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px;margin-bottom:8px;position:relative;">'+sel+'<textarea class="gi" rows="2" maxlength="150" placeholder="'+placeholderAns+'" oninput="_ob4SetPromptA('+i+',this.value)" style="resize:none;">'+(pr.a||'')+'</textarea><div onclick="_ob4RemovePrompt('+i+')" style="position:absolute;top:8px;right:10px;color:var(--fg3);cursor:pointer;font-size:var(--fs-md);">✕</div></div>';
-  }).join('');
-  var btnAddPrompt = window.currentLang==='es'?'+ Añadir pregunta':'+ Add a prompt';
-  if(selectedPrompts.length<3)h+='<button class="ob4-chip" onclick="_ob4AddPrompt()">'+btnAddPrompt+'</button>';
-  box.innerHTML=h||'<button class="ob4-chip" onclick="_ob4AddPrompt()">'+btnAddPrompt+'</button>';
-}
-function _ob4AddPrompt(){if(typeof selectedPrompts==='undefined')window.selectedPrompts=[];if(selectedPrompts.length>=3)return;selectedPrompts.push({q:PROMPTS[0],a:''});_ob4RenderPrompts();}
-function _ob4SetPromptQ(i,v){if(selectedPrompts[i])selectedPrompts[i].q=v;}
-function _ob4SetPromptA(i,v){if(selectedPrompts[i])selectedPrompts[i].a=v;}
-function _ob4RemovePrompt(i){selectedPrompts.splice(i,1);_ob4RenderPrompts();}
+// Aquí vivían _ob4RenderPrompts / _ob4AddPrompt / _ob4SetPromptQ /
+// _ob4SetPromptA / _ob4RemovePrompt. Su único markup era #ob4-prompts, dentro de
+// la tarjeta "Toques finales" del paso 5, que ya no existe. El editor de prompts
+// del perfil (renderPromptList, en My Vibe) es otro y sigue en pie, igual que el
+// global selectedPrompts que ambos comparten.
 function _ob4SGPick(){
   var roles=['President','Vice President','Senator','Class Representative','Treasurer','Secretary','Committee Chair','General Member'];
   var m=document.getElementById('ob4-sg-modal');if(m)m.remove();m=document.createElement('div');m.id='ob4-sg-modal';m.className='mov open';m.style.zIndex='10006';
@@ -25342,29 +25304,112 @@ function sendVerificationCode() {
     alert('This email domain does not belong to a supported university.');
     return;
   }
-  var container = document.getElementById('email-code-container');
-  if (container) {
-    container.style.display = 'block';
-  }
-  alert('Verification code sent to ' + emailVal);
+  _ob4OpenVerifyModal(emailVal);
 }
 
-function verifyCodeInput(inp) {
-  inp.value = inp.value.replace(/[^0-9]/g, '');
-  var successCheck = document.getElementById('code-success-check');
-  if (inp.value.length === 6) {
-    inp.style.borderColor = '#4ade80';
-    inp.style.background = 'rgba(74, 222, 128, 0.08)';
-    if (successCheck) successCheck.style.display = 'block';
+// ── Modal de verificación de correo ──
+// Antes esto era un alert "Information / OK" y una caja de código escondida al
+// final del paso 1, que casi nadie veía. Ahora el modal ES la entrada del
+// código y no se sale de él sin escribirlo.
+//
+// No se usa ugzModal: su tarjeta es un singleton cacheado, el título y el
+// mensaje son textContent, tiene dos botones fijos que dependen del `type`, y un
+// listener global de keydown hace que Escape y Enter siempre cierren. Se sigue
+// el patrón de forgotPassword: una hoja .mov que este código posee entera, así
+// que no cerrarla es simplemente no cablear ningún Cancel.
+//
+// El código es de mentira, igual que el de "olvidé mi contraseña": no hay
+// endpoint de correo en el backend. Se genera y se enseña para que el error de
+// código equivocado y el reenvío se puedan probar de verdad.
+var _obEmailCode = '';
+function _ob4OpenVerifyModal(email){
+  var isEs = window.currentLang === 'es';
+  var old = document.getElementById('ob4-verify-modal'); if(old) old.remove();
+  _obEmailCode = String(Math.floor(100000 + Math.random() * 900000));
+
+  var m = document.createElement('div');
+  m.id = 'ob4-verify-modal'; m.className = 'mov open'; m.style.zIndex = '10007';
+  m.innerHTML =
+    '<div class="msheet" style="max-width:360px;text-align:center;">'+
+      '<div class="mhnd"></div>'+
+      '<div class="mtitle">'+(isEs?'Verifica tu correo':'Verify your email')+'</div>'+
+      '<div style="font-size:var(--fs-sm);color:var(--fg2);line-height:1.5;margin-bottom:4px;">'+
+        (isEs?'Te enviamos un código de 6 dígitos a':'We sent a 6-digit code to')+
+        '<br><b style="color:#fff;word-break:break-all;">'+email+'</b></div>'+
+      '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-bottom:14px;">(demo: '+_obEmailCode+')</div>'+
+      '<div id="ob4-verify-otp" style="display:flex;gap:6px;justify-content:center;margin-bottom:10px;"></div>'+
+      '<div id="ob4-verify-msg" style="font-size:var(--fs-sm);font-weight:600;min-height:20px;margin-bottom:12px;"></div>'+
+      '<button class="ob4-cta" id="ob4-verify-continue" disabled style="opacity:0.45;margin:0 0 10px;">'+(isEs?'Continuar':'Continue')+'</button>'+
+      '<button class="gbtn-ghost" style="margin-bottom:6px;" onclick="_ob4VerifyResend()">'+(isEs?'Reenviar código':'Resend code')+'</button>'+
+      '<button class="gbtn-ghost" onclick="_ob4VerifyChangeEmail()">'+(isEs?'Cambiar correo':'Change email')+'</button>'+
+    '</div>';
+  document.body.appendChild(m);
+
+  document.getElementById('ob4-verify-continue').onclick = function(){
+    if(this.disabled) return;
     _ob4State.emailVerified = true;
-  } else {
-    inp.style.borderColor = '';
-    inp.style.background = '';
-    if (successCheck) successCheck.style.display = 'none';
-    _ob4State.emailVerified = false;
+    var mm = document.getElementById('ob4-verify-modal'); if(mm) mm.remove();
+    // Este par es lo que desbloquea #ob4-continue-btn; sin él el paso 1 se
+    // queda bloqueado aunque el correo esté verificado.
+    _ob4Strength();
+    _ob4ValidateAll();
+  };
+  _ob4VerifyBoxes();
+}
+function _ob4VerifyBoxes(){
+  var box = document.getElementById('ob4-verify-otp'); if(!box) return;
+  box.innerHTML = '';
+  for(var i=0;i<6;i++){
+    var inp = document.createElement('input');
+    inp.className = 'ci'; inp.type = 'text'; inp.inputMode = 'numeric'; inp.maxLength = 1;
+    inp.style.cssText = 'width:38px;height:46px;';
+    inp.addEventListener('input', function(){
+      this.value = this.value.replace(/[^0-9]/g,'');
+      otpNext(this); _ob4VerifyCheck();
+    });
+    box.appendChild(inp);
   }
-  _ob4Strength();
+  setTimeout(function(){ var f = box.querySelector('input'); if(f) f.focus(); }, 60);
+}
+function _ob4VerifyCheck(){
+  var box = document.getElementById('ob4-verify-otp');
+  var btn = document.getElementById('ob4-verify-continue');
+  var msg = document.getElementById('ob4-verify-msg');
+  if(!box || !btn) return;
+  var digits = Array.prototype.map.call(box.querySelectorAll('input'), function(i){return i.value;}).join('');
+  var ok = (digits.length === 6 && digits === _obEmailCode);
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.45';
+  if(msg){
+    if(digits.length === 6 && !ok){
+      msg.textContent = window.currentLang==='es'?'Código incorrecto. Inténtalo otra vez.':'Incorrect code. Try again.';
+      msg.style.color = '#dc2626';
+    } else if(ok){
+      msg.textContent = window.currentLang==='es'?'✓ Verificado':'✓ Verified';
+      msg.style.color = '#4ade80';
+    } else {
+      msg.textContent = '';
+    }
+  }
+}
+function _ob4VerifyResend(){
+  _obEmailCode = String(Math.floor(100000 + Math.random() * 900000));
+  _ob4VerifyBoxes();
+  var msg = document.getElementById('ob4-verify-msg');
+  if(msg){
+    msg.textContent = (window.currentLang==='es'?'Código nuevo enviado (demo: ':'New code sent (demo: ')+_obEmailCode+')';
+    msg.style.color = 'var(--fg2)';
+  }
+  var btn = document.getElementById('ob4-verify-continue');
+  if(btn){ btn.disabled = true; btn.style.opacity = '0.45'; }
+}
+// La única salida deliberada: si el correo estaba mal, cerrar y devolver el foco
+// al campo. Sin esto el usuario quedaría atrapado con un correo equivocado.
+function _ob4VerifyChangeEmail(){
+  _ob4State.emailVerified = false;
+  var m = document.getElementById('ob4-verify-modal'); if(m) m.remove();
   _ob4ValidateAll();
+  var e = document.getElementById('ob-email'); if(e){ e.focus(); e.select(); }
 }
 
 function checkPasswordStrength(val) {
