@@ -2947,7 +2947,7 @@ function _ob4Go(p, forceScrollTop){
   try { void c.offsetHeight; } catch(e){}
   _ob4PaintLabels();
   _ob4BackLabel();
-  if(p===1)setTimeout(function(){if(typeof _ob4ValidateAll==='function')_ob4ValidateAll();},50);
+  if(p===1)setTimeout(function(){if(typeof _ob4ValidateAll==='function')_ob4ValidateAll();if(typeof _ob4SyncVerifyBtn==='function')_ob4SyncVerifyBtn();},50);
   if(p===2)setTimeout(function(){if(typeof _ob4ValidateAll2==='function')_ob4ValidateAll2();},50);
   if(p===3&&typeof _ob4RenderInt==='function'){
     _ob4RenderInt();
@@ -3083,8 +3083,10 @@ function _ob4P1(){
   parts.push(
    '<div class="ob4-flabel" data-hue="#c084fc">'+lblEmailSchool+'</div>'+
    '<div style="display:flex;gap:8px;">'+
-     '<input class="gi" id="ob-email" type="email" value="'+st.email+'" placeholder="you@school.edu" oninput="_ob4State.email=this.value;if(typeof detectUni===\'function\')detectUni(this.value);_ob4Strength();_ob4ValidateAll();" style="flex:1;"/>'+
-     '<button type="button" id="ob-email-verify-btn" onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:pointer;flex-shrink:0;">'+btnVerify+'</button>'+
+     '<input class="gi" id="ob-email" type="email" value="'+st.email+'" placeholder="you@school.edu" oninput="_ob4State.email=this.value;if(typeof detectUni===\'function\')detectUni(this.value);_ob4SyncVerifyBtn();_ob4Strength();_ob4ValidateAll();" style="flex:1;"/>'+
+     // Nace apagado: pulsarlo sin correo solo podía terminar en un error. Lo
+     // enciende _ob4SyncVerifyBtn() en cuanto el campo parece un correo.
+     '<button type="button" id="ob-email-verify-btn" disabled onclick="sendVerificationCode()" style="padding:10px 16px;border-radius:var(--rx);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-base);font-weight:600;cursor:default;flex-shrink:0;opacity:0.45;transition:opacity var(--dur) var(--ease);">'+btnVerify+'</button>'+
    '</div>'+
    '<div style="font-size:var(--fs-xs);color:var(--fg3);margin-top:7px;">'+emailHelp+'</div>'+
    // La caja del código vivía aquí, escondida hasta pulsar Verify. Ahora el
@@ -5905,6 +5907,10 @@ function _initCrushDeck(){
 
 function sw(id,label,opts){
   if(id==='premium'&&!window.PLANS_ENABLED)return;
+  // Salir de una subvista de Profile por cualquier vía devuelve la barra
+  // superior. _profBack() solo corre al volver a entrar en Profile, así que sin
+  // esto irse a Chats desde Dating Preferences dejaba la app sin cabecera.
+  try{ document.getElementById('app').classList.remove('prof-sub-open'); }catch(e){}
   if(id==='unicrush'){
     id='discover'; label='Campus';
     try{
@@ -6120,6 +6126,9 @@ function _profOpen(key){
   var list=document.getElementById('prof-list');if(list)list.style.display='none';
   var sub=document.getElementById('prof-sub');if(sub)sub.style.display='block';
   var ttl=document.getElementById('prof-sub-title');if(ttl)ttl.textContent=_PROF_SUBS[key].t;
+  // La subvista ya es a pantalla completa y lleva su propio título con flecha,
+  // así que la barra superior ("MI PERFIL" + campana + ajustes) sobraba encima.
+  var app=document.getElementById('app');if(app)app.classList.add('prof-sub-open');
   switchProfTab(key);
   try{ document.getElementById('sec-profile').scrollTop=0; window.scrollTo(0,0); }catch(e){}
   // El back de Android/iOS cierra la subvista antes que la sección.
@@ -6128,6 +6137,7 @@ function _profOpen(key){
 }
 function _profBack(){
   _profSub='';
+  var app=document.getElementById('app');if(app)app.classList.remove('prof-sub-open');
   var sub=document.getElementById('prof-sub');if(sub)sub.style.display='none';
   var list=document.getElementById('prof-list');if(list)list.style.display='block';
   switchProfTab('');
@@ -7441,7 +7451,9 @@ function _friendsForPicker(){
         color:(f.profile&&f.profile.customization&&f.profile.customization.badgeColor)||'#2b5fd9',
         photo:(f.photos&&f.photos[0]&&f.photos[0].url)||'',
         handle:'@'+String(f.handle||nm.toLowerCase().replace(/[^a-z0-9]/g,'')).replace(/^@/,''),
-        sub:(f.profile&&f.profile.major)||_uniAcronymOf(f)
+        sub:(f.profile&&f.profile.major)||_uniAcronymOf(f),
+        // Acrónimo de la escuela, igual que en las tarjetas de Search.
+        uni:_uniAcronymOf(f)
       };
     });
   }
@@ -7455,7 +7467,8 @@ function _friendsForPicker(){
       color:(av&&av.style.background)||'#2b5fd9',
       photo:'',
       handle:'@'+nm2.toLowerCase().replace(/[^a-z0-9]/g,''),
-      sub:(sub&&sub.textContent.trim())||_uniAcronymOf(null)
+      sub:(sub&&sub.textContent.trim())||_uniAcronymOf(null),
+      uni:_uniAcronymOf(null)
     };
   });
 }
@@ -7471,12 +7484,18 @@ function _openChatCreateMenu(){
     var av=f.photo
       ? '<div style="width:38px;height:38px;border-radius:50%;background:url(\''+f.photo+'\') center/cover;flex-shrink:0;"></div>'
       : '<div style="width:38px;height:38px;border-radius:50%;background:'+f.color+';display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:var(--fs-md);flex-shrink:0;">'+f.init+'</div>';
-    return '<div class="ccf-row" data-idx="'+i+'" data-nm="'+f.name.replace(/"/g,'')+'" onclick="_toggleCreateChatFriend(this)" style="--cc:'+f.color+';display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--rad-md);border:1.5px solid transparent;background:linear-gradient(150deg, color-mix(in srgb,'+f.color+' 12%,#0a0a12), #0a0a12) padding-box, linear-gradient(150deg, '+f.color+', color-mix(in srgb,'+f.color+' 32%,transparent) 60%) border-box;margin-bottom:9px;cursor:pointer;transition:all var(--dur) ease;">'+
+    // Misma línea que las tarjetas de Search: nombre, luego "@handle · 🏛 UNI".
+    // Cada fila llevaba antes su propio degradado y borde tomados del color del
+    // avatar, lo que convertía la lista en un arcoíris y hacía que la fila
+    // seleccionada no destacara sobre las demás.
+    var sub = '@' + String(f.handle||'').replace(/^@+/,'');
+    if(f.uni) sub += ' <span style="opacity:.55;">·</span> ' + icon('landmark',11) + ' ' + f.uni;
+    return '<div class="ccf-row" data-idx="'+i+'" data-nm="'+f.name.replace(/"/g,'')+'" onclick="_toggleCreateChatFriend(this)" style="display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:var(--rad-md);border:1.5px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);margin-bottom:9px;cursor:pointer;transition:background var(--dur) ease,border-color var(--dur) ease,box-shadow var(--dur) ease;">'+
       '<div class="ccf-chk" style="width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:var(--fs-sm);font-weight:700;color:transparent;flex-shrink:0;">✓</div>'+
       av+
       '<div style="flex:1;min-width:0;">'+
         '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+f.name+'</div>'+
-        '<div style="font-size:var(--fs-xs);font-weight:600;color:color-mix(in srgb,'+f.color+' 55%,#ffffff);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(f.handle||'')+'</div>'+
+        '<div style="font-size:var(--fs-xs);font-weight:600;color:var(--fg2);margin-top:2px;display:flex;align-items:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+sub+'</div>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -7498,11 +7517,13 @@ function _openChatCreateMenu(){
     '<div id="ccf-rows" style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;">'+rows+'</div>'+
     '<div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 10px;font-size:var(--fs-xs);font-weight:600;color:var(--fg2);">'+
       '<span><span id="ccf-count" style="color:#fff;">0</span> of '+CREATE_CHAT_MAX+' selected</span>'+
-      '<div style="width:70px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;"><div id="ccf-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#2b5fd9,#3d7bff);transition:width 0.2s;"></div></div>'+
+      '<div style="width:70px;height:5px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden;"><div id="ccf-bar" style="height:100%;width:0%;background:#dc2626;transition:width 0.2s;"></div></div>'+
     '</div>'+
     '<div style="display:flex;gap:10px;padding-bottom:calc(env(safe-area-inset-bottom));">'+
       '<button class="gbtn-ghost" style="flex:1;margin:0;" onclick="window.NavigationManager ? window.NavigationManager.goBack() : document.getElementById(\'chat-create-menu\').remove()">Cancel</button>'+
-      '<button class="gbtn" id="ccf-create" disabled style="flex:2;margin:0;background:linear-gradient(135deg,var(--accent),var(--accent-deep));opacity:0.45;" onclick="_createChatFromPicker()">'+icon('chat',16)+' Create Chat</button>'+
+      // El rojo se pinta por id en styles.css: .gbtn fuerza --grad-primary con
+      // !important, que un estilo en línea sin !important no puede ganar.
+      '<button class="gbtn" id="ccf-create" disabled style="flex:2;margin:0;opacity:0.45;" onclick="_createChatFromPicker()">'+icon('chat',16)+' Create Chat</button>'+
     '</div>'+
   '</div>';
   document.body.appendChild(m);
@@ -7521,12 +7542,15 @@ function _toggleCreateChatFriend(el){
   el.classList.toggle('sel');
   var on=el.classList.contains('sel');
   var chk=el.querySelector('.ccf-chk');
-  el.style.borderColor=on?'#3d7bff':'rgba(255,255,255,0.08)';
-  el.style.background=on?'rgba(61,123,255,0.14)':'rgba(255,255,255,0.03)';
-  el.style.boxShadow=on?'0 0 14px rgba(61,123,255,0.3)':'none';
+  // Seleccionado en rojo de marca, el mismo del botón Create Chat: con las
+  // filas ya neutras, el azul era el único color de la lista y no se leía como
+  // "esto es lo que has elegido".
+  el.style.borderColor=on?'#dc2626':'rgba(255,255,255,0.08)';
+  el.style.background=on?'rgba(220,38,38,0.14)':'rgba(255,255,255,0.03)';
+  el.style.boxShadow='none';
   if(chk){
-    chk.style.background=on?'#3d7bff':'transparent';
-    chk.style.borderColor=on?'#3d7bff':'rgba(255,255,255,0.25)';
+    chk.style.background=on?'#dc2626':'transparent';
+    chk.style.borderColor=on?'#dc2626':'rgba(255,255,255,0.25)';
     chk.style.color=on?'#fff':'transparent';
   }
   _syncCreateChatFooter();
@@ -8147,7 +8171,9 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
           '<div style="display:flex;align-items:center;flex-shrink:0;">' + avatarItems.join('') + '</div>' +
           '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;white-space:nowrap;">' + _joined + ' / ' + _cap + ' joined</div>' +
         '</div>' +
-        '<div style="height:4px;border-radius:var(--rad-pill);background:rgba(255,255,255,0.12);overflow:hidden;"><div style="height:100%;width:' + _capPct + '%;background:var(--p);border-radius:var(--rad-pill);"></div></div>' +
+        // Rojo fijo, no var(--p): la barra seguía el color de la universidad y
+        // en las escuelas verdes se leía como "todo bien" en vez de como aforo.
+        '<div style="height:4px;border-radius:var(--rad-pill);background:rgba(255,255,255,0.12);overflow:hidden;"><div style="height:100%;width:' + _capPct + '%;background:#dc2626;border-radius:var(--rad-pill);"></div></div>' +
       '</div>';
   } else {
     goingRowHtml =
@@ -8173,8 +8199,11 @@ function _renderHangoutCardHtml(e, isMyEvent, isJoinedView) {
   if (isMyEvent) {
     actionsHtml =
       '<div onclick="event.stopPropagation();" style="display:flex;gap:8px;margin-top:14px;align-items:stretch;">' +
-        '<button onclick="_editMyEventCard(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:var(--p);font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">'+icon('edit',16)+' Edit</button>' +
-        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1.4;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 4px 16px -4px rgba(245,158,11,0.6);">'+(_ended?''+icon('undo',13)+' Repost':''+icon('rocket',13)+' Boost')+'</button>' +
+        // Edit en rojo de marca con letra blanca, como los CONTINUE: en cristal
+        // con color:var(--p) se perdía sobre la foto de portada del evento.
+        '<button onclick="_editMyEventCard(\''+safeRef+'\')" style="flex:1;padding:11px 6px;border-radius:var(--rad-md);background:#dc2626;border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">'+icon('edit',16)+' Edit</button>' +
+        // Boost sin halo: el relleno ámbar ya lo separa de sus vecinos.
+        '<button onclick="_boostMyEvent(\''+safeRef+'\')" style="flex:1.4;padding:11px 6px;border-radius:var(--rad-md);background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);border:none;color:#fff;font-family:var(--font);font-size:var(--fs-sm);font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:none;">'+(_ended?''+icon('undo',13)+' Repost':''+icon('rocket',13)+' Boost')+'</button>' +
         '<button onclick="_deleteMyEventById(\''+safeRef+'\')" aria-label="Delete event" style="flex:0 0 auto;width:44px;padding:11px 0;border-radius:var(--rad-md);background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.5);color:#dc2626;font-family:var(--font);cursor:pointer;display:flex;align-items:center;justify-content:center;">'+icon('trash',16)+'</button>' +
       '</div>';
   } else if (isJoinedView) {
@@ -25497,6 +25526,18 @@ async function _startFriendChat(friendId, fullName, badgeColor, init) {
 }
 
 // ── SIGN UP IDENTITY UPGRADES HELPERS ──
+// Enciende / apaga el botón Verify según lo que haya en el campo de correo.
+// El mismo criterio que usa sendVerificationCode() para su primer guardia, así
+// que el botón solo está encendido cuando pulsarlo puede llevar a algún sitio.
+function _ob4SyncVerifyBtn() {
+  var btn = document.getElementById('ob-email-verify-btn');
+  if (!btn) return;
+  var emailVal = ((document.getElementById('ob-email') || {}).value || '').trim();
+  var ok = /^\S+@\S+\.\S+/.test(emailVal);
+  btn.disabled = !ok;
+  btn.style.opacity = ok ? '1' : '0.45';
+  btn.style.cursor = ok ? 'pointer' : 'default';
+}
 function sendVerificationCode() {
   var emailVal = (document.getElementById('ob-email') || {}).value || '';
   if (!/^\S+@\S+\.\S+/.test(emailVal)) {

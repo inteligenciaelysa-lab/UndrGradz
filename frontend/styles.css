@@ -6687,6 +6687,9 @@ html.light-secondary #ev-publish-btn {
 .dpill-row {
   display: flex;
   align-items: center;
+  /* Centrado como grupo: las pastillas y el botón de preferencias viajan
+     juntos en vez de quedar pegados a cada borde con un hueco en medio. */
+  justify-content: center;
   gap: 6px;
   padding: 10px var(--s) 12px;
   margin-bottom: 4px;
@@ -6697,7 +6700,10 @@ html.light-secondary #ev-publish-btn {
 .dpill-scroll {
   display: flex;
   gap: 6px;
-  flex: 1;
+  /* 0 1 auto, no `flex:1`: si las pastillas caben, el carril mide lo justo y
+     el grupo queda centrado; si no caben (español), se encoge hasta el ancho
+     disponible y entonces sí se desplaza. */
+  flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -7017,11 +7023,15 @@ html.light-secondary .jbtn {
   box-shadow:
     0 12px 28px -12px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  /* 0.34s con desaceleración: el colapso mueve el ancho del botón entero, y a
+     0.2s lineal se leía como un tirón. El ancho NO se anima aquí — se deja que
+     lo dicte el contenido (padding + la etiqueta), porque `width:auto` no es
+     interpolable y mezclarlo con el resto era justo lo que daba el salto. */
   transition:
     transform var(--dur-fast) ease,
     filter var(--dur-fast) ease,
-    padding var(--dur) var(--ease),
-    gap var(--dur) var(--ease);
+    padding 0.34s var(--ease-out),
+    gap 0.34s var(--ease-out);
 }
 .app-fab svg { width: 24px; height: 24px; flex-shrink: 0; }
 .chat-fab .fab-plus { flex-shrink: 0; line-height: 1; }
@@ -7032,21 +7042,30 @@ html.light-secondary .jbtn {
   letter-spacing: 0.2px;
   white-space: nowrap;
   /* max-width + opacity en vez de display:none: así el colapso se anima en
-     lugar de dar un salto. */
+     lugar de dar un salto. El texto se desliza hacia el icono mientras se va,
+     que es lo que hace que el gesto se lea como una sola pieza. */
   max-width: 140px;
   overflow: hidden;
-  transition: max-width var(--dur) var(--ease), opacity var(--dur-fast) var(--ease);
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    max-width 0.34s var(--ease-out),
+    opacity 0.16s var(--ease),
+    transform 0.34s var(--ease-out);
 }
+/* Sin `width:56px`: el círculo lo garantiza min-width, y así el ancho lo
+   siguen mandando el padding y la etiqueta, ambos animados. Fijarlo aquí
+   creaba dos fuentes de verdad y el botón daba un brinco al colapsar. */
 .chat-fab.fab-mini,
 .app-fab.fab-mini {
   padding: 0;
   gap: 0;
-  width: 56px;
 }
 .chat-fab.fab-mini .fab-lbl,
 .app-fab.fab-mini .fab-lbl {
   max-width: 0;
   opacity: 0;
+  transform: translateX(-8px);
 }
 @media (prefers-reduced-motion: reduce) {
   .chat-fab, .app-fab, .fab-lbl { transition: none; }
@@ -12431,4 +12450,41 @@ html .ob4-step.cur .ob4-lbl {
 }
 #prof-sub-hdr button:active {
   background: rgba(255, 255, 255, 0.16);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Subvistas de Profile a pantalla completa
+   Cada fila del perfil abre su panel con su propio título y flecha de volver,
+   así que la barra superior ("MI PERFIL" + campana + ajustes) se retira
+   mientras dure: repetía dónde estás justo encima de dónde estás.
+   La clase la ponen _profOpen/_profBack y la limpia sw() al cambiar de sección.
+   ═══════════════════════════════════════════════════════════════════════ */
+#app.prof-sub-open .topbar { display: none; }
+/* El .section reserva 52px arriba para la barra; sin ella ese hueco sobra. */
+#app.prof-sub-open #sec-profile { padding-top: calc(14px + env(safe-area-inset-top)); }
+
+/* Create Chat: el botón va en el rojo de marca, como los CONTINUE. Por id
+   porque .gbtn impone --grad-primary con !important y un estilo en línea sin
+   !important no lo puede ganar. */
+#ccf-create {
+  background: #dc2626 !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+
+/* El bloque de "respuesta táctil universal" (busca `fabIn`) redeclara
+   `transition` para .app-fab/.chat-fab y borraba las de padding y gap — el
+   botón se encogía de un salto en vez de deslizarse. Se reponen aquí junto a
+   las que aporta aquel bloque.
+   El selector lleva `button` delante a propósito: aquel bloque también incluye
+   `button[onclick]` (0,1,1), que le gana a un `.app-fab` pelado (0,1,0). Con
+   `button.app-fab` empatan y decide el orden, que aquí ya es el nuestro. */
+button.chat-fab,
+button.app-fab {
+  transition:
+    transform var(--dur-fast) var(--ease),
+    filter var(--dur-fast) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    padding 0.34s var(--ease-out),
+    gap 0.34s var(--ease-out);
 }
