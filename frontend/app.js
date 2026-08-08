@@ -12735,9 +12735,6 @@ function _setSentFilter(filter) {
 }
 
 function _setLikedSub(v){
-  // El re-render de abajo destruye el popover, así que el listener de
-  // click-fuera se queda sin nodo: se suelta aquí, incondicionalmente.
-  document.removeEventListener('click',_closeLikedSubMenu);
   window._likedSubTab=v;
   try {
     localStorage.setItem('ugz_last_liked_subtab',v);
@@ -12745,64 +12742,37 @@ function _setLikedSub(v){
   } catch(e) {}
   if(typeof _renderLikedYouReveal==='function')_renderLikedYouReveal(curPlan==='aplus');
 }
-function _toggleLikedSubMenu(e){
-  if(e&&e.stopPropagation)e.stopPropagation();
-  var p=document.getElementById('liked-sub-popover');if(!p)return;
-  var open=!p.classList.contains('open');
-  p.classList.toggle('open',open);
-  var trg=p.parentElement&&p.parentElement.querySelector('.dsub-trigger');
-  if(trg)trg.setAttribute('aria-expanded',open?'true':'false');
-  document.removeEventListener('click',_closeLikedSubMenu);
-  // El setTimeout es obligatorio: sin él, este mismo click burbujea hasta
-  // document y cierra el menú en el acto. Mismo guard que toggleEventDropdown.
-  if(open)setTimeout(function(){document.addEventListener('click',_closeLikedSubMenu);},0);
-}
-function _closeLikedSubMenu(){
-  // Null-safe a propósito: al elegir un item, _renderLikedYouReveal ya borró el
-  // popover antes de que el click llegue hasta document.
-  var p=document.getElementById('liked-sub-popover');
-  if(p){
-    p.classList.remove('open');
-    var trg=p.parentElement&&p.parentElement.querySelector('.dsub-trigger');
-    if(trg)trg.setAttribute('aria-expanded','false');
-  }
-  document.removeEventListener('click',_closeLikedSubMenu);
-}
+// Aquí vivían _toggleLikedSubMenu y _closeLikedSubMenu. Las tres opciones
+// volvieron a ser una fila de pastillas visibles, así que no hay popover que
+// abrir ni listener de click-fuera que soltar.
 function _likedSubRow(){
   var t=window._likedSubTab || localStorage.getItem('ugz_last_liked_subtab') || sessionStorage.getItem('ugz_last_liked_subtab') || 'foryou';
   if(t==='liked'||t==='admirers')t='saw'; // Admirers merged into Secret Admirers
   window._likedSubTab = t;
-  var heartSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart-icon lucide-heart" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg>';
   var hatGlassesSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-hat-glasses-icon lucide-hat-glasses" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M14 18a2 2 0 0 0-4 0"/><path d="m19 11-2.11-6.657a2 2 0 0 0-2.752-1.148l-1.276.61A2 2 0 0 1 12 4H8.5a2 2 0 0 0-1.925 1.456L5 11"/><path d="M2 11h20"/><circle cx="17" cy="18" r="3"/><circle cx="7" cy="18" r="3"/></svg>';
   var sendSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-icon lucide-send" style="display:inline-block;vertical-align:middle;margin-right:2px;"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"/><path d="m21.854 2.147-10.94 10.939"/></svg>';
 
   // Discover's three sub-tabs. 'foryou' is the old top-level For you tab folded
   // in here; it reuses the flame that tab carried.
   var flameSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-flame-icon lucide-flame"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/></svg>';
-  var chevSvg = '<svg class="dsub-chev" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+  var isEs = window.currentLang === 'es';
 
-  // Una sola fuente de verdad: el trigger saca su icono y su etiqueta de aquí,
-  // así que añadir un cuarto sub-tab es una línea y no duplica ningún SVG.
+  // Una sola fuente de verdad: añadir un cuarto sub-tab es una línea y no
+  // duplica ningún SVG.
   var SUBS = [
-    {id:'likes',  lbl:'Likes Sent', svg:sendSvg},
-    {id:'foryou', lbl:'For you',    svg:flameSvg},
-    {id:'saw',    lbl:'Admirers',   svg:hatGlassesSvg}
+    {id:'likes',  lbl:isEs?'Likes enviados':'Likes Sent', svg:sendSvg},
+    {id:'foryou', lbl:isEs?'Para ti':'For you',           svg:flameSvg},
+    {id:'saw',    lbl:isEs?'Admiradores':'Admirers',      svg:hatGlassesSvg}
   ];
-  var cur = SUBS.filter(function(s){return s.id===t;})[0] || SUBS[1];
 
-  // Menú desplegable en vez de tres pestañas: Campus ya tiene su propia barra
-  // arriba y dos filas de pestañas apiladas empujaban el contenido hacia abajo.
-  // El tono (naranja/lima/violeta) viaja en data-sub, así que el subrayado del
-  // trigger cambia de color solo, sin JS (ver .dsub-* en styles.css).
-  return '<div class="dsub-wrap">' +
-    '<button class="dsub-trigger" data-sub="'+cur.id+'" onclick="_toggleLikedSubMenu(event)" aria-haspopup="true" aria-expanded="false">' +
-      cur.svg + '<span>' + cur.lbl + '</span>' + chevSvg +
-    '</button>' +
-    '<div class="dsub-popover" id="liked-sub-popover" role="menu">' +
-      SUBS.map(function(s){
-        return '<div class="dsub-item' + (s.id===t?' on':'') + '" data-sub="'+s.id+'" role="menuitem" onclick="_setLikedSub(\''+s.id+'\')">' + s.svg + '<span>' + s.lbl + '</span></div>';
-      }).join('') +
-    '</div>' +
+  // Fila de pastillas, no desplegable: las tres opciones se ven de un vistazo y
+  // cambiar cuesta un toque en vez de dos. La activa se lee de window._likedSubTab,
+  // no del DOM — _renderLikedYouReveal rehace este HTML entero en cada render.
+  return '<div class="dpill-row">' +
+    SUBS.map(function(s){
+      return '<button type="button" class="dpill' + (s.id===t?' on':'') + '" data-sub="'+s.id+'" onclick="_setLikedSub(\''+s.id+'\')">' +
+        s.svg + '<span>' + s.lbl + '</span></button>';
+    }).join('') +
   '</div>';
 }
 
@@ -24251,7 +24221,7 @@ function applyCrushFilters(){
             '<div style="font-size:40px;margin-bottom:12px;">'+icon('search',16)+'</div>'+
             '<div style="font-size:var(--fs-md);font-weight:600;color:#fff;margin-bottom:6px;">'+((_uScope==='pick'&&_uPicks.length)?'No one from your chosen schools yet':'No matches for those filters')+'</div>'+
             '<div style="font-size:var(--fs-base);color:var(--fg2);margin-bottom:18px;">'+((_uScope==='pick'&&_uPicks.length)?'Try adding more schools or switch to Near me':'Try widening your age range or preferences')+'</div>'+
-            '<button class="gbtn-ghost" style="width:220px;margin:0 auto;display:block;" onclick="crushData=crushDataAll.slice();crushIdx=0;renderCrush();">Reset Filters</button>'+
+            '<button class="gbtn-ghost" id="crush-reset-filters-btn" style="width:220px;margin:0 auto;display:block;" onclick="crushData=crushDataAll.slice();crushIdx=0;renderCrush();">Reset Filters</button>'+
           '</div>';
       }
     }
@@ -25026,6 +24996,10 @@ async function handleCrushSearch(query) {
   if (sInput && !sInput.placeholder.includes(myUniAcronym)) {
     sInput.placeholder = 'Search students at ' + myUniAcronym + '...';
   }
+  // La etiqueta del Shuffle es estática en el HTML; aquí se traduce, que es el
+  // único sitio por el que pasa siempre al entrar a la pantalla.
+  const sLbl = document.getElementById('crush-search-shuffle-lbl');
+  if (sLbl) sLbl.textContent = (window.currentLang === 'es') ? 'Mezclar' : 'Shuffle';
 
   const q = (query || '').trim();
   if (!q) {

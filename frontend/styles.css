@@ -4108,7 +4108,10 @@ html.acc-white .nav-pill {
   position: absolute;
   height: 10px;
   border-radius:var(--rad-xs);
-  background: linear-gradient(90deg, var(--p), #e91e8c);
+  /* Rojo de marca. Era var(--p)→#e91e8c, lo último de esta pantalla que seguía
+     el color de la universidad. Ojo: #e91e8c sigue vivo en .gf (~1317), que es
+     la barra de proporción de género — otro componente, no se toca. */
+  background: #dc2626;
   
 }
 .age-slider-wrap input[type="range"] {
@@ -4130,10 +4133,10 @@ html.acc-white .nav-pill {
   height: 28px;
   border-radius: 50%;
   background: #fff;
-  border: 4px solid var(--p);
+  border: 4px solid #dc2626;
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.5),
-    0 0 0 4px rgba(233, 30, 140, 0.18);
+    0 0 0 4px rgba(220, 38, 38, 0.18);
   cursor: pointer;
   pointer-events: all;
   transition: transform var(--dur);
@@ -4143,10 +4146,10 @@ html.acc-white .nav-pill {
   height: 28px;
   border-radius: 50%;
   background: #fff;
-  border: 4px solid var(--p);
+  border: 4px solid #dc2626;
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.5),
-    0 0 0 4px rgba(233, 30, 140, 0.18);
+    0 0 0 4px rgba(220, 38, 38, 0.18);
   cursor: pointer;
   pointer-events: all;
 }
@@ -4154,13 +4157,15 @@ html.acc-white .nav-pill {
   transform: scale(1.18);
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.55),
-    0 0 0 6px rgba(233, 30, 140, 0.28);
+    0 0 0 6px rgba(220, 38, 38, 0.28);
 }
 .age-range-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, var(--p), #e91e8c);
+  /* El bloque de ~8160 ya lo pisa con #791515 sólido; se alinea igualmente para
+     que la capa base no sea la única que sigue diciendo magenta. */
+  background: #dc2626;
   color: #fff;
   font-size:var(--fs-xs);
   font-weight:700;
@@ -6607,18 +6612,11 @@ html.light-secondary #ev-publish-btn {
    One hue variable per tab collapses what used to be two duplicated .on blocks. */
 /* Azul, amarillo y rojo, en el orden en que salen en pantalla. Antes eran cian,
    rosa y naranja; el naranja sobre el relleno degradado salía marrón. */
-/* Un tono por sub-tab, compartido entre las tres formas en que aparece: la fila
-   de pestañas vieja, el trigger del desplegable (que lleva data-sub del actual,
-   por eso cambia de color sin JS) y cada item del menú. */
-.adm-sub-btn[data-sub="likes"],
-.dsub-trigger[data-sub="likes"],
-.dsub-item[data-sub="likes"]    { --sub-hue: var(--c-orange-deep); } /* Likes Sent */
-.adm-sub-btn[data-sub="foryou"],
-.dsub-trigger[data-sub="foryou"],
-.dsub-item[data-sub="foryou"]   { --sub-hue: var(--c-lime); }        /* For you    */
-.adm-sub-btn[data-sub="saw"],
-.dsub-trigger[data-sub="saw"],
-.dsub-item[data-sub="saw"]      { --sub-hue: var(--c-violet); }      /* Admirers   */
+/* Un tono por sub-tab. Los selectores .dsub-* se quitaron con el desplegable:
+   las pastillas que lo sustituyen usan el rojo de marca, no un tono por opción. */
+.adm-sub-btn[data-sub="likes"]  { --sub-hue: var(--c-orange-deep); } /* Likes Sent */
+.adm-sub-btn[data-sub="foryou"] { --sub-hue: var(--c-lime); }        /* For you    */
+.adm-sub-btn[data-sub="saw"]    { --sub-hue: var(--c-violet); }      /* Admirers   */
 /* Tab 2 (Admirers) was merged into Secret Admirers; its rules are gone. */
 
 /* Subrayado, no pastilla. El relleno degradado del tono hacia negro ensuciaba el
@@ -6679,110 +6677,58 @@ html.light-secondary #ev-publish-btn {
 /* The per-hue `.on svg` override is gone: it painted the icon in the same colour
    as the selected tab's fill. Icons now inherit currentColor (see above). */
 
-/* ── Discover: desplegable en vez de fila de sub-pestañas ──
-   Campus ya trae su propia barra (Crush · Discover) arriba; una segunda fila de
-   pestañas debajo empujaba el contenido y repetía el mismo gesto dos veces. El
-   trigger conserva el subrayado de tono de .adm-sub-btn para que el lenguaje
-   visual siga siendo el mismo; el menú reusa el patrón de .mk-action-popover
-   (toggle por clase .open, sin posicionado en JS) pero anclado a la izquierda. */
-.dsub-wrap {
-  /* Ancla el popover absoluto. */
-  position: relative;
-  /* Mismo padding que la fila que sustituye, para no mover el ritmo vertical. */
+/* ── Discover: fila de pastillas ──
+   Volvieron a ser tres botones visibles en vez de un desplegable: las opciones
+   se ven de un vistazo y cambiar cuesta un toque en lugar de dos.
+   Clase propia y no una existente: .nfchip, .evsec-chip, .ob4-catchip y
+   .adm-sub-btn fueron convertidas a subrayado por bloques posteriores de este
+   mismo archivo (.adm-sub-btn lleva el comentario que lo documenta), y .yr-chip
+   fuerza su relleno con !important y la usa media app. */
+.dpill-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
   padding: 10px var(--s) 12px;
   margin-bottom: 4px;
 }
-.dsub-trigger {
-  --sub-hue: var(--c-blue);
-  position: relative;
-  /* Ocupa la fila entera para que el subrayado sea largo: el ::after es
-     left:0/right:0 sobre el botón, así que se ensancha con él. Las barras
-     vecinas (.crush-tab, .adm-sub-btn) se ven largas porque su padre flex las
-     estira; este trigger no tiene quien lo estire, de ahí el width explícito
-     (button conserva sizing shrink-to-fit a nivel UA aunque sea block). */
-  display: flex;
-  width: 100%;
+.dpill {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  /* hueco abajo para la línea, igual que .adm-sub-btn */
-  padding: 9px 4px 11px;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: var(--rad-pill);
   background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  cursor: pointer;
+  border: 1px solid var(--gbdl);
+  color: rgba(255, 255, 255, 0.62);
   font-family: var(--font);
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: #fff;
-}
-.dsub-trigger::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--sub-hue);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--sub-hue) 65%, transparent);
-  pointer-events: none;
-}
-.dsub-chev {
-  /* Al borde derecho. auto-margin y no justify-content:space-between en el
-     trigger: son tres hijos (icono, etiqueta, chevron) y space-between también
-     separaría el icono de la etiqueta, rompiendo el gap de 8px del par. */
-  margin-left: auto;
-  transition: transform var(--dur) var(--ease);
-}
-.dsub-trigger[aria-expanded="true"] .dsub-chev {
-  transform: rotate(180deg);
-}
-.dsub-popover {
-  position: absolute;
-  left: var(--s);
-  top: calc(100% - 4px);
-  z-index: 100;
-  background: rgba(18, 12, 35, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--rad-md);
-  padding: 6px;
-  min-width: 190px;
-  box-shadow: var(--el-3);
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-}
-.dsub-popover.open {
-  display: flex;
-}
-.dsub-item {
-  --sub-hue: var(--c-blue);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--rad-sm);
-  /* Apilados en vertical el tono va en un riel a la izquierda: un subrayado
-     debajo de cada fila se leería como separador, no como color de la opción. */
-  border-left: 3px solid var(--sub-hue);
   cursor: pointer;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+  white-space: nowrap;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+              border-color var(--dur) var(--ease);
 }
-.dsub-item.on {
+.dpill.on {
+  background: #dc2626;
+  border-color: #dc2626;
   color: #fff;
-  background: color-mix(in srgb, var(--sub-hue) 16%, transparent);
+  font-weight: 700;
 }
-.dsub-item:hover {
-  background: color-mix(in srgb, var(--sub-hue) 22%, transparent);
-}
-/* Misma decisión que en .adm-sub-btn: el icono hereda currentColor, no el tono. */
-.dsub-trigger svg,
-.dsub-item svg {
-  color: currentColor;
+.dpill:active { transform: scale(0.97); }
+.dpill svg { color: currentColor; }
+/* Hueco para un contador dentro de la pastilla; todavía no se emite ninguno. */
+.dpill .dpill-n {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--rad-pill);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Discover tabs sub-tabs SVGs explicitly styled for visibility */
@@ -7941,26 +7887,47 @@ body.is-ios .screen::before {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* ════════════════════ CAMPUS SEARCH NEON REDESIGN ════════════════════ */
+/* ════════════════════ CAMPUS SEARCH ════════════════════ */
 #crush-search-input {
   width: 100% !important;
-  /* Gradient BORDER in the university colours over a primary-tinted fill. */
-  background: linear-gradient(color-mix(in srgb, var(--p) 22%, #0a0713), color-mix(in srgb, var(--p) 22%, #0a0713)) padding-box,
-              linear-gradient(135deg, var(--p), var(--p2)) border-box !important;
-  border: 1.5px solid transparent !important;
-  border-radius:var(--rad-xl) !important;
+  /* Campo oscuro y liso. Llevaba un borde degradado con los colores de la
+     universidad sobre un relleno teñido de --p; era el último sitio de esta
+     pantalla que cambiaba de color según la escuela. El padding-left de 44px se
+     conserva: es el hueco del #crush-search-ico. */
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--gbdl) !important;
+  border-radius:var(--rad-pill) !important;
   padding: 12px 18px 12px 44px !important;
   color: #ffffff !important;
   font-family: var(--font) !important;
   font-size:var(--fs-base) !important;
   font-weight:500 !important;
   outline: none !important;
-  transition: box-shadow var(--dur) ease !important;
+  transition: border-color var(--dur) ease !important;
 }
 
 #crush-search-input:focus {
-  box-shadow: 0 0 14px color-mix(in srgb, var(--p) 45%, transparent) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
 }
+
+/* Shuffle: icono + palabra, sin caja. Antes era un botón dorado absoluto DENTRO
+   del campo, que obligaba al input a reservar 116px de padding a la derecha. */
+#crush-search-shuffle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 4px;
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+#crush-search-shuffle:active { transform: scale(0.96); }
 
 .search-student-card {
   margin: 0 !important;
@@ -8117,14 +8084,19 @@ body.is-ios .screen::before {
   border-color: color-mix(in srgb, var(--prof-accent, #3d7bff) 50%, transparent) !important;
   
 }
+/* Gris tenue, no el acento de la pestaña. Se edita aquí y NO en PROF_TAB_ACCENT
+   (app.js), porque esa variable tiñe también #prof-tabs y las tarjetas de My
+   Card: cambiarla movería tres pantallas para arreglar una. Cada tarjeta ya se
+   identifica por el color de su subrayado (--grp-hue), que se queda como está. */
 #sec-profile .love-filter-section {
-  border-color: color-mix(in srgb, var(--prof-accent, #3d7bff) 45%, transparent) !important;
-  
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .love-filter-section {
   background: rgba(22, 14, 42, 0.75) !important;
-  border: 1.5px solid rgba(61, 123, 255, 0.45) !important;
+  /* El color va también aquí: esta regla declara el `border` completo, así que
+     si algún día desaparece la de arriba el azul volvería por el shorthand. */
+  border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
   border-radius:var(--rad-xl) !important;
   
   padding: 18px 16px !important;
@@ -8158,8 +8130,8 @@ body.is-ios .screen::before {
 }
 
 .age-range-pill {
-  background: linear-gradient(135deg, #791515, #791515) !important;
-  
+  background: #dc2626 !important;
+  background-image: none !important;
   color: #ffffff !important;
   font-weight:700 !important;
   padding: 2px 10px !important;
@@ -11078,9 +11050,7 @@ html.theme-uni #app {
 html.theme-uni .neon-card,
 html.theme-uni .crush-tab,
 html.theme-uni .prof-tab,
-html.theme-uni .adm-sub-btn,
-html.theme-uni .dsub-trigger,
-html.theme-uni .dsub-item {
+html.theme-uni .adm-sub-btn {
   --neon: var(--uni-neon) !important;
   --tab-hue: var(--uni-neon) !important;
   --sub-hue: var(--uni-neon) !important;
@@ -12313,4 +12283,29 @@ html .ob4-line.on {
 /* La regla de ~8269 no lleva !important, así que basta con ser posterior. */
 html .ob4-step.cur .ob4-lbl {
   text-shadow: 0 0 8px #dc2626;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MATCH FILTERS: los dos botones en rojo de marca
+   ══════════════════════════════════════════════════════════════════════════
+   Los dos son .gbtn / .gbtn-ghost, las clases de botón de TODA la app: el
+   degradado naranja→vino sale de --grad-primary en un selector agrupado (~7146)
+   que además incluye .jbtn .pbtn .abtn .ob4-cta .sbtn y rellena las barras de
+   progreso. Por eso el color va por id y no por clase.
+
+   El :disabled NO se toca: "Apply Filters" nace apagado y solo se enciende al
+   tocar un filtro (_setFiltersDirty), que es la señal de que hay algo que
+   aplicar. Su texto se ve gris por el opacity:0.45, no por el color. */
+#crush-apply-filters-btn {
+  background: #dc2626 !important;
+  background-image: none !important;
+}
+/* El botón del estado "no hay resultados" del swipe: es el único Reset Filters
+   que existe. Lleva id propio porque .gbtn-ghost lo usa media app. */
+#crush-reset-filters-btn {
+  background: #dc2626 !important;
+  background-image: none !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 700 !important;
 }
