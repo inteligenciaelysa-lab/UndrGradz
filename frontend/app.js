@@ -3037,7 +3037,6 @@ function _ob4P1(){
   var emailHelp = window.currentLang==='es'?
     'Usa tu correo escolar para verificar tu cuenta.':
     'Use your school email to verify your account.';
-  var lblPhoneOpt = window.currentLang==='es'?'(opcional)':'(optional)';
   var refToggleText = window.currentLang==='es'?'¿Tienes un código de invitación?':'Have a referral code?';
   // Icono dentro del input: mismo patrón que los socials del paso 2 — wrapper
   // relativo, glifo absoluto a la izquierda y padding-left en el .gi.
@@ -3092,8 +3091,11 @@ function _ob4P1(){
    // código se pide en un modal (_ob4OpenVerifyModal), que es lo que hace que
    // no se pueda saltar el paso.
 
-   '<div id="udet" style="display:none;align-items:center;gap:9px;margin-top:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.35);border-radius:var(--rad-sm);padding:10px 12px;"><span style="color:#4ade80;font-size:var(--fs-md);">✓</span><div style="flex:1;min-width:0;"><div id="un-lbl" class="t-sub-strong"></div><div id="uc-lbl" style="font-size:var(--fs-sm);font-weight:500;color:#4ade80;"></div></div><span id="ud" style="display:none;"></span></div>'+
-    '<div id="tec-campus-row" style="display:none;margin-top:10px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!=\'undefined\'){userPro.campus=this.value;}if(typeof suData!=\'undefined\'){suData.campus=this.value;}"></select></div>'+
+   // Aquí iba la caja verde de "University detected", que repetía el nombre de
+   // la escuela dos veces. detectUni() escribe en #udet/#un-lbl/#uc-lbl con
+   // guardas, así que sigue funcionando sin ellos; lo que desbloquea Continue
+   // es la variable `uni`, no el cartel.
+   '<div id="tec-campus-row" style="display:none;margin-top:10px;"><label id="ob-campus-label" style="font-size:var(--fs-sm);font-weight:600;color:var(--fg2);display:block;margin-bottom:5px;">🏛️ Your campus</label><select class="gi" id="ob-campus" onchange="if(typeof userPro!=\'undefined\'){userPro.campus=this.value;}if(typeof suData!=\'undefined\'){suData.campus=this.value;}"></select></div>'+
    '<div style="text-align:center;font-size:var(--fs-xs);color:var(--fg2);margin-top:8px;line-height:1.5;">'+notFoundText+'</div>');
 
   // ── Contraseña. El ojo pierde su caja de 46px con borde y queda suelto. ──
@@ -3109,10 +3111,10 @@ function _ob4P1(){
      '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:var(--fs-2xs);color:var(--fg3);font-weight:500;"><span data-rule="len">8+ chars</span><span data-rule="case">aA</span><span data-rule="num">123</span><span data-rule="spec">#!?</span></div>'+
    '</div>');
 
-  // ── Teléfono, ahora opcional. El prefijo se muestra junto a la bandera y ya
+  // ── Teléfono, obligatorio. El prefijo se muestra junto a la bandera y ya
   //    no vive dentro del value (ver formatPhoneNumber / selectPhoneCountry). ──
   parts.push(
-   '<div class="ob4-flabel" data-hue="#22d3ee">'+lblPhone+' <span style="opacity:0.55;font-weight:600;">'+lblPhoneOpt+'</span></div>'+
+   '<div class="ob4-flabel" data-hue="#22d3ee">'+lblPhone+'</div>'+
    '<div style="display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1.5px solid var(--gbdl);border-radius:var(--rx);height:44px;position:relative;" id="ob-phone-container">'+
      '<div onclick="togglePhoneCodeDropdown(event)" id="ob-phone-flag-trigger" style="display:flex;align-items:center;gap:6px;padding:0 10px;cursor:pointer;border-right:1px solid rgba(255,255,255,0.12);height:100%;user-select:none;">'+
        '<img id="selected-flag-img" src="https://flagcdn.com/w40/'+(_ob4State.phoneCode==='+52'?'mx':_ob4State.phoneCode==='+1'&&_ob4State.country==='ca'?'ca':'us')+'.png" style="width:22px;height:15px;object-fit:cover;border-radius:2px;"/>'+
@@ -3197,10 +3199,10 @@ function _ob4Next1(){
   var phone = ((document.getElementById('ob-phone') || {}).value || '').trim();
   var refCodeVal = ((document.getElementById('ob-refcode') || {}).value || '').trim();
   _ob4State.referralCode = refCodeVal.toUpperCase();
-  // Opcional: vacío pasa, a medio llenar no. El prefijo ya no vive en el value,
-  // así que basta con contar dígitos.
+  // Obligatorio. El prefijo ya no vive en el value, así que basta con contar
+  // dígitos.
   var phoneDigits = phone.replace(/[^\d]/g, '');
-  if(phoneDigits.length && phoneDigits.length !== 10) return _ob4Err1('ob-phone', window.currentLang==='es'?'Escribe un teléfono de 10 dígitos o déjalo vacío.':'Enter a valid 10-digit phone number, or leave it empty.');
+  if(phoneDigits.length !== 10) return _ob4Err1('ob-phone', window.currentLang==='es'?'Escribe tu teléfono de 10 dígitos.':'Enter your 10-digit phone number.');
 
   if(typeof detectUni==='function')detectUni(_ob4State.email);
   _ob4Go(2);
@@ -3310,9 +3312,11 @@ function _ob4P2(){
     // pregunta y apilados se comían media pantalla. Cada uno en su columna, así
     // que la etiqueta sigue siendo el hermano anterior de su select y
     // _ob4PaintLabels le sigue pintando el subrayado.
+    // Semestre primero, año después: se elige en ese orden al hablarlo
+    // ("me gradúo en otoño del 27").
     '<div class="g2">'+
-      '<div><div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select></div>'+
       '<div><div class="ob4-flabel">'+lblGradSem+'</div><select class="gi" id="ob4-gradsem" onchange="_ob4State.gradSemester=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gradSemOpt+'</select></div>'+
+      '<div><div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select></div>'+
     '</div>';
 
   var living = window.currentLang==='es'?
@@ -5851,9 +5855,35 @@ function _syncFabs(screen){
   }
   var cf=document.querySelector('.chat-fab');
   if(cf)cf.style.display=(appOn&&screen==='chats')?'':'none';
+  // Cambiar de pantalla es un reposo: el FAB vuelve a mostrar su etiqueta.
+  _fabExpand();
+}
+// ── FAB: extendido en reposo, círculo mientras se hace scroll ──────────────
+// El pulgar tapa el botón justo cuando estás recorriendo la lista, así que ahí
+// se encoge a icono; al parar recupera el texto y vuelve a decir qué hace.
+var _fabIdleTimer=null;
+function _fabEls(){
+  return [document.getElementById('hangouts-fab'),document.querySelector('.chat-fab')].filter(Boolean);
+}
+function _fabExpand(){
+  if(_fabIdleTimer){clearTimeout(_fabIdleTimer);_fabIdleTimer=null;}
+  _fabEls().forEach(function(f){f.classList.remove('fab-mini');});
+}
+function _fabCollapse(){
+  _fabEls().forEach(function(f){f.classList.add('fab-mini');});
+  if(_fabIdleTimer)clearTimeout(_fabIdleTimer);
+  // 550 ms sin mover: suficiente para no parpadear entre golpes de dedo en un
+  // scroll largo, poco para que la etiqueta se sienta lenta al parar.
+  _fabIdleTimer=setTimeout(_fabExpand,550);
+}
+function _initFabScrollCollapse(){
+  var scr=document.getElementById('app-scroll');if(!scr||scr.dataset.fabScroll)return;
+  scr.dataset.fabScroll='1';
+  scr.addEventListener('scroll',_fabCollapse,{passive:true});
 }
 document.addEventListener('DOMContentLoaded',function(){
   _detachFabs();
+  _initFabScrollCollapse();
   try{_syncFabs(sessionStorage.getItem('ugz_last_screen')||'hangouts');}catch(e){_syncFabs('hangouts');}
 });
 
@@ -5961,16 +5991,9 @@ function _profileLikeBoost(pct){
 function _renderCompleteness(){
   var c=_profileCompleteness();
   var isEs=window.currentLang==='es';
-
-  // El % y su barra también viven en la tarjeta de identidad de arriba.
-  var head=document.getElementById('prof-headpct');
-  if(head&&typeof userPro!=='undefined'&&userPro){
-    head.innerHTML='<div style="font-size:var(--fs-xs);font-weight:800;color:#dc2626;margin-bottom:4px;">'+c.pct+'% '+(isEs?'completo':'Complete')+'</div>'+
-      '<div style="height:6px;border-radius:var(--rad-xs);background:rgba(255,255,255,0.09);overflow:hidden;">'+
-        '<div style="height:100%;width:'+c.pct+'%;background:#dc2626;border-radius:var(--rad-xs);"></div>'+
-      '</div>';
-  }
-
+  // El porcentaje vive en un solo sitio: esta tarjeta. La tarjeta de identidad
+  // llevaba el mismo dato en barra y decía dos veces lo mismo a dos dedos de
+  // distancia.
   var el=document.getElementById('prof-completeness');if(!el||typeof userPro==='undefined'||!userPro)return;
   if(c.pct>=100){el.style.display='none';return;}
   var tip=!(userPro.bio&&userPro.bio.trim())?(isEs?'Añade una bio':'Add a bio'):((!userPro.prompts||!userPro.prompts.length)?(isEs?'Añade un prompt':'Add a prompt'):((!userPro.interests||userPro.interests.length<3)?(isEs?'Añade intereses':'Add interests'):(isEs?'Completa tu vibe':'Complete your vibe')));
@@ -12840,11 +12863,24 @@ function _likedSubRow(){
   // Fila de pastillas, no desplegable: las tres opciones se ven de un vistazo y
   // cambiar cuesta un toque en vez de dos. La activa se lee de window._likedSubTab,
   // no del DOM — _renderLikedYouReveal rehace este HTML entero en cada render.
+  // El hueco que sobraba a la derecha de las pastillas se lo lleva el acceso a
+  // Dating Preferences: es el ajuste que decide a quién ves en estas tres
+  // listas, así que vive junto a ellas en vez de a tres toques dentro de Profile.
+  var slidersSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal"><path d="M10 5H3"/><path d="M12 19H3"/><path d="M14 3v4"/><path d="M16 17v4"/><path d="M21 12h-9"/><path d="M21 19h-5"/><path d="M21 5h-7"/><path d="M8 10v4"/><path d="M8 12H3"/></svg>';
+  var prefsLbl = isEs ? 'Preferencias' : 'Dating Preferences';
+
+  // Las tres pastillas viven en su propio carril desplazable y el botón de
+  // preferencias queda fuera, fijo a la derecha: en español las etiquetas son
+  // más largas ("Likes enviados", "Admiradores") y con una sola fila envolvente
+  // el botón se caía al segundo renglón.
   return '<div class="dpill-row">' +
-    SUBS.map(function(s){
-      return '<button type="button" class="dpill' + (s.id===t?' on':'') + '" data-sub="'+s.id+'" onclick="_setLikedSub(\''+s.id+'\')">' +
-        s.svg + '<span>' + s.lbl + '</span></button>';
-    }).join('') +
+    '<div class="dpill-scroll">' +
+      SUBS.map(function(s){
+        return '<button type="button" class="dpill' + (s.id===t?' on':'') + '" data-sub="'+s.id+'" onclick="_setLikedSub(\''+s.id+'\')">' +
+          s.svg + '<span>' + s.lbl + '</span></button>';
+      }).join('') +
+    '</div>' +
+    '<button type="button" class="dpill dpill-ico" id="dpill-prefs" title="'+prefsLbl+'" aria-label="'+prefsLbl+'" onclick="openMatchFilters()">' + slidersSvg + '</button>' +
   '</div>';
 }
 
@@ -25700,9 +25736,9 @@ function _ob4ValidateAll() {
   var passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/;
   var passOk = passRegex.test(pass);
   
-  // El teléfono es opcional: vacío no bloquea, a medio llenar sí.
+  // El teléfono es obligatorio: 10 dígitos exactos, ni vacío ni a medias.
   var phoneDigits = phone.replace(/[^\d]/g, '');
-  var phoneOk = phoneDigits.length === 0 || phoneDigits.length === 10;
+  var phoneOk = phoneDigits.length === 10;
 
   var allOk = fnOk && lnOk && usernameOk && ageOk && emailOk && uniOk && emailVerifiedOk && passOk && phoneOk;
   btn.disabled = !allOk;

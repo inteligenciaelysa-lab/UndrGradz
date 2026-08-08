@@ -123,8 +123,7 @@
 
   <div class="auth-container-wrap">
     <div class="auth-logo-text"><span class="logo-undr">UNDR</span><span class="logo-gradz">GRADZ</span></div>
-    <div class="auth-subtitle">The real college experience</div>
-    
+
     <!-- Main Card -->
     <div class="auth-main-card">
       <!-- Tabs -->
@@ -214,8 +213,12 @@
 
     <!-- HANGOUTS -->
     <div class="section active" id="sec-hangouts">
+      <!-- FAB extendido en reposo, círculo mientras se hace scroll (ver .fab-mini
+           y _initFabScrollCollapse). El texto va en .fab-lbl para que colapsar
+           sea solo una clase. -->
       <button class="app-fab" id="hangouts-fab" onclick="toggleEventDropdown(event)" title="Event options" aria-label="Event options">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-fading-plus"><path d="M12 2a10 10 0 0 1 7.38 16.75"/><path d="M12 8v8"/><path d="M16 12H8"/><path d="M2.5 8.875a10 10 0 0 0-.5 3"/><path d="M2.83 16a10 10 0 0 0 2.43 3.4"/><path d="M4.636 5.235a10 10 0 0 1 .891-.857"/><path d="M8.644 21.42a10 10 0 0 0 7.631-.38"/></svg>
+        <span class="fab-lbl" id="hangouts-fab-lbl">Hangout</span>
       </button>
       <div class="ev-panel active" id="evp-nearby">
         <div style="padding:6px var(--s) 4px;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;" id="ev-section-row">
@@ -531,7 +534,7 @@
     </div>
 
     <!-- CHATS -->
-    <div class="section" id="sec-chats"><button class="chat-fab" onclick="_openChatCreateMenu()" title="New chat" aria-label="New chat">+</button>
+    <div class="section" id="sec-chats"><button class="chat-fab" id="chats-fab" onclick="_openChatCreateMenu()" title="New chat" aria-label="New chat"><span class="fab-plus">+</span><span class="fab-lbl" id="chats-fab-lbl">Chats</span></button>
       
       <!-- User search -->
       <div style="padding:0 var(--s) 6px;position:relative;">
@@ -812,8 +815,7 @@
           </div>
           <div style="flex:1;min-width:0;">
             <div style="display:flex;align-items:center;gap:6px;"><div id="prof-name-el" style="font-size:var(--fs-lg);font-weight:900;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div><div class="vbadge" id="vbadge" style="display:none;position:static;flex-shrink:0;"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div></div>
-            <div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:1px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><span id="prof-handle-big">@user</span> · <span id="prof-uni-nm">University</span></div>
-            <div id="prof-headpct" style="margin-top:7px;"></div>
+            <div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:2px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><span id="prof-handle-big">@user</span> · <span id="prof-uni-nm">University</span></div>
           </div>
           <span class="pf-chev">›</span>
           <div id="prof-status-el" style="display:none;"></div>

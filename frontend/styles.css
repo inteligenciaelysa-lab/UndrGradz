@@ -6686,16 +6686,32 @@ html.light-secondary #ev-publish-btn {
    fuerza su relleno con !important y la usa media app. */
 .dpill-row {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
   padding: 10px var(--s) 12px;
   margin-bottom: 4px;
 }
+/* Carril de las tres pastillas. Si no caben (español, o un cuarto sub-tab)
+   se desplazan en horizontal en vez de partir la fila y empujar el botón de
+   preferencias abajo. */
+.dpill-scroll {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.dpill-scroll::-webkit-scrollbar { display: none; }
+/* Sin esto las pastillas se comprimen (flex-shrink por defecto) y el carril
+   nunca llega a desplazarse: en español los iconos salían recortados. */
+.dpill-scroll > .dpill { flex-shrink: 0; }
 .dpill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 14px;
+  padding: 9px 11px;
   border-radius: var(--rad-pill);
   background: transparent;
   border: 1px solid var(--gbdl);
@@ -6716,6 +6732,13 @@ html.light-secondary #ev-publish-btn {
 }
 .dpill:active { transform: scale(0.97); }
 .dpill svg { color: currentColor; }
+/* Acceso a Dating Preferences: cuadrado y anclado al borde derecho, fuera del
+   carril desplazable para que no se pueda perder de vista. */
+.dpill-ico {
+  flex-shrink: 0;
+  padding: 8px;
+  color: rgba(255, 255, 255, 0.78);
+}
 /* Hueco para un contador dentro de la pastilla; todavía no se emite ninguno. */
 .dpill .dpill-n {
   min-width: 18px;
@@ -6967,10 +6990,14 @@ html.light-secondary .jbtn {
   right: 18px;
   bottom: calc(104px + env(safe-area-inset-bottom)); /* separado del nav (antes pegado) */
   z-index: 120;
-  width: 56px;
   height: 56px;
-  border-radius: 50%;
-  font-size:var(--fs-2xl);
+  /* En reposo es una píldora con texto; .fab-mini lo devuelve al círculo de
+     56×56 mientras se hace scroll. El ancho no se fija aquí: lo dicta el
+     contenido, y min-width garantiza el círculo cuando el texto se va. */
+  min-width: 56px;
+  padding: 0 20px 0 17px;
+  border-radius: 28px;
+  font-size: var(--fs-2xl);
   font-weight: 400;
   line-height: 1;
   color: #fff;
@@ -6978,11 +7005,12 @@ html.light-secondary .jbtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  background: color-mix(in srgb, var(--p) 28%, transparent);
+  gap: 9px;
+  /* Relleno sólido, no traslúcido: el botón es la acción principal de la
+     pantalla y el cristal lo dejaba a medio camino del fondo. Sin
+     backdrop-filter, que ya no tiene nada que difuminar. */
+  background: var(--p);
   border: 1.5px solid var(--p);
-  -webkit-backdrop-filter: blur(14px) saturate(150%);
-  backdrop-filter: blur(14px) saturate(150%);
   /* Sin halo: iba una capa `0 0 12px -2px var(--p2)` que pintaba un aro rojo
      alrededor del botón. Quedan la sombra de elevación y el brillo interior;
      el borde y el relleno (var(--p), arriba) no se tocan. */
@@ -6991,9 +7019,38 @@ html.light-secondary .jbtn {
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transition:
     transform var(--dur-fast) ease,
-    filter var(--dur-fast) ease;
+    filter var(--dur-fast) ease,
+    padding var(--dur) var(--ease),
+    gap var(--dur) var(--ease);
 }
-.app-fab svg { width: 24px; height: 24px; }
+.app-fab svg { width: 24px; height: 24px; flex-shrink: 0; }
+.chat-fab .fab-plus { flex-shrink: 0; line-height: 1; }
+.fab-lbl {
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  /* max-width + opacity en vez de display:none: así el colapso se anima en
+     lugar de dar un salto. */
+  max-width: 140px;
+  overflow: hidden;
+  transition: max-width var(--dur) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+.chat-fab.fab-mini,
+.app-fab.fab-mini {
+  padding: 0;
+  gap: 0;
+  width: 56px;
+}
+.chat-fab.fab-mini .fab-lbl,
+.app-fab.fab-mini .fab-lbl {
+  max-width: 0;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-fab, .app-fab, .fab-lbl { transition: none; }
+}
 .chat-fab:active,
 .app-fab:active {
   transform: translateY(1px) scale(0.96);
@@ -11729,11 +11786,14 @@ body.is-ios #notif-modal .mhnd {
    GRADZ. Los !important son necesarios: las reglas viejas los usaban. */
 .auth-logo-text {
   font-family: var(--font-display) !important;
-  font-size: 37px !important;
+  /* 37 → 28: sin el subtítulo debajo, el wordmark ya no tiene que sostener el
+     bloque él solo y a 37px empujaba la tarjeta fuera de la primera pantalla. */
+  font-size: 28px !important;
   font-weight: 400 !important;
   letter-spacing: 0.02em !important;
   line-height: 1.5 !important;
   gap: 0 !important; /* UNDRGRADZ pegado, como el logo */
+  margin-bottom: 22px !important; /* lo que aportaba .auth-subtitle, ya retirado */
 }
 .auth-logo-text .logo-undr {
   text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.85), 3px 4px 10px rgba(0, 0, 0, 0.5) !important;
