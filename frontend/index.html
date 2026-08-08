@@ -207,7 +207,7 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <button class="tbi" id="tb-notif" onclick="openNotifications()" style="position:relative;font-size:var(--fs-md);display:flex;align-items:center;justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg><span id="notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:var(--rad-xs);background:#e91e63;border:1.5px solid #120a23;font-size:var(--fs-2xs);font-weight:700;color:#fff;align-items:center;justify-content:center;padding:0 4px;line-height:1;"></span></button>
-        <div class="tbi" onclick="openSettings()" style="cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="tbi" id="tb-settings" onclick="openSettings()" style="display:none;cursor:pointer;align-items:center;justify-content:center;"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg></div>
       </div>
     </div>
 
@@ -257,7 +257,11 @@
           </div>
         </div>
         <div style="padding:6px var(--s) 8px;display:flex;align-items:center;gap:8px;">
-          <select class="gi ev-ctrl-sel" id="ev-filter-sel" onchange="renderHangouts()" data-tfmark="1" style="flex:1 1 auto;">
+          <!-- El <select> se queda pero oculto: es la fuente de verdad que leen
+               renderHangouts() y el traductor de idioma. Lo visible es el botón
+               de abajo, que abre una hoja inferior — el desplegable nativo lo
+               pinta el sistema (azul, tipografía ajena) y el CSS no lo alcanza. -->
+          <select class="gi ev-ctrl-sel" id="ev-filter-sel" onchange="renderHangouts()" data-tfmark="1" style="display:none;">
             <option value="compat">Most compatible with you</option>
             <option value="trending">Top trending</option>
             <option value="newest">Newest</option>
@@ -265,6 +269,10 @@
             <option value="soon">Happening soon</option>
             <option value="near">Nearby</option>
           </select>
+          <button type="button" id="ev-sort-trigger" data-sort="compat" onclick="_openEvSortSheet()">
+            <span id="ev-sort-lbl">Most compatible with you</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
         </div>
         <div id="trending-events"></div>
         

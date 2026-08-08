@@ -12488,3 +12488,178 @@ button.app-fab {
     padding 0.34s var(--ease-out),
     gap 0.34s var(--ease-out);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BARRIDO DE MARCA · pestañas, pastillas, cabecera, FAB y nav inferior
+   Todo este bloque va al final a propósito: casi cada pieza que toca ya
+   estaba declarada con !important más arriba, y el desempate es el orden.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Botón rojo reutilizable ──
+   .gbtn impone --grad-primary con !important, así que un estilo en línea no
+   puede ganarle. Esta clase es el escape ordenado a seguir creando reglas por
+   id cada vez que un botón tiene que ir en el rojo de los CONTINUE. */
+.gbtn.gbtn-brand,
+button.gbtn.gbtn-brand {
+  background: #dc2626 !important;
+  background-image: none !important;
+  color: #fff !important;
+}
+
+/* ── Campus: Crush · Discover ──
+   Eran dos subrayados de 3px, uno rosa y otro naranja, encendidos los dos a la
+   vez: el color no distinguía nada porque ambos estaban puestos. Ahora hay UNA
+   línea continua y fina que cruza la fila entera, y solo el trozo de la
+   pestaña activa se enciende. */
+#discover-tabs { position: relative; }
+#discover-tabs::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.13);
+  pointer-events: none;
+}
+/* Sin hueco lateral: los `left/right: 8px` de la regla compartida partían la
+   línea en dos trozos con un salto en medio. */
+#discover-tabs .crush-tab::after {
+  left: 0 !important;
+  right: 0 !important;
+  height: 1.5px !important;
+  border-radius: 0 !important;
+  opacity: 0 !important;
+  z-index: 1;
+}
+#discover-tabs .crush-tab.active::after {
+  opacity: 1 !important;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--tab-hue, #dc2626) 70%, transparent) !important;
+}
+
+/* ── Discover: las tres opciones sin cápsula ──
+   Sin borde ni relleno; lo seleccionado se marca solo con el rojo del texto.
+   El botón de preferencias conserva su contorno: es una acción, no una de las
+   tres opciones, y sin caja se perdería. */
+.dpill-scroll > .dpill {
+  background: transparent;
+  border-color: transparent;
+  padding: 9px 8px;
+}
+.dpill-scroll > .dpill.on {
+  background: transparent;
+  border-color: transparent;
+  color: #dc2626;
+  font-weight: 800;
+}
+
+/* ── Cabecera negra y quieta ──
+   Era transparente, así que el contenido pasaba por debajo al hacer scroll y
+   los iconos se leían sobre cualquier cosa. position:fixed ya la mantenía
+   arriba; lo que faltaba era el fondo. */
+.topbar {
+  background: #000 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+}
+
+/* ── El FAB, siempre en el rojo de marca ──
+   Seguía a var(--p) y en las escuelas verdes el botón de crear salía verde. */
+button.app-fab,
+button.chat-fab,
+.app-fab,
+.chat-fab {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+/* ── Nav inferior: anclada, a todo el ancho y sin flotar ──
+   Era una cápsula flotante con márgenes, esquinas redondeadas, sombra y un
+   borde degradado alrededor. Ahora es una barra pegada al borde inferior cuyo
+   único trazo es la línea superior, en el color de la universidad. */
+.bot-nav {
+  padding: 0 !important;
+  background: #08080a !important;
+  pointer-events: auto !important;
+}
+.bot-inner,
+body.is-ios .bot-inner {
+  margin: 0 !important;
+  border: none !important;
+  border-top: 2px solid var(--p) !important;
+  border-radius: 0 !important;
+  background: #08080a !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 6px 2px calc(6px + env(safe-area-inset-bottom)) !important;
+}
+
+/* ── Hangouts · control de orden ──
+   El <select> queda oculto (es la fuente de verdad); esto viste al botón que
+   lo sustituye. Conserva el subrayado de neón por criterio que tenía el select,
+   para que la pantalla no pierda esa señal de color. */
+#ev-sort-trigger {
+  --sort-hue: var(--c-blue);
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid var(--sort-hue);
+  border-radius: 0;
+  box-shadow: 0 3px 10px -4px var(--sort-hue);
+  color: #fff;
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  text-align: left;
+  padding: 9px 4px;
+  cursor: pointer;
+}
+#ev-sort-trigger > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#ev-sort-trigger[data-sort="compat"]   { --sort-hue: var(--c-pink); }
+#ev-sort-trigger[data-sort="trending"] { --sort-hue: var(--c-orange-deep); }
+#ev-sort-trigger[data-sort="newest"]   { --sort-hue: var(--c-cyan); }
+#ev-sort-trigger[data-sort="spots"]    { --sort-hue: var(--c-lime); }
+#ev-sort-trigger[data-sort="soon"]     { --sort-hue: var(--c-amber); }
+#ev-sort-trigger[data-sort="near"]     { --sort-hue: var(--c-rose); }
+
+/* Filas de la hoja. El punto de la izquierda repite el tono del criterio, que
+   es la misma pista de color que da el subrayado del botón. */
+.evsort-row {
+  --sort-hue: var(--c-blue);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 12px;
+  border-radius: var(--rad-md);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--fg2);
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.evsort-row[data-sort="compat"]   { --sort-hue: var(--c-pink); }
+.evsort-row[data-sort="trending"] { --sort-hue: var(--c-orange-deep); }
+.evsort-row[data-sort="newest"]   { --sort-hue: var(--c-cyan); }
+.evsort-row[data-sort="spots"]    { --sort-hue: var(--c-lime); }
+.evsort-row[data-sort="soon"]     { --sort-hue: var(--c-amber); }
+.evsort-row[data-sort="near"]     { --sort-hue: var(--c-rose); }
+.evsort-row .evsort-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--sort-hue);
+}
+.evsort-row:active { background: rgba(255, 255, 255, 0.06); }
+.evsort-row.on {
+  background: rgba(220, 38, 38, 0.14);
+  color: #fff;
+}
+.evsort-row.on svg { color: #dc2626; }

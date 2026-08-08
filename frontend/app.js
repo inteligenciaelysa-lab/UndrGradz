@@ -454,6 +454,59 @@ function applyLanguageTranslations(){
       if(filterOptions[opt.value]) opt.textContent = filterOptions[opt.value];
     });
   }
+  if (typeof _syncEvSortLabel === 'function') _syncEvSortLabel();
+}
+// ── Hangouts: orden en hoja inferior ───────────────────────────────────────
+// El <select> sigue existiendo (oculto) porque es lo que leen renderHangouts()
+// y el traductor; aquí solo se cambia CÓMO se elige. El desplegable nativo lo
+// dibuja el sistema operativo — fondo azul, tipografía ajena — y no hay CSS
+// que lo alcance.
+function _evSortOptions(){
+  var sel=document.getElementById('ev-filter-sel');if(!sel)return [];
+  return Array.prototype.map.call(sel.options,function(o){return {v:o.value,t:o.textContent};});
+}
+function _syncEvSortLabel(){
+  var sel=document.getElementById('ev-filter-sel');
+  var lbl=document.getElementById('ev-sort-lbl');
+  var trg=document.getElementById('ev-sort-trigger');
+  if(!sel)return;
+  var cur=sel.options[sel.selectedIndex];
+  if(lbl&&cur)lbl.textContent=cur.textContent;
+  // El tono por criterio vivía en #ev-filter-sel[data-sort]; se muda al botón.
+  if(trg)trg.setAttribute('data-sort',sel.value||'compat');
+}
+function _setEvSort(v){
+  var sel=document.getElementById('ev-filter-sel');if(!sel)return;
+  sel.value=v;
+  _syncEvSortLabel();
+  var sh=document.getElementById('ev-sort-sheet');if(sh)sh.remove();
+  if(typeof renderHangouts==='function')renderHangouts();
+}
+function _openEvSortSheet(){
+  var old=document.getElementById('ev-sort-sheet');if(old)old.remove();
+  var sel=document.getElementById('ev-filter-sel');if(!sel)return;
+  var isEs=window.currentLang==='es';
+  var cur=sel.value;
+  var rows=_evSortOptions().map(function(o){
+    var on=o.v===cur;
+    return '<div class="evsort-row'+(on?' on':'')+'" onclick="_setEvSort(\''+o.v+'\')" data-sort="'+o.v+'">'+
+      '<span class="evsort-dot"></span>'+
+      '<span style="flex:1;min-width:0;">'+o.t+'</span>'+
+      (on?'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'')+
+    '</div>';
+  }).join('');
+  var m=document.createElement('div');
+  m.id='ev-sort-sheet';m.className='mov open';m.style.zIndex='10005';
+  m.onclick=function(){m.remove();};
+  m.innerHTML='<div class="msheet" onclick="event.stopPropagation();">'+
+    '<div class="mhnd"></div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'+
+      '<div class="mtitle" style="margin:0;">'+(isEs?'Ordenar por':'Sort by')+'</div>'+
+      '<div onclick="document.getElementById(\'ev-sort-sheet\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;">✕</div>'+
+    '</div>'+
+    rows+
+  '</div>';
+  document.body.appendChild(m);
 }
 var universityCityMap = {
   'Universidad Tecnológica del Norte de Coahuila': 'Piedras Negras',
@@ -5940,6 +5993,12 @@ function sw(id,label,opts){
   var secId = id==='biz-profile'?'biz-profile':id;
   var sec=document.getElementById('sec-'+secId);if(sec)sec.classList.add('active');
   var np=document.getElementById('np-'+id);if(np)np.classList.add('active');
+  // El engrane solo vive en Profile — desde cualquier otra pantalla llevaba a
+  // ajustes que no tienen que ver con lo que estás viendo. Y allí la campana
+  // sobra: Profile ya es el sitio de "lo tuyo", con su propia fila de avisos.
+  var _onProf=(id==='profile');
+  var tbs=document.getElementById('tb-settings');if(tbs)tbs.style.display=_onProf?'flex':'none';
+  var tbn=document.getElementById('tb-notif');if(tbn)tbn.style.display=_onProf?'none':'flex';
   var tbt=document.getElementById('tb-title');if(tbt){if(!label||label==='undrgradz'){tbt.innerHTML='<span class="tb-logo-undr">Undr</span><span class="tb-logo-gradz">gradz</span>';}else{tbt.textContent=label;}}
   var micons={student:'grad',alumni:'grad',business:'briefcase',institution:'landmark'};
   var mi=document.getElementById('tb-mode-icon');if(mi)mi.innerHTML=icon(micons[obMode||userMode]||'grad',18);
@@ -13033,7 +13092,7 @@ function _openAdmirerInviteModal(){
       '<div style="display:flex;justify-content:space-between;font-size:var(--fs-xs);font-weight:600;color:var(--fg2);margin-bottom:5px;"><span>'+invited+'/'+next+' '+(isEs?'invitados':'invited')+'</span><span style="color:#4ade80;">'+(isEs?(toGo+' más para desbloquear'):(toGo+' more to unlock'))+'</span></div>'+
       '<div class="bar-t"><div class="bar-f" style="background:var(--p);width:'+pct+'%"></div></div>'+
     '</div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_inviteShare()">📲 '+(isEs?'Compartir mi link':'Share invite link')+'</button>'+
+    '<button class="gbtn gbtn-brand" style="margin-bottom:8px;" onclick="_inviteShare()">'+(isEs?'Compartir mi link':'Share invite link')+'</button>'+
     '<button class="gbtn-ghost" onclick="document.getElementById(\'admirer-invite-modal\').remove()">'+(isEs?'Cerrar':'Close')+'</button>'+
   '</div>';
   document.body.appendChild(m);
@@ -17022,17 +17081,20 @@ function _spotlightCard(r,i,opts){
   // University Acronym & Grade Pills side by side
   var uniObj = (opts.other && r.uni) ? r.uni : (p.uni || (typeof uni !== 'undefined' && uni) || null);
   var uniAcronym = _getUniAcronym(uniObj) || 'UTNC';
-  var yrLabel = (_profileYearLabel(p) || 'Student').toUpperCase();
 
-  var pillsHtml = '<div style="display:flex;align-items:center;gap:5px;margin-top:6px;flex-wrap:wrap;">' +
-    '<span style="font-size:var(--fs-2xs);font-weight:700;color:#d6e4ff;background:rgba(61,123,255,0.28);border:1px solid rgba(61,123,255,0.65);border-radius:var(--rad-xs);padding:2.5px 8px;letter-spacing:0.5px;">🏛️ ' + uniAcronym + '</span>' +
-    '<span style="font-size:var(--fs-2xs);font-weight:700;color:#fde68a;background:rgba(245,158,11,0.25);border:1px solid rgba(245,158,11,0.65);border-radius:var(--rad-xs);padding:2.5px 8px;letter-spacing:0.5px;">🎓 ' + yrLabel + '</span>' +
-    (opts.sport ? '<span style="font-size:var(--fs-2xs);font-weight:700;color:#a5f3fc;background:rgba(6,182,212,0.25);border:1px solid rgba(6,182,212,0.65);border-radius:var(--rad-xs);padding:2.5px 8px;letter-spacing:0.5px;">🏅 ' + opts.sport.toUpperCase() + '</span>' : '') +
-  '</div>';
-
+  // Las tres pastillas de colores (universidad, año, deporte) se fueron: cada
+  // tarjeta era un semáforo y competía con la foto. Ahora se lee igual que la
+  // tarjeta de swipe — nombre, luego "Carrera · Año", luego "UNI '28" — que es
+  // el tratamiento que ya tenía la app y con el que estas convivían.
+  var yrPlain = (_profileYearLabel(p) || '');
+  var gradYY = p.grad ? String(p.grad).replace(/[^0-9]/g, '').slice(-2) : '';
   // What they study — major, plus the minor when there is one. This replaced the
   // "NEW" tag on the New Picks row: the tag said nothing the header didn't.
   var studyLine = p.major ? (p.minor ? p.major + ' · ' + p.minor : p.major) : (p.minor || '');
+  var metaLine = [studyLine, yrPlain, opts.sport || ''].filter(Boolean).join(' · ');
+  var pillsHtml =
+    (metaLine ? '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.96);margin-top:3px;text-shadow:0 1px 4px rgba(0,0,0,0.6);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + metaLine + '</div>' : '') +
+    (uniAcronym ? '<div style="font-size:10px;color:rgba(255,255,255,0.9);font-family:var(--font-display);font-weight:400;text-transform:uppercase;margin-top:5px;letter-spacing:0.02em;text-shadow:0 1px 3px rgba(0,0,0,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + uniAcronym + (gradYY ? " '" + gradYY : '') + '</div>' : '');
 
   var clickHandler = (opts.other && typeof curPlan !== 'undefined' && curPlan !== 'aplus')
     ? "premAlert('🔒 Viewing profiles from other universities requires an A+ Student subscription. Upgrade to unlock!')"
@@ -17050,7 +17112,6 @@ function _spotlightCard(r,i,opts){
       '<div style="position:absolute;left:0;right:0;bottom:0;padding:'+(opts.plain?'66px':'50px')+' 12px 14px;background:linear-gradient(to top, rgba(0,0,0,0.99) 0%, rgba(0,0,0,0.82) 45%, rgba(0,0,0,0.35) 78%, transparent 100%);">'+
         '<div style="font-size:var(--fs-lg);font-weight:900;color:#ffffff;line-height:1.15;letter-spacing:-0.2px;text-shadow:0 2px 8px rgba(0,0,0,0.9);">'+p.name+' '+(p.age||'')+(p.verified?_verBadge(15):'')+'</div>'+
         pillsHtml+
-        (!opts.sport && studyLine ? '<div style="font-size:var(--fs-xs);color:#38bdf8;font-weight:500;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+studyLine+'</div>' : '')+
       '</div>'+
     '</div>'+
   '</div>';
@@ -17517,7 +17578,7 @@ function openReferral(){
     ladder+
     (_refSpotlightUnlocked()?'<button class="gbtn" style="background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#1a1205;margin:4px 0 8px;" onclick="_activateReferralSpotlight()">🌟 Activate Spotlight + Boost</button>':'')+
     '<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.06);border:1px solid var(--gbdl);border-radius:var(--rad-sm);padding:10px 12px;margin:10px 0;"><div style="flex:1;font-size:var(--fs-base);font-weight:600;color:#fff;font-family:monospace;">'+link+'</div><button onclick="navigator.clipboard&&navigator.clipboard.writeText(\''+link+'\');this.textContent=\'Copied!\';" style="background:var(--p);border:none;border-radius:var(--rad-xs);padding:6px 12px;color:#fff;font-size:var(--fs-xs);font-weight:600;cursor:pointer;">Copy</button></div>'+
-    '<button class="gbtn" style="background:var(--p);margin-bottom:8px;" onclick="_simulateInvite()">📲 Share invite link</button>'+
+    '<button class="gbtn gbtn-brand" style="margin-bottom:8px;" onclick="_simulateInvite()">Share invite link</button>'+
     '<button class="gbtn-ghost" onclick="document.getElementById(\'ref-modal\').remove()">Close</button>'+
   '</div>';
   document.body.appendChild(m);
