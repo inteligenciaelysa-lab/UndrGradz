@@ -7037,7 +7037,10 @@ html.light-secondary .jbtn {
   border: 1.5px solid var(--p);
   -webkit-backdrop-filter: blur(14px) saturate(150%);
   backdrop-filter: blur(14px) saturate(150%);
-  box-shadow: 0 0 12px -2px var(--p2),
+  /* Sin halo: iba una capa `0 0 12px -2px var(--p2)` que pintaba un aro rojo
+     alrededor del botón. Quedan la sombra de elevación y el brillo interior;
+     el borde y el relleno (var(--p), arriba) no se tocan. */
+  box-shadow:
     0 12px 28px -12px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
   transition:
@@ -7050,12 +7053,9 @@ html.light-secondary .jbtn {
   transform: translateY(1px) scale(0.96);
   filter: brightness(1.08);
 }
-html.light-secondary .chat-fab,
-html.light-secondary .app-fab {
-  box-shadow:
-    0 12px 28px -12px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
+/* Aquí vivía `html.light-secondary .chat-fab/.app-fab`, que ya era exactamente
+   esta sombra sin halo. Tras quitarlo de la regla base quedaba idéntica, y
+   dejarla sugería que el tema claro se ve distinto. */
 
 /* Hangouts controls layout — the neon-underline visuals live in one authoritative
    block after all the #ev-filter-sel rules (search "scope + sort"). */
@@ -11986,8 +11986,8 @@ input#su-tos-check:checked:focus {
    ══════════════════════════════════════════════════════════════════════════
    El registro dejaba de ser UndrGradz en cuanto detectUni() reconocía el
    dominio del email: el logo y los CTA se repintaban con el color de la
-   escuela. Ahora la marca manda y la universidad solo tiñe lo accesorio
-   (puntos del stepper, líneas, anillo de progreso — eso NO se toca).
+   escuela. Ahora la marca manda: logo, CONTINUE y —más abajo en este mismo
+   archivo— los puntos del stepper y sus conectores.
 
    Va al final del archivo a propósito. Las reglas que hay que vencer son
    !important con la misma especificidad o mayor, y los empates entre
@@ -12093,12 +12093,14 @@ html.brand-default .ob4-cta:hover:not(:disabled) {
   font-size: var(--fs-sm) !important;
   font-weight: 600 !important;
 }
+/* Rojo de marca, no el de la universidad: es la misma decisión que el logo y el
+   CONTINUE. Los intereses de abajo sí llevan color, pero el suyo (por categoría). */
 .ob4-p3boxed .ob4-chip.on {
   color: #fff !important;
   font-weight: 700 !important;
-  border-color: var(--p) !important;
-  background: color-mix(in srgb, var(--p) 16%, transparent) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--p) 55%, transparent) !important;
+  border-color: #dc2626 !important;
+  background: color-mix(in srgb, #dc2626 16%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #dc2626 55%, transparent) !important;
 }
 
 /* Intereses: la celda pasa a horizontal (emoji · etiqueta · badge a la derecha)
@@ -12113,15 +12115,20 @@ html.brand-default .ob4-cta:hover:not(:disabled) {
      desbordaban por la derecha. */
   min-width: 0 !important;
   padding: 9px 6px !important;
-  border: 1px solid var(--gbdl) !important;
+  /* El borde lleva el tono de SU categoría, ya en reposo: es lo que hace legible
+     de un vistazo que Sports es lima y Academic cian sin tener que seleccionar
+     nada. --cat-hue lo pone el [data-cat] que emite _ob4RenderInt (~10763). */
+  border: 1px solid color-mix(in srgb, var(--cat-hue) 32%, transparent) !important;
   border-radius: var(--rad-md) !important;
   background: rgba(255, 255, 255, 0.03) !important;
   box-shadow: none !important;
 }
+/* Seleccionado: el mismo tono al 100% más relleno, anillo y badge lleno. Cuatro
+   señales a la vez, así que el 32% del reposo no confunde. */
 .ob4-p3boxed .ob4-int.on {
-  border-color: var(--p) !important;
-  background: color-mix(in srgb, var(--p) 16%, transparent) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--p) 55%, transparent) !important;
+  border-color: var(--cat-hue) !important;
+  background: color-mix(in srgb, var(--cat-hue) 16%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cat-hue) 55%, transparent) !important;
 }
 /* El markup emite .iadd PRIMERO (badge, emoji, etiqueta) porque en el diseño
    viejo iba absoluto en la esquina. `order` lo manda al final sin tocar el JS,
@@ -12164,8 +12171,8 @@ html.brand-default .ob4-cta:hover:not(:disabled) {
   font-weight: 600 !important;
 }
 .ob4-p3boxed .ob4-int.on .iadd {
-  background: var(--p) !important;
-  border-color: var(--p) !important;
+  background: var(--cat-hue) !important;
+  border-color: var(--cat-hue) !important;
   color: #fff !important;
 }
 
@@ -12277,4 +12284,33 @@ html.brand-default .ob4-cta:hover:not(:disabled) {
 }
 .ob4-accbody > .ob4-accfield:first-child {
   margin-top: 6px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SIGN UP · los pasos del stepper, también rojo de marca
+   ══════════════════════════════════════════════════════════════════════════
+   Los círculos se pintaban desde _ob4UpdateUniTheme con un degradado que barría
+   del primario al secundario de la escuela. Ese JS ya se quitó (escribía el
+   fondo con setProperty(...,'important'), y contra un inline !important no hay
+   CSS que valga), así que a partir de aquí el color lo pone la hoja.
+
+   Las señales de estado NO viven en el color y siguen intactas: el ✓ lo emite
+   _ob4Steps, el scale(1.15) del actual está en ~8256 y el punto pendiente se
+   queda con su fondo neutro y la opacidad de abajo. */
+html .ob4-step.done .ob4-dot,
+html .ob4-step.cur .ob4-dot {
+  background: #dc2626 !important;
+  opacity: 1;
+}
+html .ob4-step:not(.done):not(.cur) .ob4-dot {
+  opacity: 0.4;
+}
+html .ob4-line.on {
+  background: #dc2626 !important;
+  background-image: none !important;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.55) !important;
+}
+/* La regla de ~8269 no lleva !important, así que basta con ser posterior. */
+html .ob4-step.cur .ob4-lbl {
+  text-shadow: 0 0 8px #dc2626;
 }

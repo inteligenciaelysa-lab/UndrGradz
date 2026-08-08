@@ -1709,6 +1709,13 @@ function _populateFilterChips(){
 function _updateHeightLbl(v){var lbl=document.getElementById('crush-height-lbl');if(lbl)lbl.textContent=(parseInt(v)<=58)?'Any':(_fmtHeight(parseInt(v))+'+');}
 
 var BANNED = ['fuck','shit','asshole','bitch','dick','cock','pussy','nigga','nigger','cunt','whore','slut','retard','faggot','kike','spic','chink','tranny','wetback'];
+// Nombre de usuario: 4-15 caracteres, empieza y termina en letra o número, y los
+// separadores . _ - nunca van dobles. Estaba copiado en tres sitios del front y
+// uno del backend; cuatro copias es exactamente por lo que el guion no se podía
+// escribir en unos sitios y sí en otros. Debe seguir igual a la de
+// backend/src/validators/auth.validator.js — si divergen, el formulario acepta
+// un handle que /auth/register rechaza con 400.
+var UGZ_HANDLE_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_|-)(?![._-])){2,13}[a-zA-Z0-9]$/;
 function censor(t){
   if(!t)return t;
   var out=String(t);
@@ -2800,8 +2807,9 @@ function _ob4Steps(){
     if(i>0)h+='<div class="ob4-line'+(n<=_ob4Phase?' on':'')+'"></div>';
     h+='<div class="ob4-step'+(cur?' cur':'')+(done?' done':'')+'" '+((done||cur)?'style="cursor:pointer;" onclick="_ob4Go('+n+', true)"':'')+'><div class="ob4-dot">'+(done?'✓':n)+'</div><div class="ob4-lbl">'+L[i]+'</div></div>';}
   box.innerHTML=h;
-  // Recolour the dots along the primary→secondary gradient on every step render
-  // (the stepper HTML is rebuilt here, so the inline dot colours must be re-applied).
+  // Los puntos ya no se pintan desde aquí — son rojo fijo en CSS. La llamada se
+  // queda porque es la garantía barata de que --uni-p y --cta-grad estén frescos
+  // en cada render del stepper, incluso si nunca se llegó a escribir un email.
   if(typeof _ob4UpdateUniTheme==='function')try{_ob4UpdateUniTheme();}catch(e){}
 }
 // The PROFILE STRENGTH ring was removed from the header by request. This is
@@ -3047,12 +3055,13 @@ function _ob4P1(){
        '<input class="gi" id="ob4-ln" value="'+((suData&&suData.lname)||'')+'" placeholder="'+phLname+'" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÿ\\s\x27-]/g,\x27\x27);suData.lname=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-left:34px;"/></div>'+
    '</div>');
 
-  // ── Usuario. El padding-right:96px se conserva: ahí vive #handle-msg. ──
+  // ── Usuario. Sin el @ delante: el handle se guarda sin él y el arroba solo
+  //    hacía pensar que había que escribirlo. El padding-right:96px se conserva,
+  //    ahí vive #handle-msg. ──
   parts.push(
    '<div class="ob4-flabel" data-hue="#3d7bff">'+lblUname+'</div>'+
    '<div style="position:relative;margin-bottom:11px;">'+
-     '<span style="'+ICO_L+'font-weight:700;font-size:var(--fs-base);">@</span>'+
-     '<input class="gi" id="ob-handle" value="'+st.handle+'" placeholder="'+phUname+'" oninput="checkHandle(this);_ob4State.handle=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-left:32px;padding-right:96px;"/>'+
+     '<input class="gi" id="ob-handle" value="'+st.handle+'" placeholder="'+phUname+'" oninput="checkHandle(this);_ob4State.handle=this.value;_ob4Strength();_ob4ValidateAll();" style="padding-right:96px;"/>'+
      '<span id="handle-msg" style="display:none;position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:var(--fs-xs);font-weight:600;color:#4ade80;"></span>'+
    '</div>');
 
@@ -3172,8 +3181,7 @@ function _ob4Next1(){
   suData.age=age;suData.bMonth=m;suData.bDay=d;if(typeof _zodiacFromMD==='function'){var z=_zodiacFromMD(m,d);if(z){suData.zodiac=z.s;suData.zodiacEmoji=z.e;}}
 
   var h=(_ob4State.handle||'').trim().replace(/^@/,'');
-  var handleRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_)(?![._])){2,13}[a-zA-Z0-9]$/;
-  if(!handleRegex.test(h)) return _ob4Err1('ob-handle','Pick a valid username (4–15 chars: letters, numbers, . or _).');
+  if(!UGZ_HANDLE_RE.test(h)) return _ob4Err1('ob-handle', window.currentLang==='es'?'Elige un usuario válido (4–15 caracteres: letras, números, . _ o -).':'Pick a valid username (4–15 chars: letters, numbers, . _ or -).');
   if(typeof _usernameTaken==='function'&&_usernameTaken(h)) return _ob4Err1('ob-handle','That username is taken — try another.');
 
   if(!_ob4State.emailVerified) return _ob4Err1('ob-email','Verify your email with the 6-digit code first.');
@@ -3296,8 +3304,14 @@ function _ob4P2(){
   var GRAD_SEM_OPTS=[['SPRING','Spring'],['SUMMER','Summer'],['FALL','Fall']];
   var gradSemOpt='<option value="">'+gradSemDefault+'</option>'+GRAD_SEM_OPTS.map(function(s){return '<option value="'+s[0]+'"'+(s[0]===st.gradSemester?' selected':'')+'>'+s[1]+'</option>';}).join('');
   var acad='<div class="ob4-flabel">'+lblMajor+'</div><select class="gi" id="ob4-major" onchange="_ob4State.major=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+majOpt+'</select>'+
-    '<div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select>'+
-    '<div class="ob4-flabel">'+lblGradSem+'</div><select class="gi" id="ob4-gradsem" onchange="_ob4State.gradSemester=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gradSemOpt+'</select>';
+    // Año y semestre comparten renglón: son dos campos cortos de la misma
+    // pregunta y apilados se comían media pantalla. Cada uno en su columna, así
+    // que la etiqueta sigue siendo el hermano anterior de su select y
+    // _ob4PaintLabels le sigue pintando el subrayado.
+    '<div class="g2">'+
+      '<div><div class="ob4-flabel">'+lblGradYr+'</div><select class="gi" id="ob4-gy" onchange="_ob4State.gradyr=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gyOpt+'</select></div>'+
+      '<div><div class="ob4-flabel">'+lblGradSem+'</div><select class="gi" id="ob4-gradsem" onchange="_ob4State.gradSemester=this.value;_ob4Strength();if(typeof _ob4ValidateAll2===\'function\')_ob4ValidateAll2();">'+gradSemOpt+'</select></div>'+
+    '</div>';
 
   var living = window.currentLang==='es'?
     [['Residencia','Residencia estudiantil'],['Fuera de campus','Fuera de campus'],['Casa Griega','Casa griega'],['Con mi familia','Con mi familia']]:
@@ -19771,7 +19785,7 @@ function changeUsername(){
   var modal=document.createElement('div');modal.id='username-change-modal';modal.className='mov open';
   modal.innerHTML='<div class="msheet"><div class="mhnd"></div><div class="mtitle">Change Username</div>'+
     '<div style="font-size:var(--fs-base);color:var(--fg2);line-height:1.6;margin-bottom:14px;">'+icon('alert',16)+' You can only change your username once a year. Are you sure?</div>'+
-    '<div class="field"><label>New Username</label><input class="gi" type="text" id="new-username-inp" placeholder="newusername" maxlength="13" oninput="checkHandle(this)"/></div>'+
+    '<div class="field"><label>New Username</label><input class="gi" type="text" id="new-username-inp" placeholder="newusername" maxlength="15" oninput="checkHandle(this)"/></div>'+
     '<div id="new-handle-msg" style="font-size:var(--fs-sm);min-height:18px;font-weight:500;margin-bottom:10px;"></div>'+
     '<button class="gbtn" style="background:var(--p);" onclick="confirmUsernameChange()">Change Username</button>'+
     '<button class="gbtn-ghost" onclick="document.getElementById(\'username-change-modal\').remove()">Cancel</button></div>';
@@ -19779,8 +19793,12 @@ function changeUsername(){
 }
 function confirmUsernameChange(){
   var inp=document.getElementById('new-username-inp');if(!inp)return;
-  var newHandle=inp.value.replace('@','').toLowerCase().replace(/[^a-z0-9_]/g,'');
-  if(newHandle.length<4||newHandle.length>12){alert('Must be 4-12 characters.');return;}
+  // Mismo juego de caracteres y mismo largo que el registro. Antes esto filtraba
+  // con [^a-z0-9_], así que a quien se registrara como "ana-lopez" y entrara aquí
+  // se le convertía en "analopez" sin avisar; y pedía 4-12 donde el registro
+  // permite 4-15, con un maxlength de 13 por su cuenta: tres límites distintos.
+  var newHandle=inp.value.replace('@','').toLowerCase().replace(/[^a-z0-9._-]/g,'');
+  if(!UGZ_HANDLE_RE.test(newHandle)){alert(window.currentLang==='es'?'4–15 caracteres: letras, números, . _ o -, sin repetir separadores.':'4–15 characters: letters, numbers, . _ or -, no repeated separators.');return;}
   if(BANNED.some(function(w){return newHandle.includes(w);})){alert('Username contains restricted words.');return;}
   userPro.handle='@'+newHandle;usernameLastChanged=Date.now();
   var h=document.getElementById('settings-handle');if(h)h.textContent=userPro.handle;
@@ -20105,33 +20123,15 @@ function _ob4UpdateUniTheme(){
   // (bloque "SIGN UP: identidad de marca fija" al final de styles.css). Estas
   // escrituras inline perdían contra el !important de allí, pero dejarlas era
   // una bomba: cualquier reordenamiento de la cascada resucitaba el color de la
-  // escuela. Lo de abajo (puntos, líneas, anillo) sí sigue el color de la uni.
+  // escuela. Lo que queda abajo (el anillo) sí seguiría el color de la uni.
 
-  // Step circles ride the primary→secondary gradient: dot 1 = primary, dot 5 =
-  // secondary, dot 3 = a 50/50 blend — so the whole stepper reads as one gradient
-  // sweeping across the five steps. Future steps wear the same colour, dimmed.
-  var _allSteps = document.querySelectorAll('.ob4-step');
-  var _nSteps = _allSteps.length || 1;
-  _allSteps.forEach(function(step, i){
-    var dot = step.querySelector('.ob4-dot');
-    if(!dot) return;
-    var f = (_nSteps > 1) ? Math.round((i / (_nSteps - 1)) * 100) : 0;
-    var stepCol = 'color-mix(in srgb, ' + col2 + ' ' + f + '%, ' + col + ')';
-    var reached = step.classList.contains('done') || step.classList.contains('cur');
-    dot.style.setProperty('background', stepCol, 'important');
-    dot.style.borderColor = step.classList.contains('cur') ? '#ffffff' : (reached ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.22)');
-    dot.style.boxShadow = 'none';
-    dot.style.opacity = reached ? '1' : '0.4';
-  });
-  document.querySelectorAll('.ob4-line.on').forEach(function(line){
-    line.style.background = 'linear-gradient(90deg, ' + col + ', ' + col2 + ')';
-    line.style.boxShadow = '0 0 8px ' + col;
-  });
-  var curLbl = document.querySelector('.ob4-step.cur .ob4-lbl');
-  if(curLbl){
-    curLbl.style.color = '#ffffff';
-    curLbl.style.textShadow = '0 0 8px ' + col;
-  }
+  // Los puntos, las líneas y la etiqueta del paso actual tampoco se repintan ya
+  // aquí: son rojo de marca fijo, en CSS, junto al logo y el CONTINUE. El
+  // barrido de degradado punto-1→punto-5 desaparece con ellos; no era una señal
+  // de estado (eso lo llevan el ✓, el scale del actual y la opacidad del
+  // pendiente, todo en CSS). Tenía que salir del JS por fuerza: el fondo se
+  // escribía con setProperty(...,'important'), un inline !important que ninguna
+  // hoja de estilos puede vencer.
 
   var ringSvg = document.querySelector('#ob4-ring svg circle:nth-child(2)');
   if(ringSvg){
@@ -20261,6 +20261,10 @@ function _usernameTaken(h){try{var _um=JSON.parse(localStorage.getItem('ugz_user
 function checkHandle(inp) {
   var v = inp.value.replace(/\s/g, '').toLowerCase();
   v = v.replace(/^@+/, '');
+  // Lo que no es válido se descarta al escribir, igual que en nombre y apellido.
+  // Antes se quedaba en el campo y solo salía "Invalid format" al lado, así que
+  // el usuario veía su texto intacto y un error sin explicación.
+  v = v.replace(/[^a-z0-9._-]/g, '');
   if (v.length > 15) v = v.slice(0, 15);
   inp.value = v;
   
@@ -20271,8 +20275,7 @@ function checkHandle(inp) {
   if (!v.length) { msg.textContent = ''; msg.style.display = 'none'; inp.style.borderColor = ''; return; }
   msg.style.display = '';
 
-  var regex = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_)(?![._])){2,13}[a-zA-Z0-9]$/;
-  var isValidFormat = regex.test(v);
+  var isValidFormat = UGZ_HANDLE_RE.test(v);
   var isBanned = BANNED.some(function(w) { return v.includes(w); });
   
   if (v.length < 4) {
@@ -25467,8 +25470,7 @@ function _ob4ValidateAll() {
   var fnOk = fn.length > 0 && nameRegex.test(fn);
   var lnOk = ln.length > 0 && nameRegex.test(ln);
   
-  var handleRegex = /^[a-zA-Z0-9](?:[a-zA-Z0-9]|(?:\.|_)(?![._])){2,13}[a-zA-Z0-9]$/;
-  var usernameOk = handleRegex.test(h) && (typeof _usernameTaken !== 'function' || !_usernameTaken(h));
+  var usernameOk = UGZ_HANDLE_RE.test(h) && (typeof _usernameTaken !== 'function' || !_usernameTaken(h));
   
   var ageOk = false;
   if (dobM && dobD && dobY) {
