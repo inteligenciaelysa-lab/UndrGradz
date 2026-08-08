@@ -570,6 +570,11 @@ var ICONS={
   chevronRight:'<path d="m9 18 6-6-6-6"/>',
   chevronLeft:'<path d="m15 18-6-6 6-6"/>',
   check:'<path d="M20 6 9 17l-5-5"/>',
+  // Corazón y roseta de lucide, tal cual. No sustituyen a `heart` ni a `check`:
+  // esos dos los usan decenas de sitios y cambiarles el trazo movería media app.
+  heartLine:'<path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/>',
+  badgeCheck:'<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+  menuLines:'<path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h18"/>',
   checkCircle:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10.01-3-3"/>',
   lock:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   camera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
@@ -6176,7 +6181,7 @@ var _PROF_SUBS={
   verify:  {t:'Verification',       hue:'#1d9bf0'},
   activity:{t:'Activity',           hue:'#fbbf24'},
   safety:  {t:'Safety Center',      hue:'#34d399'},
-  filters: {t:'Dating Preferences', hue:'#60a5fa'}
+  filters: {t:'Dating Preferences', hue:'#dc2626'}
 };
 var _profSub='';
 function _profOpen(key){
@@ -6223,8 +6228,8 @@ function _profRowsHtml(){
     '<div class="set-card" style="margin-top:14px;">'+
       row('zap','#fbbf24',    'Activity',                   isEs?'Tus matches, amigos y eventos':'See your matches, friends and events', "_profOpen('activity')")+
       row('shield','#34d399', isEs?'Centro de Seguridad':'Safety Center', isEs?'Herramientas y amigos de confianza':'Manage your safety tools and trusted friends', "_profOpen('safety')")+
-      row('target','#60a5fa', isEs?'Preferencias':'Dating Preferences',  isEs?'Con quién quieres conectar':'Who you want to connect with', "_profOpen('filters')")+
-      row('check','#1d9bf0',  isEs?'Verificación':'Verification',        isEs?'Consigue tu insignia':'Get your badge', "_profOpen('verify')")+
+      row('heartLine','#dc2626', isEs?'Preferencias':'Dating Preferences',  isEs?'Con quién quieres conectar':'Who you want to connect with', "_profOpen('filters')")+
+      row('badgeCheck','#1d9bf0',isEs?'Verificación':'Verification',        isEs?'Consigue tu insignia':'Get your badge', "_profOpen('verify')")+
       row('settings','#94a3b8', isEs?'Ajustes':'Settings',  isEs?'Cuenta, notificaciones y más':'Account, notifications and more', "if(typeof openSettings==='function')openSettings()")+
     '</div>';
 }
@@ -25223,7 +25228,9 @@ function _renderSearchStudentCard(p) {
         '@' + String(handle).replace(/^@+/, '') + ' <span style="opacity:.6;">·</span> ' + icon('landmark',12) + ' ' + acronym +
       '</div>' +
     '</div>' +
-    '<button style="background:transparent;border:1.5px solid #22c55e;border-radius:999px;padding:7px 16px;color:#22c55e;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
+    // Rojo relleno con letra blanca, como los CONTINUE: en verde y hueco era el
+    // único color de la lista y competía con las fotos de cada fila.
+    '<button style="background:#dc2626;border:none;border-radius:999px;padding:8px 17px;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;flex-shrink:0;" onclick="event.stopPropagation();openProfileCardByName(\'' + safeName + '\')">Ver Perfil</button>' +
   '</div>';
 }
 

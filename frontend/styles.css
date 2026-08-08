@@ -2786,67 +2786,11 @@ html.uni-set .chat-standalone-btn {
   bottom: 8px;
   z-index: 60;
 }
-/* ── Crush swipe dock: one bar that slides between [actions] ↔ [nav] ────── */
-.crush-dock {
-  position: fixed; /* pinned to the bottom so the action buttons always "follow" */
-  left: 0;
-  right: 0;
-  bottom: calc(10px + env(safe-area-inset-bottom));
-  z-index: 60;
-  width: calc(100% - 24px);
-  max-width: 380px;
-  margin: 0 auto;
-  overflow: hidden;
-}
-.crush-dock-track {
-  display: flex;
-  width: 200%;
-  transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1);
-  touch-action: pan-y;
-}
-.crush-dock-track.show-nav {
-  transform: translateX(-50%);
-}
-.crush-dock-page {
-  flex: 0 0 50%;
-  width: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.crush-dock-page .crush-actions {
-  margin-top: 0 !important;
-}
-.crush-dock-page .bot-inner {
-  width: 100%;
-  max-width: 340px;
-}
-.crush-dock-dots {
-  display: flex;
-  gap: 6px;
-  justify-content: center;
-  margin-top: 4px;
-  padding: 4px 0; /* larger tap area without larger dots */
-}
-.crush-dock-dots span {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  opacity: 0.6;
-  transition: opacity 0.2s, width 0.2s, background 0.2s;
-}
-.crush-dock-dots span.on {
-  background: #fff;
-  width: 18px;
-  opacity: 1;
-  border-radius: 3px;
-}
-/* while the Crush deck is on screen, the global bottom nav is replaced by the
-   dock's second page — hide the global one to avoid two navs. */
-body.crush-deck-on .bot-nav {
-  display: none !important;
-}
+/* El dock deslizante de Crush (crush-dock.js) se retiró: la nav global se
+   queda fija abajo y los botones del swipe viven encima, separados. Con él se
+   fueron .crush-dock*, .crush-dock-dots y el body.crush-deck-on que escondía
+   la nav. Lo que sí sigue haciendo falta está al final del archivo. */
+
 /* Plans is not a bottom-nav destination — the nav there could only take you to
    a different section, never back to where you came from. The top-bar chevron
    does that instead, so the nav goes away and its 90px of scroll clearance with
@@ -12593,35 +12537,36 @@ body.is-ios .bot-inner {
 }
 
 /* ── Hangouts · control de orden ──
-   El <select> queda oculto (es la fuente de verdad); esto viste al botón que
-   lo sustituye. Conserva el subrayado de neón por criterio que tenía el select,
-   para que la pantalla no pierda esa señal de color. */
-#ev-sort-trigger {
-  --sort-hue: var(--c-blue);
-  flex: 1 1 auto;
-  min-width: 0;
+   Pastilla compacta al final de la fila de secciones. Antes era un renglón
+   entero con un subrayado de neón: pesaba más que las propias secciones y se
+   comía una franja de la lista. El <select> sigue oculto detrás, que es lo que
+   leen renderHangouts() y el traductor. */
+.evrow-wrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+  padding: 6px var(--s) 8px;
+}
+#ev-sort-trigger {
+  --sort-hue: var(--c-blue);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
   background: transparent;
-  border: none;
-  border-bottom: 2.5px solid var(--sort-hue);
-  border-radius: 0;
-  box-shadow: 0 3px 10px -4px var(--sort-hue);
-  color: #fff;
-  font-family: var(--font);
-  font-size: var(--fs-base);
-  font-weight: 600;
-  text-align: left;
-  padding: 9px 4px;
+  /* El tono del criterio activo vive en el borde: es la única pista de color
+     que queda tras encoger el control, y sigue diciendo por qué está ordenado. */
+  border: 1.5px solid var(--sort-hue);
+  color: var(--sort-hue);
   cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-#ev-sort-trigger > span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+#ev-sort-trigger:active { transform: scale(0.94); }
 #ev-sort-trigger[data-sort="compat"]   { --sort-hue: var(--c-pink); }
 #ev-sort-trigger[data-sort="trending"] { --sort-hue: var(--c-orange-deep); }
 #ev-sort-trigger[data-sort="newest"]   { --sort-hue: var(--c-cyan); }
@@ -12663,3 +12608,73 @@ body.is-ios .bot-inner {
   color: #fff;
 }
 .evsort-row.on svg { color: #dc2626; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Cabecera opaca, nav más baja y el mazo de Crush sin dock deslizante
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* La barra superior mide 56px, pero las secciones solo reservaban 52: con la
+   cabecera transparente no se notaba, y al pintarla de negro empezó a comerse
+   los primeros píxeles de cada pantalla (el buscador de Chats, que arranca
+   pegado al borde, era el más evidente). 60 = 56 + un respiro. */
+.section {
+  padding-top: calc(60px + env(safe-area-inset-top));
+}
+
+/* ── Nav inferior: sin línea de color y más baja ──
+   La línea superior seguía al color de la escuela; la barra se queda negra a
+   secas. Los iconos encogen para que la barra baje con ellos. */
+.bot-inner,
+body.is-ios .bot-inner {
+  border-top: none !important;
+  padding: 4px 2px calc(4px + env(safe-area-inset-bottom)) !important;
+}
+.np {
+  padding: 7px 2px !important;
+}
+.np .ni {
+  width: 22px !important;
+  height: 22px !important;
+}
+.np .ni svg {
+  width: 21px !important;
+  height: 21px !important;
+}
+/* El icono activo crecía a 40px y con la barra más baja se salía de ella. */
+.np.active .ni {
+  width: 30px !important;
+  height: 30px !important;
+  margin-top: -4px !important;
+}
+
+/* ── Crush: la nav se queda abajo, las acciones encima y separadas ──
+   El dock deslizante se fue (ver crush-dock.js). Los cuatro botones quedan
+   pegados por encima de la nav, con hueco de sobra para que el pulgar no
+   confunda uno con otro.
+   El hueco se declara aquí como variable para que la altura reservada por la
+   tarjeta y la posición de los botones no se puedan desincronizar. */
+:root {
+  --crush-nav-h: 48px;   /* alto medido de la nav ya encogida */
+  --crush-gap: 40px;     /* separación pedida entre acciones y nav */
+  --crush-actions-h: 72px;
+}
+.crush-card-wrap {
+  padding-bottom: calc(var(--crush-nav-h) + var(--crush-gap) + var(--crush-actions-h) + env(safe-area-inset-bottom)) !important;
+}
+.crush-card-wrap > .crush-actions {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--crush-nav-h) + var(--crush-gap) + env(safe-area-inset-bottom)) !important;
+  margin: 0 !important;
+  /* Sin esto la fila conserva el `width:fit-content` que traía de cuando era un
+     bloque centrado por margin:auto, y al fijarla se pegaba al borde izquierdo. */
+  width: auto !important;
+  z-index: 60;
+}
+/* La tarjeta reservaba 240px contando con que la nav no estaba. Ahora sí está,
+   así que hay que descontarla junto con el hueco y los botones. */
+#crush-card {
+  height: calc(100dvh - 150px - var(--crush-nav-h) - var(--crush-gap) - var(--crush-actions-h) - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  max-height: 560px !important;
+}
