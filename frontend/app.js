@@ -5915,6 +5915,9 @@ function sw(id,label,opts){
   if((id==='uchats'||id==='chats')&&typeof fetchAndRenderChats==='function')fetchAndRenderChats();
   if(id==='hangouts'&&typeof fetchAndRenderHangouts==='function')fetchAndRenderHangouts();
   if(id==='profile'){
+    // Entrar a Profile siempre aterriza en la lista, nunca en la subvista donde
+    // se quedó la última vez. (openMatchFilters abre la suya después de este sw.)
+    if(typeof _profBack==='function')try{_profBack();}catch(e){}
     if(typeof renderBadges==='function')renderBadges();
     if(typeof syncVerificationStatus==='function')syncVerificationStatus();
     if(typeof apiClient!=='undefined'&&apiClient.getAccessToken()){
@@ -5956,24 +5959,39 @@ function _profileLikeBoost(pct){
   return (1 + (p/100)*2.5).toFixed(1);
 }
 function _renderCompleteness(){
+  var c=_profileCompleteness();
+  var isEs=window.currentLang==='es';
+
+  // El % y su barra también viven en la tarjeta de identidad de arriba.
+  var head=document.getElementById('prof-headpct');
+  if(head&&typeof userPro!=='undefined'&&userPro){
+    head.innerHTML='<div style="font-size:var(--fs-xs);font-weight:800;color:#dc2626;margin-bottom:4px;">'+c.pct+'% '+(isEs?'completo':'Complete')+'</div>'+
+      '<div style="height:6px;border-radius:var(--rad-xs);background:rgba(255,255,255,0.09);overflow:hidden;">'+
+        '<div style="height:100%;width:'+c.pct+'%;background:#dc2626;border-radius:var(--rad-xs);"></div>'+
+      '</div>';
+  }
+
   var el=document.getElementById('prof-completeness');if(!el||typeof userPro==='undefined'||!userPro)return;
-  var c=_profileCompleteness();if(c.pct>=100){el.style.display='none';return;}
-  var tip=!(userPro.bio&&userPro.bio.trim())?'Add a bio':((!userPro.prompts||!userPro.prompts.length)?'Add a prompt':((!userPro.interests||userPro.interests.length<3)?'Add interests':'Complete your vibe'));
+  if(c.pct>=100){el.style.display='none';return;}
+  var tip=!(userPro.bio&&userPro.bio.trim())?(isEs?'Añade una bio':'Add a bio'):((!userPro.prompts||!userPro.prompts.length)?(isEs?'Añade un prompt':'Add a prompt'):((!userPro.interests||userPro.interests.length<3)?(isEs?'Añade intereses':'Add interests'):(isEs?'Completa tu vibe':'Complete your vibe')));
   el.style.display='block';
-  var A=_profAccent();
-  el.innerHTML='<div onclick="openEdit()" style="cursor:pointer;background:linear-gradient(135deg,color-mix(in srgb,'+A+' 14%,transparent),rgba(255,255,255,0.03));border:1.5px solid color-mix(in srgb,'+A+' 50%,transparent);border-radius:var(--rad-lg);padding:14px 16px;'+A+' 22%,transparent);backdrop-filter:blur(10px);">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;">'+
-      '<span style="font-size:var(--fs-base);font-weight:700;color:#ffffff;display:flex;align-items:center;gap:6px;white-space:nowrap;">'+icon('zap',15)+' Profile <span style="color:'+A+';text-shadow:0 0 10px color-mix(in srgb,'+A+' 80%,transparent);">'+c.pct+'%</span> complete</span>'+
-      ''+
+  // Anillo a la derecha, como la maqueta: el mismo dato que la barra de arriba,
+  // pero aquí con el motivo para completarlo. El multiplicador escala con el
+  // porcentaje (1.0x vacío → 3.5x completo) en vez de prometer una cifra fija.
+  var R=20, C2=2*Math.PI*R, off=C2*(1-c.pct/100);
+  el.innerHTML='<div class="pf-card" onclick="_profOpen(\'about\')" style="cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px;">'+
+    '<div style="flex:1;min-width:0;">'+
+      '<div class="pf-card-t" style="display:flex;align-items:center;gap:6px;">'+icon('zap',15)+' '+(isEs?'Completa tu perfil':'Complete your profile')+'</div>'+
+      '<div style="font-size:var(--fs-xs);color:var(--fg2);margin-top:4px;font-weight:500;line-height:1.4;">'+tip+(isEs?' para conseguir ':' to get ')+'<b style="color:#fde68a;font-weight:800;">'+_profileLikeBoost(c.pct)+'x '+(isEs?'más Likes':'more Likes')+'</b>'+(isEs?' y subir en el Top de tu universidad':' and climb your university Top Rank')+'</div>'+
     '</div>'+
-    // The likes multiplier used to be a separate pill. It now lives in the
-    // sentence and scales with how complete the profile is — 1.0x at nothing
-    // filled in, up to 3.5x at 100% — so the number is a reason to keep going
-    // rather than a fixed promise.
-    '<div style="font-size:var(--fs-xs);color:rgba(255,255,255,0.72);margin-bottom:9px;font-weight:500;">'+tip+' to get <b style="color:#fde68a;font-weight:800;">'+_profileLikeBoost(c.pct)+'x more Likes</b> and climb your university Top Rank</div>'+
-    '<div style="height:8px;border-radius:var(--rad-xs);background:rgba(0,0,0,0.8);overflow:hidden;border:1px solid rgba(255,255,255,0.1);">'+
-      '<div style="height:100%;width:'+c.pct+'%;background:linear-gradient(90deg,color-mix(in srgb,'+A+' 45%,#06b6d4),'+A+');border-radius:var(--rad-xs);'+A+' 80%,transparent);"></div>'+
+    '<div style="flex-shrink:0;position:relative;width:52px;height:52px;">'+
+      '<svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg);">'+
+        '<circle cx="26" cy="26" r="'+R+'" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="5"/>'+
+        '<circle cx="26" cy="26" r="'+R+'" fill="none" stroke="#dc2626" stroke-width="5" stroke-linecap="round" stroke-dasharray="'+C2.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
+      '</svg>'+
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:800;color:#fff;">'+c.pct+'%</div>'+
     '</div>'+
+    '<span class="pf-chev">›</span>'+
   '</div>';
 }
 function updateProfileUI(){
@@ -6040,20 +6058,8 @@ function updateProfileUI(){
     else{clubsWrap.style.display='none';}
   }
   
-  // Set profile cover/background photo dynamically
-  var coverEl = document.getElementById('prof-cover');
-  if (coverEl) {
-    var coverUrl = 'images/unidad-deportiva-uadec.jpg'; // default fallback
-    if (userPro && userPro.coverPhoto) {
-      coverUrl = userPro.coverPhoto;
-    } else {
-      var currentUni = _getCurrentUni();
-      if (currentUni && currentUni.coverPhotos && currentUni.coverPhotos.length) {
-        coverUrl = currentUni.coverPhotos[0];
-      }
-    }
-    coverEl.style.backgroundImage = 'linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.75)), url("' + coverUrl + '")';
-  }
+  // (La foto de portada se retiró del perfil: la cabecera ahora es una tarjeta
+  //  compacta, así que ya no hay #prof-cover que pintar.)
   var statFriends = document.getElementById('prof-stat-friends');
   var statMatches = document.getElementById('prof-stat-matches');
   var statEvents = document.getElementById('prof-stat-events');
@@ -6069,25 +6075,86 @@ function updateProfileUI(){
     pun.textContent = uObj ? uObj.name : ((userPro && userPro.university) || 'University');
   }
 }
+// ── Profile: lista de filas + subvistas a pantalla completa ────────────────
+// La barra de cuatro pestañas se fue. Cada fila abre su panel ocupando toda la
+// pantalla, con una flecha de volver. Los paneles son los mismos de siempre —
+// solo cambia cómo se llega a ellos — así que switchProfTab se conserva como el
+// motor que los muestra y todos sus wrappers (edad, preview, filtros sucios)
+// siguen enganchados sin tocarlos.
+var _PROF_SUBS={
+  about:   {t:'About',              hue:'#dc2626'},
+  school:  {t:'School',             hue:'#a855f7'},
+  preview: {t:'Preview',            hue:'#22d3ee'},
+  verify:  {t:'Verification',       hue:'#1d9bf0'},
+  activity:{t:'Activity',           hue:'#fbbf24'},
+  safety:  {t:'Safety Center',      hue:'#34d399'},
+  filters: {t:'Dating Preferences', hue:'#60a5fa'}
+};
+var _profSub='';
+function _profOpen(key){
+  if(!_PROF_SUBS[key])return;
+  _profSub=key;
+  var list=document.getElementById('prof-list');if(list)list.style.display='none';
+  var sub=document.getElementById('prof-sub');if(sub)sub.style.display='block';
+  var ttl=document.getElementById('prof-sub-title');if(ttl)ttl.textContent=_PROF_SUBS[key].t;
+  switchProfTab(key);
+  try{ document.getElementById('sec-profile').scrollTop=0; window.scrollTo(0,0); }catch(e){}
+  // El back de Android/iOS cierra la subvista antes que la sección.
+  try{ if(window.NavigationManager&&window.NavigationManager.pushSectionHistory)
+    window.NavigationManager.pushSectionHistory('profile','Mi Perfil'); }catch(e){}
+}
+function _profBack(){
+  _profSub='';
+  var sub=document.getElementById('prof-sub');if(sub)sub.style.display='none';
+  var list=document.getElementById('prof-list');if(list)list.style.display='block';
+  switchProfTab('');
+  if(typeof _profRenderRows==='function')_profRenderRows();
+  if(typeof _renderCompleteness==='function')try{_renderCompleteness();}catch(e){}
+  try{ document.getElementById('sec-profile').scrollTop=0; }catch(e){}
+}
+function _profRowsHtml(){
+  var isEs=window.currentLang==='es';
+  function row(icoName,hue,title,sub,action){
+    return '<div class="set-row" style="cursor:pointer;" onclick="'+action+'">'+
+      '<div class="set-ic" style="background:color-mix(in srgb,'+hue+' 16%,#000);border:1px solid color-mix(in srgb,'+hue+' 55%,transparent);color:'+hue+';">'+icon(icoName,18)+'</div>'+
+      '<div style="flex:1;min-width:0;"><div class="set-t">'+title+'</div><div class="set-s">'+sub+'</div></div>'+
+      '<span style="color:var(--fg3);font-size:var(--fs-lg);">›</span>'+
+    '</div>';
+  }
+  return '<div class="pf-grouph">'+(isEs?'Editar perfil':'Edit Profile')+'</div>'+
+    '<div class="set-card">'+
+      row('user','#dc2626',   isEs?'Sobre ti':'About',      isEs?'Bio, intereses, estilo de vida':'Bio, interests, lifestyle', "_profOpen('about')")+
+      row('grad','#a855f7',   isEs?'Escuela':'School',      isEs?'Carrera, semestre, año de graduación':'Major, semester, graduation year', "_profOpen('school')")+
+      row('chat','#fb923c',   'Prompts',                    isEs?'Tus respuestas':'Your answers to prompts', 'openPromptsEditor()')+
+      row('eye','#22d3ee',    isEs?'Vista previa':'Preview',isEs?'Cómo te ven los demás':'How others see you', "_profOpen('preview')")+
+    '</div>'+
+    '<div class="set-card" style="margin-top:14px;">'+
+      row('zap','#fbbf24',    'Activity',                   isEs?'Tus matches, amigos y eventos':'See your matches, friends and events', "_profOpen('activity')")+
+      row('shield','#34d399', isEs?'Centro de Seguridad':'Safety Center', isEs?'Herramientas y amigos de confianza':'Manage your safety tools and trusted friends', "_profOpen('safety')")+
+      row('target','#60a5fa', isEs?'Preferencias':'Dating Preferences',  isEs?'Con quién quieres conectar':'Who you want to connect with', "_profOpen('filters')")+
+      row('check','#1d9bf0',  isEs?'Verificación':'Verification',        isEs?'Consigue tu insignia':'Get your badge', "_profOpen('verify')")+
+      row('settings','#94a3b8', isEs?'Ajustes':'Settings',  isEs?'Cuenta, notificaciones y más':'Account, notifications and more', "if(typeof openSettings==='function')openSettings()")+
+    '</div>';
+}
+function _profRenderRows(){
+  var box=document.getElementById('prof-rows');if(!box)return;
+  box.innerHTML=_profRowsHtml();
+}
 function switchProfTab(tab){
-  if(tab==='posts')tab='crush';
-  // #match-filters-wrap no longer moves between panels: it is declared inside
-  // #ptab-panel-filters and stays there. Shuttling it into #ptab-panel-crush for
-  // every non-filters tab is what made the filters reappear on My Card.
-  ['crush','activity','safety','filters'].forEach(function(t){
-    var btn=document.getElementById('ptab-'+t);
+  if(tab==='posts')tab='about';
+  if(tab==='crush')tab='about';
+  ['about','school','preview','verify','activity','safety','filters'].forEach(function(t){
     var panel=document.getElementById('ptab-panel-'+t);
-    if(btn)btn.classList.toggle('active',t===tab);
     if(panel)panel.style.display=(t===tab)?'block':'none';
   });
-  // Tint the whole Profile section with the active tab's hue
+  // Tint the whole Profile section with the active subview's hue
   var _sec=document.getElementById('sec-profile');
-  if(_sec)_sec.style.setProperty('--prof-accent',PROF_TAB_ACCENT[tab]||PROF_TAB_ACCENT.crush);
+  var _h=(_PROF_SUBS[tab]&&_PROF_SUBS[tab].hue)||PROF_TAB_ACCENT.crush;
+  if(_sec)_sec.style.setProperty('--prof-accent',_h);
   if(typeof _renderCompleteness==='function')try{_renderCompleteness();}catch(e){}
   if(tab==='filters'&&typeof _initFilterAccordion==='function')try{_initFilterAccordion();}catch(e){}
-  if(tab==='crush'){
+  if(tab==='about'||tab==='school'){
     if(typeof _initProfileEditor==='function')_initProfileEditor();
-    if(typeof _initFilterAccordion==='function')_initFilterAccordion();
   }
   if(tab==='safety'&&typeof renderSafetyPanel==='function')renderSafetyPanel();
   if(tab==='activity'&&typeof renderActivityLog==='function')renderActivityLog();
@@ -6103,7 +6170,10 @@ function _updateFilterBadge(sec){
 // Jump from the Crush swipe page straight to the Match Filters (which live in Profile → Crush)
 function openMatchFilters(){
   if(typeof sw==='function')sw('profile');
-  if(typeof switchProfTab==='function')switchProfTab('filters');
+  // Ya no basta con switchProfTab: los paneles viven detrás de la lista de
+  // filas, así que hay que abrir la subvista para que se vea.
+  if(typeof _profOpen==='function')_profOpen('filters');
+  else if(typeof switchProfTab==='function')switchProfTab('filters');
   setTimeout(function(){
     var panel=document.getElementById('ptab-panel-filters');if(!panel)return;
     var divs=panel.querySelectorAll?panel.querySelectorAll('div'):[];var title=null;
@@ -6156,7 +6226,9 @@ function openEdit(){var m=document.getElementById('edit-modal');if(m)m.classList
 function onEditProfileBtn(){
   var mode=(typeof obMode!=='undefined'&&obMode)||(typeof userMode!=='undefined'&&userMode)||'student';
   if(mode==='business'){openEdit();return;}
-  if(typeof switchProfTab==='function')switchProfTab('crush');
+  // El campo de bio vive ahora en la subvista About.
+  if(typeof _profOpen==='function')_profOpen('about');
+  else if(typeof switchProfTab==='function')switchProfTab('about');
   _initProfileEditor();
   setTimeout(function(){var el=document.getElementById('pf-bio');if(el){try{el.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}el.focus();}},120);
 }
@@ -14468,6 +14540,19 @@ function renderMsgs(){
       box.appendChild(div);return;
     }
 
+    // 5b. Perfil compartido. Mismo esquema que la tarjeta de juego: el `type`
+    // viaja tal cual por el backend (Message.type es un String libre) y aquí se
+    // pinta como tarjeta en vez de como texto suelto. El nombre va en m.txt.
+    if (m.type === 'PROFILE') {
+      var _pname = String(m.txt || '').replace(/\s*\(@[^)]*\)\s*$/, '').trim();
+      div.style.background = 'transparent';
+      div.style.padding = '0';
+      div.innerHTML = '<div class="msg-game-card" style="cursor:pointer;" onclick="if(typeof openProfileCardByName===\'function\')openProfileCardByName(\'' + _pname.replace(/'/g, "\\'") + '\')">'+
+        '<div class="msg-game-badge">'+icon('user',13)+' '+(window.currentLang==='es'?'Perfil':'Profile')+'</div>'+
+        '<div class="msg-game-title">' + _e(m.txt) + '</div></div>';
+      box.appendChild(div);return;
+    }
+
     // 6. Group message formatting
     if(!m.out&&isGrp){
       var txt=m.txt||'';var from=m.from||'';var body=txt;
@@ -17903,8 +17988,10 @@ function _profileMoreSheet(name){
   var friend=(typeof _isFriend==='function')&&_isFriend(name);
   var blocked=(typeof _isBlockedProfile==='function')&&_isBlockedProfile(name);
   var m=document.createElement('div');m.id='profile-actions-sheet';m.className='mov open';m.style.zIndex='10000';m.onclick=function(){_closeProfileActions();};
+  var isEs=window.currentLang==='es';
   m.innerHTML='<div class="ig-sheet" onclick="event.stopPropagation();">'+
     '<div class="ig-sheet-grp">'+
+      '<button class="ig-act" onclick="_closeProfileActions();_openSendProfileSheet(\''+safe+'\')">'+(isEs?'Enviar perfil':'Send profile')+'</button>'+
       (friend?'<button class="ig-act" onclick="_closeProfileActions();_unfriendProfile(\''+safe+'\')">Unfriend</button>':'')+
       '<button class="ig-act" onclick="_closeProfileActions();_toggleBlockProfile(\''+safe+'\')">'+(blocked?'Unblock':'Block')+'</button>'+
       '<button class="ig-act" style="color:#dc2626;" onclick="_reportProfile(\''+safe+'\')">Report</button>'+
@@ -17912,6 +17999,112 @@ function _profileMoreSheet(name){
     '<div class="ig-sheet-grp"><button class="ig-act bold" onclick="_closeProfileActions()">Cancel</button></div>'+
   '</div>';
   document.body.appendChild(m);
+}
+
+// ── Enviar perfil a amigos y grupos ────────────────────────────────────────
+// Los destinatarios salen de dos sitios distintos porque la app los guarda en
+// dos sitios distintos: los chats 1-a-1 vienen de _chatPartnerCache (servidor,
+// con su matchId) y los grupos de window.groupChatMeta (solo localStorage, sin
+// backend todavía). Por eso los grupos se marcan: el mensaje aparece, pero solo
+// en este dispositivo.
+function _sendProfileTargets(){
+  var out=[];
+  var seen={};
+  try{
+    var conv=window._chatPartnerCache||{};
+    Object.keys(conv).forEach(function(matchId){
+      var c=conv[matchId]||{}; var pt=c.partner||{};
+      var nm=((pt.firstName||'')+' '+(pt.lastName||'')).trim()||pt.handle||'Chat';
+      seen[nm.toLowerCase()]=1;
+      out.push({kind:'dm',id:matchId,name:nm,
+        photo:(pt.photos&&pt.photos[0]&&pt.photos[0].url)||'',
+        init:nm.charAt(0).toUpperCase(),color:'#2b5fd9',local:false});
+    });
+  }catch(e){}
+  // Amigos sin conversación abierta: se puede enviar igual, abriendo un chat local.
+  try{
+    (typeof _friendsForPicker==='function'?_friendsForPicker():[]).forEach(function(f){
+      if(seen[String(f.name||'').toLowerCase()])return;
+      out.push({kind:'friend',id:null,name:f.name,photo:f.photo||'',
+        init:f.init||'?',color:f.color||'#2b5fd9',local:true});
+    });
+  }catch(e){}
+  try{
+    var gm=window.groupChatMeta||{};
+    Object.keys(gm).forEach(function(gid){
+      var g=gm[gid]||{};
+      out.push({kind:'group',id:gid,name:g.name||'Group',photo:g.avatarUrl||'',
+        init:(g.name||'G').charAt(0).toUpperCase(),color:'#8b5cf6',local:true});
+    });
+  }catch(e){}
+  return out;
+}
+function _openSendProfileSheet(name){
+  var isEs=window.currentLang==='es';
+  var old=document.getElementById('send-profile-sheet');if(old)old.remove();
+  var targets=_sendProfileTargets();
+  window._sendProfileTargets=targets;
+  window._sendProfileName=name;
+
+  function row(t,i){
+    var av=t.photo
+      ? '<div style="width:40px;height:40px;border-radius:50%;background:url(\''+t.photo+'\') center/cover;flex-shrink:0;"></div>'
+      : '<div style="width:40px;height:40px;border-radius:50%;background:'+t.color+';display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;">'+t.init+'</div>';
+    var note=t.kind==='group'?'<div style="font-size:var(--fs-2xs);color:var(--fg3);">'+(isEs?'solo en este dispositivo':'this device only')+'</div>':'';
+    return '<div class="spf-row" data-nm="'+String(t.name).replace(/"/g,'')+'" style="display:flex;align-items:center;gap:11px;padding:9px 4px;">'+
+      av+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="font-size:var(--fs-base);font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+t.name+'</div>'+note+
+      '</div>'+
+      '<button id="spf-btn-'+i+'" onclick="_sendProfileTo('+i+')" style="flex-shrink:0;padding:8px 16px;border-radius:var(--rad-pill);border:none;background:#dc2626;color:#fff;font-family:var(--font);font-size:var(--fs-xs);font-weight:700;cursor:pointer;">'+(isEs?'Enviar':'Send')+'</button>'+
+    '</div>';
+  }
+  var dms=targets.map(function(t,i){return t.kind!=='group'?row(t,i):'';}).join('');
+  var grps=targets.map(function(t,i){return t.kind==='group'?row(t,i):'';}).join('');
+  var body='';
+  if(dms)body+='<div class="ob4-accfield" style="margin-top:4px;">'+(isEs?'Amigos':'Friends')+'</div>'+dms;
+  if(grps)body+='<div class="ob4-accfield">'+(isEs?'Grupos':'Groups')+'</div>'+grps;
+  if(!body)body='<div style="text-align:center;color:var(--fg2);font-size:var(--fs-base);padding:26px 10px;">'+(isEs?'Aún no tienes con quién compartir.':'No one to share with yet.')+'</div>';
+
+  var m=document.createElement('div');
+  m.id='send-profile-sheet';m.className='mov open';m.style.zIndex='10011';
+  m.onclick=function(){m.remove();};
+  m.innerHTML='<div class="msheet" onclick="event.stopPropagation();" style="max-height:80vh;overflow-y:auto;">'+
+    '<div class="mhnd"></div>'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">'+
+      '<div class="mtitle" style="margin:0;">'+(isEs?'Enviar perfil':'Send profile')+'</div>'+
+      '<div onclick="document.getElementById(\'send-profile-sheet\').remove()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;">✕</div>'+
+    '</div>'+
+    '<div style="font-size:var(--fs-sm);color:var(--fg2);margin-bottom:8px;">'+name+'</div>'+
+    body+
+  '</div>';
+  document.body.appendChild(m);
+}
+function _sendProfileTo(i){
+  var t=(window._sendProfileTargets||[])[i];if(!t)return;
+  var name=window._sendProfileName||'';
+  var isEs=window.currentLang==='es';
+  var p=(window._ucViewUser&&window._ucViewUser.p)||{};
+  var handle=(window._ucViewUser&&window._ucViewUser.handle)||p.handle||'';
+  var txt=name+(handle?(' (@'+String(handle).replace(/^@/,'')+')'):'');
+
+  var chatId=t.id;
+  if(!chatId){
+    // Amigo sin conversación abierta: se usa el mismo esquema de id local que
+    // _createChatFromPicker, para que el chat exista al abrirlo.
+    chatId='dm_'+Date.now();
+  }
+  try{
+    window.chatHistory=window.chatHistory||{};
+    if(!chatHistory[chatId])chatHistory[chatId]=[];
+    chatHistory[chatId].push({txt:txt,out:true,at:Date.now(),type:'PROFILE'});
+  }catch(e){}
+  // Solo los chats 1-a-1 del servidor se persisten; los grupos aún no existen ahí.
+  if(t.kind==='dm' && typeof apiClient!=='undefined' && apiClient.getAccessToken()){
+    try{ apiClient.sendChatMessage(t.id, txt, 'PROFILE'); }catch(e){}
+  }
+  var btn=document.getElementById('spf-btn-'+i);
+  if(btn){btn.textContent=isEs?'✓ Enviado':'✓ Sent';btn.disabled=true;btn.style.background='#22c55e';btn.style.cursor='default';}
 }
 
 // Block/unblock toggle. Blocking still runs the existing _blockProfile() side
@@ -24057,15 +24250,17 @@ sw=function(id,lbl){
     if(count<0){
       // Redirect to Profile tab with a soft warning banner
       setTimeout(function(){
-        sw('profile','Profile');switchProfTab('crush');
+        // Las fotos ya no viven en un panel: están en la lista principal del
+        // perfil, así que el aviso va arriba de ella y sw() basta.
+        sw('profile','Profile');
         var warn=document.getElementById('crush-photo-warn');
         if(!warn){
           warn=document.createElement('div');
           warn.id='crush-photo-warn';
           warn.style.cssText='background:rgba(234,179,8,0.15);border:1px solid rgba(234,179,8,0.4);border-radius:var(--rad-sm);padding:10px 14px;margin:0 var(--s) 10px;display:flex;align-items:center;gap:10px;font-size:var(--fs-sm);color:#fbbf24;font-weight:700;line-height:1.4;';
           warn.innerHTML='<span style="font-size:var(--fs-xl);">'+icon('camera',16)+'</span><span>You need at least <strong>2 photos</strong> to match with anyone. Add them below!</span>';
-          var filterPanel=document.getElementById('ptab-panel-crush');
-          if(filterPanel)filterPanel.insertBefore(warn,filterPanel.firstChild);
+          var listPanel=document.getElementById('prof-list');
+          if(listPanel)listPanel.insertBefore(warn,listPanel.firstChild);
         }
       },80);
     } else {
@@ -24541,13 +24736,13 @@ function renderCrushPreview(){
 var _origSwitchCrushTabPreview=switchCrushTab;
 switchCrushTab=function(tab){_origSwitchCrushTabPreview(tab);};
 var _origSwitchProfTabForPreview=switchProfTab;
-switchProfTab=function(tab){_origSwitchProfTabForPreview(tab);if(tab==='crush'){setTimeout(renderCrushPreview,80);setTimeout(function(){if(typeof onUcMilesChange==='function')onUcMilesChange(typeof _crushMiles!=='undefined'?_crushMiles:10);},100);}};
+switchProfTab=function(tab){_origSwitchProfTabForPreview(tab);if(tab==='preview'){setTimeout(renderCrushPreview,80);setTimeout(function(){if(typeof onUcMilesChange==='function')onUcMilesChange(typeof _crushMiles!=='undefined'?_crushMiles:10);},100);}};
 // Prompt to save unapplied filter changes before leaving the Filters tab —
 // wraps the outermost switchProfTab so the confirm fires before any of the
 // tab-switch side effects above run.
 var _origSwitchProfTabForDirtyGuard=switchProfTab;
 switchProfTab=function(tab){
-  var onFilters=document.getElementById('ptab-filters')&&document.getElementById('ptab-filters').classList.contains('active');
+  var onFilters=(typeof _profSub!=='undefined'&&_profSub==='filters');
   if(onFilters&&tab!=='filters'&&typeof _filtersDirty!=='undefined'&&_filtersDirty){
     // window.confirm is overridden (see ugzModal, ~line 1104) to show a custom
     // modal and return a Promise, not a boolean — this must resolve before the
@@ -24567,7 +24762,7 @@ switchProfTab=function(tab){
 // sw() side-effect wraps above.
 var _origSwForDirtyGuard=sw;
 sw=function(id,label,opts){
-  var onFilters=id!=='profile'&&document.getElementById('sec-profile')&&document.getElementById('sec-profile').classList.contains('active')&&document.getElementById('ptab-filters')&&document.getElementById('ptab-filters').classList.contains('active');
+  var onFilters=id!=='profile'&&document.getElementById('sec-profile')&&document.getElementById('sec-profile').classList.contains('active')&&(typeof _profSub!=='undefined'&&_profSub==='filters');
   if(onFilters&&typeof _filtersDirty!=='undefined'&&_filtersDirty){
     Promise.resolve(confirm('¿Quieres guardar tus filtros?')).then(function(ok){
       if(ok){if(typeof applyCrushFilters==='function')applyCrushFilters();}
@@ -24587,7 +24782,7 @@ switchCrushTab=function(tab){
       alert('Add at least 2 photos to your Crush profile before you can start discovering matches! 📸\n\nGo to Profile → Crush to add them.');
       // Route them to Profile so they can add photos
       if(typeof sw==='function')sw('profile','Profile');
-      if(typeof _origSwitchProfTabForPreview==='function')_origSwitchProfTabForPreview('crush');
+      if(typeof _origSwitchProfTabForPreview==='function')_origSwitchProfTabForPreview('about');
       return;
     }
   }

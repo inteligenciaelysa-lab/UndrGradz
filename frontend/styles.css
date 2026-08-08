@@ -6859,7 +6859,7 @@ html.light-secondary .jbtn {
 /* ── Segmented pairs ── */
 /* Toggles de Profile con el mismo look que el pill Sign Up / Log In del auth:
    cápsula oscura + pastilla roja activa. */
-#ptab-panel-crush .seg2 {
+#prof-sub .seg2 {
   display: flex;
   gap: 4px;
   background: rgba(6, 9, 18, 0.72);
@@ -6868,7 +6868,7 @@ html.light-secondary .jbtn {
   padding: 5px;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.45);
 }
-#ptab-panel-crush .seg2 .seg2-half {
+#prof-sub .seg2 .seg2-half {
   flex: 1;
   border: none !important;
   border-radius: var(--rad-pill) !important;
@@ -6880,10 +6880,10 @@ html.light-secondary .jbtn {
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
               box-shadow var(--dur) var(--ease), transform var(--dur-fast) var(--ease);
 }
-#ptab-panel-crush .seg2 .seg2-half:active { transform: scale(0.97); }
+#prof-sub .seg2 .seg2-half:active { transform: scale(0.97); }
 /* Activo: _pfStyleBtns() escribe background:var(--p) inline; este selector lo
    detecta y lo pinta como el pill rojo del auth. */
-#ptab-panel-crush .seg2 .seg2-half[style*="var(--p)"] {
+#prof-sub .seg2 .seg2-half[style*="var(--p)"] {
   background: linear-gradient(160deg, color-mix(in srgb, var(--p) 92%, #fff), color-mix(in srgb, var(--p) 52%, #000)) !important;
   color: #fff !important;
   box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--p) 70%, transparent),
@@ -6891,7 +6891,7 @@ html.light-secondary .jbtn {
 }
 
 /* ── Action rows, one hue each ── */
-#ptab-panel-crush .act-btn {
+#prof-sub .act-btn {
   --act: #3d7bff;
   display: flex;
   align-items: center;
@@ -6909,13 +6909,13 @@ html.light-secondary .jbtn {
 /* Explicit attribute, not an onclick substring: the previous version matched
    button[onclick*="openPromptsEditor"] and friends, so renaming any handler
    dropped the styling silently. */
-#ptab-panel-crush .act-btn[data-hue="blue"]   { --act: #3d7bff; }
-#ptab-panel-crush .act-btn[data-hue="violet"] { --act: #c084fc; }
-#ptab-panel-crush .act-btn[data-hue="cyan"]   { --act: #06b6d4; }
-#ptab-panel-crush .act-btn[data-hue="amber"]  { --act: #fbbf24; }
+#prof-sub .act-btn[data-hue="blue"]   { --act: #3d7bff; }
+#prof-sub .act-btn[data-hue="violet"] { --act: #c084fc; }
+#prof-sub .act-btn[data-hue="cyan"]   { --act: #06b6d4; }
+#prof-sub .act-btn[data-hue="amber"]  { --act: #fbbf24; }
 /* Same tinted-tile idea as the DATE & TIME / LOCATION icons in the event modal:
    it gives the emoji a home and the row a fixed left edge to scan down. */
-#ptab-panel-crush .act-btn .act-ico {
+#prof-sub .act-btn .act-ico {
   width: 32px;
   height: 32px;
   flex-shrink: 0;
@@ -7920,7 +7920,9 @@ body.is-ios .screen::before {
   padding: 8px 4px;
   background: none;
   border: none;
-  color: #dc2626;
+  /* Ámbar, no el rojo de marca: aquí el rojo se confundía con una acción
+     destructiva, y esto solo baraja la lista. */
+  color: #fbbf24;
   font-family: var(--font);
   font-size: var(--fs-sm);
   font-weight: 700;
@@ -12308,4 +12310,65 @@ html .ob4-step.cur .ob4-lbl {
   border: none !important;
   color: #fff !important;
   font-weight: 700 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PROFILE · lista de tarjetas
+   La portada gigante y la barra de cuatro pestañas se fueron. Ahora la
+   pantalla es una pila de tarjetas y dos grupos de filas (.set-card, que ya
+   existía en Ajustes y se reutiliza tal cual). Clases nuevas con prefijo
+   .pf- para no chocar con .prof-* ni con .pf-bio/.pf-major, que son ids de
+   campos y no clases.
+   ═══════════════════════════════════════════════════════════════════════ */
+.pf-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--gbdl);
+  border-radius: var(--rad-lg);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.pf-card-t {
+  font-size: var(--fs-base);
+  font-weight: 800;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+/* El contador x/6 de las fotos. Rojo tenue: informa, no llama la atención. */
+.pf-badge {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #dc2626 18%, transparent);
+  border: 1px solid color-mix(in srgb, #dc2626 45%, transparent);
+  color: #fca5a5;
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+.pf-chev {
+  flex-shrink: 0;
+  color: var(--fg3);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  line-height: 1;
+}
+/* Encabezado de grupo de filas ("Edit Profile"). Mismo papel que .set-h pero
+   sin su margen superior de 20px, que aquí abría un hueco de más. */
+.pf-grouph {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--fg2);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  margin: 2px 2px 8px;
+}
+/* Las filas del perfil son .set-row, pero allí no hay botón "Change" a la
+   derecha: la fila entera es el objetivo del toque. */
+#prof-rows .set-row:active {
+  background: rgba(255, 255, 255, 0.05);
+}
+#prof-sub-hdr button:active {
+  background: rgba(255, 255, 255, 0.16);
 }
